@@ -11,11 +11,13 @@ import org.slf4j.LoggerFactory;
 
 import com.smartstream.morf.api.config.Definitions;
 import com.smartstream.morf.api.config.EntityType;
+import com.smartstream.morf.api.config.NodeDefinition;
 import com.smartstream.morf.api.core.entity.Entity;
 import com.smartstream.morf.api.core.entity.EntityContext;
 import com.smartstream.morf.api.core.entity.EntityState;
 import com.smartstream.morf.api.core.entity.RefNode;
 import com.smartstream.morf.api.core.entity.ToManyNode;
+import com.smartstream.morf.api.core.entity.ValueNode;
 import com.smartstream.morf.api.query.QJoin;
 import com.smartstream.morf.api.query.QueryObject;
 import com.smartstream.morf.server.jdbc.helper.PreparedStatementHelper;
@@ -92,6 +94,7 @@ public class QueryExecution<T> {
     void finish() {
     	if (entityLoaders != null) {
 	    	LOG.debug("Finishing query execution....");
+	    	downcastAbstractEntities(query);
 	    	processToManyRelations(query);
 	    	setEntityStateToLoadedAndRefresh();
 	    	verifyAllFetchedDataIsLinked();
@@ -99,6 +102,66 @@ public class QueryExecution<T> {
 	    	LOG.debug("Finished query execution.");
     	}
     }
+
+    /**
+     * Finds the concrete entity type for any abstract entities
+     */
+    private void downcastAbstractEntities(QueryObject<?> queryObject) {
+        List<Entity> loadedEntities = entityLoaders.getEntitiesForQueryObject( queryObject );
+        for (Entity e: loadedEntities) {
+            if (e.getEntityType().isAbstract()) {
+                LOG.debug("Attempting to downcast abstract entity {}", e);
+                downcastEntity(e);
+            }
+        }
+
+        for (QJoin join: queryObject.getJoins()) {
+            downcastAbstractEntities(join.getTo());
+        }
+    }
+
+    private void downcastEntity(Entity entity) {
+        List<EntityType> candidateChildTypes = definitions.getEntityTypesExtending( entity.getEntityType() );
+        EntityType entityType = null;
+        for (EntityType et: candidateChildTypes) {
+            if (canDowncastEntity(entity, et)) {
+                if (entityType != null) {
+                    throw new IllegalStateException("Multiple downcast paths for entity '" + entity + "'");
+                }
+                entityType = et;
+            }
+        }
+        if (entityType == null) {
+            throw new IllegalStateException("No suitable type for downcast for entity '" + entity + "'");
+        }
+        entity.downcast(entityType);
+    }
+
+    /**
+     * This is based on checking for any fixed value nodes in
+     * the child type which "lock" the entity for us
+     * @param entity
+     * @return
+     */
+    private boolean canDowncastEntity(Entity entity, EntityType entityType) {
+        int fvFound = 0;
+        int fvMatch = 0;
+        for (NodeDefinition nd: entityType.getNodeDefinitions()) {
+            final Object fv = nd.getFixedValue();
+            if (fv != null) {
+                fvFound++;
+                final ValueNode node = entity.getChild(nd.getName(), ValueNode.class, false);
+                if (node != null && fv.equals(node.getValue())) {
+                    fvMatch++;
+                }
+            }
+        }
+        if (fvFound == 0) {
+            throw new IllegalStateException("Invalid downcast candidate '" + entityType + "', no fixed values defined");
+        }
+        return fvFound == fvMatch;
+    }
+
 
     /**
      * Sets all ToMany relations which had query joins to 'fetched'
@@ -113,7 +176,7 @@ public class QueryExecution<T> {
     	//for each tomany ref set fetched to true iff the queryobject had a join for that property
     	for (Entity loadedEntity: loadedEntities) {
 	    	for (ToManyNode toManyNode: loadedEntity.getChildren(ToManyNode.class)) {
-	    		if (findJoin(toManyNode.getName(), queryObject)) {
+	    		if (findJoin(toManyNode.getName(), queryObject) != null) {
 	    			toManyNode.setFetched(true);
 	    		}
 	    	}
@@ -153,15 +216,21 @@ public class QueryExecution<T> {
     	if (loadedEntities.isEmpty()) {
     		return;
     	}
-    	List<RefNode> refNodes = loadedEntities.get(0).getChildren(RefNode.class);
-    	for (RefNode refNode: refNodes) {
-    		if (refNode.getEntityKey() != null && findJoin(refNode.getName(), queryObject)) {
-    			if (refNode.getReference() == null) {
-    				throw new IllegalStateException("Joined FK key was not loaded: " + refNode);
-    			}
-    		}
+    	for (Entity e: loadedEntities) {
+        	List<RefNode> refNodes = e.getChildren(RefNode.class);
+        	for (RefNode refNode: refNodes) {
+        	    QJoin join = findJoin(refNode.getName(), queryObject);
+        		if (refNode.getEntityKey() != null && join != null) {
+        			if (refNode.getReference() == null) {
+        				throw new IllegalStateException("Joined FK key was not loaded: " + refNode);
+        			}
+        		}
+        	}
     	}
-
+        //repeat the process for refs relations in the joined queryobjects
+        for (QJoin join: queryObject.getJoins()) {
+            verifyRefs(join.getTo());
+        }
     }
 
     /**
@@ -182,13 +251,13 @@ public class QueryExecution<T> {
      * @param queryObject
      * @return true iff the join was found
      */
-    private boolean findJoin(String propertyName, QueryObject<?> queryObject) {
+    private QJoin findJoin(String propertyName, QueryObject<?> queryObject) {
     	for (QJoin join: queryObject.getJoins()) {
     		if (join.getFkeyProperty().equals(propertyName)) {
-    			return true;
+    			return join;
     		}
     	}
-    	return false;
+    	return null;
     }
 
     public QueryResult<T> getResult() {

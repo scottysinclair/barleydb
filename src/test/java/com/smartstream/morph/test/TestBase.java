@@ -131,6 +131,8 @@ public abstract class TestBase {
                     .withValue("name", JavaType.STRING, "NAME", JdbcType.VARCHAR)
                     .withEnum("syntaxType", SyntaxType.class, "SYNTAX_TYPE", JdbcType.INT)
                     .withValue("structureType", JavaType.INTEGER, "STRUCTURE_TYPE", JdbcType.INT)
+                    //in the abstract syntax structure is just a value node
+                    .withValue("structure", JavaType.LONG, "STRUCTURE_ID", JdbcType.BIGINT)
                     .withOne("user", com.smartstream.mac.model.User.class, "USER_ID", JdbcType.BIGINT)
                     .withOptimisticLock("modifiedAt", JavaType.LONG, "MODIFIED_AT", JdbcType.TIMESTAMP)
 

@@ -109,9 +109,17 @@ public class TestQuery extends TestBase  {
 		}
 	}
 
+	/**
+	 * Loads all ROOT syntaxes in one abstract query (XML + CSV)
+	 * Only concrete proxies are instantiated (XML + CSV) as the base proxy is
+	 * an abstract class which fundamentally cannot be instantiated.
+	 * @throws Exception
+	 */
 	@Test
 	public void testBaseSyntaxModels() throws Exception {
 	    QSyntaxModel qsyntax = new QSyntaxModel();
+	    qsyntax.where(qsyntax.syntaxType().equal(SyntaxType.ROOT));
+
 	    List<SyntaxModel> syntaxModels = entityContext.performQuery(qsyntax).getList();
         for (SyntaxModel syntaxModel: syntaxModels) {
             print("", syntaxModel);

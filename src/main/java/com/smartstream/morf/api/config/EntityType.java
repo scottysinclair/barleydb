@@ -24,6 +24,9 @@ public class EntityType implements Serializable {
 	@XmlAttribute(name = "abstract")
 	private boolean abstractEntity;
 
+	@XmlAttribute(name = "parentType")
+	private String parentTypeName;
+
 	@XmlAttribute(name="key")
 	private String keyNodeName;
 
@@ -32,7 +35,7 @@ public class EntityType implements Serializable {
 
 	public EntityType() {}
 
-	public EntityType(Definitions definitions, String interfaceName, boolean abstractEntity, String tableName, String keyNodeName, List<NodeDefinition> nodeDefinitions) {
+	public EntityType(Definitions definitions, String interfaceName, boolean abstractEntity, String parentTypeName, String tableName, String keyNodeName, List<NodeDefinition> nodeDefinitions) {
         if (tableName == null) {
             throw new IllegalArgumentException("Entity type must have a table name");
         }
@@ -41,6 +44,7 @@ public class EntityType implements Serializable {
         }
 		this.definitions = definitions;
 		this.interfaceName = interfaceName;
+		this.parentTypeName = parentTypeName;
 		this.abstractEntity = abstractEntity;
 		this.tableName = tableName;
 		this.keyNodeName = keyNodeName;
@@ -77,6 +81,15 @@ public class EntityType implements Serializable {
 		return definitions;
 	}
 
+	/**
+	 * The provided type must be the direct parent
+	 * @param type
+	 * @return
+	 */
+	public boolean isDirectChildOf(EntityType type) {
+	    return parentTypeName != null && parentTypeName.equals(type.getInterfaceName());
+	}
+
 	public String getInterfaceName() {
 		return interfaceName;
 	}
@@ -84,6 +97,10 @@ public class EntityType implements Serializable {
     public String getInterfaceShortName() {
 		return interfaceName.substring(interfaceName.lastIndexOf('.')+1, interfaceName.length());
 	}
+
+    public boolean isAbstract() {
+        return abstractEntity;
+    }
 
 	@XmlAttribute(name="table")
 	public String getTableName() {

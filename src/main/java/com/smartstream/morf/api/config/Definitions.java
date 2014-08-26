@@ -127,6 +127,23 @@ public class Definitions implements Serializable {
 		return null;
 	}
 
+	public List<EntityType> getEntityTypesExtending(EntityType parentEntityType) {
+	    List<EntityType> childTypes = new LinkedList<EntityType>();
+	    for (EntityType et: entities.values()) {
+	        if (et.isDirectChildOf(parentEntityType)) {
+	            childTypes.add( et );
+	        }
+	    }
+
+       if (definitionsSet != null) {
+            for (String namespace: references) {
+                Definitions d = definitionsSet.getDefinitions(namespace);
+                childTypes.addAll( d.getEntityTypesExtending(parentEntityType) );
+            }
+        }
+       return childTypes;
+	}
+
 	public QueryRegistry newUserQueryRegistry() {
 		QueryRegistry copy = internalQueryRegistry.clone();
 		if (definitionsSet != null) {
@@ -308,6 +325,7 @@ public class Definitions implements Serializable {
         }
 		public Definitions complete() {
 			if (et == null) {
+			    String parentTypeName = null;
 			    if (parentEntity != null) {
     			    EntityType parentEt = entities.get(parentEntity.getName());
     			    if (parentEt == null) {
@@ -324,8 +342,9 @@ public class Definitions implements Serializable {
     			    }
     			    tableName = parentEt.getTableName();
     			    keyNodeName = parentEt.getKeyNodeName();
+    			    parentTypeName = parentEntity.getName();
 			    }
-				this.et = new EntityType(Definitions.this, interfaceName, abstractEntity, tableName, keyNodeName, nodeDefinitions);
+				this.et = new EntityType(Definitions.this, interfaceName, abstractEntity, parentTypeName, tableName, keyNodeName, nodeDefinitions);
 				entities.put(et.getInterfaceName(), et);
 			}
 			return Definitions.this;

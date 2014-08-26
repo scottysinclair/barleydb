@@ -5,11 +5,14 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.TreeMap;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -18,6 +21,8 @@ import com.smartstream.morf.api.config.NodeDefinition;
 
 public class Entity implements Serializable {
 	private static final long serialVersionUID = 1L;
+
+	private static final Logger LOG = LoggerFactory.getLogger(Entity.class);
 
 	private final EntityContext entityContext;
     private transient EntityType entityType;
@@ -169,6 +174,40 @@ public class Entity implements Serializable {
         return result;
     }
 
+    public void downcast(EntityType newEntityType) {
+        LOG.debug("Downcasting entity {} to type {}", this, newEntityType);
+        List<Node> toAdd = new LinkedList<Node>();
+        for (Iterator<Node> i = children.values().iterator(); i.hasNext();) {
+            Node existing = i.next();
+            if (existing instanceof ValueNode) {
+                NodeDefinition ndNew = newEntityType.getNode(existing.getName(), true);
+                if (ndNew.isForeignKey()) {
+                    i.remove();
+                    //tricky: creating a refnode with this entity and the newEntityType
+                    //which is NOT YET associated with this entity
+                    //this is unusual but required for example for abstract syntaxes
+                    //which refer to concrete structures from other tables
+                    LOG.debug("Converting ValueNode to RefNode for {}", ndNew.getName());
+                    RefNode refNode = new RefNode(this, ndNew.getName(), newEntityType);
+                    refNode.setEntityKey( ((ValueNode) existing).getValue() );
+                    toAdd.add( refNode );
+                }
+            }
+        }
+        for (Node n: toAdd) {
+            children.put(n.getName(), n);
+        }
+        this.entityType = newEntityType;
+        for (Node newNode: initNodes()) {
+            if (newNode instanceof RefNode) {
+                throw new IllegalStateException("new child ref node");
+            }
+            if (newNode instanceof ValueNode) {
+                ((ValueNode)newNode).setValueNoEvent(NotLoaded.VALUE);
+            }
+        }
+    }
+
     /**
      * Copies the values nodes from the input entity to this object
      * @param from
@@ -233,12 +272,16 @@ public class Entity implements Serializable {
         return element;
     }
 
-    private void initNodes() {
+    private List<Node> initNodes() {
+        List<Node> newNodes = new LinkedList<Node>();
         for (NodeDefinition nd: entityType.getNodeDefinitions()) {
             if (!children.containsKey( nd.getName() )) {
-                children.put(nd.getName(), newChild(nd));
+                Node node = newChild(nd);
+                newNodes.add( node );
+                children.put(nd.getName(), node);
             }
         }
+        return newNodes;
     }
 
     public void checkFetched() {

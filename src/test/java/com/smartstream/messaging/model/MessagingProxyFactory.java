@@ -13,9 +13,9 @@ public class MessagingProxyFactory implements ProxyFactory {
         if (entity.getEntityType().getInterfaceName().equals(CsvSyntaxModel.class.getName())) {
             return (T)new CsvSyntaxModel(entity);
         }
-        if (entity.getEntityType().getInterfaceName().equals(SyntaxModel.class.getName())) {
-            return (T)new SyntaxModel(entity);
-        }
+//        if (entity.getEntityType().getInterfaceName().equals(SyntaxModel.class.getName())) {
+//            return (T)new SyntaxModel(entity);
+//        }
         if (entity.getEntityType().getInterfaceName().equals(XMLMapping.class.getName())) {
             return (T)new XMLMapping(entity);
         }
