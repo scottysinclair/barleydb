@@ -22,6 +22,7 @@ public class XMLSyntaxModel extends SyntaxModel {
         return super.getListProxy(mappings.toManyNode);
     }
 
+    @Override
     public XMLStructure getStructure() {
         return super.getFromRefNode(structure);
     }

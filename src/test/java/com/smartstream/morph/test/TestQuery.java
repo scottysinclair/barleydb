@@ -119,8 +119,13 @@ public class TestQuery extends TestBase  {
 	public void testBaseSyntaxModels() throws Exception {
 	    QSyntaxModel qsyntax = new QSyntaxModel();
 	    qsyntax.where(qsyntax.syntaxType().equal(SyntaxType.ROOT));
+	    qsyntax.joinToUser();
 
 	    List<SyntaxModel> syntaxModels = entityContext.performQuery(qsyntax).getList();
+        for (SyntaxModel syntaxModel: syntaxModels) {
+            syntaxModel.getStructure().getName();
+            System.out.println(syntaxModel.getName() + " -- " + syntaxModel.getUser().getName() + " -- " + syntaxModel.getStructure().getName());
+        }
         for (SyntaxModel syntaxModel: syntaxModels) {
             print("", syntaxModel);
         }

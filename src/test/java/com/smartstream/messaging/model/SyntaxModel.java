@@ -49,5 +49,7 @@ public abstract class SyntaxModel extends AbstractCustomEntityProxy  {
     public void setUser(User user) {
         setToRefNode(this.user.refNode, user);
     }
+
+    public abstract Structure getStructure();
 }
 

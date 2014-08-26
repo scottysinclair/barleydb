@@ -23,6 +23,7 @@ public class CsvSyntaxModel extends SyntaxModel {
         return super.getListProxy(mappings.toManyNode);
     }
 
+    @Override
     public CsvStructure getStructure() {
         return super.getFromRefNode(structure);
     }
