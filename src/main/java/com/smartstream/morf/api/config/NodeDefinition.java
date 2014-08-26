@@ -9,7 +9,7 @@ import com.smartstream.morf.api.core.types.JavaType;
 import com.smartstream.morf.api.core.types.JdbcType;
 
 @XmlAccessorType(XmlAccessType.FIELD)
-public class NodeDefinition implements Serializable {
+public class NodeDefinition implements Serializable, Cloneable {
 	private static final long serialVersionUID = 1L;
 
     public static class Builder {
@@ -93,7 +93,17 @@ public class NodeDefinition implements Serializable {
 		this.fixedValue = fixedValue;
 	}
 
-	void setEntityType(EntityType entityType) {
+	@Override
+    public NodeDefinition clone() {
+	    try {
+	        return (NodeDefinition)super.clone();
+	    }
+	    catch(CloneNotSupportedException x) {
+	        throw new IllegalStateException("Could not clone node definition", x);
+	    }
+    }
+
+    void setEntityType(EntityType entityType) {
 		this.entityType = entityType;
 	}
 

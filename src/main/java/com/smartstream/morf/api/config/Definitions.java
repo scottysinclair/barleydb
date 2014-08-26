@@ -1,8 +1,13 @@
 package com.smartstream.morf.api.config;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.bind.annotation.*;
 
@@ -25,7 +30,7 @@ public class Definitions implements Serializable {
 	private List<String> references = new LinkedList<>();
 
 	@XmlElement(name="entity")
-	private List<EntityType> entities = new LinkedList<EntityType>();
+	private Map<String,EntityType> entities = new HashMap<String,EntityType>();
 
 	private ClassLoader proxyClassLoader;
 
@@ -74,10 +79,6 @@ public class Definitions implements Serializable {
 		this.definitionsSet = definitionsSet;
 	}
 
-	public List<EntityType> getEntities() {
-		return entities;
-	}
-
 	public String getNamespace() {
 		return namespace;
 	}
@@ -107,11 +108,10 @@ public class Definitions implements Serializable {
 	}
 
 	public EntityType getEntityTypeMatchingInterface(String interfaceName, boolean mustExist) {
-		for (EntityType et: entities) {
-			if (et.getInterfaceName().equals(interfaceName)) {
-				return et;
-			}
-		}
+	    EntityType et = entities.get(interfaceName);
+	    if (et != null) {
+	        return et;
+	    }
 		if (definitionsSet != null) {
 			for (String namespace: references) {
 				Definitions d = definitionsSet.getDefinitions(namespace);
@@ -168,7 +168,9 @@ public class Definitions implements Serializable {
 		private EntityType et;
 		private String interfaceName;
 		private String tableName;
-		private String keyColumn;
+		private String keyNodeName;
+		private boolean abstractEntity;
+		private Class<?> parentEntity;
 		private List<NodeDefinition> nodeDefinitions = new LinkedList<NodeDefinition>();
 		public EntityTypeDefinition interfaceName(String interfaceName) {
 			this.interfaceName = interfaceName;
@@ -178,8 +180,14 @@ public class Definitions implements Serializable {
 			this.tableName = tableName;
 			return this;
 		}
+		public void abstractEntity(boolean abstractEntity) {
+		    this.abstractEntity = abstractEntity;
+		}
+        public void parentEntity(Class<?> parentEntity) {
+            this.parentEntity = parentEntity;
+        }
 		public EntityTypeDefinition withKey(String name, JavaType javaType, String columnName, JdbcType jdbcType) {
-			this.keyColumn = name;
+			this.keyNodeName = name;
 			return withValue(name, javaType, columnName, jdbcType);
 		}
 		public EntityTypeDefinition withValue(String name, JavaType javaType, String columnName, JdbcType jdbcType) {
@@ -286,12 +294,50 @@ public class Definitions implements Serializable {
 			complete();
 			return Definitions.this.newEntity(clazz, tableName);
 		}
+		public EntityTypeDefinition newAbstractEntity(Class<?> clazz, String tableName) {
+            complete();
+            EntityTypeDefinition et = Definitions.this.newEntity(clazz, tableName);
+            et.abstractEntity(true);
+            return et;
+		}
+        public EntityTypeDefinition newChildEntity(Class<?> clazz, Class<?> parentEntity) {
+            complete();
+            EntityTypeDefinition et = Definitions.this.newEntity(clazz, tableName);
+            et.parentEntity(parentEntity);
+            return et;
+        }
 		public Definitions complete() {
 			if (et == null) {
-				this.et = new EntityType(Definitions.this, interfaceName, tableName, keyColumn, nodeDefinitions);
-				entities.add(et);
+			    if (parentEntity != null) {
+    			    EntityType parentEt = entities.get(parentEntity.getName());
+    			    if (parentEt == null) {
+    			        throw new IllegalStateException("Could not find parent entity type '" + parentEntity.getName() + "'");
+    			    }
+    			    //make sure the parent nodes are added to the start of the list
+    			    List<NodeDefinition> parentNodes = new ArrayList<NodeDefinition>(parentEt.getNodeDefinitions());
+    			    //we reverse the list since we add any missing parent node to pos 0
+    			    Collections.reverse(parentNodes);
+    			    for (NodeDefinition nd: parentNodes) {
+    			        if (missingNodeDefinition(nd.getName(), nodeDefinitions)) {
+    			            nodeDefinitions.add(0, nd.clone() );
+    			        }
+    			    }
+    			    tableName = parentEt.getTableName();
+    			    keyNodeName = parentEt.getKeyNodeName();
+			    }
+				this.et = new EntityType(Definitions.this, interfaceName, abstractEntity, tableName, keyNodeName, nodeDefinitions);
+				entities.put(et.getInterfaceName(), et);
 			}
 			return Definitions.this;
+		}
+
+		private boolean missingNodeDefinition(String name, List<NodeDefinition> nds) {
+		    for (NodeDefinition nd: nds) {
+		        if (nd.getName().equals(name)) {
+		            return false;
+		        }
+		    }
+		    return true;
 		}
 	}
 }

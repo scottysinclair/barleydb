@@ -110,6 +110,15 @@ public class TestQuery extends TestBase  {
 	}
 
 	@Test
+	public void testBaseSyntaxModels() throws Exception {
+	    QSyntaxModel qsyntax = new QSyntaxModel();
+	    List<SyntaxModel> syntaxModels = entityContext.performQuery(qsyntax).getList();
+        for (SyntaxModel syntaxModel: syntaxModels) {
+            print("", syntaxModel);
+        }
+	}
+
+	@Test
     public void testSyntaxModelLazyName() throws Exception {
         /*
          * create and registery all fetch queries

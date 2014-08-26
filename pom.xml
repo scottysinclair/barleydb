@@ -7,16 +7,16 @@
   <packaging>bundle</packaging>
   <name>Object Relational Framework</name>
   <version>0.0.1-SNAPSHOT</version>
-  
+
   <properties>
 	<slf4j.version>1.4.3</slf4j.version>
 	<spring.maven.artifact.version>3.1.1</spring.maven.artifact.version>
   </properties>
-  
+
   <dependencies>
-    
-    
-	
+
+
+
 	<dependency>
 		<groupId>org.mybatis</groupId>
 		<artifactId>mybatis-spring</artifactId>
@@ -46,69 +46,72 @@
 			 -->
 		</exclusions>
 	</dependency>
-	<!-- 
+	<!--
 	<dependency>
 		<groupId>org.apache.servicemix.bundles</groupId>
 		<artifactId>org.apache.servicemix.bundles.mybatis</artifactId>
 		<version>3.0.4_2</version>
 		<scope>test</scope>
-	</dependency>    
+	</dependency>
 	 -->
 	<dependency>
 	   <groupId>org.springframework</groupId>
 	   <artifactId>spring-orm</artifactId>
 	   <version>3.1.1.RELEASE</version>
 	   <scope>provided</scope>
-	</dependency>	
+	</dependency>
 
 	<dependency>
 	   <groupId>org.springframework</groupId>
 	   <artifactId>spring-test</artifactId>
 	   <version>3.1.1.RELEASE</version>
 	   <scope>provided</scope>
-	</dependency>	
-	
+	</dependency>
+
 	<dependency>
 		<groupId>org.slf4j</groupId>
 		<artifactId>slf4j-log4j12</artifactId>
-		<version>1.4.3</version>
+		<version>1.7.7</version>
 		<scope>provided</scope>
 	</dependency>
-		
+
 	<dependency>
 		<groupId>log4j</groupId>
 		<artifactId>log4j</artifactId>
 		<version>1.2.16</version>
 		<scope>provided</scope>
 	</dependency>
-	            	
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.8.1</version>
       <scope>provided</scope>
     </dependency>
-    
+
 <dependency>
 	<groupId>org.hsqldb</groupId>
 	<artifactId>hsqldb</artifactId>
 	<version>2.3.2</version>
 	<scope>provided</scope>
 </dependency>
-            
-	
-	
-	<dependency>
-	  <groupId>com.mysema.querydsl</groupId>
-	  <artifactId>querydsl-sql</artifactId>
-	  <version>2.2.3</version>
-	  <scope>test</scope>
-	</dependency>
-	
+
+    <dependency>
+        <groupId>org.eclipse.ui</groupId>
+        <artifactId>org.eclipse.ui.workbench</artifactId>
+        <version>3.7.1.v20120104-1859</version>
+    </dependency>
+
+        <dependency>
+        <groupId>org.eclipse.swt</groupId>
+        <artifactId>org.eclipse.swt.gtk.linux.x86_64</artifactId>
+        <version>4.4</version>
+    </dependency>
+
 	</dependencies>
 
   <!-- for packaging as an OSGi bundle, we use the maven-bundle-plugin -->
-  
+
   <!-- see http://felix.apache.org/site/maven-bundle-plugin-bnd.html for more info -->
   <build>
     <resources>
@@ -124,8 +127,8 @@
           <include>META-INF/*</include>
         </includes>
       </resource>
-    </resources>  
-    
+    </resources>
+
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -135,8 +138,8 @@
           <source>1.7</source>
           <target>1.7</target>
         </configuration>
-      </plugin>      
-      
+      </plugin>
+
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
@@ -147,7 +150,7 @@
            <instructions>
                <Export-Package>com.scott.modelcontext.monitoring*</Export-Package>
                <Import-Package>*</Import-Package>
-               <!-- 
+               <!--
                   add ,plugin.xml if it's present i.e.
                   src/main/resources,plugin.xml
                -->
@@ -157,7 +160,7 @@
       </plugin>
     </plugins>
   </build>
-  
+
   <!-- ================================================ -->
   <!--            Repository Configuration              -->
   <!-- ================================================ -->
@@ -172,21 +175,28 @@
   <snapshots>
     <enabled>false</enabled>
   </snapshots>
-</repository>  
-  
-    <repository>    
+</repository>
+
+
+    <repository>
+        <id>swt-repo</id>
+        <url>https://swt-repo.googlecode.com/svn/repo/</url>
+    </repository>
+
+
+    <repository>
       <id>myrepo2</id>
       <name>blah2</name>
       <url>http://maven.alfresco.com/nexus/content/repositories/public-snapshots</url>
-    </repository>  
-  
-  
-  
-    <repository>    
+    </repository>
+
+
+
+    <repository>
       <id>apache.m2.incubator</id>
       <name>Apache M2 Incubator Repository</name>
       <url>http://people.apache.org/repo/m2-incubating-repository/</url>
-    </repository>  
+    </repository>
     <repository>
        <id>eclipse-repository</id>
        <name>Eclipse Repository</name>
@@ -205,7 +215,7 @@
       </url>
     </repository>
 
-    
+
     <repository>
       <id>i21-s3-osgi-repo</id>
       <name>i21 osgi artifacts repo</name>
@@ -213,9 +223,9 @@
          <enabled>true</enabled>
       </snapshots>
       <url>http://s3.amazonaws.com/maven.springframework.org/osgi</url>
-    </repository>    
-    
-    
+    </repository>
+
+
     <repository>
       <id>i21-s3-maven-repo</id>
       <name>i21 S3 milestone repo</name>
@@ -230,7 +240,7 @@
       <name>maven repo</name>
       <url>http://repo1.maven.org/maven2/</url>
     </pluginRepository>
-    
+
   </pluginRepositories>
-  
+
 </project>

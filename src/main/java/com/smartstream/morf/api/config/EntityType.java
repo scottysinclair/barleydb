@@ -21,19 +21,29 @@ public class EntityType implements Serializable {
 
 	private transient String tableName;
 
+	@XmlAttribute(name = "abstract")
+	private boolean abstractEntity;
+
 	@XmlAttribute(name="key")
-	private String keyColumn;
+	private String keyNodeName;
 
 	@XmlElement(name="node")
 	private List<NodeDefinition> nodeDefinitions = new LinkedList<NodeDefinition>();
 
 	public EntityType() {}
 
-	public EntityType(Definitions definitions, String interfaceName, String tableName, String keyColumn, List<NodeDefinition> nodeDefinitions) {
+	public EntityType(Definitions definitions, String interfaceName, boolean abstractEntity, String tableName, String keyNodeName, List<NodeDefinition> nodeDefinitions) {
+        if (tableName == null) {
+            throw new IllegalArgumentException("Entity type must have a table name");
+        }
+        if (keyNodeName == null) {
+            throw new IllegalArgumentException("Entity type must have a key node");
+        }
 		this.definitions = definitions;
 		this.interfaceName = interfaceName;
+		this.abstractEntity = abstractEntity;
 		this.tableName = tableName;
-		this.keyColumn = keyColumn;
+		this.keyNodeName = keyNodeName;
 		this.nodeDefinitions = nodeDefinitions;
 		for (NodeDefinition nd: nodeDefinitions) {
 			nd.setEntityType(this);
@@ -81,11 +91,11 @@ public class EntityType implements Serializable {
 	}
 
 	public String getKeyNodeName() {
-		return keyColumn;
+		return keyNodeName;
 	}
 
 	public String getKeyColumn() {
-		return getNode(keyColumn, true).getColumnName();
+		return getNode(keyNodeName, true).getColumnName();
 	}
 
 	public List<NodeDefinition> getNodeDefinitions() {

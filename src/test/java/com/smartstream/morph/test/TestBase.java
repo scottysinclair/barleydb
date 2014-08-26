@@ -126,15 +126,18 @@ public abstract class TestBase {
 					.withValue("optional", JavaType.BOOLEAN, "OPTIONAL", JdbcType.INT)
 					.withOne("structure", com.smartstream.messaging.model.CsvStructure.class, "STRUCTURE_ID", JdbcType.BIGINT)
 
-				.newEntity(XMLSyntaxModel.class, "SS_SYNTAX_MODEL")
-					.withKey("id", JavaType.LONG, "ID", JdbcType.BIGINT)
-					.withValue("name", JavaType.STRING, "NAME", JdbcType.VARCHAR)
-					.withEnum("syntaxType", SyntaxType.class, "SYNTAX_TYPE", JdbcType.INT)
+                .newAbstractEntity(SyntaxModel.class, "SS_SYNTAX_MODEL")
+                    .withKey("id", JavaType.LONG, "ID", JdbcType.BIGINT)
+                    .withValue("name", JavaType.STRING, "NAME", JdbcType.VARCHAR)
+                    .withEnum("syntaxType", SyntaxType.class, "SYNTAX_TYPE", JdbcType.INT)
+                    .withValue("structureType", JavaType.INTEGER, "STRUCTURE_TYPE", JdbcType.INT)
+                    .withOne("user", com.smartstream.mac.model.User.class, "USER_ID", JdbcType.BIGINT)
+                    .withOptimisticLock("modifiedAt", JavaType.LONG, "MODIFIED_AT", JdbcType.TIMESTAMP)
+
+				.newChildEntity(XMLSyntaxModel.class, SyntaxModel.class)
 					.withFixedValue("structureType", JavaType.INTEGER, "STRUCTURE_TYPE", JdbcType.INT, 1)
-					.withOne("user", com.smartstream.mac.model.User.class, "USER_ID", JdbcType.BIGINT)
 					.dependsOnOne("structure", com.smartstream.messaging.model.XMLStructure.class, "STRUCTURE_ID", JdbcType.BIGINT)
 					.ownsMany("mappings", com.smartstream.messaging.model.XMLMapping.class, "syntaxModel")
-					.withOptimisticLock("modifiedAt", JavaType.LONG, "MODIFIED_AT", JdbcType.TIMESTAMP)
 
 				.newEntity(XMLMapping.class, "SS_XML_MAPPING")
 					.withKey("id", JavaType.LONG, "ID", JdbcType.BIGINT)
@@ -143,15 +146,10 @@ public abstract class TestBase {
 					.withOne("syntaxModel", com.smartstream.messaging.model.XMLSyntaxModel.class, "SYNTAX_MODEL_ID", JdbcType.BIGINT)
 					.ownsOne("subSyntaxModel", com.smartstream.messaging.model.XMLSyntaxModel.class, "SUB_SYNTAX_MODEL_ID", JdbcType.BIGINT)
 
-				.newEntity(CsvSyntaxModel.class, "SS_SYNTAX_MODEL")
-					.withKey("id", JavaType.LONG, "ID", JdbcType.BIGINT)
-					.withValue("name", JavaType.STRING, "NAME", JdbcType.VARCHAR)
-					.withEnum("syntaxType", SyntaxType.class, "SYNTAX_TYPE", JdbcType.INT)
+				.newChildEntity(CsvSyntaxModel.class, SyntaxModel.class)
 					.withFixedValue("structureType", JavaType.INTEGER, "STRUCTURE_TYPE", JdbcType.INT, 2)
-					.withOne("user", com.smartstream.mac.model.User.class, "USER_ID", JdbcType.BIGINT)
 					.dependsOnOne("structure", com.smartstream.messaging.model.CsvStructure.class, "STRUCTURE_ID", JdbcType.BIGINT)
 					.ownsMany("mappings", com.smartstream.messaging.model.CsvMapping.class, "syntaxModel")
-					.withOptimisticLock("modifiedAt", JavaType.LONG, "MODIFIED_AT", JdbcType.TIMESTAMP)
 
 				.newEntity(CsvMapping.class, "SS_CSV_MAPPING")
 					.withKey("id", JavaType.LONG, "ID", JdbcType.BIGINT)
@@ -354,6 +352,15 @@ public abstract class TestBase {
 		System.out.println(prefix + "Datatype Id   " + datatype.getId());
 		System.out.println(prefix + "Datatype Name " + datatype.getName());
 	}
+
+    protected static void print(String prefix, SyntaxModel syntaxModel) {
+        if (syntaxModel instanceof XMLSyntaxModel) {
+            print(prefix, (XMLSyntaxModel)syntaxModel);
+        }
+        else if (syntaxModel instanceof CsvSyntaxModel) {
+            print(prefix, (CsvSyntaxModel)syntaxModel);
+        }
+    }
 
 	protected static void print(String prefix, XMLSyntaxModel syntaxModel) {
 		System.out.println(prefix + "XMLSyntax Id   " + syntaxModel.getId());
