@@ -1,0 +1,443 @@
+Features:
+
+ Querying:
+ 
+   Query Class API is created for each model. 
+   
+   Queries are based on model property names not SQL column names.
+ 
+   Easy/Flexible joining to pull back more data in one jdbc request.
+   
+   Queries can safely span module boundaries.
+    - MI Query Classes can work with MAC query classes to join Syntax  to User.
+   
+   Lazy loading of data when traversing the model.
+   
+   Fetch queries can be customized at any time.
+   
+   Compile time safety from Query classes.
+   
+   Allows extension of queries with extra clauses (permission constraints).
+   
+   Query batching can be used to execute multiple queries at once (jdbc multiple result-sets).
+     - depends on vendor support, transparent to the client programmer. 
+   
+
+ Persisting:
+ 
+   No insert,update or delete statements need to be written.
+ 
+   Full model structures are saved to the database in one transaction.
+   
+   Primary key generation.
+   
+   Reordering of inserts, updates and deletes to allow JDBC batching.
+   
+   Sophisticated optimistic lock handling, works with relations between models.
+     - batch loading of records from db to compare  freshness.
+     - changes in a model can affect the lock of the owning model, ie. changing a mapping updates the syntax lock.  
+     - freshness is also checked on model dependencies, ie freshness of structure when saving a mapping.
+     - all records in the transaction have the same lock timestamp   
+   
+   Insert, update and delete statements include the optimistic lock in the where clause.  
+   
+   Models which have no changes are filtered out.
+    - also means only relevant CRUD permissions are checked.
+
+   Audit logs are automatically generated with the full set of changes.
+   
+   Access Control is performed on all models which will be inserted, updated, deleted.  
+ 
+   Enhanced error reporting
+     - Primary key already exists
+     - Optimistic lock mismatch
+     - Entity missing
+     - Unique constraint violation (todo)
+ 
+ 
+ 
+ 
+ 
+More details:
+
+Querying:
+
+Modules define own Query classes which can be used to build and execute queries.
+
+		public class QXMLSyntaxModel extends QueryObject<XMLSyntaxModel> {
+			public QXMLMapping joinToMappings() {}
+			public QXMLMapping existsMapping() {}
+			public QProperty<SyntaxType> syntaxType() {}
+			public QProperty<String> syntaxName() {}
+		}
+		
+		public class QXMLMapping extends QueryObject<XMLMapping> {
+			public QXMLSyntaxModel joinToSubSyntax() {}
+			public QXMLSyntaxModel existsSubSyntax() {}
+			public QProperty<Long> id() {}
+			public QProperty<String> xpath() {}
+		}
+		
+Modules define interfaces for models, no setter for the primary key required.
+
+	public interface SyntaxModel {
+		Long getId();
+		String getName();
+		void setName(String name);
+		SyntaxType getSyntaxType();
+		void setSyntaxType(SyntaxType syntaxType);
+		User getUser();
+		void setUser(User user);
+	}
+	
+	public interface XMLMapping {
+		Long getId();
+		void setSyntaxModel(XMLSyntaxModel syntaxModel);
+		XMLSyntaxModel getSyntaxModel();
+		void setSubSyntaxModel(XMLSyntaxModel syntaxModel);
+		XMLSyntaxModel getSubSyntaxModel();
+		void setXpath(String xpath);
+		String getXpath();
+		void setTarget(String target);
+		String getTarget();
+	}		
+ 
+
+The interfaces are implemented by JDK dynamic proxies, the programmer could also specify own implementation for
+performance gains and easier debugging.
+
+Queries support joins, or, and, exists conditions etc:
+
+        //create a new syntax query
+	    QXMLSyntaxModel qsyntax = new QXMLSyntaxModel();
+	    
+	    //join to the MAC user
+	    qsyntax.joinToUser();
+	    
+	    //join to the structure and then then structure's fields.
+	    qsyntax.joinToStructure().joinToFields();
+
+
+		//create some query objects for subqueries
+		QXMLMapping qmapping = qsyntax.existsMapping();
+		QUser quser = qsyntax.existsUser();
+
+		//now filter on syntaxes with name "syntax-xml-1" and some specific mappings and was created by user "Scott"
+		qsyntax.where(  
+			qsyntax.syntaxName().equal("syntax-xml-1")  )
+		.andExists( 
+			qmapping.where( qmapping.xpath().equal("sfn11").or(qmapping.xpath().equal("sfn12")) ))
+		.andExists( 
+			quser.where( quser.userName().equal("Scott") ));	    
+
+		//execute the query 
+		QueryResult<XMLSyntaxModel> result = entityContext.performQuery(qsyntax);
+		
+				
+		
+		
+Queries support lazy loading with configurable fetching queries:
+The user can change the fetching queries at any time to always fetch the optimal amount of data. 
+
+		//define a fetching query for syntaxes which automatically pulls in user and mappings 
+		QXMLSyntaxModel qsyntax = new QXMLSyntaxModel();
+		qsyntax.joinToUser();
+		qsyntax.joinToMappings()
+
+        //register the query to be used for fetching
+		queryRegistry.register(qsyntax);
+
+		//execute the query to get some data		
+		QueryResult<XMLSyntaxModel> result = entityContext.performQuery(qsyntax);
+		
+		//access the sub-syntax name which will fetch the subsyntax, it's user and it's mappings in one go.
+		result.getList(0).getMappings().get(0).getSubSyntax().getName();
+		
+		
+		
+		
+Can batch multiple queries together (depending on database support).
+If not supported, then the queries are sent to the database individually
+
+		//create a query batcher
+		QueryBatcher qBatch = new QueryBatcher();
+		
+		//add some queries and execute them
+		qBatch.addQuery(qsyntax, qtemplates);
+		entityContext.performQueries(qBatch);
+		
+		//get the query results
+		List<XMLSyntax> syntaxes = qBatch.getResult(0, XMLSyntaxModel.class).getList();
+		List<Template> templates = qBatch.getResult(1, Templates.class).getList()
+		
+		
+
+Persisting:
+
+Example output
+
+===================================================================================
+Printing out the new unsaved java model:
+
+XMLSyntax Id   null
+XMLSyntax Name Scott's Syntax
+XMLSyntax Type ROOT
+  User Id   null
+  User Name Jimmy
+  Structure Id   null
+  Structure Name scott's structure
+  Mapping Id      null
+  Mapping XPath   /root1
+  Mapping Target  target1
+  Mapping Syntax  null
+  Mapping Id      null
+  Mapping XPath   /root2
+  Mapping Target  target2
+  Mapping Syntax  null
+    XMLSyntax Id   null
+    XMLSyntax Name SubSyntaxModel - ooooh
+    XMLSyntax Type SUBSYNTAX
+      User Id   null
+      User Name Jimmy
+      Structure Id   null
+      Structure Name scott's structure
+      Mapping Id      null
+      Mapping XPath   sub1
+      Mapping Target  subtarget1
+      Mapping Syntax  null
+      Mapping Id      null
+      Mapping XPath   sub2
+      Mapping Target  subtarget2
+      Mapping Syntax  null
+  Mapping Id      null
+  Mapping XPath   /root3
+  Mapping Target  target3
+  Mapping Syntax  null
+
+
+Sample output during persist.
+
+Create Group ----------------
+Entity [XMLStructure.id=null]
+Entity [User.id=null]
+Entity [XMLSyntaxModel.id=null]
+Entity [XMLMapping.id=null]
+Entity [XMLSyntaxModel.id=null]
+Entity [XMLMapping.id=null]
+Entity [XMLMapping.id=null]
+Entity [XMLMapping.id=null]
+Entity [XMLMapping.id=null]
+
+Update Group ----------------
+
+Delete Group ----------------
+
+Depends On Group ----------------
+
+===================================================================================
+
+Generating audit logs...
+Changes found for Entity [XMLStructure.id=700]
+Changes found for Entity [User.id=701]
+Changes found for Entity [XMLSyntaxModel.id=702]
+Changes found for Entity [XMLMapping.id=703]
+Changes found for Entity [XMLSyntaxModel.id=704]
+Changes found for Entity [XMLMapping.id=705]
+Changes found for Entity [XMLMapping.id=706]
+Changes found for Entity [XMLMapping.id=707]
+Changes found for Entity [XMLMapping.id=708]
+
+===================================================================================
+
+Optimizing operation order to enable batching...
+
+Create Group ----------------
+Entity [XMLStructure.id=700]
+Entity [User.id=701]
+Entity [XMLSyntaxModel.id=702]
+Entity [XMLSyntaxModel.id=704]
+Entity [XMLMapping.id=703]
+Entity [XMLMapping.id=705]
+Entity [XMLMapping.id=706]
+Entity [XMLMapping.id=707]
+Entity [XMLMapping.id=708]
+
+Update Group ----------------
+
+Delete Group ----------------
+
+Depends On Group ----------------
+
+==================================================================================
+Verifying access rights...
+VERIFYING CREATE RIGHT FOR Entity [XMLStructure.id=700]
+VERIFYING CREATE RIGHT FOR Entity [User.id=701]
+VERIFYING CREATE RIGHT FOR Entity [XMLSyntaxModel.id=702]
+VERIFYING CREATE RIGHT FOR Entity [XMLSyntaxModel.id=704]
+VERIFYING CREATE RIGHT FOR Entity [XMLMapping.id=703]
+VERIFYING CREATE RIGHT FOR Entity [XMLMapping.id=705]
+VERIFYING CREATE RIGHT FOR Entity [XMLMapping.id=706]
+VERIFYING CREATE RIGHT FOR Entity [XMLMapping.id=707]
+VERIFYING CREATE RIGHT FOR Entity [XMLMapping.id=708]
+==================================================================================
+Performing inserts...
+
+Executing insert batch for EntityType [ com.smartstream.messaging.model.XMLStructure ] of size 1
+1 rows were modified in total
+Executing insert batch for EntityType [ com.smartstream.mac.model.User ] of size 1
+1 rows were modified in total
+Executing insert batch for EntityType [ com.smartstream.messaging.model.XMLSyntaxModel ] of size 2
+2 rows were modified in total
+Executing insert batch for EntityType [ com.smartstream.messaging.model.XMLMapping ] of size 5
+5 rows were modified in total
+
+==================================================================================
+Inserting audit records...
+AUDIT SS_XMLSTRUCTURE                ID                             null                           700                           
+AUDIT SS_XMLSTRUCTURE                NAME                           null                           scott's structure             
+AUDIT SS_XMLSTRUCTURE                MODIFIED_AT                    null                           1406290726992                 
+AUDIT MAC_USER                       ID                             null                           701                           
+AUDIT MAC_USER                       USER_NAME                      null                           Jimmy                         
+AUDIT MAC_USER                       MODIFIED_AT                    null                           1406290726992                 
+AUDIT SS_SYNTAX_MODEL                ID                             null                           702                           
+AUDIT SS_SYNTAX_MODEL                NAME                           null                           Scott's Syntax                
+AUDIT SS_SYNTAX_MODEL                STRUCTURE_ID                   null                           700                           
+AUDIT SS_SYNTAX_MODEL                STRUCTURE_TYPE                 null                           1                             
+AUDIT SS_SYNTAX_MODEL                SYNTAX_TYPE                    null                           ROOT                          
+AUDIT SS_SYNTAX_MODEL                USER_ID                        null                           701                           
+AUDIT SS_SYNTAX_MODEL                MODIFIED_AT                    null                           1406290726992                 
+AUDIT SS_XML_MAPPING                 ID                             null                           703                           
+AUDIT SS_XML_MAPPING                 SYNTAX_MODEL_ID                null                           702                           
+AUDIT SS_XML_MAPPING                 TARGET_FIELD_NAME              null                           target1                       
+AUDIT SS_XML_MAPPING                 XPATH                          null                           /root1                        
+AUDIT SS_SYNTAX_MODEL                ID                             null                           704                           
+AUDIT SS_SYNTAX_MODEL                NAME                           null                           SubSyntaxModel - ooooh        
+AUDIT SS_SYNTAX_MODEL                STRUCTURE_ID                   null                           700                           
+AUDIT SS_SYNTAX_MODEL                STRUCTURE_TYPE                 null                           1                             
+AUDIT SS_SYNTAX_MODEL                SYNTAX_TYPE                    null                           SUBSYNTAX                     
+AUDIT SS_SYNTAX_MODEL                USER_ID                        null                           701                           
+AUDIT SS_SYNTAX_MODEL                MODIFIED_AT                    null                           1406290726992                 
+AUDIT SS_XML_MAPPING                 ID                             null                           705                           
+AUDIT SS_XML_MAPPING                 SYNTAX_MODEL_ID                null                           704                           
+AUDIT SS_XML_MAPPING                 TARGET_FIELD_NAME              null                           subtarget1                    
+AUDIT SS_XML_MAPPING                 XPATH                          null                           sub1                          
+AUDIT SS_XML_MAPPING                 ID                             null                           706                           
+AUDIT SS_XML_MAPPING                 SYNTAX_MODEL_ID                null                           704                           
+AUDIT SS_XML_MAPPING                 TARGET_FIELD_NAME              null                           subtarget2                    
+AUDIT SS_XML_MAPPING                 XPATH                          null                           sub2                          
+AUDIT SS_XML_MAPPING                 ID                             null                           707                           
+AUDIT SS_XML_MAPPING                 SUB_SYNTAX_MODEL_ID            null                           704                           
+AUDIT SS_XML_MAPPING                 SYNTAX_MODEL_ID                null                           702                           
+AUDIT SS_XML_MAPPING                 TARGET_FIELD_NAME              null                           target2                       
+AUDIT SS_XML_MAPPING                 XPATH                          null                           /root2                        
+AUDIT SS_XML_MAPPING                 ID                             null                           708                           
+AUDIT SS_XML_MAPPING                 SYNTAX_MODEL_ID                null                           702                           
+AUDIT SS_XML_MAPPING                 TARGET_FIELD_NAME              null                           target3                       
+AUDIT SS_XML_MAPPING                 XPATH                          null                           /root3    
+
+==================================================================================
+Printing out the saved java model 
+
+XMLSyntax Id   702
+XMLSyntax Name Scott's Syntax
+XMLSyntax Type ROOT
+  User Id   701
+  User Name Jimmy
+  Structure Id   700
+  Structure Name scott's structure
+  Mapping Id      703
+  Mapping XPath   /root1
+  Mapping Target  target1
+  Mapping Syntax  702
+  Mapping Id      707
+  Mapping XPath   /root2
+  Mapping Target  target2
+  Mapping Syntax  702
+    XMLSyntax Id   704
+    XMLSyntax Name SubSyntaxModel - ooooh
+    XMLSyntax Type SUBSYNTAX
+      User Id   701
+      User Name Jimmy
+      Structure Id   700
+      Structure Name scott's structure
+      Mapping Id      705
+      Mapping XPath   sub1
+      Mapping Target  subtarget1
+      Mapping Syntax  704
+      Mapping Id      706
+      Mapping XPath   sub2
+      Mapping Target  subtarget2
+      Mapping Syntax  704
+  Mapping Id      708
+  Mapping XPath   /root3
+  Mapping Target  target3
+  Mapping Syntax  702
+
+
+
+
+
+
+
+Defining the models and relations can be specified in XML or in a Java DSL
+
+	The java and JDBC type and column name is specified for each property.
+	1:1, 1:N and N:M relations are supported.
+	References, Depends on and Owns relationships are supported:
+	
+	 - References - persisting an entity with a ref to a  newly created entity will insert that entity.
+	 
+	 - Depends on - an entity will only be saved if the entities it depends on are fresh (optimistic lock).
+	 
+	 - Owns - Owned entities are inserted, updated and deleted with their owners.   
+	  
+
+    <entity interface="com.smartstream.messaging.model.XMLSyntaxModel" table="SS_SYNTAX_MODEL" key="id">
+        <node name="id"   		javaType="LONG"   columnName="ID"   		jdbcType="BIGINT"/>
+        <node name="name" 		javaType="STRING" columnName="NAME" 		jdbcType="VARCHAR"/>
+        <node name="syntaxType" 				  columnName="SYNTAX_TYPE" 	jdbcType="INT">
+            <enumType>com.smartstream.messaging.model.SyntaxType</enumType>
+        </node>
+        <node name="structureType" javaType="INTEGER" columnName="STRUCTURE_TYPE" jdbcType="INT">
+            <fixedValue xsi:type="xs:int">1</fixedValue>
+        </node>
+        <node name="user" columnName="USER_ID" jdbcType="BIGINT">
+            <interfaceName>com.smartstream.mac.model.User</interfaceName>
+        </node>
+        <node name="structure" columnName="STRUCTURE_ID" jdbcType="BIGINT">
+            <interfaceName>com.smartstream.messaging.model.XMLStructure</interfaceName>
+            <relationType>DEPENDS</relationType>
+        </node>
+        <node name="mappings">
+            <interfaceName>com.smartstream.messaging.model.XMLMapping</interfaceName>
+            <foreignNodeName>syntaxModel</foreignNodeName>
+            <relationType>OWNS</relationType>
+        </node>
+        <node name="modifiedAt" javaType="LONG" columnName="MODIFIED_AT" jdbcType="TIMESTAMP">
+            <optimisticLock>true</optimisticLock>
+        </node>
+    </entity>
+
+    <entity interface="com.smartstream.messaging.model.XMLMapping" table="SS_XML_MAPPING" key="id">
+        <node name="id" 		javaType="LONG" 	columnName="ID" 					jdbcType="BIGINT"/>
+        <node name="xpath" 		javaType="STRING" 	columnName="XPATH" 					jdbcType="VARCHAR"/>
+        <node name="target" 	javaType="STRING" 	columnName="TARGET_FIELD_NAME" 		jdbcType="VARCHAR"/>
+        <node name="syntaxModel" 					columnName="SYNTAX_MODEL_ID" 		jdbcType="BIGINT">
+            <interfaceName>com.smartstream.messaging.model.XMLSyntaxModel</interfaceName>
+        </node>
+        <node name="subSyntaxModel" 				columnName="SUB_SYNTAX_MODEL_ID"	jdbcType="BIGINT">
+            <interfaceName>com.smartstream.messaging.model.XMLSyntaxModel</interfaceName>
+            <relationType>OWNS</relationType>
+        </node>
+    </entity>
+
+
+
+
+
+
+
+
+
+
+		

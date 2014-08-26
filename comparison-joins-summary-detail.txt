@@ -1,0 +1,268 @@
+1 template has many contents (1:N)
+1 template has many template datatypes (N:M).
+1 template datatype has many template invocation calls (1:N).
+
+Standard API classes already exist which are not part of the steps, they can hold the full set of database data.
+* Template
+* TemplateContent
+* TemplateDatatype
+* InvocationCall
+
+
+===========================================================================================
+
+TASK:  CREATE A UI TABLE WITH SUMMARY INFORMATION FROM JOINING TEMPLATE WITH CONTENT
+
+MYBATIS STEPS:
+1) Create custom TemplateSummary and TemplateContentSummary API classes to contain this summary data.
+
+public class TemplateSummary implements Definable<Long>, SecuredObject {
+
+    protected String name;
+
+    protected Long accessAreaId;
+
+    protected Long updateUserId;
+
+    protected Carrier carrier;
+
+    protected Date modifiedAt;
+
+    private List<TemplateContentSummary> templateContentSummaries;
+
+    ...
+}
+
+public class TemplateContentSummary implements ControllableObject {
+
+    @Mandatory
+    protected TemplateLanguage language;
+
+    @Mandatory
+    protected String contentType;
+
+    @Mandatory
+    protected String charset;
+
+    protected Long templateId;
+
+    ...
+
+}
+
+
+2) Create custom mybatis result maps to return the summary data
+
+	<resultMap id="TemplateSummaryMap" type="TemplateSummary">
+	  <id property="id" 				column="T_ID" 				jdbcType="BIGINT"	javaType="java.lang.Long"/>
+	  <result property="name" 			column="T_NAME" 			jdbcType="VARCHAR"/>
+   	  <result property="accessAreaId" 	column="T_ACCESS_AREA_ID" 	jdbcType="BIGINT"/>
+	  <result property="updateUserId" 	column="T_UPDATE_USER_ID" 	jdbcType="BIGINT"/>
+      <result property="modifiedAt"		column="T_MODIFIED_AT"		jdbcType="TIMESTAMP" />
+	  <result property="carrier" 		column="T_CARRIER_EID" 		jdbcType="INTEGER" typeHandler="com.smartstream.messaging.templates.dao.impl.CarrierTypeHandler"/>
+	  <collection property="templateContentSummaries" column="TC_ID" javaType="ArrayList" ofType="TemplateContentSummary" resultMap="TemplateContentSummaryMap"/>
+	</resultMap>
+
+	<resultMap id="TemplateContentSummaryMap" type="TemplateContentSummary">
+	  <id 	  property="id" 			column="TC_ID" 				jdbcType="BIGINT"	javaType="java.lang.Long"/>
+	  <result property="contentType" 	column="TC_CONTENT_TYPE" 	jdbcType="VARCHAR"/>
+	  <result property="charset" 		column="TC_CHARSET" 		jdbcType="VARCHAR"/>
+	  <result property="templateId"		column="TC_TEMPLATE_ID" 	jdbcType="BIGINT"/>
+ 	  <association property="language" 	column="TC_TEMPLATE_LANG_ID" javaType="TemplateLanguage" resultMap="TemplateLanguageMap"/>
+	</resultMap>
+
+3) Create the mybatis query that returns data into those result maps.
+
+	<select id="TemplateSummary_query" resultMap="com.smartstream.messaging.templates.common.TemplateSummaryMap">
+	  select 	t.ID "T_ID",
+	  			t.NAME "T_NAME",
+	  			t.ACCESS_AREA_ID "T_ACCESS_AREA_ID",
+	  			t.UPDATE_USER_ID "T_UPDATE_USER_ID",
+                t.MODIFIED_AT "T_MODIFIED_AT",
+	  			t.CARRIER_EID "T_CARRIER_EID",
+	  			tc.ID "TC_ID",
+	  			tc.TEMPLATE_LANG_ID "TC_TEMPLATE_LANG_ID",
+	  			tc.CONTENT_TYPE "TC_CONTENT_TYPE",
+	  			tc.CHARSET "TC_CHARSET",
+	  			tc.TEMPLATE_ID "TC_TEMPLATE_ID",
+	  			tl.ID "TL_ID",
+	  			tl.ACCESS_AREA_ID "TL_ACCESS_AREA_ID",
+	  			tl.NAME "TL_NAME"
+				from MMI_TEMPLATE t
+				left outer join MMI_TEMPLATE_CONTENT tc on t.ID = tc.TEMPLATE_ID
+				left outer join MMI_TEMPLATE_LANG tl on tc.TEMPLATE_LANG_ID = tl.ID
+	  <where>
+        ##__SmartStream__Condition:permissionConstraints!__##
+
+        <if test="filter != null">
+            AND <include refid="com.smartstream.filter.Filter.generatedFilterWhereClause"/>
+        </if>
+
+	  	<if test="accessAreaId != null">
+	  		AND t.ACCESS_AREA_ID = #{accessAreaId}
+	  	</if>
+	  </where>
+        order by t.ID
+	</select>
+
+==============================================
+SODIT STEPS:
+
+1) Remove the content column from the query
+
+QTemplate qtemplate = new QTemplate();
+QTemplateContent qcontent = qtemplate.joinToContent();
+qcontent.projection().disableContent();
+
+===========================================================================================
+
+TASK: CREATE A UI EDITOR WITH ALL DATA REQUIRED FOR EDITING TEMPLATES
+
+
+1) Create  mybatis result maps to return the summary data
+
+	<resultMap id="TemplateMap" type="Template">
+	  <id property="id" 				column="T_ID" 				jdbcType="BIGINT"	javaType="java.lang.Long"/>
+	  <result property="name" 			column="T_NAME" 			jdbcType="VARCHAR"/>
+   	  <result property="accessAreaId" 	column="T_ACCESS_AREA_ID" 	jdbcType="BIGINT"/>
+	  <result property="updateUserId" 	column="T_UPDATE_USER_ID" 	jdbcType="BIGINT"/>
+	  <result property="modifiedAt"		column="T_MODIFIED_AT"		jdbcType="TIMESTAMP" />
+	  <result property="carrier" 		column="T_CARRIER_EID" 		jdbcType="INTEGER" typeHandler="com.smartstream.messaging.templates.dao.impl.CarrierTypeHandler"/>
+	  <result property="gUID"			column="T_UUID"				jdbcType="CHAR" />
+	  <collection property="templateContents" column="TC_ID"  javaType="ArrayList" ofType="TemplateContent" resultMap="TemplateContentMap"/>
+	</resultMap>
+
+	<resultMap id="TemplateContentMap" type="TemplateContent">
+	  <id 	  property="id" 			column="TC_ID" 				jdbcType="BIGINT" 	javaType="java.lang.Long"/>
+	  <result property="contentType" 	column="TC_CONTENT_TYPE" 	jdbcType="VARCHAR"/>
+	  <result property="charset" 		column="TC_CHARSET" 		jdbcType="VARCHAR"/>
+	  <result property="content" 		column="TC_CONTENT" 		javaType="byte[]" jdbcType="BLOB" typeHandler="org.apache.ibatis.type.BlobTypeHandler"/>
+	  <result property="templateId"		column="TC_TEMPLATE_ID" 	jdbcType="BIGINT"/>
+ 	  <association property="language" 	column="TC_TEMPLATE_LANG_ID" javaType="TemplateLanguage" resultMap="TemplateLanguageMap"/>
+	</resultMap>
+
+		<resultMap id="TemplateDatatypeMap" type="TemplateDatatype">
+	  <id 	  property="id" 				column="TD_ID" 						jdbcType="BIGINT"	javaType="java.lang.Long"/>
+	  <result property="name" 				column="TD_NAME" 					jdbcType="VARCHAR"/>
+	  <result property="accessAreaId" 		column="TD_ACCESS_AREA_ID" 			jdbcType="BIGINT"/>
+	  <result property="tokenPrefix"		column="TD_TOKEN_PREFIX"			jdbcType="VARCHAR"/>
+	  <result property="abstractFlag"		column="TD_ABSTRACT"				jdbcType="BIT" 		javaType="java.lang.Boolean"/>
+	  <result property="parentDatatypeId"	column="TD_PARENT_DATATYPE_ID"		jdbcType="BIGINT" 	javaType="java.lang.Long"/>
+	  <result property="parentDatatypeName"	column="TD_PARENT_DATATYPE_NAME"	jdbcType="VARCHAR"/>
+	  <result property="modifiedAt"			column="TD_MODIFIED_AT"				jdbcType="TIMESTAMP" />
+	  <result property="gUID"			column="TD_UUID"				jdbcType="CHAR" />
+
+	  <collection property="invocations" 	column="TIC_ID" javaType="ArrayList" ofType="TemplateInvocationCall" resultMap="TemplateInvocationCallMap"/>
+	</resultMap>
+
+2) Create the query with the joins to template content
+
+	<select id="Template_query" resultMap="com.smartstream.messaging.templates.common.TemplateMap">
+	  select 	t.ID "T_ID",
+	  			t.NAME "T_NAME",
+	  			t.ACCESS_AREA_ID "T_ACCESS_AREA_ID",
+	  			t.UPDATE_USER_ID "T_UPDATE_USER_ID",
+				t.MODIFIED_AT "T_MODIFIED_AT",
+	  			t.CARRIER_EID "T_CARRIER_EID",
+	  			t.UUID "T_UUID",
+	  			tc.ID "TC_ID",
+	  			tc.TEMPLATE_LANG_ID "TC_TEMPLATE_LANG_ID",
+	  			tc.CONTENT_TYPE "TC_CONTENT_TYPE",
+	  			tc.CHARSET "TC_CHARSET",
+	  			tc.CONTENT "TC_CONTENT",
+	  			tc.TEMPLATE_ID "TC_TEMPLATE_ID",
+	  			tl.ID "TL_ID",
+	  			tl.ACCESS_AREA_ID "TL_ACCESS_AREA_ID",
+	  			tl.NAME "TL_NAME"
+				from MMI_TEMPLATE t
+				left outer join MMI_TEMPLATE_CONTENT tc on t.ID = tc.TEMPLATE_ID
+				left outer join MMI_TEMPLATE_LANG tl on tc.TEMPLATE_LANG_ID = tl.ID
+		<where>
+		    ##__SmartStream__Condition:permissionConstraints!__##
+		    <if test="id != null">
+		      AND t.ID = #{id}
+		    </if>
+		    <if test="templateContentId != null">
+		      AND exists (select ID, TEMPLATE_ID from MMI_TEMPLATE_CONTENT tc2 where tc2.TEMPLATE_ID = t.ID and tc2.ID = #{templateContentId})
+		    </if>
+	    </where>
+	</select>
+
+3) Create the query to load the full datatype
+
+	<select id="TemplateDatatype_for_template_query" resultMap="com.smartstream.messaging.templates.common.TemplateDatatypeMap">
+ 		select 	td.ID "TD_ID",
+	  			td.NAME "TD_NAME",
+	  			td.ACCESS_AREA_ID "TD_ACCESS_AREA_ID",
+	  			td.TOKEN_PREFIX "TD_TOKEN_PREFIX",
+	  			td.ABSTRACT "TD_ABSTRACT",
+	  			td.PARENT_DATATYPE_ID "TD_PARENT_DATATYPE_ID",
+				td.MODIFIED_AT "TD_MODIFIED_AT",
+				td.UUID "TD_UUID",
+	  			td2.ID "TD_PARENT_DATATYPE_NAME",
+	  			tv.ID  "TV_ID",
+	  			tv.NAME  "TV_NAME",
+	  			tv.FQ_CLASSNAME  "TV_FQ_CLASSNAME",
+	  			tv.TEMPLATE_DATATYPE_ID  "TV_TEMPLATE_DATATYPE_ID",
+				tic.ID  "TIC_ID",
+				tic.ACCESS_AREA_ID  "TIC_ACCESS_AREA_ID",
+				tic.NAME  "TIC_NAME",
+				tic.INVOCATION_TYPE_EID  "TIC_TYPE_EID",
+				tic.TEMPLATE_LANG_ID  "TIC_TEMPLATE_LANG_ID",
+				tic.MACRO_CONTENT  "TIC_MACRO_CONTENT",
+				tic.TEMPLATE_DATATYPE_ID  "TIC_TEMPLATE_DATATYPE_ID",
+				tic.FUNCT_REVERSE_EID "TIC_FUNCT_REVERSE_EID",
+				tic.FUNCT_OBJECT_NAME "TIC_FUNCT_OBJECT_NAME",
+				tip.ID  "TIP_ID",
+				tip.NAME  "TIP_NAME",
+				tip.FQ_CLASSNAME  "TIP_FQ_CLASSNAME",
+				tip.DEFAULT_VALUE  "TIP_DEFAULT_VALUE",
+				tip.TEMPLATE_INVOCATION_CALL_ID  "TIP_TIC_ID",
+	  			tl.ID "TL_ID",
+	  			tl.NAME "TL_NAME",
+	  			tl.ACCESS_AREA_ID "TL_ACCESS_AREA_ID"
+	  from 	MMI_TEMPLATE_TEMPLATE_DATATYPE ttd,
+	  		MMI_TEMPLATE_DATATYPE td
+	  left outer join MMI_TEMPLATE_DATATYPE td2 on td2.ID = td.PARENT_DATATYPE_ID
+	  left outer join MMI_TEMPLATE_VARIABLE tv on td.ID = tv.TEMPLATE_DATATYPE_ID
+	  left outer join MMI_TEMPLATE_INVOCATION_CALL tic on (td.ID = tic.TEMPLATE_DATATYPE_ID and (tic.ACCESS_AREA_ID= #{accessAreaId} or tic.ACCESS_AREA_ID = td.ACCESS_AREA_ID))
+	  left outer join MMI_TEMPLATE_INV_PARAMETER tip on tic.ID = tip.TEMPLATE_INVOCATION_CALL_ID
+	  left outer join MMI_TEMPLATE_LANG tl on tic.TEMPLATE_LANG_ID = tl.ID
+	  <where>
+	  	   td.ID = ttd.TEMPLATE_DATATYPE_ID
+	  	   and ttd.TEMPLATE_ID = #{id}
+          AND ##__SmartStream__Condition:permissionConstraints!__##
+	  </where>
+	</select>
+
+4) Make 2 calls to the database to load template + datatype and then link them together
+
+
+    @Override
+    public Template getTemplateById(Long templateId, boolean mustExist) {
+        Template template = getObjectByQuery(Template.class, updatePermissionParameters(Template.class, MapHelper.toMap("id", templateId, "sessionId", getSessionId())), mustExist);
+        loadDatatypesForTemplate( template );
+        return template;
+    }
+
+==============================================
+SODIT STEPS:
+
+1) Setup the query with the necessary joins.
+
+QTemplate qtemplate = new QTemplate();
+qtemplate.joinToContent().joinToLanguage();
+QDatatype qdatatype = qtemplate.joinToDatatype();
+qdatatype.joinToVariable();
+QInvocationCall qinvocationCall = qdatatype.joinToInvocationCall();
+qinvocationCall.joinToParameters();
+qinvocationCall.joinToLanguage();
+
+2) Add the where clause
+qtemplate.where(qtemplate.id().equal( id ));
+
+
+
+
+
+

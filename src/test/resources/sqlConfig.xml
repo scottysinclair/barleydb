@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?> 
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd"> 
+<configuration>
+  <typeAliases>
+    <typeAlias type="com.scott.modelcontext.monitoring.model.IXMLSyntaxModel" alias="IXMLSyntaxModel"/>
+    <typeAlias type="com.scott.modelcontext.monitoring.model.IXMLMapping" alias="IXMLMapping"/>
+    <typeAlias type="com.scott.modelcontext.monitoring.model.IUser" alias="IUser"/>
+  </typeAliases>
+  <mappers>
+     <mapper resource="com/scott/modelcontext/monitoring/monitoring-sqlmap.xml" />
+  </mappers> 
+</configuration> 

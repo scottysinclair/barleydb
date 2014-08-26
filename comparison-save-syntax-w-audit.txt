@@ -1,0 +1,119 @@
+syntax has 1 structure 1:1
+structure has one xsd document 1:1
+syntax has many mappings (1:N)
+mappings can have 1 subsyntax (1:1)
+
+TASK: SAVE A FULL SYNTAX CONFIGURATION WITH AUDIT TO THE DATABASE
+
+STEPS MYBATIS:
+
+1) Create a container class to hold all data and which uses maps to relate objects which don't refer to each other eg:
+* store the relation of which mappings belong to which syntax.
+* store the relation of the syntaxes which are subsyntaxes of a mapping.
+
+public class XMLModelConfiguration implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    private List<SyntaxModel> syntaxModels;
+
+    private Map<SyntaxModel, ParentMapping> parentSyntaxLookup;
+
+    private Map<SyntaxModel, List<XMLMapping>> mappingsBySyntax;
+
+    private XMLStructure structure;
+
+    private MultipleXsdImport multipleXsdImport;
+
+    .....
+
+
+2) Save the structure if it is new (XML).
+
+3) Audit the changes by walking the syntax -> mapping -> subsyntax -> mapping -> subsyntax... hierarchy
+3.1) For each syntax, mapping, etc load the original version to compare for audit
+
+4) Delete any sub-syntaxes which have been removed.
+4.1 For each (sub-)syntax to save, load the mappings from db and check if there are any sub-syntaxes on it
+and if the mapping has been removed.
+4.2 Delete the deleted mappings.
+4.3 Delete the deleted syntax.
+
+
+5) Save the  syntax -> mapping -> subsyntax -> mapping -> subsyntax... hierarchy bottom up.
+5.1 Repeat while not all syntaxes saved.
+5.2 Find the most sub-syntax save it.
+5.3 Save the mappings for that syntax.
+
+
+STEPS SODIT:
+
+1) Define the full model in the UI
+
+        XMLSyntaxModel syntaxModel = entityContext.newModel(XMLSyntaxModel.class);
+		syntaxModel.setName("Scott's Syntax");
+		syntaxModel.setSyntaxType(SyntaxType.ROOT);
+
+		User user = entityContext.newModel(User.class);
+		user.setName("Jimmy");
+
+		syntaxModel.setUser(user);
+
+		XMLStructure structure = entityContext.newModel(XMLStructure.class);
+		structure.setName("scott's structure");
+		syntaxModel.setStructure(structure);
+
+
+		XMLMapping mapping = entityContext.newModel(XMLMapping.class);
+		mapping.setSyntaxModel(syntaxModel);
+		mapping.setXpath("/root1");
+		mapping.setTarget("target1");
+		syntaxModel.getMappings().add(mapping);
+
+		mapping = entityContext.newModel(XMLMapping.class);
+		mapping.setSyntaxModel(syntaxModel);
+		mapping.setXpath("/root2");
+		mapping.setTarget("target2");
+		syntaxModel.getMappings().add(mapping);
+
+		//create the sub syntax
+		XMLSyntaxModel subSyntaxModel = entityContext.newModel(XMLSyntaxModel.class);
+		subSyntaxModel.setName("SubSyntaxModel - ooooh");
+		subSyntaxModel.setStructure(structure);
+		subSyntaxModel.setSyntaxType(SyntaxType.SUBSYNTAX);
+		subSyntaxModel.setUser(user);
+
+		mapping.setSubSyntaxModel(subSyntaxModel); //set the subsyntax on the mapping
+
+		//add another mapping to the root level syntax
+		mapping = entityContext.newModel(XMLMapping.class);
+		mapping.setSyntaxModel(syntaxModel);
+		mapping.setXpath("/root3");
+		mapping.setTarget("target3");
+		syntaxModel.getMappings().add(mapping);
+
+		//do the sub-syntax mappings
+		mapping = entityContext.newModel(XMLMapping.class);
+		mapping.setSyntaxModel(subSyntaxModel);
+		mapping.setXpath("sub1");
+		mapping.setTarget("subtarget1");
+		subSyntaxModel.getMappings().add(mapping);
+
+2) Save the model
+
+		entityContext.persist( new PersistRequest().save(syntaxModel) );
+
+
+For a syntax with 20 mappings and a sub-syntax with 10 mappings we have the following database trips:
+
+MYBATIS:
+load original data and save audit for each: (2 + 2) * 2 = 8
+ save data: 2 + (1 + 20) + (1 + 10)  = 34
+42 database calls
+
+SODIT
+load original data for audit and optimistic lock: 2 (batched) (potentially 1 with multiple result-sets enabled)
+save data: 2 (batch syntax + batch mappings)
+insert full audit: 1 (batch all audit)
+5 database calls.
+

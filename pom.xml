@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.smartstream</groupId>
+  <artifactId>com.smartstream.morf</artifactId>
+  <packaging>bundle</packaging>
+  <name>Object Relational Framework</name>
+  <version>0.0.1-SNAPSHOT</version>
+  
+  <properties>
+	<slf4j.version>1.4.3</slf4j.version>
+	<spring.maven.artifact.version>3.1.1</spring.maven.artifact.version>
+  </properties>
+  
+  <dependencies>
+    
+    
+	
+	<dependency>
+		<groupId>org.mybatis</groupId>
+		<artifactId>mybatis-spring</artifactId>
+		<version>1.0.2</version>
+		<scope>provided</scope>
+		<exclusions>
+			<exclusion>
+				<artifactId>spring-context</artifactId>
+				<groupId>org.springframework</groupId>
+			</exclusion>
+			<exclusion>
+				<artifactId>spring-tx</artifactId>
+				<groupId>org.springframework</groupId>
+			</exclusion>
+			<exclusion>
+				<artifactId>spring-core</artifactId>
+				<groupId>org.springframework</groupId>
+			</exclusion>
+			<exclusion>
+				<artifactId>spring-jdbc</artifactId>
+				<groupId>org.springframework</groupId>
+			</exclusion>
+		<!-- 	<exclusion>
+				<artifactId>mybatis</artifactId>
+				<groupId>org.mybatis</groupId>
+			</exclusion>
+			 -->
+		</exclusions>
+	</dependency>
+	<!-- 
+	<dependency>
+		<groupId>org.apache.servicemix.bundles</groupId>
+		<artifactId>org.apache.servicemix.bundles.mybatis</artifactId>
+		<version>3.0.4_2</version>
+		<scope>test</scope>
+	</dependency>    
+	 -->
+	<dependency>
+	   <groupId>org.springframework</groupId>
+	   <artifactId>spring-orm</artifactId>
+	   <version>3.1.1.RELEASE</version>
+	   <scope>provided</scope>
+	</dependency>	
+
+	<dependency>
+	   <groupId>org.springframework</groupId>
+	   <artifactId>spring-test</artifactId>
+	   <version>3.1.1.RELEASE</version>
+	   <scope>provided</scope>
+	</dependency>	
+	
+	<dependency>
+		<groupId>org.slf4j</groupId>
+		<artifactId>slf4j-log4j12</artifactId>
+		<version>1.4.3</version>
+		<scope>provided</scope>
+	</dependency>
+		
+	<dependency>
+		<groupId>log4j</groupId>
+		<artifactId>log4j</artifactId>
+		<version>1.2.16</version>
+		<scope>provided</scope>
+	</dependency>
+	            	
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.8.1</version>
+      <scope>provided</scope>
+    </dependency>
+    
+<dependency>
+	<groupId>org.hsqldb</groupId>
+	<artifactId>hsqldb</artifactId>
+	<version>2.3.2</version>
+	<scope>provided</scope>
+</dependency>
+            
+	
+	
+	<dependency>
+	  <groupId>com.mysema.querydsl</groupId>
+	  <artifactId>querydsl-sql</artifactId>
+	  <version>2.2.3</version>
+	  <scope>test</scope>
+	</dependency>
+	
+	</dependencies>
+
+  <!-- for packaging as an OSGi bundle, we use the maven-bundle-plugin -->
+  
+  <!-- see http://felix.apache.org/site/maven-bundle-plugin-bnd.html for more info -->
+  <build>
+    <resources>
+      <!-- standard Maven folder -->
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+      <!-- plus root folder -->
+      <resource>
+        <directory>.</directory>
+        <includes>
+          <include>plugin.xml</include>
+          <include>META-INF/*</include>
+        </includes>
+      </resource>
+    </resources>  
+    
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+        </configuration>
+      </plugin>      
+      
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <extensions>true</extensions>
+        <version>2.3.7</version>
+        <configuration>
+		   <manifestLocation>META-INF</manifestLocation>
+           <instructions>
+               <Export-Package>com.scott.modelcontext.monitoring*</Export-Package>
+               <Import-Package>*</Import-Package>
+               <!-- 
+                  add ,plugin.xml if it's present i.e.
+                  src/main/resources,plugin.xml
+               -->
+               <Include-Resource>src/main/resources</Include-Resource>
+           </instructions>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  
+  <!-- ================================================ -->
+  <!--            Repository Configuration              -->
+  <!-- ================================================ -->
+
+  <repositories>
+<repository>
+  <id>msource</id>
+  <url>http://source.mysema.com/maven2/releases/</url>
+  <releases>
+    <enabled>true</enabled>
+  </releases>
+  <snapshots>
+    <enabled>false</enabled>
+  </snapshots>
+</repository>  
+  
+    <repository>    
+      <id>myrepo2</id>
+      <name>blah2</name>
+      <url>http://maven.alfresco.com/nexus/content/repositories/public-snapshots</url>
+    </repository>  
+  
+  
+  
+    <repository>    
+      <id>apache.m2.incubator</id>
+      <name>Apache M2 Incubator Repository</name>
+      <url>http://people.apache.org/repo/m2-incubating-repository/</url>
+    </repository>  
+    <repository>
+       <id>eclipse-repository</id>
+       <name>Eclipse Repository</name>
+       <url>http://repo1.maven.org/eclipse/</url>
+    </repository>
+    <repository>
+      <id>safehaus-repository</id>
+      <name>Safehaus Repository</name>
+      <url>http://m2.safehaus.org</url>
+    </repository>
+    <repository>
+      <id>spring-ext</id>
+      <name>Spring External Dependencies Repository</name>
+      <url>
+        https://springframework.svn.sourceforge.net/svnroot/springframework/repos/repo-ext/
+      </url>
+    </repository>
+
+    
+    <repository>
+      <id>i21-s3-osgi-repo</id>
+      <name>i21 osgi artifacts repo</name>
+      <snapshots>
+         <enabled>true</enabled>
+      </snapshots>
+      <url>http://s3.amazonaws.com/maven.springframework.org/osgi</url>
+    </repository>    
+    
+    
+    <repository>
+      <id>i21-s3-maven-repo</id>
+      <name>i21 S3 milestone repo</name>
+      <url>http://s3.amazonaws.com/maven.springframework.org/milestone</url>
+    </repository>
+
+  </repositories>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>maven-repo</id>
+      <name>maven repo</name>
+      <url>http://repo1.maven.org/maven2/</url>
+    </pluginRepository>
+    
+  </pluginRepositories>
+  
+</project>
