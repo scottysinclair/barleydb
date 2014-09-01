@@ -49,28 +49,33 @@ public class ConditionRenderer implements ConditionVisitor {
 			}
 			default: throw new IllegalStateException("Unexpected operator");
 		}
-		if (JavaType.STRING.equals(nodeDef.getJavaType())) {
-		    sb.append('\'');
-		    sb.append( String.valueOf(qpc.getValue()).replaceAll("'", "''") );
-		    sb.append('\'');
-		}
-		else if (JdbcType.TIMESTAMP.equals(nodeDef.getJdbcType()) || JdbcType.DATE.equals(nodeDef.getJdbcType())) {
-		  params.add(new QueryGenerator.Param(nodeDef, qpc.getValue()));
-		  sb.append('?');
-		}
-		else if (nodeDef.getEnumType() != null) {
+		if (nodeDef.getEnumType() != null) {
 		  if (nodeDef.getJdbcType() == JdbcType.INT) {
-		      sb.append(((Enum<? extends Enum<?>>)qpc.getValue()).ordinal());
+		      Enum<? extends Enum<?>> enumValue = (Enum<? extends Enum<?>>)qpc.getValue();
+		      if (enumValue != null) {
+    		      params.add(new QueryGenerator.Param(nodeDef, enumValue.ordinal()));
+		      }
+		      else {
+		          params.add(new QueryGenerator.Param(nodeDef, null));
+		      }
+		      sb.append('?');
 		  }
 		  else if (JdbcType.isStringType( nodeDef.getJdbcType() )) {
-		      sb.append(qpc.getValue().toString());
+		      if (qpc.getValue() != null) {
+		          params.add(new QueryGenerator.Param(nodeDef, qpc.getValue().toString()));
+		      }
+		      else {
+		          params.add(new QueryGenerator.Param(nodeDef, null));
+		      }
+		      sb.append('?');
 		  }
 		  else {
 		      throw new IllegalStateException("Enums with jdbc type " + nodeDef.getJdbcType() + " is not supported");
 		  }
 		}
 		else {
-			sb.append( qpc.getValue() );
+            params.add(new QueryGenerator.Param(nodeDef, qpc.getValue()));
+            sb.append('?');
 		}
 	}
 

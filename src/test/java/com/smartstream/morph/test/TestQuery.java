@@ -3,6 +3,7 @@ package com.smartstream.morph.test;
 import java.util.List;
 
 import org.junit.Test;
+import static org.junit.Assert.*;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.test.jdbc.SimpleJdbcTestUtils;
@@ -224,6 +225,16 @@ public class TestQuery extends TestBase  {
 		for (Template template: qBatch.getResult(1, Template.class).getList()) {
 			print("", template);
 		}
-}
+	}
+
+	@Test
+	public void testNullQueryParameter() throws Exception {
+        QSyntaxModel qsyntax = new QSyntaxModel();
+        qsyntax.where(qsyntax.syntaxType().equal(null));
+        qsyntax.joinToUser();
+
+        assertTrue(entityContext.performQuery(qsyntax).getList().isEmpty());
+
+	}
 
 }

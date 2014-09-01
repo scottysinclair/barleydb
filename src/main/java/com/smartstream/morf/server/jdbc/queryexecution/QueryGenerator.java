@@ -145,7 +145,6 @@ public class QueryGenerator {
 
         //nodeNameOfForeignKey, like the syntax node in the mappings entity which maps to the owning syntax.
         String nodeNameOfForeignKey = entityFrom.getNode(join.getFkeyProperty(), true).getForeignNodeName();
-        NodeDefinition fromNode = entityFrom.getNode(join.getFkeyProperty(), true);
         if (nodeNameOfForeignKey != null) {
             String foreignKeyCol = entityTo.getNode(nodeNameOfForeignKey, true).getColumnName();
             sb.append("\nleft outer join ");
