@@ -101,7 +101,7 @@ public final class Environment {
 	}
 
 	public <T> T generateProxy(Entity entity) throws ClassNotFoundException {
-	    LOG.debug("generateProxy for " + entity);
+	    //LOG.debug("generateProxy for " + entity);
 	    for (ProxyFactory fac: entity.getEntityContext().getDefinitions().getProxyFactories()) {
     	    if (fac != null) {
     	        T proxy = fac.newProxy(entity);

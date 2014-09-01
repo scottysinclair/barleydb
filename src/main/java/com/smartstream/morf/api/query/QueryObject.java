@@ -31,7 +31,7 @@ public class QueryObject<R> implements Serializable {
    }
 
   public QueryObject(Class<R> type, QueryObject<?> parent) {
-      this(type, type.getName(), null);
+      this(type, type.getName(), parent);
   }
 
   public QueryObject(Class<R> typeClass, String typeName, QueryObject<?> parent) {

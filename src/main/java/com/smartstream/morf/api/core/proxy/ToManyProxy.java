@@ -29,7 +29,7 @@ public class ToManyProxy<R> extends AbstractList<R> implements Serializable {
 	@SuppressWarnings("unchecked")
 	@Override
 	public R get(int index) {
-	    LOG.debug("GET " + toManyNode.getParent() + "." + toManyNode.getName() + " = " + toManyNode);
+	//    LOG.debug("GET " + toManyNode.getParent() + "." + toManyNode.getName() + " = " + toManyNode);
 		fetchIfNeeded();
 		Entity en = toManyNode.getList().get(index);
 		String joinProperty = toManyNode.getNodeDefinition().getJoinProperty();
