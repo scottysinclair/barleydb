@@ -1,9 +1,7 @@
 package com.smartstream.morf.server.jdbc.queryexecution;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -20,7 +18,6 @@ import com.smartstream.morf.api.core.entity.ToManyNode;
 import com.smartstream.morf.api.core.entity.ValueNode;
 import com.smartstream.morf.api.query.QJoin;
 import com.smartstream.morf.api.query.QueryObject;
-import com.smartstream.morf.server.jdbc.helper.PreparedStatementHelper;
 import com.smartstream.morf.server.jdbc.queryexecution.QueryGenerator.Param;
 
 /**
@@ -52,24 +49,9 @@ public class QueryExecution<T> {
 		queryResult = new QueryResult<>(entityContext, query.getTypeClass());
 	}
 
-    public String getSql() {
-        return getSql(new LinkedList<Param>());
-    }
-    public String getSql(List<Param> existingParams) {
-        qGen = new QueryGenerator(query, definitions, existingParams);
-        return qGen.generateSQL(projection);
-    }
-
-    public boolean hasParameters() {
-    	return !qGen.getParameters().isEmpty();
-    }
-
-    public void setParameters(PreparedStatement stmt) throws SQLException {
-       int i = 1;
-       PreparedStatementHelper helper = new PreparedStatementHelper(definitions);
-       for (QueryGenerator.Param param: qGen.getParameters())  {
-          helper.setParameter(stmt, i++, param.getNodeDefinition(), param.getValue());
-       }
+    public String getSql(List<Param> queryParameters) {
+        qGen = new QueryGenerator(query, definitions);
+        return qGen.generateSQL(projection, queryParameters);
     }
 
     public String getPrimaryTableName() {

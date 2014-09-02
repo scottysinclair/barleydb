@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.smartstream.morf.api.core.entity.EntityContext;
+import com.smartstream.morf.server.jdbc.helper.PreparedStatementHelper;
 import com.smartstream.morf.server.jdbc.queryexecution.QueryGenerator.Param;
 
 /**
@@ -42,6 +43,14 @@ public class QueryExecuter {
         }
     }
 
+    /**
+     * Executes the given query executions#
+     *
+     * If possible, in one database roundtrip.
+     * @param queryExecutions
+     * @throws SQLException
+     * @throws Exception
+     */
     public void execute(QueryExecution<?>... queryExecutions) throws SQLException, Exception {
         entityContext.beginLoading();
         try {
@@ -62,11 +71,12 @@ public class QueryExecuter {
         }
         else {
             LOG.debug("Executing queries in one batch, processing multiple resultsets...");
-            String sql = createCombinedQuery(queryExecutions);
-            if (queryExecutions[0].hasParameters()) {
+            List<Param> params = new LinkedList<Param>();
+            String sql = createCombinedQuery(params, queryExecutions);
+            if (!params.isEmpty()) {
                 try (PreparedStatement stmt = connection.prepareStatement( sql );) {
                     //the first query execution will set all parameters
-                    queryExecutions[0].setParameters(stmt);
+                    setParameters(stmt, params);
                     if (!stmt.execute()) {
                         throw new IllegalStateException("Query did not return a result set");
                     }
@@ -113,13 +123,19 @@ public class QueryExecuter {
         }
     }
 
+    /**
+     * Executes a single query expecting one resultset.
+     * @param queryExecution
+     * @throws SQLException
+     */
     private void executeQuery(QueryExecution<?> queryExecution) throws SQLException {
-        String sql = queryExecution.getSql();
-        if (queryExecution.hasParameters()) {
+        List<Param> params = new LinkedList<Param>();
+        String sql = queryExecution.getSql(params);
+        if (!params.isEmpty()) {
             try (PreparedStatement stmt = connection.prepareStatement(sql);) {
                 LOG.debug("============================================");
                 LOG.debug("Executing individual query:\n" + sql);
-                queryExecution.setParameters(stmt);
+                setParameters(stmt, params);
                 try (ResultSet resultSet = stmt.executeQuery()) {
                     queryExecution.processResultSet(resultSet);
                 }
@@ -134,12 +150,20 @@ public class QueryExecuter {
                 }
             }
         }
-
     }
 
-    private String createCombinedQuery(QueryExecution<?>... queryExecutions) {
+    private void setParameters(PreparedStatement stmt, List<Param> params) throws SQLException {
+        int i = 1;
+        PreparedStatementHelper helper = new PreparedStatementHelper(entityContext.getDefinitions());
+        for (QueryGenerator.Param param: params)  {
+           helper.setParameter(stmt, i++, param.getNodeDefinition(), param.getValue());
+        }
+     }
+
+
+    private String createCombinedQuery(List<Param> params, QueryExecution<?>... queryExecutions) {
         StringBuilder combinedQuery = new StringBuilder();
-        List<Param> params = new LinkedList<Param>();
+
         for (QueryExecution<?> qExec : queryExecutions) {
             combinedQuery.append(' ');
             combinedQuery.append(qExec.getSql(params));

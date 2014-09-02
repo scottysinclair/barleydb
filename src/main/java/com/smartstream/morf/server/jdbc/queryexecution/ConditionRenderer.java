@@ -105,8 +105,8 @@ public class ConditionRenderer implements ConditionVisitor {
 
 	public void visitExists(QExists exists) {
 		sb.append("exists (");
-		QueryGenerator qGen = new QueryGenerator(exists.getSubQueryObject(), definitions, params);
-		sb.append( qGen.generateSQL() );
+		QueryGenerator qGen = new QueryGenerator(exists.getSubQueryObject(), definitions);
+		sb.append( qGen.generateSQL(params) );
 		sb.append(")");
 	}
 }

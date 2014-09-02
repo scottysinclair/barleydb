@@ -36,24 +36,13 @@ public class QueryGenerator {
 
     private final QueryObject<?> query;
     private final Definitions definitions;
-    private List<Param> params;
 
     public QueryGenerator(QueryObject<?> query, Definitions definitions) {
-        this(query, definitions, new LinkedList<Param>());
-
-    }
-
-    public QueryGenerator(QueryObject<?> query, Definitions definitions, List<Param> params) {
         this.query = query;
         this.definitions = definitions;
-        this.params = params;
     }
 
-    public List<Param> getParameters() {
-        return params;
-    }
-
-    public String generateSQL(Projection projection) {
+    public String generateSQL(Projection projection, List<Param> params) {
         EntityType entityType = definitions.getEntityTypeMatchingInterface(query.getTypeName(), true);
 
         StringBuilder sb = new StringBuilder();
@@ -97,8 +86,8 @@ public class QueryGenerator {
         return sb.toString();
     }
 
-    public String generateSQL() {
-        return generateSQL(null);
+    public String generateSQL(List<Param> params) {
+        return generateSQL(null, params);
     }
 
     private void generateSubQueryCondition(StringBuilder sb, QueryObject<?> query) {

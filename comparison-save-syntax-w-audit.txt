@@ -111,7 +111,7 @@ load original data and save audit for each: (2 + 2) * 2 = 8
  save data: 2 + (1 + 20) + (1 + 10)  = 34
 42 database calls
 
-SODIT
+MORF
 load original data for audit and optimistic lock: 2 (batched) (potentially 1 with multiple result-sets enabled)
 save data: 2 (batch syntax + batch mappings)
 insert full audit: 1 (batch all audit)
