@@ -49,34 +49,8 @@ public class ConditionRenderer implements ConditionVisitor {
 			}
 			default: throw new IllegalStateException("Unexpected operator");
 		}
-		if (nodeDef.getEnumType() != null) {
-		  if (nodeDef.getJdbcType() == JdbcType.INT) {
-		      Enum<? extends Enum<?>> enumValue = (Enum<? extends Enum<?>>)qpc.getValue();
-		      if (enumValue != null) {
-    		      params.add(new QueryGenerator.Param(nodeDef, enumValue.ordinal()));
-		      }
-		      else {
-		          params.add(new QueryGenerator.Param(nodeDef, null));
-		      }
-		      sb.append('?');
-		  }
-		  else if (JdbcType.isStringType( nodeDef.getJdbcType() )) {
-		      if (qpc.getValue() != null) {
-		          params.add(new QueryGenerator.Param(nodeDef, qpc.getValue().toString()));
-		      }
-		      else {
-		          params.add(new QueryGenerator.Param(nodeDef, null));
-		      }
-		      sb.append('?');
-		  }
-		  else {
-		      throw new IllegalStateException("Enums with jdbc type " + nodeDef.getJdbcType() + " is not supported");
-		  }
-		}
-		else {
-            params.add(new QueryGenerator.Param(nodeDef, qpc.getValue()));
-            sb.append('?');
-		}
+        params.add(new QueryGenerator.Param(nodeDef, qpc.getValue()));
+        sb.append('?');
 	}
 
 	public void visitLogicalOp(QLogicalOp qlo) {

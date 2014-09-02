@@ -7,6 +7,7 @@ public enum JavaType {
 	STRING,
 	UTIL_DATE,
 	SQL_DATE,
-	BOOLEAN
+	BOOLEAN,
+	ENUM
 
 }

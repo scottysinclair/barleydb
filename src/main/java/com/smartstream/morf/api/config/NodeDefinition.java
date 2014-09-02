@@ -36,6 +36,7 @@ public class NodeDefinition implements Serializable, Cloneable {
 		public Builder enumm(String name, Class<? extends Enum<?>> enumType, String columnName, JdbcType jdbcType) {
 			nd.name = name;
 			nd.enumType = enumType;
+			nd.javaType = JavaType.ENUM;
 			nd.columnName = columnName;
 			nd.jdbcType = jdbcType;
 			return this;
