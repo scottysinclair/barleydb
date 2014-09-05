@@ -10,6 +10,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import com.smartstream.morf.api.config.EntityType;
 import com.smartstream.morf.api.core.entity.Entity;
@@ -19,7 +20,7 @@ public final class Entities implements Iterable<Entity>, Serializable {
     /*
      * contains all entities
      */
-    private Map<String, EntityInfo> entitiesByUuid = new HashMap<String, EntityInfo>();
+    private Map<UUID, EntityInfo> entitiesByUuid = new HashMap<>();
     /*
      * only contains entities which have a PK
      */
@@ -29,7 +30,7 @@ public final class Entities implements Iterable<Entity>, Serializable {
 
     public void add(Entity entity) {
         final String iname = entity.getEntityType().getInterfaceName();
-        final String uuid = entity.getUuid();
+        final UUID uuid = entity.getUuid();
         EntityInfo entityInfo = entitiesByUuid.get(uuid);
         if (entityInfo == null) {
             entityInfo = new EntityInfo(entity);
@@ -44,7 +45,7 @@ public final class Entities implements Iterable<Entity>, Serializable {
 
     public void remove(Entity entity) {
         final String iname = entity.getEntityType().getInterfaceName();
-        final String uuid = entity.getUuid();
+        final UUID uuid = entity.getUuid();
         entitiesByUuid.remove(uuid);
         removeEntityByType(entity);
         final Object key = entity.getKey().getValue();
@@ -53,7 +54,7 @@ public final class Entities implements Iterable<Entity>, Serializable {
         }
     }
 
-    public EntityInfo getByUuid(String uuid, boolean mustExist) {
+    public EntityInfo getByUuid(UUID uuid, boolean mustExist) {
         EntityInfo entityInfo = entitiesByUuid.get(uuid);
         if (entityInfo != null) {
             return entityInfo;

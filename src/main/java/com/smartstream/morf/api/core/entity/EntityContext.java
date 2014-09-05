@@ -11,6 +11,7 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.WeakHashMap;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -652,7 +653,7 @@ public final class EntityContext implements Serializable {
       }
   }
 
-  public Entity getEntityByUuidOrKey(String uuid, EntityType entityType, Object key, boolean mustExist) {
+  public Entity getEntityByUuidOrKey(UUID uuid, EntityType entityType, Object key, boolean mustExist) {
 	  Entity e = getEntityByUuid(uuid, false);
 	  if (e != null) {
 		  return e;
@@ -660,7 +661,7 @@ public final class EntityContext implements Serializable {
 	  return getEntity(entityType, key, mustExist);
   }
 
-    public Entity getEntityByUuid(String uuid, boolean mustExist) {
+    public Entity getEntityByUuid(UUID uuid, boolean mustExist) {
         EntityInfo ei = entities.getByUuid(uuid, mustExist);
         return ei != null ? ei.getEntity() : null;
     }

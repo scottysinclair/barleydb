@@ -28,7 +28,7 @@ public class Entity implements Serializable {
     private transient EntityType entityType;
     private TreeMap<String,Node> children;
     private EntityState entityState;
-    private String uuid;
+    private UUID uuid;
 
     /**
      * Copy constructor, a new version of the entity in a different context with the same uuid
@@ -40,14 +40,14 @@ public class Entity implements Serializable {
     }
 
     public Entity(EntityContext context, EntityType entityType) {
-        this(context, entityType, null, UUID.randomUUID().toString());
+        this(context, entityType, null, UUID.randomUUID());
     }
 
     public Entity(EntityContext context, EntityType entityType, Object key) {
-        this(context, entityType, key, UUID.randomUUID().toString());
+        this(context, entityType, key, UUID.randomUUID());
     }
 
-    public Entity(EntityContext context, EntityType entityType, Object key, String uuid) {
+    public Entity(EntityContext context, EntityType entityType, Object key, UUID uuid) {
     	this.entityContext = context;
         this.entityType = entityType;
         this.children = new TreeMap<String,Node>();
@@ -125,7 +125,7 @@ public class Entity implements Serializable {
 		}
     }
 
-    public String getUuid() {
+    public UUID getUuid() {
         return uuid;
     }
 
@@ -335,7 +335,7 @@ public class Entity implements Serializable {
             return getEntityType().getInterfaceShortName() + " [" + getKey().getName() + "=" + getKey().getValue() + "]";
         }
         else {
-            return getEntityType().getInterfaceShortName() + " [uuid=" + getUuid().substring(0,  7) + "..]";
+            return getEntityType().getInterfaceShortName() + " [uuid=" + getUuid().toString().substring(0,  7) + "..]";
         }
     }
 
