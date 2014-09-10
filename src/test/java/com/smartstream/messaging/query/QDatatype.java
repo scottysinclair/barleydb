@@ -6,14 +6,14 @@ import com.smartstream.morf.api.query.QueryObject;
 
 public class QDatatype extends QueryObject<Datatype> {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public QDatatype() {
-		super(Datatype.class);
-	}
+    public QDatatype() {
+        super(Datatype.class);
+    }
 
-	public QProperty<String> name() {
-		return new QProperty<String>(this, "name");
-	}
+    public QProperty<String> name() {
+        return new QProperty<String>(this, "name");
+    }
 
 }

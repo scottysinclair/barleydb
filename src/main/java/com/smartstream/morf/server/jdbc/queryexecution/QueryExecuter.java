@@ -74,7 +74,7 @@ public class QueryExecuter {
             List<Param> params = new LinkedList<Param>();
             String sql = createCombinedQuery(params, queryExecutions);
             if (!params.isEmpty()) {
-                try (PreparedStatement stmt = connection.prepareStatement( sql );) {
+                try (PreparedStatement stmt = connection.prepareStatement(sql);) {
                     //the first query execution will set all parameters
                     setParameters(stmt, params);
                     if (!stmt.execute()) {
@@ -155,11 +155,10 @@ public class QueryExecuter {
     private void setParameters(PreparedStatement stmt, List<Param> params) throws SQLException {
         int i = 1;
         PreparedStatementHelper helper = new PreparedStatementHelper(entityContext.getDefinitions());
-        for (QueryGenerator.Param param: params)  {
-           helper.setParameter(stmt, i++, param.getNodeDefinition(), param.getValue());
+        for (QueryGenerator.Param param : params) {
+            helper.setParameter(stmt, i++, param.getNodeDefinition(), param.getValue());
         }
-     }
-
+    }
 
     private String createCombinedQuery(List<Param> params, QueryExecution<?>... queryExecutions) {
         StringBuilder combinedQuery = new StringBuilder();

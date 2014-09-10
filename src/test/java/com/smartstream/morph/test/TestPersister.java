@@ -22,74 +22,73 @@ import com.smartstream.morf.server.jdbc.persister.exception.*;
 public class TestPersister extends TestBase {
     private XMLSyntaxModel buildSyntax() {
         XMLSyntaxModel syntaxModel = entityContext.newModel(XMLSyntaxModel.class);
-		syntaxModel.setName("Scott's Syntax");
-		syntaxModel.setSyntaxType(SyntaxType.ROOT);
+        syntaxModel.setName("Scott's Syntax");
+        syntaxModel.setSyntaxType(SyntaxType.ROOT);
 
-		User user = entityContext.newModel(User.class);
-		user.setName("Jimmy");
+        User user = entityContext.newModel(User.class);
+        user.setName("Jimmy");
 
-		syntaxModel.setUser(user);
+        syntaxModel.setUser(user);
 
-		XMLStructure structure = entityContext.newModel(XMLStructure.class);
-		structure.setName("scott's structure");
-		syntaxModel.setStructure(structure);
+        XMLStructure structure = entityContext.newModel(XMLStructure.class);
+        structure.setName("scott's structure");
+        syntaxModel.setStructure(structure);
 
+        XMLMapping mapping = entityContext.newModel(XMLMapping.class);
+        mapping.setSyntaxModel(syntaxModel);
+        mapping.setXpath("/root1");
+        mapping.setTarget("target1");
+        syntaxModel.getMappings().add(mapping);
 
-		XMLMapping mapping = entityContext.newModel(XMLMapping.class);
-		mapping.setSyntaxModel(syntaxModel);
-		mapping.setXpath("/root1");
-		mapping.setTarget("target1");
-		syntaxModel.getMappings().add(mapping);
+        mapping = entityContext.newModel(XMLMapping.class);
+        mapping.setSyntaxModel(syntaxModel);
+        mapping.setXpath("/root2");
+        mapping.setTarget("target2");
+        syntaxModel.getMappings().add(mapping);
 
-		mapping = entityContext.newModel(XMLMapping.class);
-		mapping.setSyntaxModel(syntaxModel);
-		mapping.setXpath("/root2");
-		mapping.setTarget("target2");
-		syntaxModel.getMappings().add(mapping);
+        //create the sub syntax
+        XMLSyntaxModel subSyntaxModel = entityContext.newModel(XMLSyntaxModel.class);
+        subSyntaxModel.setName("SubSyntaxModel - ooooh");
+        subSyntaxModel.setStructure(structure);
+        subSyntaxModel.setSyntaxType(SyntaxType.SUBSYNTAX);
+        subSyntaxModel.setUser(user);
 
-		//create the sub syntax
-		XMLSyntaxModel subSyntaxModel = entityContext.newModel(XMLSyntaxModel.class);
-		subSyntaxModel.setName("SubSyntaxModel - ooooh");
-		subSyntaxModel.setStructure(structure);
-		subSyntaxModel.setSyntaxType(SyntaxType.SUBSYNTAX);
-		subSyntaxModel.setUser(user);
+        mapping.setSubSyntaxModel(subSyntaxModel); //set the subsyntax on the mapping
 
-		mapping.setSubSyntaxModel(subSyntaxModel); //set the subsyntax on the mapping
+        //add another mapping to the root level syntax
+        mapping = entityContext.newModel(XMLMapping.class);
+        mapping.setSyntaxModel(syntaxModel);
+        mapping.setXpath("/root3");
+        mapping.setTarget("target3");
+        syntaxModel.getMappings().add(mapping);
 
-		//add another mapping to the root level syntax
-		mapping = entityContext.newModel(XMLMapping.class);
-		mapping.setSyntaxModel(syntaxModel);
-		mapping.setXpath("/root3");
-		mapping.setTarget("target3");
-		syntaxModel.getMappings().add(mapping);
+        //do the sub-syntax mappings
+        mapping = entityContext.newModel(XMLMapping.class);
+        mapping.setSyntaxModel(subSyntaxModel);
+        mapping.setXpath("sub1");
+        mapping.setTarget("subtarget1");
+        subSyntaxModel.getMappings().add(mapping);
 
-		//do the sub-syntax mappings
-		mapping = entityContext.newModel(XMLMapping.class);
-		mapping.setSyntaxModel(subSyntaxModel);
-		mapping.setXpath("sub1");
-		mapping.setTarget("subtarget1");
-		subSyntaxModel.getMappings().add(mapping);
-
-		mapping = entityContext.newModel(XMLMapping.class);
-		mapping.setSyntaxModel(subSyntaxModel);
-		mapping.setXpath("sub2");
-		mapping.setTarget("subtarget2");
-		subSyntaxModel.getMappings().add(mapping);
-		return syntaxModel;
+        mapping = entityContext.newModel(XMLMapping.class);
+        mapping.setSyntaxModel(subSyntaxModel);
+        mapping.setXpath("sub2");
+        mapping.setTarget("subtarget2");
+        subSyntaxModel.getMappings().add(mapping);
+        return syntaxModel;
     }
 
     private AccessArea buildAccessAreas() {
-    	AccessArea root = entityContext.newModel(AccessArea.class);
-    	root.setName("root");
-    	AccessArea hsbc = entityContext.newModel(AccessArea.class);
-    	hsbc.setName("hsbc");
-    	hsbc.setParent( root );
-    	AccessArea jpmorgan = entityContext.newModel(AccessArea.class);
-    	jpmorgan.setName("jpmorgan");
-    	jpmorgan.setParent( root );
-    	root.getChildren().add(hsbc);
-    	root.getChildren().add(jpmorgan);
-    	return root;
+        AccessArea root = entityContext.newModel(AccessArea.class);
+        root.setName("root");
+        AccessArea hsbc = entityContext.newModel(AccessArea.class);
+        hsbc.setName("hsbc");
+        hsbc.setParent(root);
+        AccessArea jpmorgan = entityContext.newModel(AccessArea.class);
+        jpmorgan.setName("jpmorgan");
+        jpmorgan.setParent(root);
+        root.getChildren().add(hsbc);
+        root.getChildren().add(jpmorgan);
+        return root;
     }
 
     @Test
@@ -98,15 +97,14 @@ public class TestPersister extends TestBase {
             System.out.println("STARTING TEST testPersistNewXMLSyntax");
             XMLSyntaxModel syntaxModel = buildSyntax();
             print("", syntaxModel);
-    		PersistRequest request = new PersistRequest();
-    		request.save(syntaxModel);
+            PersistRequest request = new PersistRequest();
+            request.save(syntaxModel);
 
-    		entityContext.persist( request );
+            entityContext.persist(request);
 
-    		System.out.println("-------------- PRINTING RESULT OF PERIST ------------------");
-    		print("", syntaxModel);
-        }
-        catch(Exception x) {
+            System.out.println("-------------- PRINTING RESULT OF PERIST ------------------");
+            print("", syntaxModel);
+        } catch (Exception x) {
             x.printStackTrace();
             throw x;
         }
@@ -117,27 +115,27 @@ public class TestPersister extends TestBase {
         System.out.println("STARTING TEST testPersistNewAccessAreaHierarchy");
         AccessArea root = buildAccessAreas();
 
-		PersistRequest request = new PersistRequest();
-		request.save(root);
+        PersistRequest request = new PersistRequest();
+        request.save(root);
 
-		entityContext.persist( request );
+        entityContext.persist(request);
 
-		System.out.println("-------------- PRINTING NODE CONTEXT AFTER PERSIST  ------------------");
-		printentityContext(entityContext);
+        System.out.println("-------------- PRINTING NODE CONTEXT AFTER PERSIST  ------------------");
+        printentityContext(entityContext);
 
-		entityContext.clear();
+        entityContext.clear();
 
-		System.out.println("-------------- PRINTING RESULT OF PERIST ------------------");
-		print("", root);
+        System.out.println("-------------- PRINTING RESULT OF PERIST ------------------");
+        print("", root);
 
-		System.out.println("-------------- QUERYING SAVED DATA  ------------------");
-		QAccessArea qaa = new QAccessArea();
-		qaa.joinToChildren().joinToChildren();
-		qaa.where(qaa.name().equal("root"));
+        System.out.println("-------------- QUERYING SAVED DATA  ------------------");
+        QAccessArea qaa = new QAccessArea();
+        qaa.joinToChildren().joinToChildren();
+        qaa.where(qaa.name().equal("root"));
 
-		List<AccessArea> result = entityContext.performQuery(qaa).getList();
-		assertEquals(1, result.size());
-		print("", result.get(0));
+        List<AccessArea> result = entityContext.performQuery(qaa).getList();
+        assertEquals(1, result.size());
+        print("", result.get(0));
     }
 
     @Test
@@ -146,9 +144,7 @@ public class TestPersister extends TestBase {
          * insert a new full model
          */
         XMLSyntaxModel syntaxModel = buildSyntax();
-		entityContext.persist( new PersistRequest().save(syntaxModel) );
-
-
+        entityContext.persist(new PersistRequest().save(syntaxModel));
 
         /*
         * reload the full model, for testing purposes, not actually necessary for updating
@@ -159,35 +155,34 @@ public class TestPersister extends TestBase {
         qsubSyntax.joinToUser();
         qsubSyntax.joinToMappings();
         qsyntax.joinToStructure();
-        qsyntax.where( qsyntax.syntaxName().equal("Scott's Syntax") );
+        qsyntax.where(qsyntax.syntaxName().equal("Scott's Syntax"));
 
         entityContext.clear();
         XMLSyntaxModel syntax = entityContext.performQuery(qsyntax).getList().get(0);
         System.out.println(entityContext.printXml());
         print("", syntax);
         System.out.println(entityContext.printXml());
-        assertNotNull(((ProxyController)syntax).getEntity().getOptimisticLock().getValue());
+        assertNotNull(((ProxyController) syntax).getEntity().getOptimisticLock().getValue());
 
         /*
         * modify the syntax in various ways
         */
         System.out.println("-------------- Updating syntax name and mapping and subsyntax name and mapping ------------------");
-        syntax.setName( syntax.getName() + " - updated");
+        syntax.setName(syntax.getName() + " - updated");
         syntax.getMappings().get(0).setXpath("/updated-mapping");
         XMLSyntaxModel subSyntax = syntax.getMappings().get(1).getSubSyntaxModel();
-        subSyntax.setName( subSyntax.getName() + " - updated");
+        subSyntax.setName(subSyntax.getName() + " - updated");
         subSyntax.getMappings().get(0).setXpath("updated-submapping");
 
-		System.out.println("-------------- CALLING PERSIST TO UPDATE CHANGES ------------------");
-		entityContext.persist( new PersistRequest().save(syntax) );
+        System.out.println("-------------- CALLING PERSIST TO UPDATE CHANGES ------------------");
+        entityContext.persist(new PersistRequest().save(syntax));
 
-		System.out.println("-------------- RELOADING FROM SCRATCH TO OUTPUT THE REAL DATABASE DATA ------------------");
+        System.out.println("-------------- RELOADING FROM SCRATCH TO OUTPUT THE REAL DATABASE DATA ------------------");
         entityContext.clear();
-        qsyntax.where( qsyntax.syntaxName().equal("Scott's Syntax - updated") );
+        qsyntax.where(qsyntax.syntaxName().equal("Scott's Syntax - updated"));
         syntax = entityContext.performQuery(qsyntax).getList().get(0);
         print("", syntax);
     }
-
 
     @Test
     public void testEntityModifiedByAnotherUserDetected() throws Exception {
@@ -195,11 +190,9 @@ public class TestPersister extends TestBase {
          * insert a new full model
          */
         XMLSyntaxModel syntaxModel = buildSyntax();
-		entityContext.persist( new PersistRequest().save(syntaxModel) );
+        entityContext.persist(new PersistRequest().save(syntaxModel));
 
-		System.out.println("------------------- AFTER FIRST PERSIST\n" + entityContext.printXml() + "\n");
-
-
+        System.out.println("------------------- AFTER FIRST PERSIST\n" + entityContext.printXml() + "\n");
 
         /*
         * reload the full model for fun, not necessary for updating
@@ -211,7 +204,7 @@ public class TestPersister extends TestBase {
         qsubSyntax.joinToUser();
         qsubSyntax.joinToMappings();
         qsyntax.joinToStructure();
-        qsyntax.where( qsyntax.syntaxName().equal("Scott's Syntax") );
+        qsyntax.where(qsyntax.syntaxName().equal("Scott's Syntax"));
 
         System.out.println("-------------- OTHER USER SAVING SYNTAX ------------------");
         EntityContext otherUser = new EntityContext(env, namespace);
@@ -222,7 +215,7 @@ public class TestPersister extends TestBase {
         //we save a mapping in the subsyntax
         //this will cause OL violation because subsyntax owned-by mapping owned-by syntax
 
-        otherUser.persist( new PersistRequest().save( otherSyntax.getMappings().get(1).getSubSyntaxModel() ) );
+        otherUser.persist(new PersistRequest().save(otherSyntax.getMappings().get(1).getSubSyntaxModel()));
 
         /*
          * Now saving the top level syntax model will fail because the subsyntax has been modified by another user
@@ -231,12 +224,11 @@ public class TestPersister extends TestBase {
         syntaxModel.getMappings().get(0).setXpath("/updated");
         try {
             System.out.println("-------------- CALLING PERSIST TO UPDATE CHANGES ------------------");
-            entityContext.persist( new PersistRequest().save(syntaxModel) );
+            entityContext.persist(new PersistRequest().save(syntaxModel));
             fail("expected OptimisticLockMismatchException");
-        }
-        catch(OptimisticLockMismatchException x) {
+        } catch (OptimisticLockMismatchException x) {
             //expected
-        	System.out.println("Correctly detected optimistic lock violation:" + x.getMessage());
+            System.out.println("Correctly detected optimistic lock violation:" + x.getMessage());
         }
     }
 
@@ -250,9 +242,7 @@ public class TestPersister extends TestBase {
          * insert a new full model
          */
         XMLSyntaxModel syntaxModel = buildSyntax();
-		entityContext.persist( new PersistRequest().save(syntaxModel) );
-
-
+        entityContext.persist(new PersistRequest().save(syntaxModel));
 
         /*
         * reload the full model for fun, not necessary for updating
@@ -263,7 +253,7 @@ public class TestPersister extends TestBase {
         qsubSyntax.joinToUser();
         qsubSyntax.joinToMappings();
         qsyntax.joinToStructure();
-        qsyntax.where( qsyntax.syntaxName().equal("Scott's Syntax") );
+        qsyntax.where(qsyntax.syntaxName().equal("Scott's Syntax"));
 
         /*
          * We use another node context to get and update the structure, simulating a concurrent user modification
@@ -271,7 +261,7 @@ public class TestPersister extends TestBase {
         EntityContext otherUser = new EntityContext(env, namespace);
         XMLSyntaxModel otherSyntax = otherUser.performQuery(qsyntax).getList().get(0);
         otherSyntax.getStructure().setName("updated-structure-name");
-        otherUser.persist( new PersistRequest().save(otherSyntax.getStructure()) );
+        otherUser.persist(new PersistRequest().save(otherSyntax.getStructure()));
 
         /*
         * modify the syntax in various ways
@@ -284,10 +274,9 @@ public class TestPersister extends TestBase {
          */
         try {
             System.out.println("-------------- CALLING PERSIST TO UPDATE CHANGES ------------------");
-            entityContext.persist( new PersistRequest().save(syntaxModel) );
+            entityContext.persist(new PersistRequest().save(syntaxModel));
             fail("expected OptimisticLockMismatchException");
-        }
-        catch(OptimisticLockMismatchException x) {
+        } catch (OptimisticLockMismatchException x) {
             //expected
         }
     }
@@ -302,8 +291,7 @@ public class TestPersister extends TestBase {
          * insert a new full model
          */
         XMLSyntaxModel syntaxModel = buildSyntax();
-		entityContext.persist( new PersistRequest().save(syntaxModel) );
-
+        entityContext.persist(new PersistRequest().save(syntaxModel));
 
         /*
         * reload the full model for fun, not necessary for updating
@@ -314,14 +302,14 @@ public class TestPersister extends TestBase {
         qsubSyntax.joinToUser();
         qsubSyntax.joinToMappings();
         qsyntax.joinToStructure();
-        qsyntax.where( qsyntax.syntaxName().equal("Scott's Syntax") );
+        qsyntax.where(qsyntax.syntaxName().equal("Scott's Syntax"));
 
         /*
          * We use another node context to get and update the structure, simulating a concurrent user modification
          */
         EntityContext otherUser = new EntityContext(env, namespace);
         XMLSyntaxModel otherSyntax = otherUser.performQuery(qsyntax).getList().get(0);
-        otherUser.persist( new PersistRequest().delete(otherSyntax));
+        otherUser.persist(new PersistRequest().delete(otherSyntax));
 
         /*
         * modify the syntax in various ways
@@ -334,11 +322,10 @@ public class TestPersister extends TestBase {
          */
         try {
             System.out.println("-------------- CALLING PERSIST TO UPDATE CHANGES ------------------");
-            entityContext.persist( new PersistRequest().save(syntaxModel) );
+            entityContext.persist(new PersistRequest().save(syntaxModel));
             fail("expected EntityMissingException");
-        }
-        catch(EntityMissingException x) {
-        	Entity entityToSave = ((ProxyController)syntaxModel).getEntity();
+        } catch (EntityMissingException x) {
+            Entity entityToSave = ((ProxyController) syntaxModel).getEntity();
             Assert.assertSame(entityToSave.getEntityType(), x.getEntityType());
             Assert.assertSame(entityToSave.getKey().getValue(), syntaxModel.getId());
         }
@@ -354,29 +341,26 @@ public class TestPersister extends TestBase {
          * insert a new full model
          */
         XMLSyntaxModel syntaxModel = buildSyntax();
-		entityContext.persist( new PersistRequest().save(syntaxModel) );
+        entityContext.persist(new PersistRequest().save(syntaxModel));
 
+        Persister persisterToTriggerConcurrentModifcation = new Persister(env, namespace) {
+            @Override
+            protected void preJdbcWorkHook() {
+                try {
 
+                    QXMLSyntaxModel qsyntax = new QXMLSyntaxModel();
+                    qsyntax.where(qsyntax.syntaxName().equal("Scott's Syntax"));
 
-		Persister persisterToTriggerConcurrentModifcation = new Persister(env, namespace){
-			@Override
-			protected void preJdbcWorkHook() {
-				try {
-
-			        QXMLSyntaxModel qsyntax = new QXMLSyntaxModel();
-			        qsyntax.where( qsyntax.syntaxName().equal("Scott's Syntax") );
-
-			        /*
-			         * We use another node context to get and update the structure, simulating a concurrent user modification
-			         */
-			        EntityContext otherUser = new EntityContext(env, namespace);
-			        XMLSyntaxModel otherSyntax = otherUser.performQuery(qsyntax).getList().get(0);
-			        new Persister(env, namespace).persist( new PersistRequest().delete(otherSyntax));
-				}
-				catch(Exception x) {}
-			}
-		};
-
+                    /*
+                     * We use another node context to get and update the structure, simulating a concurrent user modification
+                     */
+                    EntityContext otherUser = new EntityContext(env, namespace);
+                    XMLSyntaxModel otherSyntax = otherUser.performQuery(qsyntax).getList().get(0);
+                    new Persister(env, namespace).persist(new PersistRequest().delete(otherSyntax));
+                }
+                catch (Exception x) {}
+            }
+        };
 
         /*
         * modify the syntax in various ways
@@ -390,65 +374,61 @@ public class TestPersister extends TestBase {
         try {
             System.out.println("-------------- CALLING PERSIST TO UPDATE CHANGES ------------------");
             env.setThreadLocalResource(Connection.class.getName(), dataSource.getConnection());
-            persisterToTriggerConcurrentModifcation.persist( new PersistRequest().save(syntaxModel) );
+            persisterToTriggerConcurrentModifcation.persist(new PersistRequest().save(syntaxModel));
             fail("expected EntityMissingException");
-        }
-        catch(EntityMissingException x) {
-        	Entity entityToSave = ((ProxyController)syntaxModel).getEntity();
+        } catch (EntityMissingException x) {
+            Entity entityToSave = ((ProxyController) syntaxModel).getEntity();
             Assert.assertSame(entityToSave.getEntityType(), x.getEntityType());
             Assert.assertSame(entityToSave.getKey().getValue(), syntaxModel.getId());
-        }
-        finally {
-        	env.clearThreadLocalResource(Connection.class.getName());
+        } finally {
+            env.clearThreadLocalResource(Connection.class.getName());
         }
     }
 
     @SuppressWarnings("unchecked")
     @Test
     public void testConcurrentModificationCausesActualUpdateCallToFail() throws Exception {
-		Persister persisterToTriggerConcurrentModifcation = new Persister(env, namespace){
-			@Override
-			protected void preJdbcWorkHook() {
-				try {
-			        /*
-			         * We use another node context to get and update the structure, simulating a concurrent user modification
-			         */
-			        QXMLSyntaxModel qsyntax = new QXMLSyntaxModel();
-			        qsyntax.joinToStructure();
-			        qsyntax.where( qsyntax.syntaxName().equal("Scott's Syntax") );
-			        EntityContext otherUser = new EntityContext(env, namespace);
-			        XMLSyntaxModel otherSyntaxCopy = otherUser.performQuery(qsyntax).getList().get(0);
-			        otherSyntaxCopy.setName("Scott's Syntax updated-hook");
-			        new Persister(env, namespace).persist( new PersistRequest().save(otherSyntaxCopy) );
-				}
-				catch(Exception x) {}
-			}
-		};
+        Persister persisterToTriggerConcurrentModifcation = new Persister(env, namespace) {
+            @Override
+            protected void preJdbcWorkHook() {
+                try {
+                    /*
+                     * We use another node context to get and update the structure, simulating a concurrent user modification
+                     */
+                    QXMLSyntaxModel qsyntax = new QXMLSyntaxModel();
+                    qsyntax.joinToStructure();
+                    qsyntax.where(qsyntax.syntaxName().equal("Scott's Syntax"));
+                    EntityContext otherUser = new EntityContext(env, namespace);
+                    XMLSyntaxModel otherSyntaxCopy = otherUser.performQuery(qsyntax).getList().get(0);
+                    otherSyntaxCopy.setName("Scott's Syntax updated-hook");
+                    new Persister(env, namespace).persist(new PersistRequest().save(otherSyntaxCopy));
+                }
+                catch (Exception x) {}
+            }
+        };
 
         /*
          * insert a new full model
          */
         XMLSyntaxModel syntaxModel = buildSyntax();
-        entityContext.persist( new PersistRequest().save(syntaxModel) );
+        entityContext.persist(new PersistRequest().save(syntaxModel));
 
         syntaxModel.setName("Scott's Syntax updated");
         try {
-        	env.setThreadLocalResource(Connection.class.getName(), dataSource.getConnection());
-        	persisterToTriggerConcurrentModifcation.persist( new PersistRequest().save(syntaxModel) );
-        	Assert.fail("Expected OptimisticLockMismatchException");
-        }
-        catch(OptimisticLockMismatchException x) {
-        	Entity entityWantedSave = ((ProxyController)syntaxModel).getEntity();
-        	Entity entityFromDb = x.getDatabaseEntity();
-        	Assert.assertSame(entityWantedSave, x.getEntity()); //the fail was from the syntax we wanted to update
-        	Assert.assertEquals(entityWantedSave.getEntityType(), entityFromDb.getEntityType());
-        	Assert.assertEquals(entityWantedSave.getKey().getValue(), entityFromDb.getKey().getValue());
-        	//assert that the database entity has a newer optimistic lock timestamp than the entity we wanted to save
-        	Assert.assertTrue(((Comparable<Object>)entityFromDb.getOptimisticLock().getValue()).compareTo(
-        			(Comparable<Object>)entityWantedSave.getOptimisticLock().getValue()) > 0);
-        }
-        finally {
-        	env.clearThreadLocalResource(Connection.class.getName());
+            env.setThreadLocalResource(Connection.class.getName(), dataSource.getConnection());
+            persisterToTriggerConcurrentModifcation.persist(new PersistRequest().save(syntaxModel));
+            Assert.fail("Expected OptimisticLockMismatchException");
+        } catch (OptimisticLockMismatchException x) {
+            Entity entityWantedSave = ((ProxyController) syntaxModel).getEntity();
+            Entity entityFromDb = x.getDatabaseEntity();
+            Assert.assertSame(entityWantedSave, x.getEntity()); //the fail was from the syntax we wanted to update
+            Assert.assertEquals(entityWantedSave.getEntityType(), entityFromDb.getEntityType());
+            Assert.assertEquals(entityWantedSave.getKey().getValue(), entityFromDb.getKey().getValue());
+            //assert that the database entity has a newer optimistic lock timestamp than the entity we wanted to save
+            Assert.assertTrue(((Comparable<Object>) entityFromDb.getOptimisticLock().getValue()).compareTo(
+                    (Comparable<Object>) entityWantedSave.getOptimisticLock().getValue()) > 0);
+        } finally {
+            env.clearThreadLocalResource(Connection.class.getName());
         }
     }
 
@@ -458,31 +438,31 @@ public class TestPersister extends TestBase {
          * insert a new full model
          */
         XMLSyntaxModel syntaxModel = buildSyntax();
-		entityContext.persist( new PersistRequest().save(syntaxModel) );
+        entityContext.persist(new PersistRequest().save(syntaxModel));
 
-		Long syntaxOl = getOptimisticLock( syntaxModel );
-		Long subSyntaxOl =  getOptimisticLock( syntaxModel.getMappings().get(1).getSubSyntaxModel() );
-		Assert.assertEquals(syntaxOl, subSyntaxOl);
+        Long syntaxOl = getOptimisticLock(syntaxModel);
+        Long subSyntaxOl = getOptimisticLock(syntaxModel.getMappings().get(1).getSubSyntaxModel());
+        Assert.assertEquals(syntaxOl, subSyntaxOl);
 
-		//save the sub-syntax with an updated mapping
-		//we expect the sub-syntax ol to be touched but the syntax ol not.
-		syntaxModel.getMappings().get(1).getSubSyntaxModel().getMappings().get(0).setXpath("/updated");
-		entityContext.persist( new PersistRequest().save( syntaxModel.getMappings().get(1).getSubSyntaxModel() ) );
+        //save the sub-syntax with an updated mapping
+        //we expect the sub-syntax ol to be touched but the syntax ol not.
+        syntaxModel.getMappings().get(1).getSubSyntaxModel().getMappings().get(0).setXpath("/updated");
+        entityContext.persist(new PersistRequest().save(syntaxModel.getMappings().get(1).getSubSyntaxModel()));
 
-		/*
-		 * reload the syntax from the db
-		 */
+        /*
+         * reload the syntax from the db
+         */
         QXMLSyntaxModel qsyntax = new QXMLSyntaxModel();
-        qsyntax.where( qsyntax.syntaxName().equal("Scott's Syntax") );
+        qsyntax.where(qsyntax.syntaxName().equal("Scott's Syntax"));
         XMLSyntaxModel updatedSyntaxModel = entityContext.performQuery(qsyntax).getList().get(0);
 
         //the optimistic lock of the original syntax is the same as before
-        Long updatedSyntaxOl = getOptimisticLock( updatedSyntaxModel );
+        Long updatedSyntaxOl = getOptimisticLock(updatedSyntaxModel);
         Assert.assertEquals(syntaxOl, updatedSyntaxOl);
 
-        Long updatedSubSyntaxOl = getOptimisticLock( updatedSyntaxModel.getMappings().get(1).getSubSyntaxModel() );
+        Long updatedSubSyntaxOl = getOptimisticLock(updatedSyntaxModel.getMappings().get(1).getSubSyntaxModel());
         //the optimistic lock of the subsyntax is newer than before
-        Assert.assertTrue(syntaxOl <  updatedSubSyntaxOl);
+        Assert.assertTrue(syntaxOl < updatedSubSyntaxOl);
     }
 
     @Test
@@ -491,18 +471,18 @@ public class TestPersister extends TestBase {
          * insert a new full model
          */
         XMLSyntaxModel syntaxModel = buildSyntax();
-        entityContext.persist( new PersistRequest().save(syntaxModel) );
+        entityContext.persist(new PersistRequest().save(syntaxModel));
 
-        Long expectedOptimisticLock = getOptimisticLock( syntaxModel );
+        Long expectedOptimisticLock = getOptimisticLock(syntaxModel);
 
-        entityContext.persist( new PersistRequest().save(syntaxModel) );
+        entityContext.persist(new PersistRequest().save(syntaxModel));
 
-        Long actualOptimisticLock = getOptimisticLock( syntaxModel );
+        Long actualOptimisticLock = getOptimisticLock(syntaxModel);
         Assert.assertEquals(expectedOptimisticLock, actualOptimisticLock);
     }
 
     private static Long getOptimisticLock(Object object) {
-    	return (Long)((ProxyController)object).getEntity().getOptimisticLock().getValue();
+        return (Long) ((ProxyController) object).getEntity().getOptimisticLock().getValue();
     }
 
     @Test
@@ -511,19 +491,19 @@ public class TestPersister extends TestBase {
          * insert a new full model
          */
         XMLSyntaxModel syntaxModel = buildSyntax();
-		entityContext.persist( new PersistRequest().save(syntaxModel) );
+        entityContext.persist(new PersistRequest().save(syntaxModel));
 
-		/*
-		 * Then delete it.
-		 */
-		entityContext.persist( new PersistRequest().delete(syntaxModel) );
+        /*
+         * Then delete it.
+         */
+        entityContext.persist(new PersistRequest().delete(syntaxModel));
 
-		/*
-		 * verify that the syntax was removed
-		 */
-		 assertTrue(entityContext.performQuery(new QXMLSyntaxModel()).getList().isEmpty());
-		 assertEquals(2, entityContext.size()); //only the user and the structure remain
-	}
+        /*
+         * verify that the syntax was removed
+         */
+        assertTrue(entityContext.performQuery(new QXMLSyntaxModel()).getList().isEmpty());
+        assertEquals(2, entityContext.size()); //only the user and the structure remain
+    }
 
     @Test
     public void testSaveTemplateWithContentAndDatatypes() throws Exception {
@@ -559,19 +539,18 @@ public class TestPersister extends TestBase {
              */
             System.out.println("===================  NOOP PERSIST =================");
             entityContext.persist(new PersistRequest()
-                .save(template)
-                .save(template.getDatatypes().get(0))
-                .save(template.getDatatypes().get(1)));
+                    .save(template)
+                    .save(template.getDatatypes().get(0))
+                    .save(template.getDatatypes().get(1)));
             System.out.println("===================  NOOP PERSIST =================");
 
             QTemplate qtemplate = new QTemplate();
             qtemplate.joinToContent();
             qtemplate.joinToDatatype();
-            qtemplate.where( qtemplate.name().equal("test-template") );
+            qtemplate.where(qtemplate.name().equal("test-template"));
             template = entityContext.performQuery(qtemplate).getSingleResult();
             print("", template);
-        }
-        catch(Exception x) {
+        } catch (Exception x) {
             x.printStackTrace();
             throw x;
         }
@@ -584,12 +563,12 @@ public class TestPersister extends TestBase {
 
         System.out.println("===================  LOAD BEFORE DELETE  =================");
         QTemplate qtemplate = new QTemplate();
-        qtemplate.where( qtemplate.name().equal("test-template") );
+        qtemplate.where(qtemplate.name().equal("test-template"));
         Template template = entityContext.performQuery(qtemplate).getSingleResult();
 
         System.out.println("===================  DELETE  =================");
         entityContext.persist(new PersistRequest()
-            .delete(template));
+                .delete(template));
 
     }
 
@@ -600,15 +579,15 @@ public class TestPersister extends TestBase {
 
         System.out.println("===================  LOAD BEFORE DELETE  =================");
         QTemplate qtemplate = new QTemplate();
-        qtemplate.where( qtemplate.name().equal("test-template") );
+        qtemplate.where(qtemplate.name().equal("test-template"));
         Template template = entityContext.performQuery(qtemplate).getSingleResult();
 
         System.out.println("===================  DELETE  =================");
         entityContext.persist(new PersistRequest()
-            .delete(template)
-            .delete(template.getDatatypes().get(0))
-            .delete(template.getDatatypes().get(1))
-            );
+                .delete(template)
+                .delete(template.getDatatypes().get(0))
+                .delete(template.getDatatypes().get(1))
+                );
 
     }
 
@@ -620,26 +599,23 @@ public class TestPersister extends TestBase {
         System.out.println("===================  LAOD DATA FOR USER 1 =================");
         QTemplate qtemplate = new QTemplate();
         qtemplate.joinToDatatype();
-        qtemplate.where( qtemplate.name().equal("test-template") );
+        qtemplate.where(qtemplate.name().equal("test-template"));
         Template template = entityContext.performQuery(qtemplate).getSingleResult();
 
         System.out.println("===================  LOAD DATA FOR USER 2 =================");
         EntityContext ctx2 = new EntityContext(env, entityContext.getNamespace());
         Template template2 = ctx2.performQuery(qtemplate).getSingleResult();
         template2.getDatatypes().get(0).setName("updated-name");
-        ctx2.persist(new PersistRequest().save( template2.getDatatypes().get(0) ));
+        ctx2.persist(new PersistRequest().save(template2.getDatatypes().get(0)));
 
         System.out.println("===================  SAVE WHICH FAILS  =================");
         try {
             template.setName(template.getName() + "-updated");
             entityContext.persist(new PersistRequest().save(template));
-        }
-        catch(OptimisticLockMismatchException x) {
+        } catch (OptimisticLockMismatchException x) {
             assertEquals(template.getDatatypes().get(0).getId(), x.getEntity().getKey().getValue());
         }
 
     }
 
 }
-
-

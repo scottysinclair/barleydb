@@ -26,7 +26,7 @@ public class ValueNode extends Node {
                 throw new IllegalStateException("Value not loaded, but entity has no key.");
             }
         }
-        return (T)value;
+        return (T) value;
     }
 
     public void setValueNoEvent(Object value) {

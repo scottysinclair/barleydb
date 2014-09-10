@@ -7,20 +7,20 @@ package com.smartstream.morf.api.query;
  */
 public class QExists extends QCondition {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
     private final QueryObject<?> subQueryObject;
 
-	public QExists(QueryObject<?> subQueryObject) {
-		this.subQueryObject = subQueryObject;
-	}
+    public QExists(QueryObject<?> subQueryObject) {
+        this.subQueryObject = subQueryObject;
+    }
 
-	public QueryObject<?> getSubQueryObject() {
-		return subQueryObject;
-	}
+    public QueryObject<?> getSubQueryObject() {
+        return subQueryObject;
+    }
 
-	@Override
-	public void visit(ConditionVisitor visitor) {
-		visitor.visitExists(this);
-	}
+    @Override
+    public void visit(ConditionVisitor visitor) {
+        visitor.visitExists(this);
+    }
 
 }

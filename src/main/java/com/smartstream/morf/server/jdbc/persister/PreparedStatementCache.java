@@ -16,9 +16,9 @@ class PreparedStatementCache {
 
     private static final Logger LOG = LoggerFactory.getLogger(PreparedStatementCache.class);
 
-    private final Map<EntityType,PreparedStatement> inserts = new HashMap<>();
-    private final Map<EntityType,PreparedStatement> updates = new HashMap<>();
-    private final Map<EntityType,PreparedStatement> deletes = new HashMap<>();
+    private final Map<EntityType, PreparedStatement> inserts = new HashMap<>();
+    private final Map<EntityType, PreparedStatement> updates = new HashMap<>();
+    private final Map<EntityType, PreparedStatement> deletes = new HashMap<>();
 
     private final PreparedStatementHelper helper;
 
@@ -27,56 +27,56 @@ class PreparedStatementCache {
     }
 
     public PreparedStatement prepareInsertStatement(Entity entity, Long newOptimisticLockTime) throws SQLException {
-      PreparedStatement ps = inserts.get( entity.getEntityType() );
-      if (ps == null) {
-    	  Connection connection = (Connection)entity.getEntityContext().getResource(Connection.class.getName(), true);
-          ps = connection.prepareStatement( generateInsertSql(entity) );
-          inserts.put(entity.getEntityType(), ps);
-      }
-      setInsertParameters(ps, entity, newOptimisticLockTime);
-      return ps;
+        PreparedStatement ps = inserts.get(entity.getEntityType());
+        if (ps == null) {
+            Connection connection = (Connection) entity.getEntityContext().getResource(Connection.class.getName(), true);
+            ps = connection.prepareStatement(generateInsertSql(entity));
+            inserts.put(entity.getEntityType(), ps);
+        }
+        setInsertParameters(ps, entity, newOptimisticLockTime);
+        return ps;
     }
 
     public PreparedStatement prepareUpdateStatement(Entity entity, Long newOptimisticLockTime) throws SQLException {
-      PreparedStatement ps = updates.get( entity.getEntityType() );
-      if (ps == null) {
-    	  Connection connection = (Connection)entity.getEntityContext().getResource(Connection.class.getName(), true);
-          ps = connection.prepareStatement( generateUpdateSql(entity) );
-          updates.put(entity.getEntityType(), ps);
-      }
-      setUpdateParameters(ps, entity, newOptimisticLockTime);
-      return ps;
+        PreparedStatement ps = updates.get(entity.getEntityType());
+        if (ps == null) {
+            Connection connection = (Connection) entity.getEntityContext().getResource(Connection.class.getName(), true);
+            ps = connection.prepareStatement(generateUpdateSql(entity));
+            updates.put(entity.getEntityType(), ps);
+        }
+        setUpdateParameters(ps, entity, newOptimisticLockTime);
+        return ps;
     }
 
     public PreparedStatement prepareDeleteStatement(Entity entity) throws SQLException {
-      PreparedStatement ps = deletes.get( entity.getEntityType() );
-      if (ps == null) {
-    	  Connection connection = (Connection)entity.getEntityContext().getResource(Connection.class.getName(), true);
-          ps = connection.prepareStatement( generateDeleteSql(entity) );
-          deletes.put(entity.getEntityType(), ps);
-      }
-      setDeleteParameters(ps, entity);
-      return ps;
+        PreparedStatement ps = deletes.get(entity.getEntityType());
+        if (ps == null) {
+            Connection connection = (Connection) entity.getEntityContext().getResource(Connection.class.getName(), true);
+            ps = connection.prepareStatement(generateDeleteSql(entity));
+            deletes.put(entity.getEntityType(), ps);
+        }
+        setDeleteParameters(ps, entity);
+        return ps;
     }
 
     public void close() throws SQLException {
-    	for (PreparedStatement ps: inserts.values()) {
-    		ps.close();
-    	}
-    	for (PreparedStatement ps: updates.values()) {
-    		ps.close();
-    	}
-    	for (PreparedStatement ps: deletes.values()) {
-    		ps.close();
-    	}
+        for (PreparedStatement ps : inserts.values()) {
+            ps.close();
+        }
+        for (PreparedStatement ps : updates.values()) {
+            ps.close();
+        }
+        for (PreparedStatement ps : deletes.values()) {
+            ps.close();
+        }
     }
 
     private String generateInsertSql(Entity entity) {
         StringBuilder sb = new StringBuilder("insert into ");
-        sb.append( entity.getEntityType().getTableName());
+        sb.append(entity.getEntityType().getTableName());
         sb.append(' ');
         sb.append('(');
-        for (Node child: entity.getChildren()) {
+        for (Node child : entity.getChildren()) {
             if (child instanceof ToManyNode) {
                 continue;
             }
@@ -84,24 +84,24 @@ class PreparedStatementCache {
             sb.append(nd.getColumnName());
             sb.append(',');
         }
-        sb.setCharAt(sb.length()-1, ')');
+        sb.setCharAt(sb.length() - 1, ')');
         sb.append("values (");
-        for (final Node child: entity.getChildren()) {
+        for (final Node child : entity.getChildren()) {
             if (child instanceof ToManyNode) {
                 continue;
             }
             sb.append("?,");
         }
-        sb.setCharAt(sb.length()-1, ')');
+        sb.setCharAt(sb.length() - 1, ')');
         LOG.debug(sb.toString());
         return sb.toString();
     }
 
     private String generateUpdateSql(Entity entity) {
         StringBuilder sb = new StringBuilder("update ");
-        sb.append( entity.getEntityType().getTableName());
+        sb.append(entity.getEntityType().getTableName());
         sb.append(" set ");
-        for (Node child: entity.getChildren()) {
+        for (Node child : entity.getChildren()) {
             if (child instanceof ToManyNode) {
                 continue;
             }
@@ -111,7 +111,7 @@ class PreparedStatementCache {
                 sb.append(" = ?,");
             }
         }
-        sb.setCharAt( sb.length()-1, ' ');
+        sb.setCharAt(sb.length() - 1, ' ');
         generateDeleteOrUpdateWhere(entity, sb);
         LOG.debug(sb.toString());
         return sb.toString();
@@ -130,56 +130,56 @@ class PreparedStatementCache {
         sb.append(entity.getEntityType().getKeyColumn());
         sb.append(" = ?");
         if (entity.getEntityType().supportsOptimisticLocking()) {
-        	sb.append(" and ");
-        	sb.append( entity.getOptimisticLock().getNodeDefinition().getColumnName() );
-        	sb.append(" = ?");
+            sb.append(" and ");
+            sb.append(entity.getOptimisticLock().getNodeDefinition().getColumnName());
+            sb.append(" = ?");
         }
     }
 
     private void setInsertParameters(PreparedStatement ps, Entity entity, Long newOptimisticLockTime) throws SQLException {
-		int i = 1;
-		for (final Node child: entity.getChildren()) {
-			if (child instanceof ToManyNode) {
-				continue;
-			}
-			if (child.getNodeDefinition().isOptimisticLock()) {
-				//we set the new optimistic lock value, the OL node still contains the old value
-				helper.setParameter(ps, i++, child, newOptimisticLockTime);
-			}
-			else {
-				helper.setParameter(ps, i++, child);
-			}
-		}
+        int i = 1;
+        for (final Node child : entity.getChildren()) {
+            if (child instanceof ToManyNode) {
+                continue;
+            }
+            if (child.getNodeDefinition().isOptimisticLock()) {
+                //we set the new optimistic lock value, the OL node still contains the old value
+                helper.setParameter(ps, i++, child, newOptimisticLockTime);
+            }
+            else {
+                helper.setParameter(ps, i++, child);
+            }
+        }
     }
 
     private void setUpdateParameters(PreparedStatement ps, Entity entity, Long newOptimisticLockTime) throws SQLException {
-		int i = 1;
-		for (final Node child: entity.getChildren()) {
-			if (child instanceof ToManyNode) {
-				continue;
-			}
-			final NodeDefinition nd = entity.getEntityType().getNode(child.getName(), true);
-			if (!nd.isPrimaryKey()) {
-				if (nd.isOptimisticLock()) {
-					//we set the new optimistic lock value, the OL node still contains the old value
-					helper.setParameter(ps, i++, child, newOptimisticLockTime);
-				}
-				else {
-					helper.setParameter(ps, i++, child);
-				}
-			}
-		}
-		helper.setParameter(ps, i++, entity.getKey());
-		if (entity.getEntityType().supportsOptimisticLocking()) {
-			helper.setParameter(ps, i++, entity.getOptimisticLock());
-		}
+        int i = 1;
+        for (final Node child : entity.getChildren()) {
+            if (child instanceof ToManyNode) {
+                continue;
+            }
+            final NodeDefinition nd = entity.getEntityType().getNode(child.getName(), true);
+            if (!nd.isPrimaryKey()) {
+                if (nd.isOptimisticLock()) {
+                    //we set the new optimistic lock value, the OL node still contains the old value
+                    helper.setParameter(ps, i++, child, newOptimisticLockTime);
+                }
+                else {
+                    helper.setParameter(ps, i++, child);
+                }
+            }
+        }
+        helper.setParameter(ps, i++, entity.getKey());
+        if (entity.getEntityType().supportsOptimisticLocking()) {
+            helper.setParameter(ps, i++, entity.getOptimisticLock());
+        }
     }
 
     private void setDeleteParameters(PreparedStatement ps, Entity entity) throws SQLException {
         helper.setParameter(ps, 1, entity.getKey());
         Node olNode = entity.getOptimisticLock();
         if (olNode != null) {
-        	helper.setParameter(ps, 2, olNode);
+            helper.setParameter(ps, 2, olNode);
         }
     }
 }

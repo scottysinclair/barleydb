@@ -26,7 +26,7 @@ public final class Entities implements Iterable<Entity>, Serializable {
      */
     private Map<EntityPkKey, EntityInfo> entitiesByPk = new HashMap<EntityPkKey, EntityInfo>();
 
-    private Map<EntityType,Set<Entity>> entitiesByType = new HashMap<EntityType, Set<Entity>>();
+    private Map<EntityType, Set<Entity>> entitiesByType = new HashMap<EntityType, Set<Entity>>();
 
     public void add(Entity entity) {
         final String iname = entity.getEntityType().getInterfaceName();
@@ -88,7 +88,7 @@ public final class Entities implements Iterable<Entity>, Serializable {
 
     public Collection<Entity> getEntitiesByType(EntityType entityType) {
         Collection<Entity> col = entitiesByType.get(entityType);
-        return col != null ? col : Collections.<Entity>emptyList();
+        return col != null ? col : Collections.<Entity> emptyList();
     }
 
     private void addEntityByType(Entity entity) {
@@ -125,8 +125,8 @@ public final class Entities implements Iterable<Entity>, Serializable {
 
     private List<Entity> toEntityList() {
         List<Entity> list = new ArrayList<>(entitiesByUuid.size());
-        for (EntityInfo ei: entitiesByUuid.values()) {
-            list.add( ei.getEntity() );
+        for (EntityInfo ei : entitiesByUuid.values()) {
+            list.add(ei.getEntity());
         }
         return list;
     }
@@ -134,6 +134,5 @@ public final class Entities implements Iterable<Entity>, Serializable {
     public int size() {
         return entitiesByUuid.size();
     }
-
 
 }

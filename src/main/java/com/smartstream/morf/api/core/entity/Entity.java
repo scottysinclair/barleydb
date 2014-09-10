@@ -20,13 +20,13 @@ import com.smartstream.morf.api.config.EntityType;
 import com.smartstream.morf.api.config.NodeDefinition;
 
 public class Entity implements Serializable {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final Logger LOG = LoggerFactory.getLogger(Entity.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Entity.class);
 
-	private final EntityContext entityContext;
+    private final EntityContext entityContext;
     private transient EntityType entityType;
-    private TreeMap<String,Node> children;
+    private TreeMap<String, Node> children;
     private EntityState entityState;
     private UUID uuid;
 
@@ -48,9 +48,9 @@ public class Entity implements Serializable {
     }
 
     public Entity(EntityContext context, EntityType entityType, Object key, UUID uuid) {
-    	this.entityContext = context;
+        this.entityContext = context;
         this.entityType = entityType;
-        this.children = new TreeMap<String,Node>();
+        this.children = new TreeMap<String, Node>();
         entityState = EntityState.NOTLOADED;
         initNodes();
         if (key != null) {
@@ -62,6 +62,7 @@ public class Entity implements Serializable {
     public boolean isLoaded() {
         return entityState == EntityState.LOADED;
     }
+
     public boolean isNotLoaded() {
         return entityState == EntityState.NOTLOADED;
     }
@@ -80,49 +81,49 @@ public class Entity implements Serializable {
      * must be fetched
      */
     public void unload() {
-    	for (Node node: getChildren()) {
-    		if (node != getKey()) {
-    			if (node instanceof ValueNode) {
-    				((ValueNode) node).setValueNoEvent(NotLoaded.VALUE);
-    			}
-    			else if (node instanceof RefNode) {
-    				((RefNode) node).setEntityKey(null);
-    			}
-    			/* even if a syntax is unloaded, all of it's mappings can
-    			 * still be there in the context
-    			 *
-    			else if (node instanceof ToManyNode) {
-    				((ToManyNode) node).setFetched(false);
-    			}*/
-    		}
-    	}
-    	setEntityState(EntityState.NOTLOADED);
-    	clear();
+        for (Node node : getChildren()) {
+            if (node != getKey()) {
+                if (node instanceof ValueNode) {
+                    ((ValueNode) node).setValueNoEvent(NotLoaded.VALUE);
+                }
+                else if (node instanceof RefNode) {
+                    ((RefNode) node).setEntityKey(null);
+                }
+                /* even if a syntax is unloaded, all of it's mappings can
+                 * still be there in the context
+                 *
+                else if (node instanceof ToManyNode) {
+                	((ToManyNode) node).setFetched(false);
+                }*/
+            }
+        }
+        setEntityState(EntityState.NOTLOADED);
+        clear();
     }
 
     /**
      * Clears any changes to RefNodes and ToManyNodes
      */
     public void clear() {
-		for (Node node: getChildren()) {
-			if (node instanceof RefNode) {
-				((RefNode)node).clear();
-			}
-			else if (node instanceof ToManyNode) {
-				((ToManyNode)node).clear();
-			}
-		}
+        for (Node node : getChildren()) {
+            if (node instanceof RefNode) {
+                ((RefNode) node).clear();
+            }
+            else if (node instanceof ToManyNode) {
+                ((ToManyNode) node).clear();
+            }
+        }
     }
 
     public void refresh() {
-		for (Node node: getChildren()) {
-			if (node instanceof RefNode) {
-				((RefNode)node).refresh();
-			}
-			else if (node instanceof ToManyNode) {
-				((ToManyNode)node).refresh();
-			}
-		}
+        for (Node node : getChildren()) {
+            if (node instanceof RefNode) {
+                ((RefNode) node).refresh();
+            }
+            else if (node instanceof ToManyNode) {
+                ((ToManyNode) node).refresh();
+            }
+        }
     }
 
     public UUID getUuid() {
@@ -138,11 +139,11 @@ public class Entity implements Serializable {
     }
 
     public boolean hasKey(final Object key) {
-        return key != null && key.equals( getKey().getValue() );
+        return key != null && key.equals(getKey().getValue());
     }
 
     public final ValueNode getKey() {
-        return getChild( entityType.getKeyNodeName(), ValueNode.class );
+        return getChild(entityType.getKeyNodeName(), ValueNode.class);
     }
 
     public void setValueNode(String name, Object value) {
@@ -151,12 +152,12 @@ public class Entity implements Serializable {
 
     @SuppressWarnings("unchecked")
     public <T extends Node> T getChild(String name, Class<T> type) {
-        return (T)children.get(name);
+        return (T) children.get(name);
     }
 
     @SuppressWarnings("unchecked")
     public <T extends Node> T getChild(String name, Class<T> type, boolean mustExist) {
-        T child =  (T)children.get(name);
+        T child = (T) children.get(name);
         if (child == null && mustExist) {
             throw new IllegalStateException("Node '" + name + "' must exist in entity " + entityType.getInterfaceName());
         }
@@ -166,9 +167,9 @@ public class Entity implements Serializable {
     @SuppressWarnings("unchecked")
     public <N extends Node> List<N> getChildren(Class<N> type) {
         List<N> result = new LinkedList<N>();
-        for (Node child: getChildren()) {
+        for (Node child : getChildren()) {
             if (type.isAssignableFrom(child.getClass())) {
-                result.add((N)child);
+                result.add((N) child);
             }
         }
         return result;
@@ -189,21 +190,21 @@ public class Entity implements Serializable {
                     //which refer to concrete structures from other tables
                     LOG.debug("Converting ValueNode to RefNode for {}", ndNew.getName());
                     RefNode refNode = new RefNode(this, ndNew.getName(), newEntityType);
-                    refNode.setEntityKey( ((ValueNode) existing).getValue() );
-                    toAdd.add( refNode );
+                    refNode.setEntityKey(((ValueNode) existing).getValue());
+                    toAdd.add(refNode);
                 }
             }
         }
-        for (Node n: toAdd) {
+        for (Node n : toAdd) {
             children.put(n.getName(), n);
         }
         this.entityType = newEntityType;
-        for (Node newNode: initNodes()) {
+        for (Node newNode : initNodes()) {
             if (newNode instanceof RefNode) {
                 throw new IllegalStateException("new child ref node");
             }
             if (newNode instanceof ValueNode) {
-                ((ValueNode)newNode).setValueNoEvent(NotLoaded.VALUE);
+                ((ValueNode) newNode).setValueNoEvent(NotLoaded.VALUE);
             }
         }
     }
@@ -213,12 +214,11 @@ public class Entity implements Serializable {
      * @param from
      */
     public void copyValueNodesToMe(Entity from) {
-		for (ValueNode fromChild: from.getChildren(ValueNode.class)) {
-			ValueNode toChild = getChild(fromChild.getName(), ValueNode.class);
-			toChild.setValue( fromChild.getValue() );
-		}
+        for (ValueNode fromChild : from.getChildren(ValueNode.class)) {
+            ValueNode toChild = getChild(fromChild.getName(), ValueNode.class);
+            toChild.setValue(fromChild.getValue());
+        }
     }
-
 
     public Iterable<Node> getChildren() {
         return Collections.unmodifiableCollection(children.values());
@@ -237,7 +237,7 @@ public class Entity implements Serializable {
             throw new IllegalStateException("Invalid optimistic lock comparison, different entity types.");
         }
         @SuppressWarnings("unchecked")
-        Comparable<Object> myValue = (Comparable<Object>)getOptimisticLockValue();
+        Comparable<Object> myValue = (Comparable<Object>) getOptimisticLockValue();
         if (myValue == null) {
             throw new IllegalStateException("Invalid optimistic lock comparison, null optimistic lock value.");
         }
@@ -245,12 +245,12 @@ public class Entity implements Serializable {
     }
 
     public ValueNode getOptimisticLock() {
-      for (Node child: children.values()) {
-        if (child.getNodeDefinition().isOptimisticLock()) {
-            return (ValueNode)child;
+        for (Node child : children.values()) {
+            if (child.getNodeDefinition().isOptimisticLock()) {
+                return (ValueNode) child;
+            }
         }
-      }
-      return null;
+        return null;
     }
 
     private Object getOptimisticLockValue() {
@@ -258,14 +258,13 @@ public class Entity implements Serializable {
         return node != null ? node.getValue() : null;
     }
 
-
     public Element toXml(Document doc) {
         Element element = doc.createElement(entityType.getInterfaceName());
         element.setAttribute("state", entityState.name());
         if (getUuid() != null) {
             element.setAttribute("creationId", getUuid().toString());
         }
-        for (Node child: children.values()) {
+        for (Node child : children.values()) {
             Element el = child.toXml(doc);
             element.appendChild(el);
         }
@@ -274,10 +273,10 @@ public class Entity implements Serializable {
 
     private List<Node> initNodes() {
         List<Node> newNodes = new LinkedList<Node>();
-        for (NodeDefinition nd: entityType.getNodeDefinitions()) {
-            if (!children.containsKey( nd.getName() )) {
+        for (NodeDefinition nd : entityType.getNodeDefinitions()) {
+            if (!children.containsKey(nd.getName())) {
                 Node node = newChild(nd);
-                newNodes.add( node );
+                newNodes.add(node);
                 children.put(nd.getName(), node);
             }
         }
@@ -306,28 +305,27 @@ public class Entity implements Serializable {
     }
 
     public EntityContext getEntityContext() {
-    	return entityContext;
+        return entityContext;
     }
 
     public void handleEvent(NodeEvent event) {
-    	entityContext.handleEvent(event);
+        entityContext.handleEvent(event);
     }
 
     public String getName() {
-    	return getEntityType().getInterfaceShortName() + "." + getKey();
+        return getEntityType().getInterfaceShortName() + "." + getKey();
     }
 
     private void writeObject(ObjectOutputStream oos) throws IOException {
-	    oos.defaultWriteObject();
-	    oos.writeUTF(entityType.getInterfaceName());
-	}
+        oos.defaultWriteObject();
+        oos.writeUTF(entityType.getInterfaceName());
+    }
 
     private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException {
-	    ois.defaultReadObject();
-	    String interfaceName = ois.readUTF();
-	    entityType = entityContext.getDefinitions().getEntityTypeMatchingInterface(interfaceName, true);
-	}
-
+        ois.defaultReadObject();
+        String interfaceName = ois.readUTF();
+        entityType = entityContext.getDefinitions().getEntityTypeMatchingInterface(interfaceName, true);
+    }
 
     @Override
     public String toString() {
@@ -335,9 +333,8 @@ public class Entity implements Serializable {
             return getEntityType().getInterfaceShortName() + " [" + getKey().getName() + "=" + getKey().getValue() + "]";
         }
         else {
-            return getEntityType().getInterfaceShortName() + " [uuid=" + getUuid().toString().substring(0,  7) + "..]";
+            return getEntityType().getInterfaceShortName() + " [uuid=" + getUuid().toString().substring(0, 7) + "..]";
         }
     }
-
 
 }

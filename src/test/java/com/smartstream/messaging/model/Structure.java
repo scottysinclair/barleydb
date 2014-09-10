@@ -6,5 +6,5 @@ public interface Structure {
 
     String getName();
 
-    void  setName(String name);
+    void setName(String name);
 }

@@ -12,12 +12,12 @@ public class PersistRequest {
     private final List<Object> toDelete = new LinkedList<>();
 
     public PersistRequest save(Object object) {
-        toSave.add( object );
+        toSave.add(object);
         return this;
     }
 
     public PersistRequest delete(Object object) {
-        toDelete.add( object );
+        toDelete.add(object);
         return this;
     }
 
@@ -38,31 +38,28 @@ public class PersistRequest {
     }
 
     public EntityContext getEntityContext() {
-       if (!toSave.isEmpty()) {
-           return getEntityContext( toSave.get(0) );
-       }
-       else if (!toDelete.isEmpty()) {
-           return getEntityContext( toDelete.get(0) );
-       }
-       throw new IllegalStateException("PersistRequest has no objects to save or delete");
+        if (!toSave.isEmpty()) {
+            return getEntityContext(toSave.get(0));
+        }
+        else if (!toDelete.isEmpty()) {
+            return getEntityContext(toDelete.get(0));
+        }
+        throw new IllegalStateException("PersistRequest has no objects to save or delete");
     }
 
     private EntityContext getEntityContext(Object object) {
-        return ((ProxyController)object).getEntity().getEntityContext();
+        return ((ProxyController) object).getEntity().getEntityContext();
     }
 
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder("PersistRequest: [");
-		sb.append("toSave: ");
-		sb.append(toSave);
-		sb.append(" toDelete: ");
-		sb.append(toDelete);
-		sb.append("]");
-		return sb.toString();
-	}
-
-
-
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("PersistRequest: [");
+        sb.append("toSave: ");
+        sb.append(toSave);
+        sb.append(" toDelete: ");
+        sb.append(toDelete);
+        sb.append("]");
+        return sb.toString();
+    }
 
 }

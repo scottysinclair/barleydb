@@ -21,24 +21,24 @@ import com.smartstream.morf.api.core.entity.Entity;
  */
 abstract class BatchExecuter {
 
-   private static final Logger LOG = LoggerFactory.getLogger(BatchExecuter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BatchExecuter.class);
 
-   private final OperationGroup group;
-   private final String operationName;
+    private final OperationGroup group;
+    private final String operationName;
 
-   public BatchExecuter(OperationGroup group, String operationName) {
-       this.group = group;
-       this.operationName = operationName;
-   }
+    public BatchExecuter(OperationGroup group, String operationName) {
+        this.group = group;
+        this.operationName = operationName;
+    }
 
-  public void execute(Definitions definitions) throws Exception {
+    public void execute(Definitions definitions) throws Exception {
         if (group.getEntities().isEmpty()) {
             return;
         }
-        PreparedStatementCache psCache = new PreparedStatementCache( definitions );
+        PreparedStatementCache psCache = new PreparedStatementCache(definitions);
         PreparedStatement psLast = null;
         List<Entity> entities = new LinkedList<>();
-        for (Entity entity: group.getEntities()) {
+        for (Entity entity : group.getEntities()) {
             PreparedStatement ps = prepareStatement(psCache, entity);
             if (psLast != null && psLast != ps) {
                 executeBatch(psLast, entities);
@@ -46,7 +46,7 @@ abstract class BatchExecuter {
 
             }
             ps.addBatch();
-            entities.add( entity );
+            entities.add(entity);
             psLast = ps;
         }
         executeBatch(psLast, entities);
@@ -58,35 +58,34 @@ abstract class BatchExecuter {
         try {
             int counts[] = ps.executeBatch();
             if (counts.length != entities.size()) {
-            	throw new Exception("Not all entities were in the batch");
+                throw new Exception("Not all entities were in the batch");
             }
             int totalMods = 0;
-            for (int i=0; i<counts.length; i++) {
-            	totalMods += counts[i];
-            	if (counts[i] == 0) {
-            		handleFailure( entities.get(i), null );
-            	}
+            for (int i = 0; i < counts.length; i++) {
+                totalMods += counts[i];
+                if (counts[i] == 0) {
+                    handleFailure(entities.get(i), null);
+                }
             }
             LOG.debug(totalMods + " rows were modified in total");
-        }
-        catch(BatchUpdateException x) {
+        } catch (BatchUpdateException x) {
             int counts[] = x.getUpdateCounts();
             if (counts.length < entities.size()) {
                 /*
                  * the counts are less then the batch size
                  * so the counts were the successfull ones
                  */
-                for (int i=counts.length, n=entities.size(); i<n; i++) {
-                    handleFailure( entities.get(i), x );
+                for (int i = counts.length, n = entities.size(); i < n; i++) {
+                    handleFailure(entities.get(i), x);
                 }
             }
             else {
                 /*
                  * all rows were processed, and we have to check the count status
                  */
-                for (int i=0; i<counts.length; i++) {
+                for (int i = 0; i < counts.length; i++) {
                     if (counts[i] == Statement.EXECUTE_FAILED) {
-                        handleFailure( entities.get(i), x);
+                        handleFailure(entities.get(i), x);
                     }
 
                 }

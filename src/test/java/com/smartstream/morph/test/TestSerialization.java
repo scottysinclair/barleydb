@@ -21,62 +21,60 @@ public class TestSerialization extends TestBase {
 
     private XMLSyntaxModel buildSyntax() {
         XMLSyntaxModel syntaxModel = entityContext.newModel(XMLSyntaxModel.class);
-		syntaxModel.setName("Scott's Syntax");
-		syntaxModel.setSyntaxType(SyntaxType.ROOT);
+        syntaxModel.setName("Scott's Syntax");
+        syntaxModel.setSyntaxType(SyntaxType.ROOT);
 
-		User user = entityContext.newModel(User.class);
-		user.setName("Jimmy");
+        User user = entityContext.newModel(User.class);
+        user.setName("Jimmy");
 
-		syntaxModel.setUser(user);
+        syntaxModel.setUser(user);
 
-		XMLStructure structure = entityContext.newModel(XMLStructure.class);
-		structure.setName("scott's structure");
-		syntaxModel.setStructure(structure);
+        XMLStructure structure = entityContext.newModel(XMLStructure.class);
+        structure.setName("scott's structure");
+        syntaxModel.setStructure(structure);
 
+        XMLMapping mapping = entityContext.newModel(XMLMapping.class);
+        mapping.setSyntaxModel(syntaxModel);
+        mapping.setXpath("/root1");
+        mapping.setTarget("target1");
+        syntaxModel.getMappings().add(mapping);
 
-		XMLMapping mapping = entityContext.newModel(XMLMapping.class);
-		mapping.setSyntaxModel(syntaxModel);
-		mapping.setXpath("/root1");
-		mapping.setTarget("target1");
-		syntaxModel.getMappings().add(mapping);
+        mapping = entityContext.newModel(XMLMapping.class);
+        mapping.setSyntaxModel(syntaxModel);
+        mapping.setXpath("/root2");
+        mapping.setTarget("target2");
+        syntaxModel.getMappings().add(mapping);
 
-		mapping = entityContext.newModel(XMLMapping.class);
-		mapping.setSyntaxModel(syntaxModel);
-		mapping.setXpath("/root2");
-		mapping.setTarget("target2");
-		syntaxModel.getMappings().add(mapping);
+        //create the sub syntax
+        XMLSyntaxModel subSyntaxModel = entityContext.newModel(XMLSyntaxModel.class);
+        subSyntaxModel.setName("SubSyntaxModel - ooooh");
+        subSyntaxModel.setStructure(structure);
+        subSyntaxModel.setSyntaxType(SyntaxType.SUBSYNTAX);
+        subSyntaxModel.setUser(user);
 
-		//create the sub syntax
-		XMLSyntaxModel subSyntaxModel = entityContext.newModel(XMLSyntaxModel.class);
-		subSyntaxModel.setName("SubSyntaxModel - ooooh");
-		subSyntaxModel.setStructure(structure);
-		subSyntaxModel.setSyntaxType(SyntaxType.SUBSYNTAX);
-		subSyntaxModel.setUser(user);
+        mapping.setSubSyntaxModel(subSyntaxModel); //set the subsyntax on the mapping
 
-		mapping.setSubSyntaxModel(subSyntaxModel); //set the subsyntax on the mapping
+        //add another mapping to the root level syntax
+        mapping = entityContext.newModel(XMLMapping.class);
+        mapping.setSyntaxModel(syntaxModel);
+        mapping.setXpath("/root3");
+        mapping.setTarget("target3");
+        syntaxModel.getMappings().add(mapping);
 
-		//add another mapping to the root level syntax
-		mapping = entityContext.newModel(XMLMapping.class);
-		mapping.setSyntaxModel(syntaxModel);
-		mapping.setXpath("/root3");
-		mapping.setTarget("target3");
-		syntaxModel.getMappings().add(mapping);
+        //do the sub-syntax mappings
+        mapping = entityContext.newModel(XMLMapping.class);
+        mapping.setSyntaxModel(subSyntaxModel);
+        mapping.setXpath("sub1");
+        mapping.setTarget("subtarget1");
+        subSyntaxModel.getMappings().add(mapping);
 
-		//do the sub-syntax mappings
-		mapping = entityContext.newModel(XMLMapping.class);
-		mapping.setSyntaxModel(subSyntaxModel);
-		mapping.setXpath("sub1");
-		mapping.setTarget("subtarget1");
-		subSyntaxModel.getMappings().add(mapping);
-
-		mapping = entityContext.newModel(XMLMapping.class);
-		mapping.setSyntaxModel(subSyntaxModel);
-		mapping.setXpath("sub2");
-		mapping.setTarget("subtarget2");
-		subSyntaxModel.getMappings().add(mapping);
-		return syntaxModel;
+        mapping = entityContext.newModel(XMLMapping.class);
+        mapping.setSyntaxModel(subSyntaxModel);
+        mapping.setXpath("sub2");
+        mapping.setTarget("subtarget2");
+        subSyntaxModel.getMappings().add(mapping);
+        return syntaxModel;
     }
-
 
     @Ignore
     @Test
@@ -84,30 +82,28 @@ public class TestSerialization extends TestBase {
         System.out.println("STARTING TEST testPersistNewXMLSyntax");
         XMLSyntaxModel syntaxModel = buildSyntax();
         print("", syntaxModel);
-		PersistRequest request = new PersistRequest();
+        PersistRequest request = new PersistRequest();
 
-		PersistAnalyser analyser = new PersistAnalyser(entityContext);
-		analyser.analyse(request);
+        PersistAnalyser analyser = new PersistAnalyser(entityContext);
+        analyser.analyse(request);
 
-		ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("/tmp/out.bin"));
-		out.writeObject(analyser);
-		out.flush();
-		out.close();
+        ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("/tmp/out.bin"));
+        out.writeObject(analyser);
+        out.flush();
+        out.close();
 
-		try ( ObjectInputStream in  = new ObjectInputStream(new FileInputStream("/tmp/out.bin")) ) {
-		    analyser = (PersistAnalyser)in.readObject();
-		}
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream("/tmp/out.bin"))) {
+            analyser = (PersistAnalyser) in.readObject();
+        }
 
-		request.save(syntaxModel);
+        request.save(syntaxModel);
 
-		Persister persister = new Persister(env, namespace);
-		persister.persist( request );
+        Persister persister = new Persister(env, namespace);
+        persister.persist(request);
 
-		System.out.println("-------------- PRINTING RESULT OF PERIST ------------------");
-		print("", syntaxModel);
-
+        System.out.println("-------------- PRINTING RESULT OF PERIST ------------------");
+        print("", syntaxModel);
 
     }
-
 
 }

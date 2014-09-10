@@ -39,15 +39,15 @@ public class QueryExecution<T> {
     private EntityLoaders entityLoaders;
     private QueryGenerator qGen;
 
-	public QueryExecution(EntityContext entityContext, QueryObject<T> query,
-			Definitions definitions) {
-		this.entityContext = entityContext;
-		this.query = query;
-		this.definitions = definitions;
-		this.projection = new Projection(definitions);
-		projection.build(query);
-		queryResult = new QueryResult<>(entityContext, query.getTypeClass());
-	}
+    public QueryExecution(EntityContext entityContext, QueryObject<T> query,
+            Definitions definitions) {
+        this.entityContext = entityContext;
+        this.query = query;
+        this.definitions = definitions;
+        this.projection = new Projection(definitions);
+        projection.build(query);
+        queryResult = new QueryResult<>(entityContext, query.getTypeClass());
+    }
 
     public String getSql(List<Param> queryParameters) {
         qGen = new QueryGenerator(query, definitions);
@@ -55,57 +55,57 @@ public class QueryExecution<T> {
     }
 
     public String getPrimaryTableName() {
-    	EntityType entityType = definitions.getEntityTypeMatchingInterface( query.getTypeClass().getName(), true );
-    	return entityType.getTableName();
+        EntityType entityType = definitions.getEntityTypeMatchingInterface(query.getTypeClass().getName(), true);
+        return entityType.getTableName();
     }
 
     void processResultSet(ResultSet resultSet) throws SQLException {
-    	int row = 1;
-    	while(resultSet.next()) {
-    		LOG.debug("======== row " + row + " =======");
-    		processRow(resultSet);
-    		row++;
-    	}
+        int row = 1;
+        while (resultSet.next()) {
+            LOG.debug("======== row " + row + " =======");
+            processRow(resultSet);
+            row++;
+        }
     }
 
     /**
-     *  called after the resultset data
-     *  has been loaded to correctly
-     *  set the final state
+     * called after the resultset data
+     * has been loaded to correctly
+     * set the final state
      */
     void finish() {
-    	if (entityLoaders != null) {
-	    	LOG.debug("Finishing query execution....");
-	    	downcastAbstractEntities(query);
-	    	processToManyRelations(query);
-	    	setEntityStateToLoadedAndRefresh();
-	    	verifyAllFetchedDataIsLinked();
-	    	prepareQueryResult();
-	    	LOG.debug("Finished query execution.");
-    	}
+        if (entityLoaders != null) {
+            LOG.debug("Finishing query execution....");
+            downcastAbstractEntities(query);
+            processToManyRelations(query);
+            setEntityStateToLoadedAndRefresh();
+            verifyAllFetchedDataIsLinked();
+            prepareQueryResult();
+            LOG.debug("Finished query execution.");
+        }
     }
 
     /**
      * Finds the concrete entity type for any abstract entities
      */
     private void downcastAbstractEntities(QueryObject<?> queryObject) {
-        List<Entity> loadedEntities = entityLoaders.getEntitiesForQueryObject( queryObject );
-        for (Entity e: loadedEntities) {
+        List<Entity> loadedEntities = entityLoaders.getEntitiesForQueryObject(queryObject);
+        for (Entity e : loadedEntities) {
             if (e.getEntityType().isAbstract()) {
                 LOG.debug("Attempting to downcast abstract entity {}", e);
                 downcastEntity(e);
             }
         }
 
-        for (QJoin join: queryObject.getJoins()) {
+        for (QJoin join : queryObject.getJoins()) {
             downcastAbstractEntities(join.getTo());
         }
     }
 
     private void downcastEntity(Entity entity) {
-        List<EntityType> candidateChildTypes = definitions.getEntityTypesExtending( entity.getEntityType() );
+        List<EntityType> candidateChildTypes = definitions.getEntityTypesExtending(entity.getEntityType());
         EntityType entityType = null;
-        for (EntityType et: candidateChildTypes) {
+        for (EntityType et : candidateChildTypes) {
             if (canDowncastEntity(entity, et)) {
                 if (entityType != null) {
                     throw new IllegalStateException("Multiple downcast paths for entity '" + entity + "'");
@@ -128,7 +128,7 @@ public class QueryExecution<T> {
     private boolean canDowncastEntity(Entity entity, EntityType entityType) {
         int fvFound = 0;
         int fvMatch = 0;
-        for (NodeDefinition nd: entityType.getNodeDefinitions()) {
+        for (NodeDefinition nd : entityType.getNodeDefinitions()) {
             final Object fv = nd.getFixedValue();
             if (fv != null) {
                 fvFound++;
@@ -144,49 +144,47 @@ public class QueryExecution<T> {
         return fvFound == fvMatch;
     }
 
-
     /**
      * Sets all ToMany relations which had query joins to 'fetched'
      * @param queryObject
      */
     private void processToManyRelations(QueryObject<?> queryObject) {
-    	//get the entities which this query object loaded
-    	List<Entity> loadedEntities = entityLoaders.getEntitiesForQueryObject( queryObject );
-    	if (loadedEntities.isEmpty()) {
-    		return;
-    	}
-    	//for each tomany ref set fetched to true iff the queryobject had a join for that property
-    	for (Entity loadedEntity: loadedEntities) {
-	    	for (ToManyNode toManyNode: loadedEntity.getChildren(ToManyNode.class)) {
-	    		if (findJoin(toManyNode.getName(), queryObject) != null) {
-	    			toManyNode.setFetched(true);
-	    		}
-	    	}
-    	}
-    	//repeat the process for tomany relations in the joined queryobjects
-    	for (QJoin join: queryObject.getJoins()) {
-    		processToManyRelations(join.getTo());
-    	}
+        //get the entities which this query object loaded
+        List<Entity> loadedEntities = entityLoaders.getEntitiesForQueryObject(queryObject);
+        if (loadedEntities.isEmpty()) {
+            return;
+        }
+        //for each tomany ref set fetched to true iff the queryobject had a join for that property
+        for (Entity loadedEntity : loadedEntities) {
+            for (ToManyNode toManyNode : loadedEntity.getChildren(ToManyNode.class)) {
+                if (findJoin(toManyNode.getName(), queryObject) != null) {
+                    toManyNode.setFetched(true);
+                }
+            }
+        }
+        //repeat the process for tomany relations in the joined queryobjects
+        for (QJoin join : queryObject.getJoins()) {
+            processToManyRelations(join.getTo());
+        }
     }
 
     private void verifyAllFetchedDataIsLinked() {
-    	verifyRefs(query);
+        verifyRefs(query);
 
-
-    	  /*
-         * todo: add back in some kind of ToMany validation
+        /*
+        * todo: add back in some kind of ToMany validation
 
         for (LoadedToMany loadedToMany: loadedToManys) {
-            loadedToMany.validate();
+          loadedToMany.validate();
         }
         */
     }
 
     private void prepareQueryResult() {
-    	//get the entities from the top level query object
-    	List<Entity> loadedEntities = entityLoaders.getEntitiesForQueryObject( query );
-    	//add them to the result
-    	queryResult.addEntities( loadedEntities );
+        //get the entities from the top level query object
+        List<Entity> loadedEntities = entityLoaders.getEntitiesForQueryObject(query);
+        //add them to the result
+        queryResult.addEntities(loadedEntities);
     }
 
     /**
@@ -194,23 +192,23 @@ public class QueryExecution<T> {
      * @param queryObject
      */
     private void verifyRefs(QueryObject<?> queryObject) {
-    	List<Entity> loadedEntities = entityLoaders.getEntitiesForQueryObject( queryObject );
-    	if (loadedEntities.isEmpty()) {
-    		return;
-    	}
-    	for (Entity e: loadedEntities) {
-        	List<RefNode> refNodes = e.getChildren(RefNode.class);
-        	for (RefNode refNode: refNodes) {
-        	    QJoin join = findJoin(refNode.getName(), queryObject);
-        		if (refNode.getEntityKey() != null && join != null) {
-        			if (refNode.getReference() == null) {
-        				throw new IllegalStateException("Joined FK key was not loaded: " + refNode);
-        			}
-        		}
-        	}
-    	}
+        List<Entity> loadedEntities = entityLoaders.getEntitiesForQueryObject(queryObject);
+        if (loadedEntities.isEmpty()) {
+            return;
+        }
+        for (Entity e : loadedEntities) {
+            List<RefNode> refNodes = e.getChildren(RefNode.class);
+            for (RefNode refNode : refNodes) {
+                QJoin join = findJoin(refNode.getName(), queryObject);
+                if (refNode.getEntityKey() != null && join != null) {
+                    if (refNode.getReference() == null) {
+                        throw new IllegalStateException("Joined FK key was not loaded: " + refNode);
+                    }
+                }
+            }
+        }
         //repeat the process for refs relations in the joined queryobjects
-        for (QJoin join: queryObject.getJoins()) {
+        for (QJoin join : queryObject.getJoins()) {
             verifyRefs(join.getTo());
         }
     }
@@ -219,12 +217,12 @@ public class QueryExecution<T> {
      * Sets the entitystate to loaded and refreshes each entity.
      */
     private void setEntityStateToLoadedAndRefresh() {
-    	for (EntityLoader entityLoader: entityLoaders) {
-	   		 for (Entity entity: entityLoader.getLoadedEntities()) {
-	   			 entity.setEntityState( EntityState.LOADED );
-	   			 entity.refresh();
-	   		 }
-    	}
+        for (EntityLoader entityLoader : entityLoaders) {
+            for (Entity entity : entityLoader.getLoadedEntities()) {
+                entity.setEntityState(EntityState.LOADED);
+                entity.refresh();
+            }
+        }
     }
 
     /**
@@ -234,16 +232,16 @@ public class QueryExecution<T> {
      * @return true iff the join was found
      */
     private QJoin findJoin(String propertyName, QueryObject<?> queryObject) {
-    	for (QJoin join: queryObject.getJoins()) {
-    		if (join.getFkeyProperty().equals(propertyName)) {
-    			return join;
-    		}
-    	}
-    	return null;
+        for (QJoin join : queryObject.getJoins()) {
+            if (join.getFkeyProperty().equals(propertyName)) {
+                return join;
+            }
+        }
+        return null;
     }
 
     public QueryResult<T> getResult() {
-    	return queryResult;
+        return queryResult;
     }
 
     /**
@@ -252,31 +250,30 @@ public class QueryExecution<T> {
      * @throws SQLException
      */
     private void processRow(ResultSet resultSet) throws SQLException {
-    	if (entityLoaders == null) {
-    		entityLoaders = new EntityLoaders(projection, resultSet, entityContext);
-    	}
-    	else {
-    		entityLoaders.clearRowCache();
-    	}
-    	for (EntityLoader entityLoader: entityLoaders) {
-    		 if (entityLoader.isEntityThere()) {
-    		     //todo: handle entity nodes which are lazy
-    		     //current logic sees that the entity exists & is loaded and does nothing
-    		     //this isNotYetLoaded only makes sense if we are loading into a fresh entity context.
-    			 if (entityLoader.isNotYetLoaded()) {
-    				 entityLoader.load();
-    			 }
-    			 else {
-    				 /*
-    				  * The entity is already loaded in our context
-    				  * so don't update it, and associate the existing entity
-    				  * with our loader so that it can be part of the QueryResult
-    				  */
-    				 entityLoader.associateExistingEntity();
-    			 }
-    		 }
-    	}
-    	//todo process join table columns
+        if (entityLoaders == null) {
+            entityLoaders = new EntityLoaders(projection, resultSet, entityContext);
+        }
+        else {
+            entityLoaders.clearRowCache();
+        }
+        for (EntityLoader entityLoader : entityLoaders) {
+            if (entityLoader.isEntityThere()) {
+                //todo: handle entity nodes which are lazy
+                //current logic sees that the entity exists & is loaded and does nothing
+                //this isNotYetLoaded only makes sense if we are loading into a fresh entity context.
+                if (entityLoader.isNotYetLoaded()) {
+                    entityLoader.load();
+                }
+                else {
+                    /*
+                     * The entity is already loaded in our context
+                     * so don't update it, and associate the existing entity
+                     * with our loader so that it can be part of the QueryResult
+                     */
+                    entityLoader.associateExistingEntity();
+                }
+            }
+        }
+        //todo process join table columns
     }
 }
-

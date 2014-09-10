@@ -11,7 +11,7 @@ public class MacProxyFactory implements ProxyFactory {
     @Override
     public <T> T newProxy(Entity entity) {
         if (entity.getEntityType().getInterfaceName().equals(User.class.getName())) {
-            return (T)new UserProxy(entity);
+            return (T) new UserProxy(entity);
         }
         return null;
     }
@@ -24,7 +24,6 @@ class UserProxy extends AbstractCustomEntityProxy implements User {
 
     private final ValueNode id;
     private final ValueNode name;
-
 
     public UserProxy(Entity entity) {
         super(entity);

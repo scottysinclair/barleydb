@@ -8,11 +8,11 @@ import com.smartstream.morf.server.jdbc.queryexecution.QueryResult;
 
 public interface IEntityContextServices {
 
-	Definitions getDefinitions(String namespace);
+    Definitions getDefinitions(String namespace);
 
-	<T> QueryResult<T> execute(String namespace, EntityContext entityContext, QueryObject<T> query) throws Exception;
+    <T> QueryResult<T> execute(String namespace, EntityContext entityContext, QueryObject<T> query) throws Exception;
 
-	QueryBatcher execute(String namespace, EntityContext entityContext, QueryBatcher queryBatcher) throws Exception;
+    QueryBatcher execute(String namespace, EntityContext entityContext, QueryBatcher queryBatcher) throws Exception;
 
-	PersistAnalyser execute(PersistAnalyser persistAnalyser) throws Exception;
+    PersistAnalyser execute(PersistAnalyser persistAnalyser) throws Exception;
 }

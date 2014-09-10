@@ -11,8 +11,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.smartstream.morf.api.config.EntityType;
+
 /**
- * A Node which refers to an EntityNode by it's EntityType and key  *
+ * A Node which refers to an EntityNode by it's EntityType and key *
  *
  * if a RefNode has a key
  * then the entity corresponding to that key will exist in the context
@@ -64,18 +65,18 @@ public final class RefNode extends Node {
             getEntityContext().removeReference(this, getReference());
         }
 
-    	if (getEntityContext().isUser()) {
-    		/*
-    		 * If we are in user mode then we track the previous entityKey
-    		 * so that we know what has been changed
-    		 */
-	        if (removedEntityKey == null) {
-	            removedEntityKey = entityKey;
-	        } else if (removedEntityKey.equals( newEntityKey) ) {
-	            //reversing the removal of the orignal key
-	            removedEntityKey = null;
-	        }
-    	}
+        if (getEntityContext().isUser()) {
+            /*
+             * If we are in user mode then we track the previous entityKey
+             * so that we know what has been changed
+             */
+            if (removedEntityKey == null) {
+                removedEntityKey = entityKey;
+            } else if (removedEntityKey.equals(newEntityKey)) {
+                //reversing the removal of the orignal key
+                removedEntityKey = null;
+            }
+        }
         entityKey = newEntityKey;
         if (entityKey != null) {
             //get or create the corresponding entity in the context
@@ -89,9 +90,8 @@ public final class RefNode extends Node {
     }
 
     public void setRemovedEntityKey(Object removedEntityKey) {
-    	this.removedEntityKey = removedEntityKey;
+        this.removedEntityKey = removedEntityKey;
     }
-
 
     public Object getRemovedEntityKey() {
         return this.removedEntityKey;
@@ -156,23 +156,22 @@ public final class RefNode extends Node {
         if (origReference != null) {
             getEntityContext().removeReference(this, origReference);
         }
-    	this.updatedReference = entity;
-    	if (updatedReference != null) {
-    	    getEntityContext().addReference(this, updatedReference);
-    	}
+        this.updatedReference = entity;
+        if (updatedReference != null) {
+            getEntityContext().addReference(this, updatedReference);
+        }
     }
-
 
     @Override
     public void handleEvent(NodeEvent event) {
         if (event.getType() == NodeEvent.Type.KEYSET) {
             final Entity reference = getReference();
             if (reference != null && reference.getKey() == event.getSource()) {
-                this.entityKey = ((ValueNode)event.getSource()).getValue();
-                LOG.debug(getName() + " FK set to " + this.entityKey +  " for " + getParent().getEntityType().getInterfaceShortName() + " with key " + getParent().getKey() + " and uuid " + getParent().getUuid());
+                this.entityKey = ((ValueNode) event.getSource()).getValue();
+                LOG.debug(getName() + " FK set to " + this.entityKey + " for " + getParent().getEntityType().getInterfaceShortName() + " with key " + getParent().getKey() + " and uuid " + getParent().getUuid());
             }
-            else  {
-            	LOG.debug("WHY WAS I CALLED");
+            else {
+                LOG.debug("WHY WAS I CALLED");
             }
         }
     }
@@ -192,15 +191,14 @@ public final class RefNode extends Node {
         return null;
     }
 
-
     @Override
     public Entity getParent() {
-        return (Entity)super.getParent();
+        return (Entity) super.getParent();
     }
 
     @Override
     public Element toXml(Document doc) {
-        Element element  = doc.createElement(getName());
+        Element element = doc.createElement(getName());
         element.setAttribute("key", String.valueOf(entityKey));
         Entity ref = getReference();
         if (ref != null) {
@@ -215,23 +213,20 @@ public final class RefNode extends Node {
     }
 
     private void writeObject(ObjectOutputStream oos) throws IOException {
-	    oos.defaultWriteObject();
-	    oos.writeUTF(entityType.getInterfaceName());
-	}
+        oos.defaultWriteObject();
+        oos.writeUTF(entityType.getInterfaceName());
+    }
 
     private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException {
-	    ois.defaultReadObject();
-	    String interfaceName = ois.readUTF();
-	    entityType = getEntityContext().getDefinitions().getEntityTypeMatchingInterface(interfaceName, true);
-	}
-
+        ois.defaultReadObject();
+        String interfaceName = ois.readUTF();
+        entityType = getEntityContext().getDefinitions().getEntityTypeMatchingInterface(interfaceName, true);
+    }
 
     @Override
     public String toString() {
         Entity e = getReference();
         return String.valueOf(e);
     }
-
-
 
 }

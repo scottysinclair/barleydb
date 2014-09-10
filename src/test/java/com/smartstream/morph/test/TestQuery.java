@@ -15,124 +15,120 @@ import com.smartstream.morf.api.core.QueryBatcher;
 import com.smartstream.morf.server.jdbc.queryexecution.QueryResult;
 
 @SuppressWarnings("deprecation")
-public class TestQuery extends TestBase  {
+public class TestQuery extends TestBase {
 
-	@Override
-	protected void prepareData() {
-		super.prepareData();
-		SimpleJdbcTestUtils.executeSqlScript(new SimpleJdbcTemplate(dataSource), new ClassPathResource("/inserts.sql"), false);
-	}
+    @Override
+    protected void prepareData() {
+        super.prepareData();
+        SimpleJdbcTestUtils.executeSqlScript(new SimpleJdbcTemplate(dataSource), new ClassPathResource("/inserts.sql"), false);
+    }
 
+    @Test
+    public void testCsvSyntaxModelQuery() throws Exception {
 
-	@Test
-	public void testCsvSyntaxModelQuery() throws Exception {
+        QCsvSyntaxModel qcsm = new QCsvSyntaxModel();
+        qcsm.joinToUser();
+        qcsm.joinToStructure().joinToFields();
 
-	    QCsvSyntaxModel qcsm = new QCsvSyntaxModel();
-	    qcsm.joinToUser();
-	    qcsm.joinToStructure().joinToFields();
+        QCsvStructure aStructure = qcsm.existsStructure();
+        qcsm.whereExists(aStructure.where(aStructure.name().equal("csv-str-1")));
 
-	    QCsvStructure aStructure = qcsm.existsStructure();
-	    qcsm.whereExists( aStructure.where(aStructure.name().equal("csv-str-1") ) );
+        QueryResult<CsvSyntaxModel> result = entityContext.performQuery(qcsm);
 
-	    QueryResult<CsvSyntaxModel> result = entityContext.performQuery(qcsm);
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println("printing syntax models (" + result.getList().size() + ") => ");
+        for (CsvSyntaxModel syntaxModel : result.getList()) {
+            print("", syntaxModel);
+        }
+    }
 
-	    System.out.println();
-	    System.out.println();
-	    System.out.println();
-	    System.out.println();
-	    System.out.println("printing syntax models (" + result.getList().size() + ") => ");
-	    for (CsvSyntaxModel syntaxModel: result.getList()) {
-		    print("", syntaxModel);
-	    }
-	}
+    @Test
+    public void testSyntaxModelComplexQuery() throws Exception {
 
-	@Test
-	public void testSyntaxModelComplexQuery() throws Exception {
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println();
 
-		System.out.println();
-		System.out.println();
-		System.out.println();
-		System.out.println();
+        /*
+         * create and registery all fetch queries
+         */
+        QXMLSyntaxModel qxsm = new QXMLSyntaxModel();
+        qxsm.joinToUser();
+        qxsm.joinToMappings()
+                .joinToSubSyntax()
+                .joinToUser();
 
-		/*
-		 * create and registery all fetch queries
-		 */
-		QXMLSyntaxModel qxsm = new QXMLSyntaxModel();
-		qxsm.joinToUser();
-		qxsm.joinToMappings()
-			.joinToSubSyntax()
-				.joinToUser();
+        entityContext.register(qxsm);
 
-		entityContext.register(qxsm);
+        /*
+         * get a copy of the syntax query
+         */
+        QXMLSyntaxModel syntax = (QXMLSyntaxModel) entityContext.getQuery(XMLSyntaxModel.class);
 
+        /*
+         * add a where clause
+         */
+        QXMLMapping aMapping = syntax.existsMapping();
+        QUser aUser = syntax.existsUser();
+        //QXMLStructure aStructure = syntax.existsStructure();
+        syntax.where(syntax.syntaxName().equal("syntax-xml-1"))
+                .andExists(aMapping.where(aMapping.xpath().equal("sfn11").or(aMapping.xpath().equal("sfn12"))))
+                .andExists(aUser.where(aUser.userName().equal("Scott")));
 
-		/*
-		 * get a copy of the syntax query
-		 */
-		QXMLSyntaxModel syntax = (QXMLSyntaxModel)entityContext.getQuery(XMLSyntaxModel.class);
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println();
 
+        /*
+         * Execute the query and process the result
+         */
+        QueryResult<XMLSyntaxModel> result = entityContext.performQuery(syntax);
 
-		/*
-		 * add a where clause
-		 */
-		QXMLMapping aMapping = syntax.existsMapping();
-		QUser aUser = syntax.existsUser();
-		//QXMLStructure aStructure = syntax.existsStructure();
-		syntax.where(  syntax.syntaxName().equal("syntax-xml-1")  )
-		.andExists( aMapping.where( aMapping.xpath().equal("sfn11").or(aMapping.xpath().equal("sfn12")) ))
-		.andExists( aUser.where( aUser.userName().equal("Scott") ));
+        //result.getList().get(0).getMappings();
 
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println("printing syntax models (" + result.getList().size() + ") => ");
+        for (XMLSyntaxModel syntaxModel : result.getList()) {
+            print("", syntaxModel);
+        }
 
-		System.out.println();
-		System.out.println();
-		System.out.println();
-		System.out.println();
+        System.out.println("printing again no fetching this time) => ");
+        for (XMLSyntaxModel syntaxModel : result.getList()) {
+            print("", syntaxModel);
+        }
+    }
 
-		/*
-		 * Execute the query and process the result
-		 */
-		QueryResult<XMLSyntaxModel> result = entityContext.performQuery(syntax);
+    /**
+     * Loads all ROOT syntaxes in one abstract query (XML + CSV)
+     * Only concrete proxies are instantiated (XML + CSV) as the base proxy is
+     * an abstract class which fundamentally cannot be instantiated.
+     * @throws Exception
+     */
+    @Test
+    public void testBaseSyntaxModels() throws Exception {
+        QSyntaxModel qsyntax = new QSyntaxModel();
+        qsyntax.where(qsyntax.syntaxType().equal(SyntaxType.ROOT));
+        qsyntax.joinToUser();
 
-		//result.getList().get(0).getMappings();
-
-		System.out.println();
-		System.out.println();
-		System.out.println();
-		System.out.println();
-		System.out.println("printing syntax models (" + result.getList().size() + ") => ");
-		for (XMLSyntaxModel syntaxModel: result.getList()) {
-			print("", syntaxModel);
-		}
-
-		System.out.println("printing again no fetching this time) => ");
-		for (XMLSyntaxModel syntaxModel: result.getList()) {
-			print("", syntaxModel);
-		}
-	}
-
-	/**
-	 * Loads all ROOT syntaxes in one abstract query (XML + CSV)
-	 * Only concrete proxies are instantiated (XML + CSV) as the base proxy is
-	 * an abstract class which fundamentally cannot be instantiated.
-	 * @throws Exception
-	 */
-	@Test
-	public void testBaseSyntaxModels() throws Exception {
-	    QSyntaxModel qsyntax = new QSyntaxModel();
-	    qsyntax.where(qsyntax.syntaxType().equal(SyntaxType.ROOT));
-	    qsyntax.joinToUser();
-
-	    List<SyntaxModel> syntaxModels = entityContext.performQuery(qsyntax).getList();
-        for (SyntaxModel syntaxModel: syntaxModels) {
+        List<SyntaxModel> syntaxModels = entityContext.performQuery(qsyntax).getList();
+        for (SyntaxModel syntaxModel : syntaxModels) {
             syntaxModel.getStructure().getName();
             System.out.println(syntaxModel.getName() + " -- " + syntaxModel.getUser().getName() + " -- " + syntaxModel.getStructure().getName());
         }
-        for (SyntaxModel syntaxModel: syntaxModels) {
+        for (SyntaxModel syntaxModel : syntaxModels) {
             print("", syntaxModel);
         }
-	}
+    }
 
-	@Test
+    @Test
     public void testSyntaxModelLazyName() throws Exception {
         /*
          * create and registery all fetch queries
@@ -153,88 +149,87 @@ public class TestQuery extends TestBase  {
          */
         List<XMLSyntaxModel> list = entityContext.performQuery(qxsm).getList();
         System.out.println(entityContext.printXml());
-        for (XMLSyntaxModel syntaxModel: list) {
+        for (XMLSyntaxModel syntaxModel : list) {
             print("", syntaxModel);
         }
-	}
+    }
 
+    @Test
+    public void testQueryTemplateAndDatatypeEagerLoading() throws Exception {
+        /*
+         * fetching over a join table
+         */
+        QTemplate templatesQuery = new QTemplate();
+        templatesQuery.joinToContent();
+        templatesQuery.joinToDatatype();
 
-	@Test
-	public void testQueryTemplateAndDatatypeEagerLoading() throws Exception  {
-		/*
-		 * fetching over a join table
-		 */
-		QTemplate templatesQuery = new QTemplate();
-		templatesQuery.joinToContent();
-		templatesQuery.joinToDatatype();
+        QueryResult<Template> result2 = entityContext.performQuery(templatesQuery);
+        for (Template t : result2.getList()) {
+            print("", t);
+        }
+    }
 
-		QueryResult<Template> result2 = entityContext.performQuery(templatesQuery);
-		for (Template t: result2.getList()) {
-			print("", t);
-		}
-	}
+    @Test
+    public void testQueryTemplateAndDatatypeFetchesOverJoinTable() throws Exception {
+        /*
+         * fetching over a join table
+         */
+        QTemplate templatesQuery = new QTemplate();
+        //templatesQuery.joinToDatatype();
 
-	@Test
-	public void testQueryTemplateAndDatatypeFetchesOverJoinTable() throws Exception  {
-		/*
-		 * fetching over a join table
-		 */
-		QTemplate templatesQuery = new QTemplate();
-		//templatesQuery.joinToDatatype();
+        QueryResult<Template> result2 = entityContext.performQuery(templatesQuery);
+        for (Template t : result2.getList()) {
+            print("", t);
+        }
+    }
 
-		QueryResult<Template> result2 = entityContext.performQuery(templatesQuery);
-		for (Template t: result2.getList()) {
-			print("", t);
-		}
-	}
+    @Test
+    public void testBatchQuery() throws Exception {
+        /*
+         * Build a syntax model query
+         */
+        QXMLSyntaxModel syntax = (QXMLSyntaxModel) entityContext.getDefinitions().getQuery(XMLSyntaxModel.class);
+        QXMLMapping aMapping = syntax.existsMapping();
+        QUser aUser = syntax.existsUser();
+        syntax.where(syntax.syntaxName().equal("syntax-xml-1"))
+                .andExists(aMapping.where(aMapping.xpath().equal("sfn11").or(aMapping.xpath().equal("sfn12"))))
+                .andExists(aUser.where(aUser.userName().equal("Scott")));
 
-	@Test
-	public void testBatchQuery() throws Exception {
-		/*
-		 * Build a syntax model query
-		 */
-		QXMLSyntaxModel syntax = (QXMLSyntaxModel)entityContext.getDefinitions().getQuery(XMLSyntaxModel.class);
-		QXMLMapping aMapping = syntax.existsMapping();
-		QUser aUser = syntax.existsUser();
-		syntax.where(  syntax.syntaxName().equal("syntax-xml-1")  )
-		.andExists( aMapping.where( aMapping.xpath().equal("sfn11").or(aMapping.xpath().equal("sfn12")) ))
-		.andExists( aUser.where( aUser.userName().equal("Scott") ));
+        /*
+         * Build a template query
+         */
+        QTemplate templatesQuery = new QTemplate();
+        templatesQuery.joinToDatatype();
 
-		/*
-		 * Build a template query
-		 */
-		QTemplate templatesQuery = new QTemplate();
-		templatesQuery.joinToDatatype();
+        QueryBatcher qBatch = new QueryBatcher();
+        qBatch.addQuery(syntax, templatesQuery);
 
-		QueryBatcher qBatch = new QueryBatcher();
-		qBatch.addQuery(syntax, templatesQuery);
+        entityContext.performQueries(qBatch);
 
-		entityContext.performQueries(qBatch);
+        System.out.println();
+        System.out.println();
+        System.out.println("Printing Syntax models");
 
-		System.out.println();
-		System.out.println();
-		System.out.println("Printing Syntax models");
+        for (XMLSyntaxModel syntaxModel : qBatch.getResult(0, XMLSyntaxModel.class).getList()) {
+            print("", syntaxModel);
+        }
 
-		for (XMLSyntaxModel syntaxModel: qBatch.getResult(0, XMLSyntaxModel.class).getList()) {
-			print("", syntaxModel);
-		}
+        System.out.println();
+        System.out.println("Printing Templates");
 
-		System.out.println();
-		System.out.println("Printing Templates");
+        for (Template template : qBatch.getResult(1, Template.class).getList()) {
+            print("", template);
+        }
+    }
 
-		for (Template template: qBatch.getResult(1, Template.class).getList()) {
-			print("", template);
-		}
-	}
-
-	@Test
-	public void testNullQueryParameter() throws Exception {
+    @Test
+    public void testNullQueryParameter() throws Exception {
         QSyntaxModel qsyntax = new QSyntaxModel();
         qsyntax.where(qsyntax.syntaxType().equal(null));
         qsyntax.joinToUser();
 
         assertTrue(entityContext.performQuery(qsyntax).getList().isEmpty());
 
-	}
+    }
 
 }

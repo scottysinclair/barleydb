@@ -7,7 +7,7 @@ import com.smartstream.morf.api.core.entity.ValueNode;
 import com.smartstream.morf.api.core.proxy.AbstractCustomEntityProxy;
 import com.smartstream.morf.api.core.proxy.RefNodeProxyHelper;
 
-public abstract class SyntaxModel extends AbstractCustomEntityProxy  {
+public abstract class SyntaxModel extends AbstractCustomEntityProxy {
     private static final long serialVersionUID = 1L;
     private final ValueNode id;
     private final ValueNode name;
@@ -52,4 +52,3 @@ public abstract class SyntaxModel extends AbstractCustomEntityProxy  {
 
     public abstract Structure getStructure();
 }
-

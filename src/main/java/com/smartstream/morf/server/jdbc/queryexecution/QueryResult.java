@@ -25,70 +25,75 @@ public class QueryResult<T> {
     private final Class<T> resultType;
     private final List<Entity> entities = new LinkedList<Entity>();
     private final QueryResultList<T> result;
+
     public QueryResult(EntityContext entityContext, Class<T> resultType) {
         this.entityContext = entityContext;
         this.resultType = resultType;
         this.result = new QueryResultList<T>(entityContext, entities);
     }
+
     public List<T> getList() {
         return result;
     }
+
     public T getSingleResult() {
-    	if (result.size() > 1) {
-    		throw new IllegalStateException("Too much data returned");
-    	}
-    	return result.size() == 1 ? result.get(0) : null;
+        if (result.size() > 1) {
+            throw new IllegalStateException("Too much data returned");
+        }
+        return result.size() == 1 ? result.get(0) : null;
     }
+
     public Class<T> getResultType() {
-		return resultType;
-	}
-	public EntityContext getEntityContext() {
+        return resultType;
+    }
+
+    public EntityContext getEntityContext() {
         return entityContext;
     }
+
     public void addEntities(List<Entity> entities) {
-    	result.addEntities( entities );
+        result.addEntities(entities);
     }
 
     public QueryResult<T> copyResultTo(EntityContext newEntityContext) {
-    	if (entityContext == newEntityContext){
-    		return this;
-    	}
-    	LOG.debug("=== COPYING DATA ACROSS =======");
-    	entityContext.beginLoading();
-    	newEntityContext.beginLoading();
-    	try {
-	    	QueryResult<T> result = new QueryResult<T>(newEntityContext, resultType);
-	    	List<Entity> copied = EntityContextHelper.addEntities(entityContext.getEntities(), newEntityContext);
-	    	EntityContextHelper.copyRefStates(entityContext, newEntityContext, copied, new EntityContextHelper.EntityFilter() {
-				@Override
-				public boolean includesEntity(Entity entity) {
-					return true;
-				}
-			});
-	    	for (Entity e: entities) {
-	    		result.entities.add( newEntityContext.getEntityByUuidOrKey( e.getUuid(), e.getEntityType(), e.getKey().getValue(), true) );
-	    	}
+        if (entityContext == newEntityContext) {
+            return this;
+        }
+        LOG.debug("=== COPYING DATA ACROSS =======");
+        entityContext.beginLoading();
+        newEntityContext.beginLoading();
+        try {
+            QueryResult<T> result = new QueryResult<T>(newEntityContext, resultType);
+            List<Entity> copied = EntityContextHelper.addEntities(entityContext.getEntities(), newEntityContext);
+            EntityContextHelper.copyRefStates(entityContext, newEntityContext, copied, new EntityContextHelper.EntityFilter() {
+                @Override
+                public boolean includesEntity(Entity entity) {
+                    return true;
+                }
+            });
+            for (Entity e : entities) {
+                result.entities.add(newEntityContext.getEntityByUuidOrKey(e.getUuid(), e.getEntityType(), e.getKey().getValue(), true));
+            }
 
-	    	return result;
-    	}
-    	finally {
-        	newEntityContext.endLoading();
-        	entityContext.endLoading();
-    	}
+            return result;
+        } finally {
+            newEntityContext.endLoading();
+            entityContext.endLoading();
+        }
     }
 }
-
 
 class QueryResultList<T> extends AbstractList<T> {
     private final EntityContext entityContext;
     private final List<Entity> entities;
+
     public QueryResultList(EntityContext entityContext, List<Entity> entities) {
         this.entityContext = entityContext;
         this.entities = entities;
     }
 
     public void addEntities(List<Entity> entities) {
-    	this.entities.addAll( entities );
+        this.entities.addAll(entities);
     }
 
     @SuppressWarnings("unchecked")
@@ -98,7 +103,7 @@ class QueryResultList<T> extends AbstractList<T> {
         if (en == null) {
             return null;
         }
-        return (T)entityContext.getProxy(en);
+        return (T) entityContext.getProxy(en);
     }
 
     @Override

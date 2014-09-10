@@ -19,7 +19,7 @@ public class RefNodeProxyHelper {
         if (ref == null) {
             refProxy = null;
         }
-        else if (refProxy == null || ((ProxyController)refProxy).getEntity() != ref) {
+        else if (refProxy == null || ((ProxyController) refProxy).getEntity() != ref) {
             refProxy = ref.getEntityContext().getProxy(ref);
         }
         return String.valueOf(ref);

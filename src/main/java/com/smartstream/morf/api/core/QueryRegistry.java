@@ -16,76 +16,76 @@ import com.smartstream.morf.api.query.QueryObject;
  * The queries which are returned are copies
  */
 public class QueryRegistry implements Serializable, Cloneable {
-	private static final long serialVersionUID = 1L;
-	private Map<String, QueryObject<?>> map = new HashMap<String, QueryObject<?>>();
+    private static final long serialVersionUID = 1L;
+    private Map<String, QueryObject<?>> map = new HashMap<String, QueryObject<?>>();
 
-	public QueryRegistry() {}
-	public QueryRegistry(QueryRegistry qr) {
-		map.putAll(qr.map);
-	}
+    public QueryRegistry() {}
 
-	public void addAll(QueryRegistry qr) {
-		map.putAll(qr.map);
-	}
+    public QueryRegistry(QueryRegistry qr) {
+        map.putAll(qr.map);
+    }
 
-	/**
-	 * The query objects in the map are considered immutable
-	 * since we always return cloned copies and we only allow them to be replaced.
-	 */
-	@Override
-	public QueryRegistry clone()  {
-		try {
-			return (QueryRegistry)super.clone();
-		}
-		catch(CloneNotSupportedException x) {
-			throw new IllegalStateException("Clone must be supported", x);
-		}
-	}
+    public void addAll(QueryRegistry qr) {
+        map.putAll(qr.map);
+    }
 
-	public void register(QueryObject<?>... qos) {
-		for (QueryObject<?> qo : qos) {
-			if (map.containsKey(getKey(qo))) {
-				register("user", qo);
-			} else {
-				register(null, qo);
-			}
-		}
-	}
+    /**
+     * The query objects in the map are considered immutable
+     * since we always return cloned copies and we only allow them to be replaced.
+     */
+    @Override
+    public QueryRegistry clone() {
+        try {
+            return (QueryRegistry) super.clone();
+        } catch (CloneNotSupportedException x) {
+            throw new IllegalStateException("Clone must be supported", x);
+        }
+    }
 
-	private void register(String name, QueryObject<?> qo) {
-		map.put(getKey(qo), qo);
-	}
+    public void register(QueryObject<?>... qos) {
+        for (QueryObject<?> qo : qos) {
+            if (map.containsKey(getKey(qo))) {
+                register("user", qo);
+            } else {
+                register(null, qo);
+            }
+        }
+    }
 
-	private String getKey(QueryObject<?> qo) {
-		return qo.getTypeName();
-	}
+    private void register(String name, QueryObject<?> qo) {
+        map.put(getKey(qo), qo);
+    }
 
-	public QueryObject<Object> getQuery(EntityType entityType) {
-		return getQuery(entityType.getInterfaceName());
-	}
+    private String getKey(QueryObject<?> qo) {
+        return qo.getTypeName();
+    }
 
-	@SuppressWarnings("unchecked")
+    public QueryObject<Object> getQuery(EntityType entityType) {
+        return getQuery(entityType.getInterfaceName());
+    }
+
+    @SuppressWarnings("unchecked")
     public QueryObject<Object> getQuery(String interfaceName) {
-		return clone((QueryObject<Object>) map.get(interfaceName));
-	}
+        return clone((QueryObject<Object>) map.get(interfaceName));
+    }
 
-	@SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked")
     public <T> QueryObject<T> getQuery(Class<T> interfaceType) {
-		return clone((QueryObject<T>) map.get(interfaceType.getName()));
-	}
+        return clone((QueryObject<T>) map.get(interfaceType.getName()));
+    }
 
-	@SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked")
     private <T> QueryObject<T> clone(QueryObject<T> queryObject) {
-		try {
-			ByteArrayOutputStream bo = new ByteArrayOutputStream();
-			ObjectOutputStream os = new ObjectOutputStream(bo);
-			os.writeObject(queryObject);
-			ObjectInputStream oi = new ObjectInputStream(
-					new ByteArrayInputStream(bo.toByteArray()));
-			return (QueryObject<T>) oi.readObject();
-		} catch (Exception x) {
-			throw new IllegalStateException("Error cloning query", x);
-		}
-	}
+        try {
+            ByteArrayOutputStream bo = new ByteArrayOutputStream();
+            ObjectOutputStream os = new ObjectOutputStream(bo);
+            os.writeObject(queryObject);
+            ObjectInputStream oi = new ObjectInputStream(
+                    new ByteArrayInputStream(bo.toByteArray()));
+            return (QueryObject<T>) oi.readObject();
+        } catch (Exception x) {
+            throw new IllegalStateException("Error cloning query", x);
+        }
+    }
 
 }

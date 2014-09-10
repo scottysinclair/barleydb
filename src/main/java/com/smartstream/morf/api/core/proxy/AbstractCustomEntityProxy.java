@@ -39,7 +39,7 @@ public abstract class AbstractCustomEntityProxy implements ProxyController, Seri
             return false;
         }
         if (obj instanceof ProxyController) {
-            return entity.equals(((ProxyController)obj).getEntity());
+            return entity.equals(((ProxyController) obj).getEntity());
         }
         else {
             return entity.equals(obj);
@@ -53,26 +53,26 @@ public abstract class AbstractCustomEntityProxy implements ProxyController, Seri
             return null;
         }
         else {
-            return (T)entity.getEntityContext().getProxy(en);
+            return (T) entity.getEntityContext().getProxy(en);
         }
     }
 
     protected final void setToRefNode(RefNode node, Object object) {
-        ProxyController entityModel = (ProxyController)object;
+        ProxyController entityModel = (ProxyController) object;
         if (entityModel == null) {
             node.setEntityKey(null);
             node.setReference(null);
         }
         else {
             Entity en = entityModel.getEntity();
-            node.setEntityKey( en.getKey().getValue() );
+            node.setEntityKey(en.getKey().getValue());
             node.setReference(en);
         }
     }
 
     @SuppressWarnings("unchecked")
     protected final <T> List<T> getListProxy(ToManyNode node) {
-        return (List<T>)new ToManyProxy<Object>(node);
+        return (List<T>) new ToManyProxy<Object>(node);
     }
 
     protected final void setList(ToManyNode node, List<?> list) {
@@ -100,8 +100,5 @@ public abstract class AbstractCustomEntityProxy implements ProxyController, Seri
     public String toString() {
         return entity.toString();
     }
-
-
-
 
 }

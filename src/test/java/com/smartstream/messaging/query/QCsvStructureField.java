@@ -4,19 +4,19 @@ import com.smartstream.messaging.model.CsvStructureField;
 import com.smartstream.morf.api.query.QProperty;
 import com.smartstream.morf.api.query.QueryObject;
 
+public class QCsvStructureField extends QueryObject<CsvStructureField> {
 
-public class QCsvStructureField extends QueryObject<CsvStructureField>{
-
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
     public QCsvStructureField() {
-		super(CsvStructureField.class);
-	}
-	public QCsvStructureField(QueryObject<?> parent) {
-		super(CsvStructureField.class, parent);
-	}
+        super(CsvStructureField.class);
+    }
 
-	public QProperty<String> name() {
-		return new QProperty<String>(this, "name");
-	}
+    public QCsvStructureField(QueryObject<?> parent) {
+        super(CsvStructureField.class, parent);
+    }
+
+    public QProperty<String> name() {
+        return new QProperty<String>(this, "name");
+    }
 }

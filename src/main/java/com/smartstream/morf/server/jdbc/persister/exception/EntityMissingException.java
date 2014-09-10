@@ -16,13 +16,12 @@ public class EntityMissingException extends PersistException {
         this.key = key;
     }
 
-	public EntityType getEntityType() {
-		return entityType;
-	}
+    public EntityType getEntityType() {
+        return entityType;
+    }
 
-	public Object getKey() {
-		return key;
-	}
-
+    public Object getKey() {
+        return key;
+    }
 
 }

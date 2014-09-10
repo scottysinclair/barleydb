@@ -16,12 +16,12 @@ public class OptimisticLockMismatchException extends PersistException {
         this.databaseEntity = databaseEntity;
     }
 
-	public Entity getEntity() {
-		return entity;
-	}
+    public Entity getEntity() {
+        return entity;
+    }
 
-	public Entity getDatabaseEntity() {
-		return databaseEntity;
-	}
+    public Entity getDatabaseEntity() {
+        return databaseEntity;
+    }
 
 }

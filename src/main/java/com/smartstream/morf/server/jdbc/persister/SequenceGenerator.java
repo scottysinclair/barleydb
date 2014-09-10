@@ -4,6 +4,6 @@ import com.smartstream.morf.api.config.EntityType;
 
 public interface SequenceGenerator {
 
-	public Object getNextKey(EntityType entityType);
+    public Object getNextKey(EntityType entityType);
 
 }

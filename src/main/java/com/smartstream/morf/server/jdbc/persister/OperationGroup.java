@@ -13,45 +13,45 @@ import com.smartstream.morf.api.core.entity.Entity;
 import com.smartstream.morf.api.core.entity.RefNode;
 
 public class OperationGroup implements Serializable {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final Logger LOG = LoggerFactory.getLogger(OperationGroup.class);
+    private static final Logger LOG = LoggerFactory.getLogger(OperationGroup.class);
 
-	private final List<Entity> entities = new LinkedList<>();
+    private final List<Entity> entities = new LinkedList<>();
 
-	public OperationGroup reverse() {
-		OperationGroup og = new OperationGroup();
-		og.entities.addAll(entities);
-		Collections.reverse(og.entities);
-		return og;
-	}
+    public OperationGroup reverse() {
+        OperationGroup og = new OperationGroup();
+        og.entities.addAll(entities);
+        Collections.reverse(og.entities);
+        return og;
+    }
 
     public void add(Entity entity) {
-    	if (!entities.contains(entity)) {
-    		entities.add( entity );
-    	}
+        if (!entities.contains(entity)) {
+            entities.add(entity);
+        }
     }
 
     public List<Entity> getEntities() {
         return entities;
     }
 
-    public OperationGroup mergedCopy(OperationGroup ...ogs) {
+    public OperationGroup mergedCopy(OperationGroup... ogs) {
         OperationGroup ogm = new OperationGroup();
-        ogm.entities.addAll( entities );
-        for (OperationGroup og: ogs) {
-        	ogm.entities.addAll( og.entities );
+        ogm.entities.addAll(entities);
+        for (OperationGroup og : ogs) {
+            ogm.entities.addAll(og.entities);
         }
         return ogm;
     }
 
     public OperationGroup optimizedForInsertCopy() {
         OperationGroup og = new OperationGroup();
-        og.entities.addAll( entities );
+        og.entities.addAll(entities);
         List<Entity> copy = og.entities;
-        for (int i=1; i<copy.size(); i++) {
+        for (int i = 1; i < copy.size(); i++) {
             int iSameType = indexOfSameTypeHigherUp(copy, i);
-            if (iSameType >= 0 && iSameType != i-1 && moveTypeUp(copy, i, iSameType, false)) {
+            if (iSameType >= 0 && iSameType != i - 1 && moveTypeUp(copy, i, iSameType, false)) {
                 i--;
             }
         }
@@ -60,11 +60,11 @@ public class OperationGroup implements Serializable {
 
     public OperationGroup optimizedForUpdateCopy() {
         OperationGroup og = new OperationGroup();
-        og.entities.addAll( entities );
+        og.entities.addAll(entities);
         List<Entity> copy = og.entities;
-        for (int i=1; i<copy.size(); i++) {
+        for (int i = 1; i < copy.size(); i++) {
             int iSameType = indexOfSameTypeHigherUp(copy, i);
-            if (iSameType >= 0 && iSameType != i-1 && moveTypeUp(copy, i, iSameType, true)) {
+            if (iSameType >= 0 && iSameType != i - 1 && moveTypeUp(copy, i, iSameType, true)) {
                 i--;
             }
         }
@@ -82,7 +82,7 @@ public class OperationGroup implements Serializable {
 
     private int indexOfSameTypeHigherUp(List<Entity> copy, int index) {
         final EntityType entityType = copy.get(index).getEntityType();
-        for (int i=index-1; i>=0; i--) {
+        for (int i = index - 1; i >= 0; i--) {
             if (entityType == copy.get(i).getEntityType()) {
                 return i;
             }
@@ -96,20 +96,20 @@ public class OperationGroup implements Serializable {
      */
     private boolean moveTypeUp(List<Entity> copy, int index, int indexOfSameType, boolean forceIt) {
         if (!forceIt) {
-            for (int i=index-1; i>indexOfSameType; i--) {
+            for (int i = index - 1; i > indexOfSameType; i--) {
                 if (dependsOn(copy, index, i)) {
                     return false;
                 }
             }
         }
-        LOG.debug("Moving " + copy.get(index) + " at " + index + " up to " + copy.get(indexOfSameType) + " at " + (indexOfSameType+1));
-        copy.add(indexOfSameType+1, copy.remove(index));
+        LOG.debug("Moving " + copy.get(index) + " at " + index + " up to " + copy.get(indexOfSameType) + " at " + (indexOfSameType + 1));
+        copy.add(indexOfSameType + 1, copy.remove(index));
         return true;
     }
 
     private boolean dependsOn(List<Entity> copy, int index, int possibleDepIndex) {
-        Entity entity = copy.get( index );
-        Entity possibleDep = copy.get( possibleDepIndex );
+        Entity entity = copy.get(index);
+        Entity possibleDep = copy.get(possibleDepIndex);
         return dependsOn(entity, possibleDep);
     }
 
@@ -118,7 +118,7 @@ public class OperationGroup implements Serializable {
          * if the possibleDep is reachable through a refnode then
          * it is a dep, otherwise not
          */
-        for (RefNode refNode: entity.getChildren(RefNode.class)) {
+        for (RefNode refNode : entity.getChildren(RefNode.class)) {
             if (refNode.getReference() == null) {
                 /*
                  * No reference set, skip..

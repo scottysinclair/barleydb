@@ -7,7 +7,7 @@ import com.smartstream.morf.api.query.QProperty;
 import com.smartstream.morf.api.query.QueryObject;
 
 /**
- *  Non parameterized query for querying base class syntax model
+ * Non parameterized query for querying base class syntax model
  */
 public class QSyntaxModel extends QAbstractSyntaxModel<SyntaxModel, QSyntaxModel> {
 
@@ -38,7 +38,7 @@ class QAbstractSyntaxModel<T extends SyntaxModel, CHILD extends QAbstractSyntaxM
 
     @SuppressWarnings("unchecked")
     public QAbstractSyntaxModel(QueryObject<?> parent) {
-        super((Class<T>)SyntaxModel.class, parent);
+        super((Class<T>) SyntaxModel.class, parent);
     }
 
     protected QAbstractSyntaxModel(Class<T> modelClasss, QueryObject<?> parent) {
@@ -48,7 +48,7 @@ class QAbstractSyntaxModel<T extends SyntaxModel, CHILD extends QAbstractSyntaxM
     @SuppressWarnings("unchecked")
     public CHILD disableName() {
         addDisabled("name");
-        return (CHILD)this;
+        return (CHILD) this;
     }
 
     public QUser joinToUser() {

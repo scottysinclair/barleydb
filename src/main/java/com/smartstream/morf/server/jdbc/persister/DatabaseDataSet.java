@@ -11,8 +11,6 @@ import com.smartstream.morf.api.core.entity.Entity;
 import com.smartstream.morf.api.core.entity.EntityContext;
 import com.smartstream.morf.api.query.*;
 
-
-
 public class DatabaseDataSet {
 
     private static final Logger LOG = LoggerFactory.getLogger(DatabaseDataSet.class);
@@ -50,9 +48,9 @@ public class DatabaseDataSet {
         LOG.debug("Reordering entities for database retrival to reduce table deadlock scenarios.");
         //the dependsOnGroup ordering is the same as for create/update
         //so merge it first
-        OperationGroup mergedAndOptimized = dependsOnGroup.mergedCopy(updateGroup, deleteGroup.reverse() ).optimizedForInsertCopy();
+        OperationGroup mergedAndOptimized = dependsOnGroup.mergedCopy(updateGroup, deleteGroup.reverse()).optimizedForInsertCopy();
 
-        batchLoader.addEntities( mergedAndOptimized.getEntities() );
+        batchLoader.addEntities(mergedAndOptimized.getEntities());
 
         LOG.debug("-------------------------------");
         LOG.debug("Performing database load ...");
@@ -63,10 +61,10 @@ public class DatabaseDataSet {
     }
 
     public Entity loadEntity(EntityType entityType, Object entityKey) throws Exception {
-    	BatchEntityLoader batchLoader = new BatchEntityLoader();
-    	batchLoader.addEntityKey(entityType, entityKey);
-    	batchLoader.load();
-    	return myentityContext.getEntity(entityType, entityKey, false);
+        BatchEntityLoader batchLoader = new BatchEntityLoader();
+        batchLoader.addEntityKey(entityType, entityKey);
+        batchLoader.load();
+        return myentityContext.getEntity(entityType, entityKey, false);
     }
 
     /**
@@ -75,29 +73,29 @@ public class DatabaseDataSet {
      * by the order of the entities we receive.
      */
     private class BatchEntityLoader {
-        private final LinkedHashMap<EntityType,QueryObject<Object>> map;
+        private final LinkedHashMap<EntityType, QueryObject<Object>> map;
+
         public BatchEntityLoader() {
             this.map = new LinkedHashMap<>();
         }
 
         public void addEntities(List<Entity> entities) {
-            for (Entity entity: entities) {
+            for (Entity entity : entities) {
                 addKeyCondition(entity);
             }
         }
 
         public void addEntityKey(EntityType entityType, Object key) {
-        	addKeyCondition(entityType, key);
+            addKeyCondition(entityType, key);
         }
 
         public void load() throws Exception {
-        	QueryBatcher batcher = new QueryBatcher();
-            for (Map.Entry<EntityType,QueryObject<Object>> entry: map.entrySet()) {
-            	batcher.addQuery( entry.getValue() );
+            QueryBatcher batcher = new QueryBatcher();
+            for (Map.Entry<EntityType, QueryObject<Object>> entry : map.entrySet()) {
+                batcher.addQuery(entry.getValue());
             }
-            myentityContext.performQueries( batcher );
+            myentityContext.performQueries(batcher);
         }
-
 
         /**
          * Adds a filter for a specific entity key
@@ -105,7 +103,7 @@ public class DatabaseDataSet {
          * @param entityKey
          */
         private void addKeyCondition(Entity entity) {
-        	addKeyCondition(entity.getEntityType(), entity.getKey().getValue());
+            addKeyCondition(entity.getEntityType(), entity.getKey().getValue());
         }
 
         /**
@@ -114,30 +112,29 @@ public class DatabaseDataSet {
          * @param entityKey
          */
         private void addKeyCondition(final EntityType entityType, Object entityKey) {
-            final QueryObject<Object> query = getQueryForEntityType( entityType );
-            final QCondition condition = getKeyCondition(entityType, query, entityKey );
+            final QueryObject<Object> query = getQueryForEntityType(entityType);
+            final QCondition condition = getKeyCondition(entityType, query, entityKey);
             if (query.getCondition() == null) {
-                query.where( condition );
+                query.where(condition);
             }
             else {
-                query.or( condition );
+                query.or(condition);
             }
         }
 
         private QCondition getKeyCondition(EntityType entityType, QueryObject<Object> query, Object key) {
             final QProperty<Object> pk = new QProperty<Object>(query, entityType.getKeyNodeName());
-            return pk.equal( key );
+            return pk.equal(key);
         }
 
-
         private QueryObject<Object> getQueryForEntityType(EntityType entityType) {
-            QueryObject<Object> qo = map.get( entityType );
+            QueryObject<Object> qo = map.get(entityType);
             if (qo == null) {
                 qo = myentityContext.newQuery(entityType);
                 map.put(entityType, qo);
             }
             return qo;
-       }
+        }
 
     }
 }

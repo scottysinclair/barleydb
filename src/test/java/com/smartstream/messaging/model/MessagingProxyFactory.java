@@ -8,21 +8,18 @@ public class MessagingProxyFactory implements ProxyFactory {
     @SuppressWarnings("unchecked")
     public <T> T newProxy(Entity entity) {
         if (entity.getEntityType().getInterfaceName().equals(XMLSyntaxModel.class.getName())) {
-            return (T)new XMLSyntaxModel(entity);
+            return (T) new XMLSyntaxModel(entity);
         }
         if (entity.getEntityType().getInterfaceName().equals(CsvSyntaxModel.class.getName())) {
-            return (T)new CsvSyntaxModel(entity);
+            return (T) new CsvSyntaxModel(entity);
         }
 //        if (entity.getEntityType().getInterfaceName().equals(SyntaxModel.class.getName())) {
 //            return (T)new SyntaxModel(entity);
 //        }
         if (entity.getEntityType().getInterfaceName().equals(XMLMapping.class.getName())) {
-            return (T)new XMLMapping(entity);
+            return (T) new XMLMapping(entity);
         }
         return null;
     }
 
 }
-
-
-

@@ -18,11 +18,10 @@ public class ToManyNodeProxyHelper {
     @Override
     public String toString() {
         list = new LinkedList<Object>();
-        for (Entity e: toManyNode.getList()) {
-            list.add( e.getEntityContext().getProxy(e) );
+        for (Entity e : toManyNode.getList()) {
+            list.add(e.getEntityContext().getProxy(e));
         }
         return toManyNode.toString();
     }
-
 
 }

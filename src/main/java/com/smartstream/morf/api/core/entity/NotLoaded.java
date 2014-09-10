@@ -1,9 +1,9 @@
 package com.smartstream.morf.api.core.entity;
 
 public enum NotLoaded {
-	VALUE;
+    VALUE;
 
-	public String toString() {
-	    return "NOT_LOADED";
-	}
+    public String toString() {
+        return "NOT_LOADED";
+    }
 }

@@ -25,10 +25,10 @@ public class PreparedStatementHelper {
     public void setParameter(final PreparedStatement ps, final int index, final Node node) throws SQLException {
         final NodeDefinition nd = node.getNodeDefinition();
         if (node instanceof RefNode) {
-            setParameter(ps, index, nd, ((RefNode)node).getEntityKey());
+            setParameter(ps, index, nd, ((RefNode) node).getEntityKey());
         }
         else if (node instanceof ValueNode) {
-            setParameter(ps, index, nd, ((ValueNode)node).getValue());
+            setParameter(ps, index, nd, ((ValueNode) node).getValue());
         }
         else {
             throw new IllegalStateException("Cannot set parameter for node '" + node + "'");
@@ -49,7 +49,7 @@ public class PreparedStatementHelper {
         JdbcType jdbcType = getJdbcType(nd);
 
         if (setValue(ps, index, javaType, jdbcType, value)) {
-           return;
+            return;
         }
         throw new IllegalStateException("Parameter not set for " + nd.getName() + " and value " + value);
     }
@@ -84,28 +84,28 @@ public class PreparedStatementHelper {
     private final boolean setValue(PreparedStatement ps, int index, JavaType javaType, JdbcType jdbcType, Object value) throws SQLException {
         switch (javaType) {
         case ENUM:
-            setEnum(ps, index, jdbcType, (Enum<? extends Enum<?>>)value);
+            setEnum(ps, index, jdbcType, (Enum<? extends Enum<?>>) value);
             return true;
         case BIGDECIMAL:
-            setBigDecimal(ps, index, jdbcType, (BigDecimal)value);
+            setBigDecimal(ps, index, jdbcType, (BigDecimal) value);
             return true;
         case BOOLEAN:
-            setBoolean(ps, index, jdbcType, (Boolean)value);
+            setBoolean(ps, index, jdbcType, (Boolean) value);
             return true;
         case INTEGER:
-            setInteger(ps, index, jdbcType, (Integer)value);
+            setInteger(ps, index, jdbcType, (Integer) value);
             return true;
         case LONG:
-            setLong(ps, index, jdbcType, (Long)value);
+            setLong(ps, index, jdbcType, (Long) value);
             return true;
         case SQL_DATE:
-            setSqlDate(ps, index, jdbcType, (java.sql.Date)value);
+            setSqlDate(ps, index, jdbcType, (java.sql.Date) value);
             return true;
         case STRING:
-            setString(ps, index, jdbcType, (String)value);
+            setString(ps, index, jdbcType, (String) value);
             return true;
         case UTIL_DATE:
-            setUtilDate(ps, index, jdbcType, (Date)value);
+            setUtilDate(ps, index, jdbcType, (Date) value);
             return true;
         default:
             return false;
@@ -114,15 +114,16 @@ public class PreparedStatementHelper {
 
     private void setEnum(PreparedStatement ps, int index, JdbcType jdbcType, Enum<? extends Enum<?>> value) throws SQLException {
         switch (jdbcType) {
-            case INT:
-                ps.setInt(index, value.ordinal());
-                break;
-            case NVARCHAR:
-                ps.setNString(index, value.toString());
-            case VARCHAR:
-                ps.setString(index, value.toString());
-                break;
-            default: fail(value, jdbcType);
+        case INT:
+            ps.setInt(index, value.ordinal());
+            break;
+        case NVARCHAR:
+            ps.setNString(index, value.toString());
+        case VARCHAR:
+            ps.setString(index, value.toString());
+            break;
+        default:
+            fail(value, jdbcType);
         }
     }
 
@@ -136,64 +137,69 @@ public class PreparedStatementHelper {
 
     private void setInteger(PreparedStatement ps, int index, JdbcType jdbcType, Integer value) throws SQLException {
         switch (jdbcType) {
-            case INT:
-                ps.setInt(index, value);
-                break;
-            case TIMESTAMP:
-                ps.setTimestamp(index, new java.sql.Timestamp((long)(int)value));
-                break;
-            case DATE:
-                ps.setDate(index, new java.sql.Date((long)(int)value));
-                break;
-            default: fail(value, jdbcType);
-            }
+        case INT:
+            ps.setInt(index, value);
+            break;
+        case TIMESTAMP:
+            ps.setTimestamp(index, new java.sql.Timestamp((long) (int) value));
+            break;
+        case DATE:
+            ps.setDate(index, new java.sql.Date((long) (int) value));
+            break;
+        default:
+            fail(value, jdbcType);
+        }
     }
 
     private void setLong(PreparedStatement ps, int index, JdbcType jdbcType, Long value) throws SQLException {
         switch (jdbcType) {
-            case BIGINT:
-                ps.setLong(index, value);
-                break;
-            case TIMESTAMP:
-                ps.setTimestamp(index, new java.sql.Timestamp(value));
-                break;
-            case DATE:
-                ps.setDate(index, new java.sql.Date(value));
-                break;
-            default: fail(value, jdbcType);
+        case BIGINT:
+            ps.setLong(index, value);
+            break;
+        case TIMESTAMP:
+            ps.setTimestamp(index, new java.sql.Timestamp(value));
+            break;
+        case DATE:
+            ps.setDate(index, new java.sql.Date(value));
+            break;
+        default:
+            fail(value, jdbcType);
         }
     }
 
     private void setSqlDate(PreparedStatement ps, int index, JdbcType jdbcType, java.sql.Date value) throws SQLException {
-        switch(jdbcType) {
-            case DATE:
-                ps.setDate(index, value);
-                break;
-            default: fail(value, jdbcType);
+        switch (jdbcType) {
+        case DATE:
+            ps.setDate(index, value);
+            break;
+        default:
+            fail(value, jdbcType);
         }
     }
 
     private void setString(PreparedStatement ps, int index, JdbcType jdbcType, String value) throws SQLException {
-        switch(jdbcType) {
-            case NVARCHAR:
-                ps.setNString(index, value);
-                break;
-            case VARCHAR:
-                ps.setString(index, value);
-                break;
-            default: fail(value, jdbcType);
+        switch (jdbcType) {
+        case NVARCHAR:
+            ps.setNString(index, value);
+            break;
+        case VARCHAR:
+            ps.setString(index, value);
+            break;
+        default:
+            fail(value, jdbcType);
         }
     }
 
     private void setUtilDate(PreparedStatement ps, int index, JdbcType jdbcType, Date value) throws SQLException {
         switch (jdbcType) {
-            case TIMESTAMP:
-                ps.setTimestamp(index, new java.sql.Timestamp((Long) value.getTime()));
-                break;
-            case DATE:
-                ps.setDate(index, new java.sql.Date(value.getTime()));
-                break;
-            default: fail(value, jdbcType);
+        case TIMESTAMP:
+            ps.setTimestamp(index, new java.sql.Timestamp((Long) value.getTime()));
+            break;
+        case DATE:
+            ps.setDate(index, new java.sql.Date(value.getTime()));
+            break;
+        default:
+            fail(value, jdbcType);
         }
     }
 
@@ -206,28 +212,28 @@ public class PreparedStatementHelper {
     }
 
     private int toSqlTypes(JdbcType type) {
-        switch(type) {
-            case BIGINT:
-                return java.sql.Types.BIGINT;
-            case INT:
-                return java.sql.Types.INTEGER;
-            case VARCHAR:
-                return java.sql.Types.VARCHAR;
-            case NVARCHAR:
-                return java.sql.Types.NVARCHAR;
-            case BLOB:
-                return java.sql.Types.BLOB;
-            case CLOB:
-                return java.sql.Types.CLOB;
-            case TIMESTAMP:
-                return java.sql.Types.TIMESTAMP;
-            case DATE:
-                return java.sql.Types.DATE;
-            case DECIMAL:
-                return java.sql.Types.DECIMAL;
-            default:
-                throw new IllegalStateException("Unsupported jdbctype " + type);
-            }
+        switch (type) {
+        case BIGINT:
+            return java.sql.Types.BIGINT;
+        case INT:
+            return java.sql.Types.INTEGER;
+        case VARCHAR:
+            return java.sql.Types.VARCHAR;
+        case NVARCHAR:
+            return java.sql.Types.NVARCHAR;
+        case BLOB:
+            return java.sql.Types.BLOB;
+        case CLOB:
+            return java.sql.Types.CLOB;
+        case TIMESTAMP:
+            return java.sql.Types.TIMESTAMP;
+        case DATE:
+            return java.sql.Types.DATE;
+        case DECIMAL:
+            return java.sql.Types.DECIMAL;
+        default:
+            throw new IllegalStateException("Unsupported jdbctype " + type);
+        }
     }
 
 }
