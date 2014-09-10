@@ -161,6 +161,8 @@ public class Persister {
 
         /*
          * perform the commit
+         * TODO: REMOVE FROM HERE AND PROVIDE PLUGIN FOR SPRING TRANSACTION SUPPORT.
+         *
          */
         Connection connection = (Connection) env.getThreadLocalResource(Connection.class.getName(), true);
         connection.commit();
