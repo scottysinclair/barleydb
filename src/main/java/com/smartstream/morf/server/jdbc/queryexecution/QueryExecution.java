@@ -262,6 +262,7 @@ public class QueryExecution<T> {
     		 if (entityLoader.isEntityThere()) {
     		     //todo: handle entity nodes which are lazy
     		     //current logic sees that the entity exists & is loaded and does nothing
+    		     //this isNotYetLoaded only makes sense if we are loading into a fresh entity context.
     			 if (entityLoader.isNotYetLoaded()) {
     				 entityLoader.load();
     			 }
