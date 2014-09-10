@@ -596,7 +596,7 @@ public class TestPersister extends TestBase {
         testSaveTemplateWithContentAndDatatypes();
         entityContext.clear();
 
-        System.out.println("===================  LAOD DATA FOR USER 1 =================");
+        System.out.println("===================  LOAD DATA FOR USER 1 =================");
         QTemplate qtemplate = new QTemplate();
         qtemplate.joinToDatatype();
         qtemplate.where(qtemplate.name().equal("test-template"));

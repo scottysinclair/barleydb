@@ -36,7 +36,10 @@ public class QueryRegistry implements Serializable, Cloneable {
     @Override
     public QueryRegistry clone() {
         try {
-            return (QueryRegistry) super.clone();
+            QueryRegistry qr = (QueryRegistry) super.clone();
+            qr.map = new HashMap<String, QueryObject<?>>();
+            qr.map.putAll(map);
+            return qr;
         } catch (CloneNotSupportedException x) {
             throw new IllegalStateException("Clone must be supported", x);
         }
@@ -56,7 +59,7 @@ public class QueryRegistry implements Serializable, Cloneable {
         map.put(getKey(qo), qo);
     }
 
-    private String getKey(QueryObject<?> qo) {
+    private String getKey(QueryObject<? extends Object> qo) {
         return qo.getTypeName();
     }
 

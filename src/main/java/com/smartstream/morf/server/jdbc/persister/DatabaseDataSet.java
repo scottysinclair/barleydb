@@ -130,7 +130,7 @@ public class DatabaseDataSet {
         private QueryObject<Object> getQueryForEntityType(EntityType entityType) {
             QueryObject<Object> qo = map.get(entityType);
             if (qo == null) {
-                qo = myentityContext.newQuery(entityType);
+                qo = myentityContext.getUnitQuery(entityType);
                 map.put(entityType, qo);
             }
             return qo;

@@ -36,7 +36,6 @@ import com.smartstream.morf.api.core.entity.context.Entities;
 import com.smartstream.morf.api.core.entity.context.EntityInfo;
 import com.smartstream.morf.api.query.QProperty;
 import com.smartstream.morf.api.query.QueryObject;
-import com.smartstream.morf.server.jdbc.persister.DatabaseDataSet;
 import com.smartstream.morf.server.jdbc.persister.PersistAnalyser;
 import com.smartstream.morf.server.jdbc.persister.PersistRequest;
 import com.smartstream.morf.server.jdbc.persister.exception.OptimisticLockMismatchException;
@@ -306,15 +305,6 @@ public final class EntityContext implements Serializable {
         this.entityContextState = EntityContextState.USER;
     }
 
-    /**
-     * gets a new simlpe query object for an entity type
-     * @param entityType
-     * @return
-     */
-    public QueryObject<Object> newQuery(EntityType entityType) {
-        return definitions.getQuery(entityType);
-    }
-
     public <T> void performQueries(QueryBatcher queryBatcher) throws Exception {
         /*
          * Performs the query in a fresh context which is copied back to us
@@ -483,6 +473,15 @@ public final class EntityContext implements Serializable {
 
     public <T> QueryObject<T> getQuery(Class<T> clazz) {
         return userQueryRegistry.getQuery(clazz);
+    }
+
+    /**
+     * Gets the standard unit query with no joins
+     * @param clazz
+     * @return
+     */
+    public QueryObject<Object> getUnitQuery(EntityType entityType) {
+        return definitions.getQuery(entityType);
     }
 
     private QueryObject<Object> getQuery(EntityType entityType, boolean fetchInternal) {
