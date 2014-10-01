@@ -3,7 +3,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.smartstream</groupId>
-  <artifactId>com.smartstream.morf</artifactId>
+  <artifactId>com.smartstream.sort</artifactId>
   <packaging>bundle</packaging>
   <name>Object Relational Framework</name>
   <version>0.0.1-SNAPSHOT</version>

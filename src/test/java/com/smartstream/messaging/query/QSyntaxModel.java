@@ -3,8 +3,8 @@ package com.smartstream.messaging.query;
 import com.smartstream.mac.query.QUser;
 import com.smartstream.messaging.model.SyntaxModel;
 import com.smartstream.messaging.model.SyntaxType;
-import com.smartstream.morf.api.query.QProperty;
-import com.smartstream.morf.api.query.QueryObject;
+import com.smartstream.sort.api.query.QProperty;
+import com.smartstream.sort.api.query.QueryObject;
 
 /**
  * Non parameterized query for querying base class syntax model

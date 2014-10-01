@@ -1,9 +1,9 @@
 package com.smartstream.mac.model;
 
-import com.smartstream.morf.api.core.entity.Entity;
-import com.smartstream.morf.api.core.entity.ValueNode;
-import com.smartstream.morf.api.core.proxy.AbstractCustomEntityProxy;
-import com.smartstream.morf.api.core.proxy.ProxyFactory;
+import com.smartstream.sort.api.core.entity.Entity;
+import com.smartstream.sort.api.core.entity.ValueNode;
+import com.smartstream.sort.api.core.proxy.AbstractCustomEntityProxy;
+import com.smartstream.sort.api.core.proxy.ProxyFactory;
 
 public class MacProxyFactory implements ProxyFactory {
 

@@ -2,8 +2,8 @@ package com.smartstream.messaging.query;
 
 import com.smartstream.mac.query.QUser;
 import com.smartstream.messaging.model.CsvSyntaxModel;
-import com.smartstream.morf.api.query.QProperty;
-import com.smartstream.morf.api.query.QueryObject;
+import com.smartstream.sort.api.query.QProperty;
+import com.smartstream.sort.api.query.QueryObject;
 
 public class QCsvSyntaxModel extends QueryObject<CsvSyntaxModel> {
 

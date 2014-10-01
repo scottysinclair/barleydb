@@ -1,8 +1,8 @@
 package com.smartstream.mac.query;
 
 import com.smartstream.mac.model.User;
-import com.smartstream.morf.api.query.QProperty;
-import com.smartstream.morf.api.query.QueryObject;
+import com.smartstream.sort.api.query.QProperty;
+import com.smartstream.sort.api.query.QueryObject;
 
 public class QUser extends QueryObject<User> {
 

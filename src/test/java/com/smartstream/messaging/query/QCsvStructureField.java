@@ -1,8 +1,8 @@
 package com.smartstream.messaging.query;
 
 import com.smartstream.messaging.model.CsvStructureField;
-import com.smartstream.morf.api.query.QProperty;
-import com.smartstream.morf.api.query.QueryObject;
+import com.smartstream.sort.api.query.QProperty;
+import com.smartstream.sort.api.query.QueryObject;
 
 public class QCsvStructureField extends QueryObject<CsvStructureField> {
 

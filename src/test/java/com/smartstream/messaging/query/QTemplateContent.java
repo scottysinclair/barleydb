@@ -1,8 +1,8 @@
 package com.smartstream.messaging.query;
 
 import com.smartstream.messaging.model.TemplateContent;
-import com.smartstream.morf.api.query.QProperty;
-import com.smartstream.morf.api.query.QueryObject;
+import com.smartstream.sort.api.query.QProperty;
+import com.smartstream.sort.api.query.QueryObject;
 
 public class QTemplateContent extends QueryObject<TemplateContent> {
 

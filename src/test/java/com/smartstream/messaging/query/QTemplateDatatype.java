@@ -1,7 +1,7 @@
 package com.smartstream.messaging.query;
 
 import com.smartstream.messaging.model.Template;
-import com.smartstream.morf.api.query.QueryObject;
+import com.smartstream.sort.api.query.QueryObject;
 
 public class QTemplateDatatype extends QueryObject<Template> {
 

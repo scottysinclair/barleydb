@@ -2,10 +2,10 @@ package com.smartstream.messaging.model;
 
 import java.util.List;
 
-import com.smartstream.morf.api.core.entity.Entity;
-import com.smartstream.morf.api.core.entity.RefNode;
-import com.smartstream.morf.api.core.entity.ToManyNode;
-import com.smartstream.morf.api.core.proxy.ToManyNodeProxyHelper;
+import com.smartstream.sort.api.core.entity.Entity;
+import com.smartstream.sort.api.core.entity.RefNode;
+import com.smartstream.sort.api.core.entity.ToManyNode;
+import com.smartstream.sort.api.core.proxy.ToManyNodeProxyHelper;
 
 public class CsvSyntaxModel extends SyntaxModel {
 

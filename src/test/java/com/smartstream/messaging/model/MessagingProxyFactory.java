@@ -1,7 +1,7 @@
 package com.smartstream.messaging.model;
 
-import com.smartstream.morf.api.core.entity.Entity;
-import com.smartstream.morf.api.core.proxy.ProxyFactory;
+import com.smartstream.sort.api.core.entity.Entity;
+import com.smartstream.sort.api.core.proxy.ProxyFactory;
 
 public class MessagingProxyFactory implements ProxyFactory {
 
