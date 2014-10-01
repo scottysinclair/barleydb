@@ -1,6 +1,8 @@
 package com.smartstream.sort.api.core.entity.context;
 
-class EntityPkKey {
+import java.io.Serializable;
+
+class EntityPkKey implements Serializable {
 
     private static final long serialVersionUID = 1L;
 

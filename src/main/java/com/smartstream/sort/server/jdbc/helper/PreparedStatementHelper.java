@@ -84,7 +84,9 @@ public class PreparedStatementHelper {
     private final boolean setValue(PreparedStatement ps, int index, JavaType javaType, JdbcType jdbcType, Object value) throws SQLException {
         switch (javaType) {
         case ENUM:
-            setEnum(ps, index, jdbcType, (Enum<? extends Enum<?>>) value);
+            @SuppressWarnings("unchecked")
+            Enum<? extends Enum<?>> eValue = (Enum<? extends Enum<?>>)value;
+            setEnum(ps, index, jdbcType, eValue);
             return true;
         case BIGDECIMAL:
             setBigDecimal(ps, index, jdbcType, (BigDecimal) value);

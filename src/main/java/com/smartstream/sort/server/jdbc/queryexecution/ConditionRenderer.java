@@ -5,7 +5,6 @@ import java.util.List;
 import com.smartstream.sort.api.config.Definitions;
 import com.smartstream.sort.api.config.EntityType;
 import com.smartstream.sort.api.config.NodeDefinition;
-import com.smartstream.sort.api.core.types.*;
 import com.smartstream.sort.api.query.ConditionVisitor;
 import com.smartstream.sort.api.query.QExists;
 import com.smartstream.sort.api.query.QLogicalOp;
@@ -25,7 +24,6 @@ public class ConditionRenderer implements ConditionVisitor {
         depth = 0;
     }
 
-    @SuppressWarnings("unchecked")
     public void visitPropertyCondition(QPropertyCondition qpc) {
         EntityType et = definitions.getEntityTypeMatchingInterface(qpc.getProperty().getQueryObject().getTypeName(), true);
         NodeDefinition nodeDef = et.getNode(qpc.getProperty().getName(), true);

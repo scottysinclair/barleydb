@@ -18,6 +18,7 @@ import com.smartstream.sort.api.core.entity.ToManyNode;
 public class ToManyProxy<R> extends AbstractList<R> implements Serializable {
     private static final long serialVersionUID = 1L;
 
+    @SuppressWarnings("unused")
     private static final Logger LOG = LoggerFactory.getLogger(ToManyProxy.class);
 
     private final ToManyNode toManyNode;

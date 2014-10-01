@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 public class QueryObject<R> implements Serializable {
     private static final long serialVersionUID = 1L;
 
+    @SuppressWarnings("unused")
     private static final Logger LOG = LoggerFactory.getLogger(QueryObject.class);
 
     private final Class<R> typeClass;

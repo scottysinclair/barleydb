@@ -23,6 +23,7 @@ import com.smartstream.sort.server.jdbc.queryexecution.QueryPreProcessor;
  */
 public final class Environment {
 
+    @SuppressWarnings("unused")
     private static final Logger LOG = LoggerFactory.getLogger(Environment.class);
 
     private final DefinitionsSet definitionsSet;
