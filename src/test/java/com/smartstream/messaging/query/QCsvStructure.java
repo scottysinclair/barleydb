@@ -1,8 +1,9 @@
 package com.smartstream.messaging.query;
 
+import scott.sort.api.query.QProperty;
+import scott.sort.api.query.QueryObject;
+
 import com.smartstream.messaging.model.CsvStructure;
-import com.smartstream.sort.api.query.QProperty;
-import com.smartstream.sort.api.query.QueryObject;
 
 public class QCsvStructure extends QueryObject<CsvStructure> {
 

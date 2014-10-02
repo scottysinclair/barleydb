@@ -1,7 +1,7 @@
 package com.smartstream.messaging.model;
 
-import com.smartstream.sort.api.core.entity.Entity;
-import com.smartstream.sort.api.core.proxy.ProxyFactory;
+import scott.sort.api.core.entity.Entity;
+import scott.sort.api.core.proxy.ProxyFactory;
 
 public class MessagingProxyFactory implements ProxyFactory {
 

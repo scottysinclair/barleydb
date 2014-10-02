@@ -2,10 +2,10 @@ package com.smartstream.messaging.model;
 
 import java.util.List;
 
-import com.smartstream.sort.api.core.entity.Entity;
-import com.smartstream.sort.api.core.entity.RefNode;
-import com.smartstream.sort.api.core.entity.ToManyNode;
-import com.smartstream.sort.api.core.proxy.ToManyNodeProxyHelper;
+import scott.sort.api.core.entity.Entity;
+import scott.sort.api.core.entity.RefNode;
+import scott.sort.api.core.entity.ToManyNode;
+import scott.sort.api.core.proxy.ToManyNodeProxyHelper;
 
 public class XMLSyntaxModel extends SyntaxModel {
     private static final long serialVersionUID = 1L;

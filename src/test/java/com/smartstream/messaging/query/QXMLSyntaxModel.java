@@ -1,7 +1,8 @@
 package com.smartstream.messaging.query;
 
+import scott.sort.api.query.QueryObject;
+
 import com.smartstream.messaging.model.*;
-import com.smartstream.sort.api.query.QueryObject;
 
 public class QXMLSyntaxModel extends QAbstractSyntaxModel<XMLSyntaxModel, QXMLSyntaxModel> {
     private static final long serialVersionUID = 1L;

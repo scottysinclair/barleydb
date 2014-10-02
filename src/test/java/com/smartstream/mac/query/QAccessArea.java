@@ -1,8 +1,9 @@
 package com.smartstream.mac.query;
 
+import scott.sort.api.query.QProperty;
+import scott.sort.api.query.QueryObject;
+
 import com.smartstream.mac.model.AccessArea;
-import com.smartstream.sort.api.query.QProperty;
-import com.smartstream.sort.api.query.QueryObject;
 
 public class QAccessArea extends QueryObject<AccessArea> {
 

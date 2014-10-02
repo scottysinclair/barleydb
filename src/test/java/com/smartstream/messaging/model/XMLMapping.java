@@ -1,10 +1,10 @@
 package com.smartstream.messaging.model;
 
-import com.smartstream.sort.api.core.entity.Entity;
-import com.smartstream.sort.api.core.entity.RefNode;
-import com.smartstream.sort.api.core.entity.ValueNode;
-import com.smartstream.sort.api.core.proxy.AbstractCustomEntityProxy;
-import com.smartstream.sort.api.core.proxy.RefNodeProxyHelper;
+import scott.sort.api.core.entity.Entity;
+import scott.sort.api.core.entity.RefNode;
+import scott.sort.api.core.entity.ValueNode;
+import scott.sort.api.core.proxy.AbstractCustomEntityProxy;
+import scott.sort.api.core.proxy.RefNodeProxyHelper;
 
 public class XMLMapping extends AbstractCustomEntityProxy {
 

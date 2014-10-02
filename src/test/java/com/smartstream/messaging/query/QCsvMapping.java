@@ -1,7 +1,8 @@
 package com.smartstream.messaging.query;
 
+import scott.sort.api.query.QueryObject;
+
 import com.smartstream.messaging.model.CsvMapping;
-import com.smartstream.sort.api.query.QueryObject;
 
 public class QCsvMapping extends QueryObject<CsvMapping> {
 
