@@ -1,3 +1,12 @@
+---
+-- #%L
+-- Simple Object Relational Framework
+-- %%
+-- Copyright (C) 2014 Scott Sinclair <scottysinclair@gmail.com>
+-- %%
+-- All rights reserved.
+-- #L%
+---
 insert into MAC_USER (ID, USER_NAME, MODIFIED_AT) values (1, 'Scott', '2014-01-01 00:00:00.00000');
 insert into MAC_USER (ID, USER_NAME, MODIFIED_AT) values (2, 'Katerina', '2014-01-01 00:00:00.00000');
 

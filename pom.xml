@@ -5,12 +5,14 @@
   <groupId>com.smartstream</groupId>
   <artifactId>scott.sort</artifactId>
   <packaging>bundle</packaging>
-  <name>Object Relational Framework</name>
+  <name>Simple Object Relational Framework</name>
   <version>0.0.1-SNAPSHOT</version>
 
   <properties>
 	<slf4j.version>1.4.3</slf4j.version>
 	<spring.maven.artifact.version>3.1.1</spring.maven.artifact.version>
+	<project.organization.name>Scott Sinclair &lt;scottysinclair@gmail.com&gt;</project.organization.name>
+	<project.inceptionYear>2014</project.inceptionYear>
   </properties>
 
   <dependencies>
@@ -146,7 +148,7 @@
         <extensions>true</extensions>
         <version>2.3.7</version>
         <configuration>
-		   <manifestLocation>META-INF</manifestLocation>
+	   <manifestLocation>META-INF</manifestLocation>
            <instructions>
                <Export-Package>com.scott.modelcontext.monitoring*</Export-Package>
                <Import-Package>*</Import-Package>
@@ -158,7 +160,34 @@
            </instructions>
         </configuration>
       </plugin>
-    </plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>1.7</version>
+        <configuration>
+	  <licenseName>scott</licenseName>
+	  <licenseResolver>${project.baseUri}/license</licenseResolver>
+          <verbose>false</verbose>
+	  <!-- <ignoreTag>true</ignoreTag> -->
+        </configuration>
+        <executions>
+          <execution>
+            <id>first</id>
+            <goals>
+              <goal>update-file-header</goal>
+            </goals>
+            <phase>process-sources</phase>
+            <configuration>
+              <licenseName>scott</licenseName>
+              <roots>
+                <root>src/main/java</root>
+                <root>src/test</root>
+              </roots>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      </plugins>
   </build>
 
   <!-- ================================================ -->

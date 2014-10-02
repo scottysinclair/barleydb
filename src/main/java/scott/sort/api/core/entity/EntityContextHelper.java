@@ -1,5 +1,15 @@
 package scott.sort.api.core.entity;
 
+/*
+ * #%L
+ * Simple Object Relational Framework
+ * %%
+ * Copyright (C) 2014 Scott Sinclair <scottysinclair@gmail.com>
+ * %%
+ * All rights reserved.
+ * #L%
+ */
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;

@@ -1,5 +1,15 @@
 package scott.sort.test;
 
+/*
+ * #%L
+ * Simple Object Relational Framework
+ * %%
+ * Copyright (C) 2014 Scott Sinclair <scottysinclair@gmail.com>
+ * %%
+ * All rights reserved.
+ * #L%
+ */
+
 import org.junit.Test;
 
 import scott.sort.server.jdbc.persister.*;

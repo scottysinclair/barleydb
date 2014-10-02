@@ -1,5 +1,16 @@
 package scott.sort.api.query;
 
+/*
+ * #%L
+ * Simple Object Relational Framework
+ * %%
+ * Copyright (C) 2014 Scott Sinclair <scottysinclair@gmail.com>
+ * %%
+ * All rights reserved.
+ * #L%
+ */
+
+
 public class QLogicalOp extends QCondition {
     private static final long serialVersionUID = 1L;
     private final QCondition left;

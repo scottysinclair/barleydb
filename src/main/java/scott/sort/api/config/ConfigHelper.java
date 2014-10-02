@@ -1,5 +1,15 @@
 package scott.sort.api.config;
 
+/*
+ * #%L
+ * Simple Object Relational Framework
+ * %%
+ * Copyright (C) 2014 Scott Sinclair <scottysinclair@gmail.com>
+ * %%
+ * All rights reserved.
+ * #L%
+ */
+
 import java.util.LinkedList;
 import java.util.List;
 
