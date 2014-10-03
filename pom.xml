@@ -181,7 +181,6 @@
               <licenseName>scott</licenseName>
               <roots>
                 <root>src/main/java</root>
-                <root>src/test</root>
               </roots>
             </configuration>
           </execution>

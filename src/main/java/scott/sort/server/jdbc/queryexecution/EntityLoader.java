@@ -10,6 +10,7 @@ package scott.sort.server.jdbc.queryexecution;
  * #L%
  */
 
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -233,18 +234,31 @@ final class EntityLoader {
     }
 
     @SuppressWarnings("unchecked")
-    private <E extends Enum<E>> Object convertIfRequired(
-            ProjectionColumn column, Object value) {
+    private <E extends Enum<E>> Object convertIfRequired(ProjectionColumn column, Object value) {
         if (value == null) {
             return null;
         }
+        JavaType javaType = column.getNodeDefinition().getJavaType();
+        if (javaType == null && column.getNodeDefinition().getRelationInterfaceName() != null) {
+            /*
+             * If there is no java type then it must be a 1:1 relation (RefNode)
+             * A 1:N relation does not have a projection column
+             */
+            EntityType entityType = entityContext.getDefinitions().getEntityTypeMatchingInterface(column.getNodeDefinition().getRelationInterfaceName(), true);
+            javaType = entityType.getNode(entityType.getKeyNodeName(), true).getJavaType();
+            if (javaType == null) {
+                throw new IllegalStateException("Could not get javaType for projection column " + column);
+            }
+        }
         NodeDefinition nodeDefinition = column.getNodeDefinition();
         if (nodeDefinition.getEnumType() != null) {
-            for (Enum<E> e : java.util.EnumSet.allOf((Class<E>) nodeDefinition
-                    .getEnumType())) {
-                if (((Integer) e.ordinal()).equals(value)) {
-                    LOG.debug("Converted " + value + " to " + e);
-                    return e;
+            if (value instanceof Number) {
+                for (Enum<E> e : java.util.EnumSet.allOf((Class<E>) nodeDefinition
+                        .getEnumType())) {
+                    if (((Integer) e.ordinal()).equals(((Number)value).intValue())) {
+                        LOG.debug("Converted " + value + " to " + e);
+                        return e;
+                    }
                 }
             }
             throw new IllegalStateException("Could not convert from enum");
@@ -260,6 +274,12 @@ final class EntityLoader {
             default:
                 throw new IllegalStateException(
                         "We only convert INT and BIGINT to boolean");
+            }
+        }
+        if (value instanceof BigDecimal) {
+            switch(javaType) {
+                case LONG: return ((BigDecimal)value).longValue();
+                case INTEGER: return ((BigDecimal)value).intValue();
             }
         }
         return value;
