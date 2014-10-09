@@ -101,6 +101,10 @@ public class EntityContextHelper {
             Entity orig = entityContext.getEntityByUuidOrKey(entity.getUuid(), entity.getEntityType(), entity.getKey().getValue(), true);
             for (RefNode refNode : entity.getChildren(RefNode.class)) {
                 RefNode origRefNode = orig.getChild(refNode.getName(), RefNode.class);
+                if (!refNode.getEntityType().equals(origRefNode.getEntityType())) {
+                    throw new IllegalStateException("CopyRefStatesFailed: entity " + origRefNode.getParent() + " has ref " + origRefNode.getName() + " with the wrong entity type: " + origRefNode.getEntityType());
+                }
+
                 refNode.setEntityKey(origRefNode.getEntityKey());
                 refNode.setRemovedEntityKey(origRefNode.getRemovedEntityKey());
                 /*
@@ -118,12 +122,12 @@ public class EntityContextHelper {
             for (ToManyNode toManyNode : entity.getChildren(ToManyNode.class)) {
                 ToManyNode origToManyNode = orig.getChild(toManyNode.getName(), ToManyNode.class);
                 /*
-                    			LOG.debug(" ------------------------------------------- ");
-                    			LOG.debug("copyRefState: fetched  orig: " + origToManyNode.toString() + " " + origToManyNode.isFetched());
+                                LOG.debug(" ------------------------------------------- ");
+                                LOG.debug("copyRefState: fetched  orig: " + origToManyNode.toString() + " " + origToManyNode.isFetched());
                                 LOG.debug("copyRefState: entities orig: " + origToManyNode.toString() + " " + origToManyNode.getList());
                                 LOG.debug("copyRefState: removed orig: " + origToManyNode.toString() + " " + origToManyNode.getRemovedEntities());
-                    			LOG.debug("copyRefState: fetched  dest: " + toManyNode.toString() + " " + toManyNode.isFetched());
-                    			LOG.debug("copyRefState: entities dest: " + toManyNode.toString() + " " + toManyNode.getList());
+                                LOG.debug("copyRefState: fetched  dest: " + toManyNode.toString() + " " + toManyNode.isFetched());
+                                LOG.debug("copyRefState: entities dest: " + toManyNode.toString() + " " + toManyNode.getList());
                                 LOG.debug("copyRefState: removed dest: " + toManyNode.toString() + " " + toManyNode.getRemovedEntities());
                 */
 

@@ -9,80 +9,80 @@
   <version>0.0.1-SNAPSHOT</version>
 
   <properties>
-	<slf4j.version>1.4.3</slf4j.version>
-	<spring.maven.artifact.version>3.1.1</spring.maven.artifact.version>
-	<project.organization.name>Scott Sinclair &lt;scottysinclair@gmail.com&gt;</project.organization.name>
-	<project.inceptionYear>2014</project.inceptionYear>
+  <slf4j.version>1.4.3</slf4j.version>
+  <spring.maven.artifact.version>3.1.1</spring.maven.artifact.version>
+  <project.organization.name>Scott Sinclair &lt;scottysinclair@gmail.com&gt;</project.organization.name>
+  <project.inceptionYear>2014</project.inceptionYear>
   </properties>
 
   <dependencies>
 
 
 
-	<dependency>
-		<groupId>org.mybatis</groupId>
-		<artifactId>mybatis-spring</artifactId>
-		<version>1.0.2</version>
-		<scope>provided</scope>
-		<exclusions>
-			<exclusion>
-				<artifactId>spring-context</artifactId>
-				<groupId>org.springframework</groupId>
-			</exclusion>
-			<exclusion>
-				<artifactId>spring-tx</artifactId>
-				<groupId>org.springframework</groupId>
-			</exclusion>
-			<exclusion>
-				<artifactId>spring-core</artifactId>
-				<groupId>org.springframework</groupId>
-			</exclusion>
-			<exclusion>
-				<artifactId>spring-jdbc</artifactId>
-				<groupId>org.springframework</groupId>
-			</exclusion>
-		<!-- 	<exclusion>
-				<artifactId>mybatis</artifactId>
-				<groupId>org.mybatis</groupId>
-			</exclusion>
-			 -->
-		</exclusions>
-	</dependency>
-	<!--
-	<dependency>
-		<groupId>org.apache.servicemix.bundles</groupId>
-		<artifactId>org.apache.servicemix.bundles.mybatis</artifactId>
-		<version>3.0.4_2</version>
-		<scope>test</scope>
-	</dependency>
-	 -->
-	<dependency>
-	   <groupId>org.springframework</groupId>
-	   <artifactId>spring-orm</artifactId>
-	   <version>3.1.1.RELEASE</version>
-	   <scope>provided</scope>
-	</dependency>
+  <dependency>
+    <groupId>org.mybatis</groupId>
+    <artifactId>mybatis-spring</artifactId>
+    <version>1.0.2</version>
+    <scope>provided</scope>
+    <exclusions>
+      <exclusion>
+        <artifactId>spring-context</artifactId>
+        <groupId>org.springframework</groupId>
+      </exclusion>
+      <exclusion>
+        <artifactId>spring-tx</artifactId>
+        <groupId>org.springframework</groupId>
+      </exclusion>
+      <exclusion>
+        <artifactId>spring-core</artifactId>
+        <groupId>org.springframework</groupId>
+      </exclusion>
+      <exclusion>
+        <artifactId>spring-jdbc</artifactId>
+        <groupId>org.springframework</groupId>
+      </exclusion>
+    <!-- 	<exclusion>
+        <artifactId>mybatis</artifactId>
+        <groupId>org.mybatis</groupId>
+      </exclusion>
+       -->
+    </exclusions>
+  </dependency>
+  <!--
+  <dependency>
+    <groupId>org.apache.servicemix.bundles</groupId>
+    <artifactId>org.apache.servicemix.bundles.mybatis</artifactId>
+    <version>3.0.4_2</version>
+    <scope>test</scope>
+  </dependency>
+   -->
+  <dependency>
+     <groupId>org.springframework</groupId>
+     <artifactId>spring-orm</artifactId>
+     <version>3.1.1.RELEASE</version>
+     <scope>provided</scope>
+  </dependency>
 
-	<dependency>
-	   <groupId>org.springframework</groupId>
-	   <artifactId>spring-test</artifactId>
-	   <version>3.1.1.RELEASE</version>
-	   <scope>provided</scope>
-	</dependency>
+  <dependency>
+     <groupId>org.springframework</groupId>
+     <artifactId>spring-test</artifactId>
+     <version>3.1.1.RELEASE</version>
+     <scope>provided</scope>
+  </dependency>
 
-	<dependency>
-		<groupId>org.slf4j</groupId>
-		<artifactId>slf4j-log4j12</artifactId>
-		<version>1.7.7</version>
-		<scope>provided</scope>
-	</dependency>
+  <dependency>
+    <groupId>org.slf4j</groupId>
+    <artifactId>slf4j-log4j12</artifactId>
+    <version>1.7.7</version>
+    <scope>provided</scope>
+  </dependency>
 
-	<dependency>
-		<groupId>log4j</groupId>
-		<artifactId>log4j</artifactId>
-		<version>1.2.16</version>
-		<scope>provided</scope>
-	</dependency>
+  <dependency>
+    <groupId>log4j</groupId>
+    <artifactId>log4j</artifactId>
+    <version>1.2.16</version>
+    <scope>provided</scope>
+  </dependency>
 
     <dependency>
       <groupId>junit</groupId>
@@ -92,10 +92,10 @@
     </dependency>
 
 <dependency>
-	<groupId>org.hsqldb</groupId>
-	<artifactId>hsqldb</artifactId>
-	<version>2.3.2</version>
-	<scope>provided</scope>
+  <groupId>org.hsqldb</groupId>
+  <artifactId>hsqldb</artifactId>
+  <version>2.3.2</version>
+  <scope>provided</scope>
 </dependency>
 
     <dependency>
@@ -110,7 +110,7 @@
         <version>4.4</version>
     </dependency>
 
-	</dependencies>
+  </dependencies>
 
   <!-- for packaging as an OSGi bundle, we use the maven-bundle-plugin -->
 
@@ -148,7 +148,7 @@
         <extensions>true</extensions>
         <version>2.3.7</version>
         <configuration>
-	   <manifestLocation>META-INF</manifestLocation>
+     <manifestLocation>META-INF</manifestLocation>
            <instructions>
                <Export-Package>com.scott.modelcontext.monitoring*</Export-Package>
                <Import-Package>*</Import-Package>
@@ -165,10 +165,10 @@
         <artifactId>license-maven-plugin</artifactId>
         <version>1.7</version>
         <configuration>
-	  <licenseName>scott</licenseName>
-	  <licenseResolver>${project.baseUri}/license</licenseResolver>
+    <licenseName>scott</licenseName>
+    <licenseResolver>${project.baseUri}/license</licenseResolver>
           <verbose>false</verbose>
-	  <!-- <ignoreTag>true</ignoreTag> -->
+    <!-- <ignoreTag>true</ignoreTag> -->
         </configuration>
         <executions>
           <execution>

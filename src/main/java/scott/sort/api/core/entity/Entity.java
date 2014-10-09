@@ -103,7 +103,7 @@ public class Entity implements Serializable {
                  * still be there in the context
                  *
                 else if (node instanceof ToManyNode) {
-                	((ToManyNode) node).setFetched(false);
+                    ((ToManyNode) node).setFetched(false);
                 }*/
             }
         }
@@ -199,7 +199,8 @@ public class Entity implements Serializable {
                     //this is unusual but required for example for abstract syntaxes
                     //which refer to concrete structures from other tables
                     LOG.debug("Converting ValueNode to RefNode for {}", ndNew.getName());
-                    RefNode refNode = new RefNode(this, ndNew.getName(), newEntityType);
+                    EntityType refNodeType = entityContext.getDefinitions().getEntityTypeMatchingInterface(ndNew.getRelationInterfaceName(), true);
+                    RefNode refNode = new RefNode(this, ndNew.getName(), refNodeType);
                     refNode.setEntityKey(((ValueNode) existing).getValue());
                     toAdd.add(refNode);
                 }
