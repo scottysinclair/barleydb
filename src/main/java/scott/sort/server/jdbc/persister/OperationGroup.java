@@ -22,6 +22,11 @@ import scott.sort.api.config.*;
 import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.RefNode;
 
+/**
+ *  An ordered list of entities
+ * @author scott
+ *
+ */
 public class OperationGroup implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -55,6 +60,10 @@ public class OperationGroup implements Serializable {
         return ogm;
     }
 
+    /**
+     *
+     * @return an Operation group where the entity order has been optimized for insert
+     */
     public OperationGroup optimizedForInsertCopy() {
         OperationGroup og = new OperationGroup();
         og.entities.addAll(entities);
@@ -68,6 +77,10 @@ public class OperationGroup implements Serializable {
         return og;
     }
 
+    /**
+     *
+     * @return an Operation group where the entity order has been optimized for update
+     */
     public OperationGroup optimizedForUpdateCopy() {
         OperationGroup og = new OperationGroup();
         og.entities.addAll(entities);
@@ -81,6 +94,10 @@ public class OperationGroup implements Serializable {
         return og;
     }
 
+    /**
+    *
+    * @return an Operation group where the entity order has been optimized for delete
+    */
     public OperationGroup optimizedForDeleteCopy() {
         OperationGroup og = new OperationGroup();
         og.entities.addAll(entities);
@@ -102,7 +119,7 @@ public class OperationGroup implements Serializable {
 
     /**
      * Will move the entity at index to beside indexOfSameType as long
-     * as dependency analysis
+     * as dependency analysis allows.
      */
     private boolean moveTypeUp(List<Entity> copy, int index, int indexOfSameType, boolean forceIt) {
         if (!forceIt) {
@@ -117,16 +134,29 @@ public class OperationGroup implements Serializable {
         return true;
     }
 
+    /**
+     *
+     * @param copy
+     * @param index
+     * @param possibleDepIndex
+     * @return true if the entity at index depends on the entity at possibleDepIndex
+     */
     private boolean dependsOn(List<Entity> copy, int index, int possibleDepIndex) {
         Entity entity = copy.get(index);
         Entity possibleDep = copy.get(possibleDepIndex);
         return dependsOn(entity, possibleDep);
     }
 
+    /**
+     * Checks if entity a FK dependency (direct or transitive) on possibleDep
+     * @param entity
+     * @param possibleDep
+     * @return
+     */
     private boolean dependsOn(Entity entity, Entity possibleDep) {
         /*
          * if the possibleDep is reachable through a refnode then
-         * it is a dep, otherwise not
+         * it is a dependency, otherwise not
          */
         for (RefNode refNode : entity.getChildren(RefNode.class)) {
             if (refNode.getReference() == null) {

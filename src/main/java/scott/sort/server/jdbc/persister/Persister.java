@@ -395,6 +395,9 @@ public class Persister {
             updateRequired.add(entity);
             return true;
         }
+        /*
+         *loop through all refnodes nodes to check if they cause us to require modification.
+         */
         for (RefNode refNode : entity.getChildren(RefNode.class)) {
             //an added entity ref would be detected in the audit information since this directly affects a property of the entity
             //a removed entity ref would be detected in the audit information since this directly affects a property of the entity
@@ -411,7 +414,7 @@ public class Persister {
             if (!refNode.getNodeDefinition().isOwns()) {
                 continue;
             }
-            //the ref has it's own optimistic lock, so we don't need to touch ours
+            //the referred to entity type has it's own optimistic lock, so we don't need to touch ours
             if (refNode.getEntityType().supportsOptimisticLocking()) {
                 continue;
             }
@@ -424,6 +427,9 @@ public class Persister {
                 return true;
             }
         }
+        /*
+         *loop through all tomany nodes to check if they cause us to require modification.
+         */
         for (ToManyNode toManyNode : entity.getChildren(ToManyNode.class)) {
             //the to many relation was never fetched, so no changes occurred.
             if (!toManyNode.isFetched()) {

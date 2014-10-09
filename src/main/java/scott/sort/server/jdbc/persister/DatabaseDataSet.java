@@ -21,6 +21,14 @@ import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.query.*;
 
+/**
+ * Used to load the original database data for all entities which we are updating, deleting or depending on.
+ *
+ * All of the data is loaded into a separate context.
+ *
+ * @author scott
+ *
+ */
 public class DatabaseDataSet {
 
     private static final Logger LOG = LoggerFactory.getLogger(DatabaseDataSet.class);
@@ -53,7 +61,7 @@ public class DatabaseDataSet {
          * We optimize the order for insert, this helps prevent table deadlock
          * as delete operations would lock in the reverse order.
          * Note: this only helps prevent deadlock if REPEATABLE_READ is used
-         * sicne REPEATABLE_READ ensures that read operations also lock rows.
+         * since REPEATABLE_READ ensures that read operations also lock rows.
          */
         LOG.debug("Reordering entities for database retrival to reduce table deadlock scenarios.");
         //the dependsOnGroup ordering is the same as for create/update
