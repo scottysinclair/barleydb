@@ -32,6 +32,7 @@ import scott.sort.api.core.entity.NotLoaded;
 import scott.sort.api.core.entity.RefNode;
 import scott.sort.api.core.entity.ValueNode;
 import scott.sort.api.core.types.JavaType;
+import scott.sort.api.core.types.JdbcType;
 import scott.sort.api.exception.InvalidNodeDefinitionException;
 import scott.sort.api.exception.SortJdbcException;
 import scott.sort.api.exception.query.IllegalQueryStateException;
@@ -195,7 +196,16 @@ final class EntityLoader {
             }
         }
         try {
-            return convertValue(nd, rs.getObject(index), javaType);
+            Object value = null;
+            if (nd.getJdbcType() == JdbcType.TIMESTAMP) {
+                    //FIX for oracle which returns it's own oracle.sql.TIMESTAMP class
+                //which does extend java.sql.Timestamp  when you call resultSet.getObject()
+                value = rs.getTimestamp(index);
+            }
+            else {
+                value = rs.getObject(index);
+            }
+            return convertValue(nd, value, javaType);
         }
         catch (SQLException x) {
             throw new SortJdbcException("SQLException getting object from resultset", x);
