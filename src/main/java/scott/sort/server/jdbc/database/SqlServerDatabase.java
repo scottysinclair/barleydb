@@ -10,7 +10,8 @@ public class SqlServerDatabase implements Database {
 
     @Override
     public boolean matches(DatabaseMetaData metaData) throws SQLException {
-        return "SQLServer".equalsIgnoreCase(metaData.getDatabaseProductName());
+        return "Microsoft SQL Server".equals(metaData.getDatabaseProductName()) &&
+                metaData.getDatabaseProductVersion().compareTo("11.00.2100") >= 0;
     }
 
 
