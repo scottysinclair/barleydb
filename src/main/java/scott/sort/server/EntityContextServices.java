@@ -30,7 +30,7 @@ import scott.sort.api.exception.DatabaseAccessError;
 import scott.sort.api.exception.RollbackException;
 import scott.sort.api.exception.SetAutoCommitException;
 import scott.sort.api.exception.SortJdbcException;
-import scott.sort.api.exception.SortQueryException;
+import scott.sort.api.exception.query.SortQueryException;
 import scott.sort.api.query.QueryObject;
 import scott.sort.server.jdbc.database.Database;
 import scott.sort.server.jdbc.persister.PersistAnalyser;

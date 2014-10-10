@@ -1,6 +1,7 @@
 package scott.sort.api.exception;
 
 import scott.sort.api.config.NodeDefinition;
+import scott.sort.api.exception.query.SortQueryException;
 
 public class InvalidNodeDefinitionException extends SortQueryException {
 

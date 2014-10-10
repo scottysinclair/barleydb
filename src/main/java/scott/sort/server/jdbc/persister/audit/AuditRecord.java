@@ -20,6 +20,7 @@ import scott.sort.api.config.EntityType;
 import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.Node;
 import scott.sort.api.core.entity.ValueNode;
+import scott.sort.api.exception.persist.IllegalPersistStateException;
 
 public final class AuditRecord {
     private final EntityType entityType;
@@ -41,12 +42,12 @@ public final class AuditRecord {
         return entityKey;
     }
 
-    public void addChange(Node node, Object oldValue, Object newValue) {
+    public void addChange(Node node, Object oldValue, Object newValue) throws IllegalPersistStateException {
         if (nodesChanged.add(node)) {
             changes.add(new Change(node, oldValue, newValue));
         }
         else {
-            throw new IllegalStateException("Already consumed change for node " + node);
+            throw new IllegalPersistStateException("Already consumed change for node " + node);
         }
     }
 

@@ -16,6 +16,7 @@ import java.util.*;
 import scott.sort.api.config.Definitions;
 import scott.sort.api.config.EntityType;
 import scott.sort.api.config.NodeDefinition;
+import scott.sort.api.exception.query.IllegalQueryStateException;
 import scott.sort.api.query.QJoin;
 import scott.sort.api.query.QOrderBy;
 import scott.sort.api.query.QueryObject;
@@ -53,7 +54,7 @@ public class QueryGenerator {
         this.definitions = definitions;
     }
 
-    public String generateSQL(Projection projection, List<Param> params) {
+    public String generateSQL(Projection projection, List<Param> params) throws IllegalQueryStateException {
         EntityType entityType = definitions.getEntityTypeMatchingInterface(query.getTypeName(), true);
 
         StringBuilder sb = new StringBuilder();
@@ -97,7 +98,7 @@ public class QueryGenerator {
         return sb.toString();
     }
 
-    public String generateSQL(List<Param> params) {
+    public String generateSQL(List<Param> params) throws IllegalQueryStateException {
         return generateSQL(null, params);
     }
 

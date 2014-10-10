@@ -46,7 +46,7 @@ import scott.sort.api.core.QueryRegistry;
 import scott.sort.api.core.entity.context.Entities;
 import scott.sort.api.core.entity.context.EntityInfo;
 import scott.sort.api.exception.SortJdbcException;
-import scott.sort.api.exception.SortQueryException;
+import scott.sort.api.exception.query.SortQueryException;
 import scott.sort.api.query.QProperty;
 import scott.sort.api.query.QueryObject;
 import scott.sort.server.jdbc.persister.PersistAnalyser;

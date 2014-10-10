@@ -24,9 +24,10 @@ import scott.sort.api.core.entity.Node;
 import scott.sort.api.core.entity.RefNode;
 import scott.sort.api.core.entity.ToManyNode;
 import scott.sort.api.core.entity.ValueNode;
-import scott.sort.api.exception.PreparingPersistStatementException;
 import scott.sort.api.exception.SortJdbcException;
-import scott.sort.api.exception.SortQueryException;
+import scott.sort.api.exception.persist.IllegalPersistStateException;
+import scott.sort.api.exception.persist.PreparingPersistStatementException;
+import scott.sort.api.exception.query.SortQueryException;
 import scott.sort.server.jdbc.persister.audit.AuditInformation;
 import scott.sort.server.jdbc.persister.audit.AuditRecord;
 import scott.sort.server.jdbc.persister.audit.Change;
@@ -198,8 +199,9 @@ public class Persister {
      * if a node of the entity has a null value then we don't create a record for it
      * @param createGroup
      * @return
+     * @throws IllegalPersistStateException
      */
-    private List<AuditRecord> auditCreate(OperationGroup createGroup) {
+    private List<AuditRecord> auditCreate(OperationGroup createGroup) throws IllegalPersistStateException {
         List<AuditRecord> records = new LinkedList<>();
         for (Entity entity : createGroup.getEntities()) {
             AuditRecord auditRecord = null;
@@ -235,8 +237,9 @@ public class Persister {
      * @param databaseDataSet
      * @param updateGroup
      * @return
+     * @throws IllegalPersistStateException
      */
-    private List<AuditRecord> auditUpdate(DatabaseDataSet databaseDataSet, OperationGroup updateGroup) {
+    private List<AuditRecord> auditUpdate(DatabaseDataSet databaseDataSet, OperationGroup updateGroup) throws IllegalPersistStateException {
         List<AuditRecord> records = new LinkedList<>();
         for (Entity entity : updateGroup.getEntities()) {
             AuditRecord auditRecord = null;
@@ -282,8 +285,9 @@ public class Persister {
      * @param databaseDataSet
      * @param deleteGroup
      * @return
+     * @throws IllegalPersistStateException
      */
-    private List<AuditRecord> auditDelete(DatabaseDataSet databaseDataSet, OperationGroup deleteGroup) {
+    private List<AuditRecord> auditDelete(DatabaseDataSet databaseDataSet, OperationGroup deleteGroup) throws IllegalPersistStateException {
         List<AuditRecord> records = new LinkedList<>();
         for (Entity entity : deleteGroup.getEntities()) {
             AuditRecord auditRecord = null;
@@ -313,7 +317,7 @@ public class Persister {
         return records;
     }
 
-    private void setPrimaryKeys(OperationGroup createGroup) {
+    private void setPrimaryKeys(OperationGroup createGroup) throws SortPersistException {
         logStep("Setting primary keys");
         for (Entity entity : createGroup.getEntities()) {
             Object value = env.getSequenceGenerator().getNextKey(entity.getEntityType());
@@ -503,7 +507,7 @@ public class Persister {
         logStep("Performing inserts");
         BatchExecuter batchExecuter = new BatchExecuter(createGroup, "insert") {
             @Override
-            protected PreparedStatement prepareStatement(PreparedStatementCache psCache, Entity entity) throws SortPersistException {
+            protected PreparedStatement prepareStatement(PreparedStatementPersistCache psCache, Entity entity) throws SortPersistException {
                 return psCache.prepareInsertStatement(entity, optimisticLockTime);
             }
 
@@ -519,7 +523,7 @@ public class Persister {
         logStep("Performing updates");
         BatchExecuter batchExecuter = new BatchExecuter(updateGroup, "update") {
             @Override
-            protected PreparedStatement prepareStatement(PreparedStatementCache psCache, Entity entity) throws SortPersistException {
+            protected PreparedStatement prepareStatement(PreparedStatementPersistCache psCache, Entity entity) throws SortPersistException {
                 return psCache.prepareUpdateStatement(entity, newOptimisticLockTime);
             }
 
@@ -535,7 +539,7 @@ public class Persister {
         logStep("Performing deletes");
         BatchExecuter batchExecuter = new BatchExecuter(deleteGroup, "delete") {
             @Override
-            protected PreparedStatement prepareStatement(PreparedStatementCache psCache, Entity entity) throws SortPersistException {
+            protected PreparedStatement prepareStatement(PreparedStatementPersistCache psCache, Entity entity) throws SortPersistException {
                 return psCache.prepareDeleteStatement(entity);
             }
 

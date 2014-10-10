@@ -17,6 +17,7 @@ import java.util.List;
 import scott.sort.api.config.Definitions;
 import scott.sort.api.config.EntityType;
 import scott.sort.api.config.NodeDefinition;
+import scott.sort.api.exception.query.IllegalQueryStateException;
 import scott.sort.api.query.QJoin;
 import scott.sort.api.query.QueryObject;
 
@@ -57,10 +58,10 @@ public class Projection implements Iterable<ProjectionColumn> {
         }
     }
 
-    int indexOf(ProjectionColumn column) {
+    int indexOf(ProjectionColumn column) throws IllegalQueryStateException {
         int i = columns.indexOf(column);
         if (i == -1) {
-            throw new IllegalStateException("Projection column not found in projection: " + column);
+            throw new IllegalQueryStateException("Projection column not found in projection: " + column);
         }
         return i + 1; //resultset style 1-N index
     }

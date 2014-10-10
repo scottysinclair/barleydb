@@ -6,7 +6,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import scott.sort.api.core.entity.EntityContext;
-import scott.sort.api.exception.PersistTransactionRequiredException;
+import scott.sort.api.exception.persist.PersistTransactionRequiredException;
+import scott.sort.api.exception.query.QueryConnectionRequiredException;
 import scott.sort.server.jdbc.database.Database;
 
 public class ConnectionResources {
@@ -19,6 +20,14 @@ public class ConnectionResources {
         ConnectionResources cr = (ConnectionResources)entityContext.getResource(ConnectionResources.class.getName(), false);
         if (cr == null) {
             throw new PersistTransactionRequiredException("No transaction for entity context");
+        }
+        return cr;
+    }
+
+    public static ConnectionResources getMandatoryForQuery(EntityContext entityContext) throws QueryConnectionRequiredException {
+        ConnectionResources cr = (ConnectionResources)entityContext.getResource(ConnectionResources.class.getName(), false);
+        if (cr == null) {
+            throw new QueryConnectionRequiredException("No transaction for entity context");
         }
         return cr;
     }

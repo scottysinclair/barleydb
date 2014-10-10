@@ -15,6 +15,7 @@ import java.util.List;
 import scott.sort.api.config.Definitions;
 import scott.sort.api.config.EntityType;
 import scott.sort.api.config.NodeDefinition;
+import scott.sort.api.exception.query.IllegalQueryStateException;
 import scott.sort.api.query.ConditionVisitor;
 import scott.sort.api.query.QExists;
 import scott.sort.api.query.QLogicalOp;
@@ -34,7 +35,7 @@ public class ConditionRenderer implements ConditionVisitor {
         depth = 0;
     }
 
-    public void visitPropertyCondition(QPropertyCondition qpc) {
+    public void visitPropertyCondition(QPropertyCondition qpc) throws IllegalQueryStateException {
         EntityType et = definitions.getEntityTypeMatchingInterface(qpc.getProperty().getQueryObject().getTypeName(), true);
         NodeDefinition nodeDef = et.getNode(qpc.getProperty().getName(), true);
         sb.append(qpc.getProperty().getQueryObject().getAlias() + "." + nodeDef.getColumnName());
@@ -60,13 +61,13 @@ public class ConditionRenderer implements ConditionVisitor {
             break;
         }
         default:
-            throw new IllegalStateException("Unexpected operator");
+            throw new IllegalQueryStateException("Unexpected operator");
         }
         params.add(new QueryGenerator.Param(nodeDef, qpc.getValue()));
         sb.append('?');
     }
 
-    public void visitLogicalOp(QLogicalOp qlo) {
+    public void visitLogicalOp(QLogicalOp qlo) throws IllegalQueryStateException {
         sb.append('(');
         depth++;
         qlo.getLeft().visit(this);
@@ -92,7 +93,7 @@ public class ConditionRenderer implements ConditionVisitor {
         sb.append(')');
     }
 
-    public void visitExists(QExists exists) {
+    public void visitExists(QExists exists) throws IllegalQueryStateException {
         sb.append("exists (");
         QueryGenerator qGen = new QueryGenerator(exists.getSubQueryObject(), definitions);
         sb.append(qGen.generateSQL(params));

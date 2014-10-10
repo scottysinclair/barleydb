@@ -22,9 +22,9 @@ import org.slf4j.LoggerFactory;
 
 import scott.sort.api.config.Definitions;
 import scott.sort.api.core.entity.Entity;
-import scott.sort.api.exception.PreparingPersistStatementException;
 import scott.sort.api.exception.AddBatchException;
 import scott.sort.api.exception.SortJdbcException;
+import scott.sort.api.exception.persist.PreparingPersistStatementException;
 import scott.sort.server.jdbc.persister.exception.SortPersistException;
 
 /**
@@ -49,7 +49,7 @@ abstract class BatchExecuter {
         if (group.getEntities().isEmpty()) {
             return;
         }
-        try ( PreparedStatementCache psCache = new PreparedStatementCache(definitions);) {
+        try ( PreparedStatementPersistCache psCache = new PreparedStatementPersistCache(definitions);) {
             PreparedStatement psLast = null;
             List<Entity> entities = new LinkedList<>();
             for (Entity entity : group.getEntities()) {
@@ -133,5 +133,5 @@ abstract class BatchExecuter {
 
     protected abstract void handleFailure(Entity entity, Throwable throwable) throws SortPersistException;
 
-    protected abstract PreparedStatement prepareStatement(PreparedStatementCache psCache, Entity entity) throws SortPersistException;
+    protected abstract PreparedStatement prepareStatement(PreparedStatementPersistCache psCache, Entity entity) throws SortPersistException;
 }

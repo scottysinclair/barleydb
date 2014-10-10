@@ -17,6 +17,7 @@ import java.util.List;
 
 import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.EntityContext;
+import scott.sort.api.exception.query.IllegalQueryStateException;
 import scott.sort.api.query.QueryObject;
 
 /**
@@ -38,23 +39,23 @@ final class EntityLoaders implements Iterable<EntityLoader> {
         }
     }
 
-    public Entity getMostRecentlyLoaded(QueryObject<?> queryObject) {
+    public Entity getMostRecentlyLoaded(QueryObject<?> queryObject) throws IllegalQueryStateException {
         for (EntityLoader entityLoader : entityLoadersList) {
             if (entityLoader.getQueryObject() == queryObject) {
                 List<Entity> list = entityLoader.getLoadedEntities();
                 return list.isEmpty() ? null : list.get(list.size() - 1);
             }
         }
-        throw new IllegalStateException("entityLoader for queryobject " + queryObject + " not exist");
+        throw new IllegalQueryStateException("entityLoader for queryobject " + queryObject + " not exist");
     }
 
-    public List<Entity> getEntitiesForQueryObject(QueryObject<?> queryObject) {
+    public List<Entity> getEntitiesForQueryObject(QueryObject<?> queryObject) throws IllegalQueryStateException {
         for (EntityLoader entityLoader : entityLoadersList) {
             if (entityLoader.getQueryObject() == queryObject) {
                 return entityLoader.getLoadedEntities();
             }
         }
-        throw new IllegalStateException("entityLoader for queryobject " + queryObject + " not exist");
+        throw new IllegalQueryStateException("entityLoader for queryobject " + queryObject + " not exist");
     }
 
     @Override

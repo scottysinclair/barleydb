@@ -20,7 +20,7 @@ import scott.sort.api.core.*;
 import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.exception.SortJdbcException;
-import scott.sort.api.exception.SortQueryException;
+import scott.sort.api.exception.query.SortQueryException;
 import scott.sort.api.query.*;
 
 /**

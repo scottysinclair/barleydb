@@ -13,6 +13,8 @@ package scott.sort.api.query;
 
 import java.io.Serializable;
 
+import scott.sort.api.exception.query.IllegalQueryStateException;
+
 /**
  * Base class for query conditions.
  * Contains and and or operations to build larger expressions on top of this one.
@@ -39,5 +41,5 @@ public abstract class QCondition implements Serializable {
         return new QLogicalOp(this, new QExists(queryObject), QBooleanOps.AND);
     }
 
-    public abstract void visit(ConditionVisitor visitor);
+    public abstract void visit(ConditionVisitor visitor) throws IllegalQueryStateException;
 }

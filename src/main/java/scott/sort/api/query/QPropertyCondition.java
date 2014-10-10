@@ -1,5 +1,7 @@
 package scott.sort.api.query;
 
+import scott.sort.api.exception.query.IllegalQueryStateException;
+
 /*
  * #%L
  * Simple Object Relational Framework
@@ -41,7 +43,7 @@ public class QPropertyCondition extends QCondition {
     }
 
     @Override
-    public void visit(ConditionVisitor visitor) {
+    public void visit(ConditionVisitor visitor) throws IllegalQueryStateException {
         visitor.visitPropertyCondition(this);
     }
 

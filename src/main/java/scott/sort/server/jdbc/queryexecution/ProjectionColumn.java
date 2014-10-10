@@ -12,6 +12,7 @@ package scott.sort.server.jdbc.queryexecution;
 
 
 import scott.sort.api.config.NodeDefinition;
+import scott.sort.api.exception.query.IllegalQueryStateException;
 import scott.sort.api.query.QJoin;
 import scott.sort.api.query.QueryObject;
 
@@ -53,13 +54,13 @@ class ProjectionColumn {
         return qJoin;
     }
 
-    public Integer getIndex() {
+    public Integer getIndex() throws IllegalQueryStateException {
         return projection.indexOf(this);
     }
 
     /**
      * the java bean property to map the data to.
-     * 
+     *
      * @return
      */
     public String getProperty() {
@@ -76,6 +77,11 @@ class ProjectionColumn {
 
     @Override
     public String toString() {
-        return "ProjectionColumn [ " + getProperty() + "/" + getColumn() + "(" + getIndex() + ")]";
+        try {
+            return "ProjectionColumn [ " + getProperty() + "/" + getColumn() + "(" + getIndex() + ")]";
+        }
+        catch(IllegalQueryStateException x) {
+            return "ProjectionColumn [ " + getProperty() + "/" + getColumn() + "( UNKNOWN )]";
+        }
     }
 }

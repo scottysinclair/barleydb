@@ -18,15 +18,15 @@ import org.slf4j.LoggerFactory;
 
 import scott.sort.api.config.*;
 import scott.sort.api.core.entity.Entity;
+import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.core.entity.Node;
 import scott.sort.api.core.entity.ToManyNode;
-import scott.sort.api.exception.PersistTransactionRequiredException;
-import scott.sort.api.exception.PreparingPersistStatementException;
 import scott.sort.api.exception.ClosingStatementException;
+import scott.sort.api.exception.SortException;
 import scott.sort.server.jdbc.helper.*;
 import scott.sort.server.jdbc.resources.ConnectionResources;
 
-class PreparedStatementCache implements AutoCloseable {
+abstract class PreparedStatementCache<PREPARING_PERSIST_EX extends SortException, CONNECTION_REQ_EX extends SortException> implements AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(PreparedStatementCache.class);
 
@@ -34,21 +34,21 @@ class PreparedStatementCache implements AutoCloseable {
     private final Map<EntityType, PreparedStatement> updates = new HashMap<>();
     private final Map<EntityType, PreparedStatement> deletes = new HashMap<>();
 
-    private final PreparedStatementHelper helper;
+    private final PreparedStatementHelper<PREPARING_PERSIST_EX> helper;
 
-    public PreparedStatementCache(Definitions definitions) {
-        this.helper = new PreparedStatementHelper(definitions);
+    public PreparedStatementCache(PreparedStatementHelper<PREPARING_PERSIST_EX> helper) {
+        this.helper = helper;
     }
 
-    public PreparedStatement prepareInsertStatement(Entity entity, Long newOptimisticLockTime) throws PreparingPersistStatementException, PersistTransactionRequiredException {
+    public PreparedStatement prepareInsertStatement(Entity entity, Long newOptimisticLockTime) throws PREPARING_PERSIST_EX, CONNECTION_REQ_EX {
         PreparedStatement ps = inserts.get(entity.getEntityType());
         if (ps == null) {
-            ConnectionResources conRes = ConnectionResources.getMandatoryForPersist(entity.getEntityContext());
+            ConnectionResources conRes = getConnectionResources(entity.getEntityContext());
             try {
                 ps = conRes.getConnection().prepareStatement(generateInsertSql(entity));
             }
             catch (SQLException x) {
-                throw new PreparingPersistStatementException("SQLException preparing statement", x);
+                throw helper.newPreparingPersistStatementException("SQLException preparing statement", x);
             }
             inserts.put(entity.getEntityType(), ps);
         }
@@ -56,37 +56,39 @@ class PreparedStatementCache implements AutoCloseable {
         return ps;
     }
 
-    public PreparedStatement prepareUpdateStatement(Entity entity, Long newOptimisticLockTime) throws PreparingPersistStatementException, PersistTransactionRequiredException {
+    public PreparedStatement prepareUpdateStatement(Entity entity, Long newOptimisticLockTime) throws PREPARING_PERSIST_EX, CONNECTION_REQ_EX {
         PreparedStatement ps = updates.get(entity.getEntityType());
         if (ps == null) {
-            ConnectionResources conRes = ConnectionResources.getMandatoryForPersist(entity.getEntityContext());
+            ConnectionResources conRes = getConnectionResources(entity.getEntityContext());
             try {
                 ps = conRes.getConnection().prepareStatement(generateUpdateSql(entity));
                 updates.put(entity.getEntityType(), ps);
             }
             catch(SQLException x) {
-                throw new PreparingPersistStatementException("SQLException preparing statement", x);
+                throw helper.newPreparingPersistStatementException("SQLException preparing statement", x);
             }
         }
         setUpdateParameters(ps, entity, newOptimisticLockTime);
         return ps;
     }
 
-    public PreparedStatement prepareDeleteStatement(Entity entity) throws PreparingPersistStatementException, PersistTransactionRequiredException {
+    public PreparedStatement prepareDeleteStatement(Entity entity) throws PREPARING_PERSIST_EX, CONNECTION_REQ_EX {
         PreparedStatement ps = deletes.get(entity.getEntityType());
         if (ps == null) {
-            ConnectionResources conRes = ConnectionResources.getMandatoryForPersist(entity.getEntityContext());
+            ConnectionResources conRes = getConnectionResources(entity.getEntityContext());
             try {
                 ps = conRes.getConnection().prepareStatement(generateDeleteSql(entity));
             }
             catch (SQLException x) {
-                throw new PreparingPersistStatementException("SQLException preparing statement", x);
+                throw helper.newPreparingPersistStatementException("SQLException preparing statement", x);
             }
             deletes.put(entity.getEntityType(), ps);
         }
         setDeleteParameters(ps, entity);
         return ps;
     }
+
+    protected abstract ConnectionResources getConnectionResources(EntityContext entityContetx) throws CONNECTION_REQ_EX;
 
     @Override
     public void close() throws ClosingStatementException {
@@ -191,7 +193,7 @@ class PreparedStatementCache implements AutoCloseable {
         }
     }
 
-    private void setInsertParameters(PreparedStatement ps, Entity entity, Long newOptimisticLockTime) throws PreparingPersistStatementException {
+    private void setInsertParameters(PreparedStatement ps, Entity entity, Long newOptimisticLockTime) throws PREPARING_PERSIST_EX {
         int i = 1;
         for (final Node child : entity.getChildren()) {
             if (child instanceof ToManyNode) {
@@ -207,7 +209,7 @@ class PreparedStatementCache implements AutoCloseable {
         }
     }
 
-    private void setUpdateParameters(PreparedStatement ps, Entity entity, Long newOptimisticLockTime) throws PreparingPersistStatementException {
+    private void setUpdateParameters(PreparedStatement ps, Entity entity, Long newOptimisticLockTime) throws PREPARING_PERSIST_EX {
         int i = 1;
         for (final Node child : entity.getChildren()) {
             if (child instanceof ToManyNode) {
@@ -230,7 +232,7 @@ class PreparedStatementCache implements AutoCloseable {
         }
     }
 
-    private void setDeleteParameters(PreparedStatement ps, Entity entity) throws PreparingPersistStatementException {
+    private void setDeleteParameters(PreparedStatement ps, Entity entity) throws PREPARING_PERSIST_EX {
         helper.setParameter(ps, 1, entity.getKey());
         Node olNode = entity.getOptimisticLock();
         if (olNode != null) {

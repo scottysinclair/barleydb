@@ -22,11 +22,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import scott.sort.api.core.entity.EntityContext;
-import scott.sort.api.exception.PreparingPersistStatementException;
 import scott.sort.api.exception.SortJdbcException;
-import scott.sort.api.exception.SortQueryException;
+import scott.sort.api.exception.persist.PreparingPersistStatementException;
+import scott.sort.api.exception.query.IllegalQueryStateException;
+import scott.sort.api.exception.query.PreparingQueryStatementException;
+import scott.sort.api.exception.query.SortQueryException;
 import scott.sort.server.jdbc.database.Database;
-import scott.sort.server.jdbc.helper.PreparedStatementHelper;
 import scott.sort.server.jdbc.queryexecution.QueryGenerator.Param;
 
 /**
@@ -110,7 +111,7 @@ public class QueryExecuter {
                 try (Statement stmt = connection.createStatement();) {
                     try {
                         if (!stmt.execute(sql)) {
-                            throw new IllegalStateException("Query did not return a result set");
+                            throw new IllegalQueryStateException("Query did not return a result set");
                         }
                     }
                     catch (SQLException x) {
@@ -163,7 +164,7 @@ public class QueryExecuter {
             }
         } while (!finished);
         if (countResultSets != queryExecutions.length) {
-            throw new IllegalStateException("Executed " + queryExecutions.length + " queries but only received " + countResultSets + " resultsets");
+            throw new IllegalQueryStateException("Executed " + queryExecutions.length + " queries but only received " + countResultSets + " resultsets");
         }
     }
 
@@ -209,15 +210,15 @@ public class QueryExecuter {
         }
     }
 
-    private void setParameters(PreparedStatement stmt, List<Param> params) throws PreparingPersistStatementException {
+    private void setParameters(PreparedStatement stmt, List<Param> params) throws PreparingQueryStatementException  {
         int i = 1;
-        PreparedStatementHelper helper = new PreparedStatementHelper(entityContext.getDefinitions());
+        QueryPreparedStatementHelper helper = new QueryPreparedStatementHelper(entityContext.getDefinitions());
         for (QueryGenerator.Param param : params) {
             helper.setParameter(stmt, i++, param.getNodeDefinition(), param.getValue());
         }
     }
 
-    private String createCombinedQuery(List<Param> params, QueryExecution<?>... queryExecutions) {
+    private String createCombinedQuery(List<Param> params, QueryExecution<?>... queryExecutions) throws IllegalQueryStateException {
         StringBuilder combinedQuery = new StringBuilder();
 
         for (QueryExecution<?> qExec : queryExecutions) {

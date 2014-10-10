@@ -1,4 +1,6 @@
-package scott.sort.api.exception;
+package scott.sort.api.exception.query;
+
+import scott.sort.api.exception.SortException;
 
 public class SortQueryException extends SortException {
 

@@ -18,6 +18,7 @@ import scott.sort.api.core.Environment;
 import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.query.QueryObject;
+import scott.sort.server.jdbc.persister.exception.SortPersistException;
 
 public class QuickHackSequenceGenerator implements SequenceGenerator {
     private Environment env;
@@ -30,7 +31,7 @@ public class QuickHackSequenceGenerator implements SequenceGenerator {
     }
 
     @Override
-    public synchronized Object getNextKey(EntityType entityType) {
+    public synchronized Object getNextKey(EntityType entityType) throws SortPersistException {
         Long value = values.get(entityType);
         if (value == null) {
             try {
@@ -46,7 +47,7 @@ public class QuickHackSequenceGenerator implements SequenceGenerator {
                 }
                 value = highest;
             } catch (Exception x) {
-                throw new IllegalStateException("Could not get next key for " + entityType, x);
+                throw new SortPersistException("Could not get next key for " + entityType, x);
             }
         }
         values.put(entityType, ++value);

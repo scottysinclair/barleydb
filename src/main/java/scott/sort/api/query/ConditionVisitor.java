@@ -1,5 +1,7 @@
 package scott.sort.api.query;
 
+import scott.sort.api.exception.query.IllegalQueryStateException;
+
 /*
  * #%L
  * Simple Object Relational Framework
@@ -17,9 +19,9 @@ package scott.sort.api.query;
  *
  */
 public interface ConditionVisitor {
-    public void visitPropertyCondition(QPropertyCondition qpc);
+    public void visitPropertyCondition(QPropertyCondition qpc) throws IllegalQueryStateException;
 
-    public void visitLogicalOp(QLogicalOp qlo);
+    public void visitLogicalOp(QLogicalOp qlo) throws IllegalQueryStateException;
 
-    public void visitExists(QExists exists);
+    public void visitExists(QExists exists) throws IllegalQueryStateException;
 }

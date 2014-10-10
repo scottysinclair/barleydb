@@ -14,6 +14,7 @@ import java.util.*;
 
 import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.core.entity.ProxyController;
+import scott.sort.api.exception.persist.IllegalPersistStateException;
 
 public class PersistRequest {
 
@@ -43,14 +44,14 @@ public class PersistRequest {
         return toSave.isEmpty() && toDelete.isEmpty();
     }
 
-    public EntityContext getEntityContext() {
+    public EntityContext getEntityContext() throws IllegalPersistStateException {
         if (!toSave.isEmpty()) {
             return getEntityContext(toSave.get(0));
         }
         else if (!toDelete.isEmpty()) {
             return getEntityContext(toDelete.get(0));
         }
-        throw new IllegalStateException("PersistRequest has no objects to save or delete");
+        throw new IllegalPersistStateException("PersistRequest has no objects to save or delete");
     }
 
     private EntityContext getEntityContext(Object object) {

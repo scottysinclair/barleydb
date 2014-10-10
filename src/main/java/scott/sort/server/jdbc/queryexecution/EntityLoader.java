@@ -33,9 +33,10 @@ import scott.sort.api.core.entity.RefNode;
 import scott.sort.api.core.entity.ValueNode;
 import scott.sort.api.core.types.JavaType;
 import scott.sort.api.exception.InvalidNodeDefinitionException;
-import scott.sort.api.exception.ResultDataConversionException;
 import scott.sort.api.exception.SortJdbcException;
-import scott.sort.api.exception.SortQueryException;
+import scott.sort.api.exception.query.IllegalQueryStateException;
+import scott.sort.api.exception.query.ResultDataConversionException;
+import scott.sort.api.exception.query.SortQueryException;
 import scott.sort.api.query.QueryObject;
 
 /**
@@ -105,7 +106,7 @@ final class EntityLoader {
             if (column.getNodeDefinition().isPrimaryKey()) {
                 Object value = getValue(column);
                 if (mustExist && value == null) {
-                    throw new IllegalStateException(
+                    throw new IllegalQueryStateException(
                             "Primary key cannot be null for: "
                                     + getEntityType());
                 }
@@ -132,7 +133,7 @@ final class EntityLoader {
     public void associateExistingEntity() throws SortQueryException, SortJdbcException {
         Entity entity = entityContext.getEntity(getEntityType(), getEntityKey(true), false);
         if (entity == null) {
-            throw new IllegalStateException("Entity with type "
+            throw new IllegalQueryStateException("Entity with type "
                     + getEntityType() + " and key " + getEntityKey(true)
                     + " must exist in the entity context");
         }
@@ -168,7 +169,7 @@ final class EntityLoader {
         rowCache.clear();
     }
 
-    public Object getValue(ProjectionColumn column) throws SortJdbcException, InvalidNodeDefinitionException, ResultDataConversionException {
+    public Object getValue(ProjectionColumn column) throws SortJdbcException, SortQueryException {
         final int index = column.getIndex();
         Object value = rowCache.get(index);
         if (value == null) {
@@ -181,7 +182,7 @@ final class EntityLoader {
     }
 
     //we fall through and fail at the bottom
-    private Object getResultSetValue(ResultSet rs, ProjectionColumn column) throws SortJdbcException, InvalidNodeDefinitionException, ResultDataConversionException {
+    private Object getResultSetValue(ResultSet rs, ProjectionColumn column) throws SortJdbcException, SortQueryException {
         final NodeDefinition nd = column.getNodeDefinition();
         final Integer index = column.getIndex();
         if (nd.getJdbcType() == null) {
@@ -208,7 +209,7 @@ final class EntityLoader {
         }
     }
 
-    private Object convertValue(NodeDefinition nd, Object value, JavaType javaType) throws InvalidNodeDefinitionException, ResultDataConversionException {
+    private Object convertValue(NodeDefinition nd, Object value, JavaType javaType) throws InvalidNodeDefinitionException, ResultDataConversionException, IllegalQueryStateException {
         if  (value == null) {
             return null;
         }
@@ -269,7 +270,7 @@ final class EntityLoader {
     }
 
     @SuppressWarnings("unchecked")
-    private <E extends Enum<E>> Object convertToEnum(NodeDefinition nd, Object value) {
+    private <E extends Enum<E>> Object convertToEnum(NodeDefinition nd, Object value) throws IllegalQueryStateException {
         if (value instanceof Number) {
             for (Enum<E> e : java.util.EnumSet.allOf((Class<E>) nd.getEnumType())) {
                 if (((Integer) e.ordinal()).equals(((Number)value).intValue())) {
@@ -278,7 +279,7 @@ final class EntityLoader {
                 }
             }
         }
-        throw new IllegalStateException("Could not convert from enum");
+        throw new IllegalQueryStateException("Could not convert from enum");
     }
 
     private Integer convertToInteger(Object value) {

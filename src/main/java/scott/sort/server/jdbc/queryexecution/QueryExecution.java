@@ -27,7 +27,9 @@ import scott.sort.api.core.entity.RefNode;
 import scott.sort.api.core.entity.ToManyNode;
 import scott.sort.api.core.entity.ValueNode;
 import scott.sort.api.exception.SortJdbcException;
-import scott.sort.api.exception.SortQueryException;
+import scott.sort.api.exception.query.DowncastEntityException;
+import scott.sort.api.exception.query.IllegalQueryStateException;
+import scott.sort.api.exception.query.SortQueryException;
 import scott.sort.api.query.QJoin;
 import scott.sort.api.query.QueryObject;
 import scott.sort.server.jdbc.queryexecution.QueryGenerator.Param;
@@ -61,7 +63,7 @@ public class QueryExecution<T> {
         queryResult = new QueryResult<>(entityContext, query.getTypeClass());
     }
 
-    public String getSql(List<Param> queryParameters) {
+    public String getSql(List<Param> queryParameters) throws IllegalQueryStateException {
         qGen = new QueryGenerator(query, definitions);
         return qGen.generateSQL(projection, queryParameters);
     }
@@ -89,8 +91,9 @@ public class QueryExecution<T> {
      * called after the resultset data
      * has been loaded to correctly
      * set the final state
+     * @throws SortQueryException
      */
-    void finish() {
+    void finish() throws SortQueryException {
         if (entityLoaders != null) {
             LOG.debug("Finishing query execution....");
             downcastAbstractEntities(query);
@@ -104,8 +107,9 @@ public class QueryExecution<T> {
 
     /**
      * Finds the concrete entity type for any abstract entities
+     * @throws IllegalQueryStateException
      */
-    private void downcastAbstractEntities(QueryObject<?> queryObject) {
+    private void downcastAbstractEntities(QueryObject<?> queryObject) throws IllegalQueryStateException {
         List<Entity> loadedEntities = entityLoaders.getEntitiesForQueryObject(queryObject);
         for (Entity e : loadedEntities) {
             if (e.getEntityType().isAbstract()) {
@@ -119,19 +123,19 @@ public class QueryExecution<T> {
         }
     }
 
-    private void downcastEntity(Entity entity) {
+    private void downcastEntity(Entity entity) throws IllegalQueryStateException  {
         List<EntityType> candidateChildTypes = definitions.getEntityTypesExtending(entity.getEntityType());
         EntityType entityType = null;
         for (EntityType et : candidateChildTypes) {
             if (canDowncastEntity(entity, et)) {
                 if (entityType != null) {
-                    throw new IllegalStateException("Multiple downcast paths for entity '" + entity + "'");
+                    throw new DowncastEntityException("Multiple downcast paths for entity '" + entity + "'");
                 }
                 entityType = et;
             }
         }
         if (entityType == null) {
-            throw new IllegalStateException("No suitable type for downcast for entity '" + entity + "'");
+            throw new DowncastEntityException("No suitable type for downcast for entity '" + entity + "'");
         }
         entity.downcast(entityType);
     }
@@ -141,8 +145,9 @@ public class QueryExecution<T> {
      * the child type which "lock" the entity for us
      * @param entity
      * @return
+     * @throws IllegalQueryStateException
      */
-    private boolean canDowncastEntity(Entity entity, EntityType entityType) {
+    private boolean canDowncastEntity(Entity entity, EntityType entityType) throws IllegalQueryStateException {
         int fvFound = 0;
         int fvMatch = 0;
         for (NodeDefinition nd : entityType.getNodeDefinitions()) {
@@ -156,7 +161,7 @@ public class QueryExecution<T> {
             }
         }
         if (fvFound == 0) {
-            throw new IllegalStateException("Invalid downcast candidate '" + entityType + "', no fixed values defined");
+            throw new IllegalQueryStateException("Invalid downcast candidate '" + entityType + "', no fixed values defined");
         }
         return fvFound == fvMatch;
     }
@@ -164,8 +169,9 @@ public class QueryExecution<T> {
     /**
      * Sets all ToMany relations which had query joins to 'fetched'
      * @param queryObject
+     * @throws IllegalQueryStateException
      */
-    private void processToManyRelations(QueryObject<?> queryObject) {
+    private void processToManyRelations(QueryObject<?> queryObject) throws IllegalQueryStateException {
         //get the entities which this query object loaded
         List<Entity> loadedEntities = entityLoaders.getEntitiesForQueryObject(queryObject);
         if (loadedEntities.isEmpty()) {
@@ -185,7 +191,7 @@ public class QueryExecution<T> {
         }
     }
 
-    private void verifyAllFetchedDataIsLinked() {
+    private void verifyAllFetchedDataIsLinked() throws IllegalQueryStateException {
         verifyRefs(query);
 
         /*
@@ -197,7 +203,7 @@ public class QueryExecution<T> {
         */
     }
 
-    private void prepareQueryResult() {
+    private void prepareQueryResult() throws IllegalQueryStateException {
         //get the entities from the top level query object
         List<Entity> loadedEntities = entityLoaders.getEntitiesForQueryObject(query);
         //add them to the result
@@ -207,8 +213,9 @@ public class QueryExecution<T> {
     /**
      * Verifies that all joined refs with a FK value were loaded
      * @param queryObject
+     * @throws IllegalQueryStateException
      */
-    private void verifyRefs(QueryObject<?> queryObject) {
+    private void verifyRefs(QueryObject<?> queryObject) throws IllegalQueryStateException {
         List<Entity> loadedEntities = entityLoaders.getEntitiesForQueryObject(queryObject);
         if (loadedEntities.isEmpty()) {
             return;
@@ -219,7 +226,7 @@ public class QueryExecution<T> {
                 QJoin join = findJoin(refNode.getName(), queryObject);
                 if (refNode.getEntityKey() != null && join != null) {
                     if (refNode.getReference() == null) {
-                        throw new IllegalStateException("Joined FK key was not loaded: " + refNode);
+                        throw new IllegalQueryStateException("Joined FK key was not loaded: " + refNode);
                     }
                 }
             }

@@ -22,6 +22,7 @@ import scott.sort.api.core.entity.EntityContextHelper;
 import scott.sort.api.core.entity.ProxyController;
 import scott.sort.api.core.entity.RefNode;
 import scott.sort.api.core.entity.ToManyNode;
+import scott.sort.api.exception.persist.IllegalPersistStateException;
 
 public class PersistAnalyser implements Serializable {
 
@@ -140,7 +141,7 @@ public class PersistAnalyser implements Serializable {
         }
     }
 
-    public void analyse(PersistRequest persistRequest) {
+    public void analyse(PersistRequest persistRequest) throws IllegalPersistStateException {
         try {
             for (Object toSave : persistRequest.getToSave()) {
                 final Entity entity = ((ProxyController) toSave).getEntity();
@@ -151,7 +152,7 @@ public class PersistAnalyser implements Serializable {
                 removeAnalysis(entity);
 
                 if (entity.getEntityContext() != entityContext) {
-                    throw new IllegalStateException("Cannot persist entity from a different context");
+                    throw new IllegalPersistStateException("Cannot persist entity from a different context");
                 }
                 if (entity.getKey().getValue() == null) {
                     analyseCreate(entity);
@@ -163,7 +164,7 @@ public class PersistAnalyser implements Serializable {
                 final Entity entity = ((ProxyController) toDelete).getEntity();
                 removeAnalysis(entity);
                 if (entity.getEntityContext() != entityContext) {
-                    throw new IllegalStateException("Cannot persist entity from a different context");
+                    throw new IllegalPersistStateException("Cannot persist entity from a different context");
                 }
                 analyseDelete(entity);
             }

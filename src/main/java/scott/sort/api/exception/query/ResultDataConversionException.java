@@ -1,4 +1,5 @@
-package scott.sort.api.exception;
+package scott.sort.api.exception.query;
+
 
 public class ResultDataConversionException extends SortQueryException {
 
