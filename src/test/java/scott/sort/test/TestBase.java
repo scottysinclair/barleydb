@@ -41,6 +41,9 @@ import scott.sort.api.core.entity.ProxyController;
 import scott.sort.api.core.types.JavaType;
 import scott.sort.api.core.types.JdbcType;
 import scott.sort.server.EntityContextServices;
+import scott.sort.server.jdbc.database.HsqlDatabase;
+import scott.sort.server.jdbc.database.OracleDatabase;
+import scott.sort.server.jdbc.database.SqlServerDatabase;
 import scott.sort.server.jdbc.persister.*;
 import scott.sort.server.jdbc.queryexecution.QueryPreProcessor;
 
@@ -57,6 +60,7 @@ public abstract class TestBase {
 
     private static boolean databaseInitialized = false;
     protected static Environment env;
+    protected static TestEntityContextServices entityContextServices;
     protected static String transformXml;
 
     protected static final String namespace = "com.smartstream.messaging";
@@ -86,10 +90,14 @@ public abstract class TestBase {
             return;
         }
 
-        EntityContextServices services = new EntityContextServices(dataSource);
-        env = new Environment(services);
+        entityContextServices = new TestEntityContextServices(dataSource);
+        env = new Environment(entityContextServices);
         env.setQueryPreProcessor(new QueryPreProcessor());
-        services.setEnvironment(env);
+        entityContextServices.setEnvironment(env);
+
+        Connection connection = dataSource.getConnection();
+        entityContextServices.addDatabases(new HsqlDatabase(), new OracleDatabase(), new SqlServerDatabase(connection.getMetaData()));
+        connection.close();
 
         class TestSequenceGenerator implements SequenceGenerator {
             Long key = 1l;
@@ -246,20 +254,18 @@ public abstract class TestBase {
         setupDefs();
         prepareData();
 
-        env.setThreadLocalResource(Connection.class.getName(), dataSource.getConnection());
-
         /*
          * create a session with the definitions above, the query registry and a datasource.
          */
         entityContext = new EntityContext(env, namespace);
+        entityContext.setAutocommit(false);
+
     }
 
     @After
     public void tearDown() throws Exception {
-        try (Connection con = (Connection) env.getThreadLocalResource(Connection.class.getName(), false);) {
-            if (con != null) {
-                con.rollback();
-            }
+        if (!entityContext.getAutocommit()) {
+            entityContext.rollback();
         }
     }
 

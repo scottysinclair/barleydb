@@ -19,6 +19,8 @@ import scott.sort.api.config.*;
 import scott.sort.api.core.*;
 import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.EntityContext;
+import scott.sort.api.exception.SortJdbcException;
+import scott.sort.api.exception.SortQueryException;
 import scott.sort.api.query.*;
 
 /**
@@ -35,8 +37,8 @@ public class DatabaseDataSet {
 
     private final EntityContext myentityContext;
 
-    public DatabaseDataSet(Environment env, String namespace) {
-        myentityContext = new EntityContext(env, namespace);
+    public DatabaseDataSet(EntityContext entityContext) {
+        myentityContext = entityContext.newEntityContextSharingTransaction();
     }
 
     public EntityContext getOwnEntityContext() {
@@ -49,8 +51,10 @@ public class DatabaseDataSet {
 
     /**
      * Load all of the entities in the groups into the dataset
+     * @throws SortJdbcException
+     * @throws SortQueryException
      */
-    public void loadEntities(OperationGroup updateGroup, OperationGroup deleteGroup, OperationGroup dependsOnGroup) throws Exception {
+    public void loadEntities(OperationGroup updateGroup, OperationGroup deleteGroup, OperationGroup dependsOnGroup) throws SortJdbcException, SortQueryException  {
 
         /*
          * Build queries to load all of these entites
@@ -107,7 +111,7 @@ public class DatabaseDataSet {
             addKeyCondition(entityType, key);
         }
 
-        public void load() throws Exception {
+        public void load() throws SortJdbcException, SortQueryException  {
             QueryBatcher batcher = new QueryBatcher();
             for (Map.Entry<EntityType, QueryObject<Object>> entry : map.entrySet()) {
                 batcher.addQuery(entry.getValue());

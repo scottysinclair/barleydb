@@ -39,10 +39,6 @@ public class PersistRequest {
         return toDelete;
     }
 
-    public void execute(Persister persister) throws Exception {
-        persister.persist(this);
-    }
-
     public boolean isEmpty() {
         return toSave.isEmpty() && toDelete.isEmpty();
     }

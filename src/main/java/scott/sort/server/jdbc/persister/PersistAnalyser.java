@@ -65,7 +65,7 @@ public class PersistAnalyser implements Serializable {
      * @return
      */
     public PersistAnalyser deepCopy() {
-        EntityContext newContext = new EntityContext(entityContext.getEnv(), entityContext.getNamespace());
+        EntityContext newContext = entityContext.newEntityContextSharingTransaction();
         newContext.beginSaving();
         PersistAnalyser copyAnalyser = new PersistAnalyser(newContext);
 

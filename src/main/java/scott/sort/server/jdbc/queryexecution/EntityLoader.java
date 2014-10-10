@@ -13,7 +13,6 @@ package scott.sort.server.jdbc.queryexecution;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -33,6 +32,10 @@ import scott.sort.api.core.entity.NotLoaded;
 import scott.sort.api.core.entity.RefNode;
 import scott.sort.api.core.entity.ValueNode;
 import scott.sort.api.core.types.JavaType;
+import scott.sort.api.exception.InvalidNodeDefinitionException;
+import scott.sort.api.exception.ResultDataConversionException;
+import scott.sort.api.exception.SortJdbcException;
+import scott.sort.api.exception.SortQueryException;
 import scott.sort.api.query.QueryObject;
 
 /**
@@ -76,14 +79,14 @@ final class EntityLoader {
      * checks if there is an entity that we can load
      *
      * @return
+     * @throws InvalidNodeDefinitionException
      */
-    public boolean isEntityThere() throws SQLException {
+    public boolean isEntityThere() throws SortJdbcException, SortQueryException {
         return getEntityKey(false) != null;
     }
 
-    public boolean isNotYetLoaded() throws SQLException {
-        Entity entity = entityContext.getEntity(getEntityType(),
-                getEntityKey(true), false);
+    public boolean isNotYetLoaded() throws SortJdbcException, SortQueryException  {
+        Entity entity = entityContext.getEntity(getEntityType(), getEntityKey(true), false);
         boolean value = entity == null
                 || entity.getEntityState() == EntityState.NOTLOADED;
         return value;
@@ -97,7 +100,7 @@ final class EntityLoader {
         return loadedEntities;
     }
 
-    public Object getEntityKey(boolean mustExist) throws SQLException {
+    public Object getEntityKey(boolean mustExist) throws SortJdbcException, SortQueryException {
         for (ProjectionColumn column : myProjectionCols) {
             if (column.getNodeDefinition().isPrimaryKey()) {
                 Object value = getValue(column);
@@ -123,10 +126,11 @@ final class EntityLoader {
      * Associates an existing entity in the context with queryobject
      *
      * @throws SQLException
+     * @throws SortJdbcException
+     * @throws InvalidNodeDefinitionException
      */
-    public void associateExistingEntity() throws SQLException {
-        Entity entity = entityContext.getEntity(getEntityType(),
-                getEntityKey(true), false);
+    public void associateExistingEntity() throws SortQueryException, SortJdbcException {
+        Entity entity = entityContext.getEntity(getEntityType(), getEntityKey(true), false);
         if (entity == null) {
             throw new IllegalStateException("Entity with type "
                     + getEntityType() + " and key " + getEntityKey(true)
@@ -138,7 +142,7 @@ final class EntityLoader {
         }
     }
 
-    public Entity load() throws SQLException {
+    public Entity load() throws SortQueryException, SortJdbcException {
         Entity entity = entityContext.getOrCreate(getEntityType(), getEntityKey(true));
         entity.setEntityState(EntityState.LOADING);
         for (ValueNode node : entity.getChildren(ValueNode.class)) {
@@ -164,12 +168,11 @@ final class EntityLoader {
         rowCache.clear();
     }
 
-    public Object getValue(ProjectionColumn column) throws SQLException {
+    public Object getValue(ProjectionColumn column) throws SortJdbcException, InvalidNodeDefinitionException, ResultDataConversionException {
         final int index = column.getIndex();
         Object value = rowCache.get(index);
         if (value == null) {
             value = getResultSetValue(resultSet, column);
-            value = convertIfRequired(column, value);
             LOG.debug(String.format("%-5s%-15s = %s", index, column.getColumn(),
                     String.valueOf(value)));
             rowCache.put(column.getIndex(), value != null ? value : NULL_VALUE);
@@ -177,67 +180,14 @@ final class EntityLoader {
         return value != NULL_VALUE ? value : null;
     }
 
-    @SuppressWarnings("incomplete-switch")
     //we fall through and fail at the bottom
-    private Object getResultSetValue(ResultSet rs, ProjectionColumn column)
-            throws SQLException {
+    private Object getResultSetValue(ResultSet rs, ProjectionColumn column) throws SortJdbcException, InvalidNodeDefinitionException, ResultDataConversionException {
         final NodeDefinition nd = column.getNodeDefinition();
         final Integer index = column.getIndex();
         if (nd.getJdbcType() == null) {
-            throw new SQLException("Invalid Node Definition" + nd);
+            throw new InvalidNodeDefinitionException(nd, "Node Definition " + nd + " must have a JDBC type");
         }
 
-        switch (nd.getJdbcType()) {
-        case BIGINT:
-        case INT:
-        case VARCHAR:
-        case NVARCHAR:
-            return rs.getObject(index);
-        case DECIMAL:
-            switch (nd.getJavaType()) {
-            case BIGDECIMAL:
-                return rs.getBigDecimal(index);
-            }
-
-        case TIMESTAMP:
-            switch (nd.getJavaType()) {
-            case LONG: {
-                Timestamp ts = rs.getTimestamp(index);
-                return ts != null ? (Long) ts.getTime() : null;
-            }
-            case UTIL_DATE: {
-                Timestamp ts = rs.getTimestamp(index);
-                return ts != null ? new Date(ts.getTime()) : null;
-            }
-            default:
-                throw new SQLException("Invalid JDBC type " + nd.getJdbcType());
-            }
-        case DATE:
-            switch (nd.getJavaType()) {
-            case LONG: {
-                java.sql.Date date = rs.getDate(index);
-                return date != null ? (Long) date.getTime() : null;
-            }
-            case UTIL_DATE: {
-                java.sql.Date date = rs.getDate(index);
-                return date != null ? new java.util.Date(date.getTime()) : null;
-            }
-            case SQL_DATE: {
-                java.sql.Date date = rs.getDate(index);
-                return date;
-            }
-            default:
-                throw new SQLException("Invalid JDBC type " + nd.getJdbcType());
-            }
-        }
-        throw new SQLException("Invalid JDBC type " + nd.getJdbcType());
-    }
-
-    @SuppressWarnings("unchecked")
-    private <E extends Enum<E>> Object convertIfRequired(ProjectionColumn column, Object value) {
-        if (value == null) {
-            return null;
-        }
         JavaType javaType = column.getNodeDefinition().getJavaType();
         if (javaType == null && column.getNodeDefinition().getRelationInterfaceName() != null) {
             /*
@@ -247,42 +197,132 @@ final class EntityLoader {
             EntityType entityType = entityContext.getDefinitions().getEntityTypeMatchingInterface(column.getNodeDefinition().getRelationInterfaceName(), true);
             javaType = entityType.getNode(entityType.getKeyNodeName(), true).getJavaType();
             if (javaType == null) {
-                throw new IllegalStateException("Could not get javaType for projection column " + column);
+                throw new InvalidNodeDefinitionException(nd, "Could not get javaType for projection column " + column);
             }
         }
-        NodeDefinition nodeDefinition = column.getNodeDefinition();
-        if (nodeDefinition.getEnumType() != null) {
-            if (value instanceof Number) {
-                for (Enum<E> e : java.util.EnumSet.allOf((Class<E>) nodeDefinition
-                        .getEnumType())) {
-                    if (((Integer) e.ordinal()).equals(((Number)value).intValue())) {
-                        LOG.debug("Converted " + value + " to " + e);
-                        return e;
-                    }
+        try {
+            return convertValue(nd, rs.getObject(index), javaType);
+        }
+        catch (SQLException x) {
+            throw new SortJdbcException("SQLException getting object from resultset", x);
+        }
+    }
+
+    private Object convertValue(NodeDefinition nd, Object value, JavaType javaType) throws InvalidNodeDefinitionException, ResultDataConversionException {
+        if  (value == null) {
+            return null;
+        }
+        Object result = null;
+        if (nd.getEnumType() != null) {
+            result = convertToEnum(nd, value);
+        }
+        else {
+            switch (javaType) {
+                case BIGDECIMAL:
+                    result = convertToBigDecimal(value);
+                    break;
+                case BOOLEAN:
+                    result = convertToBoolean(value);
+                    break;
+                case ENUM:
+                    break;
+                case INTEGER:
+                    result = convertToInteger(value);
+                    break;
+                case LONG:
+                    result = convertToLong(value);
+                    break;
+                case SQL_DATE:
+                    result = convertToSqlDate(value);
+                    break;
+                case STRING:
+                    result =  convertToString(value);
+                    break;
+                case UTIL_DATE:
+                    result = convertToUtilDate(value);
+                    break;
+                default:
+                   throw new InvalidNodeDefinitionException(nd, "Java type " + javaType + " is not supported");
+               }
+        }
+        if (result == null) {
+            throw new ResultDataConversionException("Could not convert value " + value + " of type " + value.getClass().getName() + " to " + javaType);
+        }
+        return result;
+    }
+
+    private BigDecimal convertToBigDecimal(Object value) {
+        if (value instanceof BigDecimal) {
+            return (BigDecimal)value;
+        }
+        return null;
+    }
+
+    private Boolean convertToBoolean(Object value) {
+        if (value instanceof Boolean) {
+            return (Boolean)value;
+        }
+        if (value instanceof Number) {
+            return ((Number)value).intValue() == 1;
+        }
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    private <E extends Enum<E>> Object convertToEnum(NodeDefinition nd, Object value) {
+        if (value instanceof Number) {
+            for (Enum<E> e : java.util.EnumSet.allOf((Class<E>) nd.getEnumType())) {
+                if (((Integer) e.ordinal()).equals(((Number)value).intValue())) {
+                    LOG.debug("Converted " + value + " to " + e);
+                    return e;
                 }
             }
-            throw new IllegalStateException("Could not convert from enum");
         }
-        if (nodeDefinition.getJavaType() == JavaType.BOOLEAN) {
-            switch (nodeDefinition.getJdbcType()) {
-            case INT:
-                value = value.equals(Integer.valueOf(1));
-                break;
-            case BIGINT:
-                value = value.equals(Long.valueOf(1));
-                break;
-            default:
-                throw new IllegalStateException(
-                        "We only convert INT and BIGINT to boolean");
-            }
+        throw new IllegalStateException("Could not convert from enum");
+    }
+
+    private Integer convertToInteger(Object value) {
+        if (value instanceof Number) {
+            return ((Number)value).intValue();
         }
-        if (value instanceof BigDecimal) {
-            switch(javaType) {
-                case LONG: return ((BigDecimal)value).longValue();
-                case INTEGER: return ((BigDecimal)value).intValue();
-            }
+        return null;
+    }
+
+    private Long convertToLong(Object value) {
+        if (value instanceof Number) {
+            return ((Number)value).longValue();
         }
-        return value;
+        if (value instanceof java.sql.Timestamp) {
+            return ((java.sql.Timestamp)value).getTime();
+        }
+        return null;
+    }
+
+    private java.sql.Date convertToSqlDate(Object value) {
+        if (value instanceof java.sql.Date) {
+            return (java.sql.Date)value;
+        }
+        if (value instanceof Long) {
+            return new java.sql.Date((Long)value);
+        }
+        return null;
+    }
+
+    private String convertToString(Object value) {
+        if (value instanceof String) {
+            return (String)value;
+        }
+        return null;
+    }
+
+    private Date convertToUtilDate(Object value) {
+        if (value instanceof Date) {
+            return (Date)value;
+        }
+        if (value instanceof Long) {
+            return new Date((Long)value);
+        }
+        return null;
     }
 
 }

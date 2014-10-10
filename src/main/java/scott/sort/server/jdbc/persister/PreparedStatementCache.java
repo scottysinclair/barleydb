@@ -20,9 +20,13 @@ import scott.sort.api.config.*;
 import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.Node;
 import scott.sort.api.core.entity.ToManyNode;
+import scott.sort.api.exception.PersistTransactionRequiredException;
+import scott.sort.api.exception.PreparingPersistStatementException;
+import scott.sort.api.exception.ClosingStatementException;
 import scott.sort.server.jdbc.helper.*;
+import scott.sort.server.jdbc.resources.ConnectionResources;
 
-class PreparedStatementCache {
+class PreparedStatementCache implements AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(PreparedStatementCache.class);
 
@@ -36,48 +40,89 @@ class PreparedStatementCache {
         this.helper = new PreparedStatementHelper(definitions);
     }
 
-    public PreparedStatement prepareInsertStatement(Entity entity, Long newOptimisticLockTime) throws SQLException {
+    public PreparedStatement prepareInsertStatement(Entity entity, Long newOptimisticLockTime) throws PreparingPersistStatementException, PersistTransactionRequiredException {
         PreparedStatement ps = inserts.get(entity.getEntityType());
         if (ps == null) {
-            Connection connection = (Connection) entity.getEntityContext().getResource(Connection.class.getName(), true);
-            ps = connection.prepareStatement(generateInsertSql(entity));
+            ConnectionResources conRes = ConnectionResources.getMandatoryForPersist(entity.getEntityContext());
+            try {
+                ps = conRes.getConnection().prepareStatement(generateInsertSql(entity));
+            }
+            catch (SQLException x) {
+                throw new PreparingPersistStatementException("SQLException preparing statement", x);
+            }
             inserts.put(entity.getEntityType(), ps);
         }
         setInsertParameters(ps, entity, newOptimisticLockTime);
         return ps;
     }
 
-    public PreparedStatement prepareUpdateStatement(Entity entity, Long newOptimisticLockTime) throws SQLException {
+    public PreparedStatement prepareUpdateStatement(Entity entity, Long newOptimisticLockTime) throws PreparingPersistStatementException, PersistTransactionRequiredException {
         PreparedStatement ps = updates.get(entity.getEntityType());
         if (ps == null) {
-            Connection connection = (Connection) entity.getEntityContext().getResource(Connection.class.getName(), true);
-            ps = connection.prepareStatement(generateUpdateSql(entity));
-            updates.put(entity.getEntityType(), ps);
+            ConnectionResources conRes = ConnectionResources.getMandatoryForPersist(entity.getEntityContext());
+            try {
+                ps = conRes.getConnection().prepareStatement(generateUpdateSql(entity));
+                updates.put(entity.getEntityType(), ps);
+            }
+            catch(SQLException x) {
+                throw new PreparingPersistStatementException("SQLException preparing statement", x);
+            }
         }
         setUpdateParameters(ps, entity, newOptimisticLockTime);
         return ps;
     }
 
-    public PreparedStatement prepareDeleteStatement(Entity entity) throws SQLException {
+    public PreparedStatement prepareDeleteStatement(Entity entity) throws PreparingPersistStatementException, PersistTransactionRequiredException {
         PreparedStatement ps = deletes.get(entity.getEntityType());
         if (ps == null) {
-            Connection connection = (Connection) entity.getEntityContext().getResource(Connection.class.getName(), true);
-            ps = connection.prepareStatement(generateDeleteSql(entity));
+            ConnectionResources conRes = ConnectionResources.getMandatoryForPersist(entity.getEntityContext());
+            try {
+                ps = conRes.getConnection().prepareStatement(generateDeleteSql(entity));
+            }
+            catch (SQLException x) {
+                throw new PreparingPersistStatementException("SQLException preparing statement", x);
+            }
             deletes.put(entity.getEntityType(), ps);
         }
         setDeleteParameters(ps, entity);
         return ps;
     }
 
-    public void close() throws SQLException {
+    @Override
+    public void close() throws ClosingStatementException {
+        ClosingStatementException x = null;
         for (PreparedStatement ps : inserts.values()) {
-            ps.close();
+            try {
+                ps.close();
+            }
+            catch (SQLException e) {
+              if (x == null) {
+                  x = new ClosingStatementException("SQLException closing prepared statement", e);
+              }
+            }
         }
         for (PreparedStatement ps : updates.values()) {
-            ps.close();
+            try {
+                ps.close();
+            }
+            catch (SQLException e) {
+                if (x == null) {
+                    x = new ClosingStatementException("SQLException closing prepared statement", e);
+                }
+            }
         }
         for (PreparedStatement ps : deletes.values()) {
-            ps.close();
+            try {
+                ps.close();
+            }
+            catch (SQLException e) {
+                if (x == null) {
+                    x = new ClosingStatementException("SQLException closing prepared statement", e);
+                }
+            }
+        }
+        if (x != null) {
+            throw x;
         }
     }
 
@@ -146,7 +191,7 @@ class PreparedStatementCache {
         }
     }
 
-    private void setInsertParameters(PreparedStatement ps, Entity entity, Long newOptimisticLockTime) throws SQLException {
+    private void setInsertParameters(PreparedStatement ps, Entity entity, Long newOptimisticLockTime) throws PreparingPersistStatementException {
         int i = 1;
         for (final Node child : entity.getChildren()) {
             if (child instanceof ToManyNode) {
@@ -162,7 +207,7 @@ class PreparedStatementCache {
         }
     }
 
-    private void setUpdateParameters(PreparedStatement ps, Entity entity, Long newOptimisticLockTime) throws SQLException {
+    private void setUpdateParameters(PreparedStatement ps, Entity entity, Long newOptimisticLockTime) throws PreparingPersistStatementException {
         int i = 1;
         for (final Node child : entity.getChildren()) {
             if (child instanceof ToManyNode) {
@@ -185,7 +230,7 @@ class PreparedStatementCache {
         }
     }
 
-    private void setDeleteParameters(PreparedStatement ps, Entity entity) throws SQLException {
+    private void setDeleteParameters(PreparedStatement ps, Entity entity) throws PreparingPersistStatementException {
         helper.setParameter(ps, 1, entity.getKey());
         Node olNode = entity.getOptimisticLock();
         if (olNode != null) {

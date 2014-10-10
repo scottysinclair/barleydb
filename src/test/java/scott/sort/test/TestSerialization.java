@@ -109,8 +109,7 @@ public class TestSerialization extends TestBase {
 
         request.save(syntaxModel);
 
-        Persister persister = new Persister(env, namespace);
-        persister.persist(request);
+        entityContext.persist(request);
 
         System.out.println("-------------- PRINTING RESULT OF PERIST ------------------");
         print("", syntaxModel);

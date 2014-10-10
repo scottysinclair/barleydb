@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -44,11 +45,14 @@ import scott.sort.api.core.QueryBatcher;
 import scott.sort.api.core.QueryRegistry;
 import scott.sort.api.core.entity.context.Entities;
 import scott.sort.api.core.entity.context.EntityInfo;
+import scott.sort.api.exception.SortJdbcException;
+import scott.sort.api.exception.SortQueryException;
 import scott.sort.api.query.QProperty;
 import scott.sort.api.query.QueryObject;
 import scott.sort.server.jdbc.persister.PersistAnalyser;
 import scott.sort.server.jdbc.persister.PersistRequest;
 import scott.sort.server.jdbc.persister.exception.OptimisticLockMismatchException;
+import scott.sort.server.jdbc.persister.exception.SortPersistException;
 import scott.sort.server.jdbc.queryexecution.QueryResult;
 import static scott.sort.api.core.entity.EntityContextHelper.toParents;
 
@@ -66,10 +70,15 @@ public final class EntityContext implements Serializable {
     private final String namespace;
     private Entities entities;
     private EntityContextState entityContextState;
+
     private transient Environment env;
     private transient final QueryRegistry userQueryRegistry;
     private transient Definitions definitions;
     private transient Map<Entity, WeakReference<ProxyHolder<Object>>> proxies;
+    /**
+     * A place to store extra resources like transaction information
+     */
+    private transient Map<String,Object> resources;
 
     private static class ProxyHolder<T> {
         private List<DeleteListener<T>> listeners = null;
@@ -106,6 +115,7 @@ public final class EntityContext implements Serializable {
          */
         entities = new Entities();
         proxies = new WeakHashMap<Entity, WeakReference<ProxyHolder<Object>>>();
+        resources = new HashMap<String, Object>();
     }
 
     public void register(QueryObject<?>... qos) {
@@ -116,8 +126,32 @@ public final class EntityContext implements Serializable {
         return namespace;
     }
 
+    public void setAutocommit(boolean value) throws SortJdbcException {
+        env.setAutocommit(this, value);
+    }
+
+    public boolean getAutocommit() throws SortJdbcException {
+        return env.getAutocommit(this);
+    }
+
+    public void rollback() throws SortJdbcException {
+        env.rollback(this);
+    }
+
     public Object getResource(String key, boolean required) {
-        return env.getThreadLocalResource(key, required);
+        Object value = resources.get(key);
+        if (value == null && required) {
+            throw new IllegalStateException("Could not get resource '" + key + "'");
+        }
+        return value;
+    }
+
+    public Object setResource(String key, Object resource) {
+        return resources.put(key, resource);
+    }
+
+    public Object removeResource(String key) {
+        return resources.remove(key);
     }
 
     public Environment getEnv() {
@@ -314,29 +348,29 @@ public final class EntityContext implements Serializable {
         this.entityContextState = EntityContextState.USER;
     }
 
-    public <T> void performQueries(QueryBatcher queryBatcher) throws Exception {
+    public <T> void performQueries(QueryBatcher queryBatcher) throws SortJdbcException, SortQueryException {
         /*
          * Performs the query in a fresh context which is copied back to us
          * it gives us control over any replace vs merge logic.
          *
          * It's also means that we don't potentially send our full entity context across the wire
          */
-        queryBatcher = env.services().execute(namespace, new EntityContext(env, namespace), queryBatcher);
+        queryBatcher = env.services().execute(namespace, newEntityContextSharingTransaction(), queryBatcher);
         queryBatcher.copyResultTo(this);
     }
 
-    public <T> QueryResult<T> performQuery(QueryObject<T> queryObject) throws Exception {
+    public <T> QueryResult<T> performQuery(QueryObject<T> queryObject) throws SortJdbcException, SortQueryException {
         /*
          * performs the query in a fresh context which is copied back to us
          * it gives us control over any replace vs merge logic
          *
          * It's also means that we don't potentially send our full entity context across the wire
          */
-        QueryResult<T> queryResult = env.services().execute(namespace, new EntityContext(env, namespace), queryObject);
+        QueryResult<T> queryResult = env.services().execute(namespace, newEntityContextSharingTransaction(), queryObject);
         return queryResult.copyResultTo(this);
     }
 
-    public void persist(PersistRequest persistRequest) throws Exception {
+    public void persist(PersistRequest persistRequest) throws SortJdbcException, SortPersistException  {
         beginSaving();
         try {
             PersistAnalyser analyser = new PersistAnalyser(this);
@@ -459,6 +493,12 @@ public final class EntityContext implements Serializable {
         return entity;
     }
 
+    public EntityContext newEntityContextSharingTransaction() {
+        EntityContext entityContext = new EntityContext(env, namespace);
+        env.joinTransaction(entityContext, this);
+        return entityContext;
+    }
+
     /**
      * Returns the entity from the context, loading it first if required.
      * @param entityType
@@ -470,7 +510,7 @@ public final class EntityContext implements Serializable {
         if (entity != null) {
             return entity;
         }
-        EntityContext tmp = new EntityContext(env, namespace);
+        EntityContext tmp = newEntityContextSharingTransaction();
         entity = new Entity(tmp, entityType, key);
         tmp.add(entity);
         tmp.fetchSingle(entity, true);

@@ -10,17 +10,16 @@ package scott.sort.api.core;
  * #L%
  */
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import scott.sort.api.config.Definitions;
 import scott.sort.api.config.DefinitionsSet;
 import scott.sort.api.core.entity.Entity;
+import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.core.proxy.EntityProxy;
 import scott.sort.api.core.proxy.ProxyFactory;
+import scott.sort.api.exception.SortJdbcException;
 import scott.sort.api.query.QueryObject;
 import scott.sort.server.jdbc.persister.SequenceGenerator;
 import scott.sort.server.jdbc.queryexecution.QueryPreProcessor;
@@ -44,16 +43,14 @@ public final class Environment {
 
     private SequenceGenerator sequenceGenerator;
 
-    private static final ThreadLocal<Map<String, Object>> resources = new ThreadLocal<Map<String, Object>>() {
-        protected Map<String, Object> initialValue() {
-            return new HashMap<>();
-        }
-    };
-
     public void preProcess(QueryObject<?> query, Definitions definitions) {
         if (queryPreProcessor != null) {
             queryPreProcessor.preProcess(query, definitions);
         }
+    }
+
+    public IEntityContextServices getEntityContextServices() {
+        return entityContextServices;
     }
 
     public void setQueryPreProcessor(QueryPreProcessor queryPreProcessor) {
@@ -65,14 +62,6 @@ public final class Environment {
         this.definitionsSet = new DefinitionsSet();
     }
 
-    public Object getThreadLocalResource(String key, boolean required) {
-        Object o = resources.get().get(key);
-        if (o == null && required) {
-            throw new IllegalStateException("Resource '" + key + "' is required.");
-        }
-        return o;
-    }
-
     public SequenceGenerator getSequenceGenerator() {
         return sequenceGenerator;
     }
@@ -81,16 +70,20 @@ public final class Environment {
         this.sequenceGenerator = sequenceGenerator;
     }
 
-    public void setThreadLocalResource(String key, Object value) {
-        resources.get().put(key, value);
+    public void setAutocommit(EntityContext entityContext, boolean value) throws SortJdbcException {
+        entityContextServices.setAutocommit(entityContext, value);
     }
 
-    public void clearThreadLocalResource(String key) {
-        resources.get().remove(key);
+    public void joinTransaction(EntityContext newContext, EntityContext context) {
+        entityContextServices.joinTransaction(newContext, context);
     }
 
-    public void clearThreadLocalResources() {
-        resources.remove();
+    public boolean getAutocommit(EntityContext entityContext) throws SortJdbcException {
+        return entityContextServices.getAutocommit(entityContext);
+    }
+
+    public void rollback(EntityContext entityContext) throws SortJdbcException {
+        entityContextServices.rollback(entityContext);
     }
 
     /**

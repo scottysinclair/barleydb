@@ -26,6 +26,8 @@ import scott.sort.api.core.entity.EntityState;
 import scott.sort.api.core.entity.RefNode;
 import scott.sort.api.core.entity.ToManyNode;
 import scott.sort.api.core.entity.ValueNode;
+import scott.sort.api.exception.SortJdbcException;
+import scott.sort.api.exception.SortQueryException;
 import scott.sort.api.query.QJoin;
 import scott.sort.api.query.QueryObject;
 import scott.sort.server.jdbc.queryexecution.QueryGenerator.Param;
@@ -69,12 +71,17 @@ public class QueryExecution<T> {
         return entityType.getTableName();
     }
 
-    void processResultSet(ResultSet resultSet) throws SQLException {
+    void processResultSet(ResultSet resultSet) throws SortJdbcException, SortQueryException {
         int row = 1;
-        while (resultSet.next()) {
-            LOG.debug("======== row " + row + " =======");
-            processRow(resultSet);
-            row++;
+        try {
+            while (resultSet.next()) {
+                LOG.debug("======== row " + row + " =======");
+                processRow(resultSet);
+                row++;
+            }
+        }
+        catch (SQLException x) {
+            throw new SortJdbcException("SQLException getting next result set", x);
         }
     }
 
@@ -257,9 +264,10 @@ public class QueryExecution<T> {
     /**
      * Processes a row of the resultset
      * @param resultSet
+     * @throws SortQueryException
      * @throws SQLException
      */
-    private void processRow(ResultSet resultSet) throws SQLException {
+    private void processRow(ResultSet resultSet) throws SortJdbcException, SortQueryException {
         if (entityLoaders == null) {
             entityLoaders = new EntityLoaders(projection, resultSet, entityContext);
         }

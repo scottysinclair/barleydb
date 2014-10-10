@@ -12,7 +12,7 @@ package scott.sort.server.jdbc.persister.exception;
 
 import scott.sort.api.config.EntityType;
 
-public class PrimaryKeyExistsException extends PersistException {
+public class PrimaryKeyExistsException extends SortPersistException {
 
     private static final long serialVersionUID = 1L;
 

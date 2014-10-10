@@ -12,7 +12,7 @@ package scott.sort.server.jdbc.persister.exception;
 
 import scott.sort.api.core.entity.Entity;
 
-public class OptimisticLockMismatchException extends PersistException {
+public class OptimisticLockMismatchException extends SortPersistException {
 
     private static final long serialVersionUID = 1L;
 

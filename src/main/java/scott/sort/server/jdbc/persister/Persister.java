@@ -24,6 +24,9 @@ import scott.sort.api.core.entity.Node;
 import scott.sort.api.core.entity.RefNode;
 import scott.sort.api.core.entity.ToManyNode;
 import scott.sort.api.core.entity.ValueNode;
+import scott.sort.api.exception.PreparingPersistStatementException;
+import scott.sort.api.exception.SortJdbcException;
+import scott.sort.api.exception.SortQueryException;
 import scott.sort.server.jdbc.persister.audit.AuditInformation;
 import scott.sort.server.jdbc.persister.audit.AuditRecord;
 import scott.sort.server.jdbc.persister.audit.Change;
@@ -41,68 +44,13 @@ public class Persister {
         this.namespace = namespace;
     }
 
-    /**
-     * persists the data in the persist request accordingly.
-     */
-    public void persist(PersistRequest persistRequest) throws Exception {
-        if (persistRequest.isEmpty()) {
-            return;
-        }
+    public void persist(PersistAnalyser analyser) throws SortPersistException {
+        DatabaseDataSet databaseDataSet = new DatabaseDataSet(analyser.getEntityContext());
         try {
-            logStep("Executing perist request " + persistRequest);
-            persistRequest.getEntityContext().beginSaving();
-            doPersist(persistRequest);
-            logStep("Successfully executed perist request " + persistRequest);
-            logStep("");
-        } catch (Exception x) {
-            logStep("Exception while executing perist request " + persistRequest);
-            throw x;
-        } finally {
-            persistRequest.getEntityContext().endSaving();
+            loadAndValidate(databaseDataSet, analyser.getUpdateGroup(), analyser.getDeleteGroup(), analyser.getDependsOnGroup());
+        } catch (SortJdbcException x) {
+            throw new SortPersistException("Error loading original data", x);
         }
-    }
-
-    private void doPersist(PersistRequest persistRequest) throws Exception {
-        logStep("Analysing request");
-        PersistAnalyser analyser = new PersistAnalyser(persistRequest.getEntityContext());
-        analyser.analyse(persistRequest);
-        LOG.debug(analyser.report());
-
-        PersistAnalyser originalAnalyser = analyser;
-        analyser = analyser.deepCopy();
-        try {
-            persist(analyser);
-
-            //we have performed the JDBC commit so copy the state back across
-            analyser.applyChanges(originalAnalyser.getEntityContext());
-        } catch (OptimisticLockMismatchException x) {
-            //make the exception refer to the original entities
-            throw switchEntities(persistRequest.getEntityContext(), x);
-        }
-    }
-
-    /**
-     * Persists based on the analyser data
-     * @param analyser
-     * @throws Exception
-     */
-    public void persist(PersistAnalyser analyser) throws Exception {
-        try {
-            doPersist(analyser);
-        } catch (Exception x) {
-            Connection connection = (Connection) env.getThreadLocalResource(Connection.class.getName(), false);
-            if (connection != null) {
-                connection.rollback();
-            }
-            throw x;
-        }
-    }
-
-    private void doPersist(PersistAnalyser analyser) throws Exception {
-        LOG.debug("PRINTING REPORT AGAIN FROM COPY\n" + analyser.report());
-
-        DatabaseDataSet databaseDataSet = new DatabaseDataSet(env, namespace);
-        loadAndValidate(databaseDataSet, analyser.getUpdateGroup(), analyser.getDeleteGroup(), analyser.getDependsOnGroup());
 
         setPrimaryKeys(analyser.getCreateGroup());
 
@@ -158,24 +106,31 @@ public class Persister {
         /*
          * We always insert before we update, in-case a pending update depends on a created record
          */
-        insert(analyser.getCreateGroup(), newOptimisticLockTime);
+        try {
+            insert(analyser.getCreateGroup(), newOptimisticLockTime);
+        }
+        catch (SortJdbcException x) {
+            throw new SortPersistException("Error during insert", x);
+        }
 
         /*
          * We always update before we delete, in-case a delete depends on a FK removal.
          */
-        update(analyser.getUpdateGroup(), newOptimisticLockTime);
+        try {
+            update(analyser.getUpdateGroup(), newOptimisticLockTime);
+        }
+        catch (SortJdbcException x) {
+            throw new SortPersistException("Error during update", x);
+        }
 
-        delete(analyser.getDeleteGroup());
+        try {
+            delete(analyser.getDeleteGroup());
+        }
+        catch (SortJdbcException x) {
+            throw new SortPersistException("Error during delete", x);
+        }
 
         insert(audit);
-
-        /*
-         * perform the commit
-         * TODO: REMOVE FROM HERE AND PROVIDE PLUGIN FOR SPRING TRANSACTION SUPPORT.
-         *
-         */
-        Connection connection = (Connection) env.getThreadLocalResource(Connection.class.getName(), true);
-        connection.commit();
 
         /*
          * updates the optimistic lock nodes for all created and updated entities
@@ -217,11 +172,17 @@ public class Persister {
      * @param updateGroup
      * @param deleteGroup
      * @param dependsOnGroup
-     * @throws Exception
+     * @throws SortJdbcException
+     * @throws SortPersistException
      */
-    private void loadAndValidate(DatabaseDataSet databaseDataSet, OperationGroup updateGroup, OperationGroup deleteGroup, OperationGroup dependsOnGroup) throws Exception {
+    private void loadAndValidate(DatabaseDataSet databaseDataSet, OperationGroup updateGroup, OperationGroup deleteGroup, OperationGroup dependsOnGroup) throws SortJdbcException, SortPersistException  {
         logStep("Loading dataset from database");
-        databaseDataSet.loadEntities(updateGroup, deleteGroup, dependsOnGroup);
+        try {
+            databaseDataSet.loadEntities(updateGroup, deleteGroup, dependsOnGroup);
+        }
+        catch (SortQueryException x) {
+            throw new SortPersistException("Could not load entities for validation and audit", x);
+        }
         for (Entity entity : iterable(updateGroup, deleteGroup, dependsOnGroup)) {
             Entity databaseEntity = databaseDataSet.getEntity(entity.getEntityType(), entity.getKey().getValue());
             if (databaseEntity == null) {
@@ -538,48 +499,48 @@ public class Persister {
         }
     }
 
-    private void insert(OperationGroup createGroup, final Long optimisticLockTime) throws Exception {
+    private void insert(OperationGroup createGroup, final Long optimisticLockTime) throws SortPersistException, SortJdbcException  {
         logStep("Performing inserts");
         BatchExecuter batchExecuter = new BatchExecuter(createGroup, "insert") {
             @Override
-            protected PreparedStatement prepareStatement(PreparedStatementCache psCache, Entity entity) throws SQLException {
+            protected PreparedStatement prepareStatement(PreparedStatementCache psCache, Entity entity) throws SortPersistException {
                 return psCache.prepareInsertStatement(entity, optimisticLockTime);
             }
 
             @Override
-            protected void handleFailure(Entity entity, Throwable throwable) throws Exception {
+            protected void handleFailure(Entity entity, Throwable throwable) throws SortPersistException {
                 handleInsertFailure(entity, throwable);
             }
         };
         batchExecuter.execute(env.getDefinitions(namespace));
     }
 
-    private void update(OperationGroup updateGroup, final Long newOptimisticLockTime) throws Exception {
+    private void update(OperationGroup updateGroup, final Long newOptimisticLockTime) throws PreparingPersistStatementException, SortJdbcException, SortPersistException {
         logStep("Performing updates");
         BatchExecuter batchExecuter = new BatchExecuter(updateGroup, "update") {
             @Override
-            protected PreparedStatement prepareStatement(PreparedStatementCache psCache, Entity entity) throws SQLException {
+            protected PreparedStatement prepareStatement(PreparedStatementCache psCache, Entity entity) throws SortPersistException {
                 return psCache.prepareUpdateStatement(entity, newOptimisticLockTime);
             }
 
             @Override
-            protected void handleFailure(Entity entity, Throwable throwable) throws Exception {
+            protected void handleFailure(Entity entity, Throwable throwable) throws SortPersistException {
                 handleUpdateFailure(entity, throwable);
             }
         };
         batchExecuter.execute(env.getDefinitions(namespace));
     }
 
-    private void delete(OperationGroup deleteGroup) throws Exception {
+    private void delete(OperationGroup deleteGroup) throws PreparingPersistStatementException, SortPersistException, SortJdbcException {
         logStep("Performing deletes");
         BatchExecuter batchExecuter = new BatchExecuter(deleteGroup, "delete") {
             @Override
-            protected PreparedStatement prepareStatement(PreparedStatementCache psCache, Entity entity) throws SQLException {
+            protected PreparedStatement prepareStatement(PreparedStatementCache psCache, Entity entity) throws SortPersistException {
                 return psCache.prepareDeleteStatement(entity);
             }
 
             @Override
-            protected void handleFailure(Entity entity, Throwable throwable) throws Exception {
+            protected void handleFailure(Entity entity, Throwable throwable) throws SortPersistException {
                 handleDeleteFailure(entity, throwable);
             }
         };
@@ -679,19 +640,19 @@ public class Persister {
         return list;
     }
 
-    private void handleInsertFailure(Entity entity, Throwable throwable) throws PersistException {
-        EntityContext tempCtx = new EntityContext(env, namespace);
+    private void handleInsertFailure(Entity entity, Throwable throwable) throws SortPersistException {
+        EntityContext tempCtx = entity.getEntityContext().newEntityContextSharingTransaction();
         Entity loadedEntity = tempCtx.getOrLoad(entity.getEntityType(), entity.getKey().getValue());
         if (loadedEntity != null) {
             throw new PrimaryKeyExistsException(entity.getEntityType(), entity.getKey().getValue());
         }
         else {
-            throw new PersistException("Could not insert entity: " + entity, throwable);
+            throw new SortPersistException("Could not insert entity: " + entity, throwable);
         }
     }
 
-    private void handleUpdateFailure(Entity entity, Throwable throwable) throws PersistException {
-        EntityContext tempCtx = new EntityContext(env, namespace);
+    private void handleUpdateFailure(Entity entity, Throwable throwable) throws SortPersistException {
+        EntityContext tempCtx = entity.getEntityContext().newEntityContextSharingTransaction();
         Entity loadedEntity = tempCtx.getOrLoad(entity.getEntityType(), entity.getKey().getValue());
         if (loadedEntity == null) {
             throw new EntityMissingException(entity.getEntityType(), entity.getKey().getValue());
@@ -700,24 +661,12 @@ public class Persister {
             throw new OptimisticLockMismatchException(entity, loadedEntity);
         }
         else {
-            throw new PersistException("Could not update entity: " + entity, throwable);
+            throw new SortPersistException("Could not update entity: " + entity, throwable);
         }
     }
 
-    private void handleDeleteFailure(Entity entity, Throwable throwable) throws PersistException {
+    private void handleDeleteFailure(Entity entity, Throwable throwable) throws SortPersistException {
         handleUpdateFailure(entity, throwable);
     }
 
-    /**
-     * Switches the entities on the exception, used when we copy the entity context before persisting.
-     * @param entityContext
-     * @param x
-     * @return
-     */
-    private OptimisticLockMismatchException switchEntities(EntityContext entityContext, OptimisticLockMismatchException x) {
-        Entity oe = entityContext.getEntityByUuid(x.getEntity().getUuid(), true);
-        OptimisticLockMismatchException xnew = new OptimisticLockMismatchException(oe, x.getDatabaseEntity());
-        xnew.setStackTrace(x.getStackTrace());
-        return xnew;
-    }
 }

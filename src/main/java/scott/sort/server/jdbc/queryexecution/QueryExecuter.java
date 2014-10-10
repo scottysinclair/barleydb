@@ -22,6 +22,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import scott.sort.api.core.entity.EntityContext;
+import scott.sort.api.exception.PreparingPersistStatementException;
+import scott.sort.api.exception.SortJdbcException;
+import scott.sort.api.exception.SortQueryException;
+import scott.sort.server.jdbc.database.Database;
 import scott.sort.server.jdbc.helper.PreparedStatementHelper;
 import scott.sort.server.jdbc.queryexecution.QueryGenerator.Param;
 
@@ -40,17 +44,12 @@ public class QueryExecuter {
 
     private final Connection connection;
     private final EntityContext entityContext;
-    private final boolean supportsMultipleResultSets;
+    private final Database database;
 
-    public QueryExecuter(Connection connection, EntityContext entityContext) throws SQLException {
+    public QueryExecuter(Database database, Connection connection, EntityContext entityContext)  {
+        this.database = database;
         this.connection = connection;
         this.entityContext = entityContext;
-        if (connection.getMetaData().getDriverName().equals("HSQL Database Engine Driver")) {
-            this.supportsMultipleResultSets = false;
-        }
-        else {
-            this.supportsMultipleResultSets = connection.getMetaData().supportsMultipleResultSets();
-        }
     }
 
     /**
@@ -58,23 +57,29 @@ public class QueryExecuter {
      *
      * If possible, in one database roundtrip.
      * @param queryExecutions
+     * @throws PreparingPersistStatementException
+     * @throws SortQueryException
      * @throws SQLException
      * @throws Exception
      */
-    public void execute(QueryExecution<?>... queryExecutions) throws SQLException, Exception {
+    public void execute(QueryExecution<?>... queryExecutions) throws SortJdbcException, SortQueryException  {
         entityContext.beginLoading();
         try {
             performExecute(queryExecutions);
-        } finally {
+        }
+        catch (PreparingPersistStatementException x) {
+            throw new SortQueryException("Error preparing query statement", x);
+        }
+        finally {
             entityContext.endLoading();
         }
     }
 
-    private void performExecute(QueryExecution<?>... queryExecutions) throws Exception {
+    private void performExecute(QueryExecution<?>... queryExecutions) throws SortJdbcException, PreparingPersistStatementException, SortQueryException {
         if (queryExecutions == null || queryExecutions.length == 0) {
             return;
         }
-        if (!supportsMultipleResultSets || queryExecutions.length == 1) {
+        if (!database.supportsMultipleResultSets() || queryExecutions.length == 1) {
             for (QueryExecution<?> qExec : queryExecutions) {
                 executeQuery(qExec);
             }
@@ -85,20 +90,36 @@ public class QueryExecuter {
             String sql = createCombinedQuery(params, queryExecutions);
             if (!params.isEmpty()) {
                 try (PreparedStatement stmt = connection.prepareStatement(sql);) {
-                    //the first query execution will set all parameters
-                    setParameters(stmt, params);
-                    if (!stmt.execute()) {
-                        throw new IllegalStateException("Query did not return a result set");
+                    try {
+                        //the first query execution will set all parameters
+                        setParameters(stmt, params);
+                        if (!stmt.execute()) {
+                            throw new IllegalStateException("Query did not return a result set");
+                        }
+                        processResults(stmt, queryExecutions);
+                        }
+                    catch (SQLException x) {
+                        throw new SortJdbcException("SQLException on prepared statement execute", x);
                     }
-                    processResults(stmt, queryExecutions);
+                }
+                catch(SQLException x) {
+                    throw new PreparingPersistStatementException("SQLException creating prepared statement", x);
                 }
             }
             else {
                 try (Statement stmt = connection.createStatement();) {
-                    if (!stmt.execute(sql)) {
-                        throw new IllegalStateException("Query did not return a result set");
+                    try {
+                        if (!stmt.execute(sql)) {
+                            throw new IllegalStateException("Query did not return a result set");
+                        }
+                    }
+                    catch (SQLException x) {
+                        throw new SortJdbcException("SQLException on statement execute", x);
                     }
                     processResults(stmt, queryExecutions);
+                }
+                catch (SQLException x) {
+                    throw new SortJdbcException("SQLException on statement create", x);
                 }
             }
         }
@@ -110,7 +131,7 @@ public class QueryExecuter {
         }
     }
 
-    private void processResults(Statement stmt, QueryExecution<?>... queryExecutions) throws Exception {
+    private void processResults(Statement stmt, QueryExecution<?>... queryExecutions) throws SortJdbcException, SortQueryException  {
         int queryIndex = 0;
         int countResultSets = 0;
         boolean finished = false;
@@ -118,14 +139,27 @@ public class QueryExecuter {
             try (ResultSet resultSet = stmt.getResultSet();) {
                 queryExecutions[queryIndex++].processResultSet(resultSet);
             }
+            catch (SQLException x) {
+                throw new SortJdbcException("SQLException getting the statement result", x);
+            }
             countResultSets++;
 
             //There are no more results when the following is true:
             //((stmt.getMoreResults() == false) && (stmt.getUpdateCount() == -1))
-            while (!finished && stmt.getMoreResults() == false) {
-                if (stmt.getUpdateCount() == -1) {
-                    finished = true;
+            try {
+                while (!finished && stmt.getMoreResults() == false) {
+                    try {
+                        if (stmt.getUpdateCount() == -1) {
+                            finished = true;
+                        }
+                    }
+                    catch (SQLException x) {
+                        throw new SortJdbcException("SQLException calling getUpdateCount on the statement", x);
+                    }
                 }
+            }
+            catch (SQLException x) {
+                throw new SortJdbcException("SQLException calling getMoreResults on the statement", x);
             }
         } while (!finished);
         if (countResultSets != queryExecutions.length) {
@@ -136,9 +170,10 @@ public class QueryExecuter {
     /**
      * Executes a single query expecting one resultset.
      * @param queryExecution
+     * @throws SortQueryException
      * @throws SQLException
      */
-    private void executeQuery(QueryExecution<?> queryExecution) throws SQLException {
+    private void executeQuery(QueryExecution<?> queryExecution) throws SortJdbcException, PreparingPersistStatementException, SortQueryException  {
         List<Param> params = new LinkedList<Param>();
         String sql = queryExecution.getSql(params);
         if (!params.isEmpty()) {
@@ -149,6 +184,12 @@ public class QueryExecuter {
                 try (ResultSet resultSet = stmt.executeQuery()) {
                     queryExecution.processResultSet(resultSet);
                 }
+                catch (SQLException x) {
+                    throw new SortJdbcException("SQLException executing the prepared statement query", x);
+                }
+            }
+            catch (SQLException x) {
+                throw new PreparingPersistStatementException("SQLException preparing statement", x);
             }
         }
         else {
@@ -158,11 +199,17 @@ public class QueryExecuter {
                 try (ResultSet resultSet = stmt.executeQuery(sql)) {
                     queryExecution.processResultSet(resultSet);
                 }
+                catch (SQLException x) {
+                    throw new SortJdbcException("SQLException executing the statement query", x);
+                }
+            }
+            catch (SQLException x) {
+                throw new SortJdbcException("SQLException creating statement", x);
             }
         }
     }
 
-    private void setParameters(PreparedStatement stmt, List<Param> params) throws SQLException {
+    private void setParameters(PreparedStatement stmt, List<Param> params) throws PreparingPersistStatementException {
         int i = 1;
         PreparedStatementHelper helper = new PreparedStatementHelper(entityContext.getDefinitions());
         for (QueryGenerator.Param param : params) {

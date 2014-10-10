@@ -90,7 +90,7 @@ public class TestDatabaseDataSet extends TestBase {
         analyser.analyse(request);
         printAnalysis(analyser);
 
-        DatabaseDataSet databaseDataSet = new DatabaseDataSet(env, namespace);
+        DatabaseDataSet databaseDataSet = new DatabaseDataSet(entityContext);
         databaseDataSet.loadEntities(analyser.getUpdateGroup(), analyser.getDeleteGroup(), analyser.getDependsOnGroup());
         assertEquals(8, countLoadedEntities(databaseDataSet.getOwnEntityContext()));
     }

@@ -22,6 +22,10 @@ import org.slf4j.LoggerFactory;
 
 import scott.sort.api.config.Definitions;
 import scott.sort.api.core.entity.Entity;
+import scott.sort.api.exception.PreparingPersistStatementException;
+import scott.sort.api.exception.AddBatchException;
+import scott.sort.api.exception.SortJdbcException;
+import scott.sort.server.jdbc.persister.exception.SortPersistException;
 
 /**
  * Executes batch operations on a set of entities across various tables.
@@ -41,44 +45,63 @@ abstract class BatchExecuter {
         this.operationName = operationName;
     }
 
-    public void execute(Definitions definitions) throws Exception {
+    public void execute(Definitions definitions) throws PreparingPersistStatementException, SortPersistException, SortJdbcException {
         if (group.getEntities().isEmpty()) {
             return;
         }
-        PreparedStatementCache psCache = new PreparedStatementCache(definitions);
-        PreparedStatement psLast = null;
-        List<Entity> entities = new LinkedList<>();
-        for (Entity entity : group.getEntities()) {
-            PreparedStatement ps = prepareStatement(psCache, entity);
-            if (psLast != null && psLast != ps) {
-                executeBatch(psLast, entities);
-                entities.clear();
+        try ( PreparedStatementCache psCache = new PreparedStatementCache(definitions);) {
+            PreparedStatement psLast = null;
+            List<Entity> entities = new LinkedList<>();
+            for (Entity entity : group.getEntities()) {
+                PreparedStatement ps = prepareStatement(psCache, entity);
+                if (psLast != null && psLast != ps) {
+                    executeBatch(psLast, entities);
+                    entities.clear();
 
+                }
+                try {
+                    ps.addBatch();
+                }
+                catch(SQLException x) {
+                    throw new AddBatchException("SQLException adding batch", x);
+
+                }
+                entities.add(entity);
+                psLast = ps;
             }
-            ps.addBatch();
-            entities.add(entity);
-            psLast = ps;
+            executeBatch(psLast, entities);
         }
-        executeBatch(psLast, entities);
-        psCache.close();
     }
 
-    private void executeBatch(PreparedStatement ps, List<Entity> entities) throws Exception {
-        LOG.debug("Executing " + operationName + " batch for " + entities.get(0).getEntityType() + " of size " + entities.size());
+    private void executeBatch(PreparedStatement ps, List<Entity> entities) throws SortPersistException  {
+        final String contextInfo = "executing " + operationName + " batch for " + entities.get(0).getEntityType() + " of size " + entities.size();
+        LOG.debug(contextInfo);
         try {
             int counts[] = ps.executeBatch();
             if (counts.length != entities.size()) {
-                throw new Exception("Not all entities were in the batch");
+                throw new SortPersistException("The number update counts returned, does not match the size of the batch counts=" + counts.length + ", entities=" + entities.size() );
             }
             int totalMods = 0;
             for (int i = 0; i < counts.length; i++) {
+                if (counts[i] == Statement.SUCCESS_NO_INFO) {
+
+                }
+                else if (counts[i] == Statement.EXECUTE_FAILED) {
+                    /*
+                     * Indicates that an operation failed.
+                     * The driver only gives this if the database continues processing
+                     * the other commands in the batch
+                     */
+                    handleFailure(entities.get(i), null);
+                }
                 totalMods += counts[i];
                 if (counts[i] == 0) {
                     handleFailure(entities.get(i), null);
                 }
             }
             LOG.debug(totalMods + " rows were modified in total");
-        } catch (BatchUpdateException x) {
+        }
+        catch (BatchUpdateException x) {
             int counts[] = x.getUpdateCounts();
             if (counts.length < entities.size()) {
                 /*
@@ -101,9 +124,14 @@ abstract class BatchExecuter {
                 }
             }
         }
+        catch(SQLException x) {
+            //thrown by the executeBatch call for a generic problem
+            throw new SortPersistException("SQLException when " + contextInfo, x);
+        }
+
     }
 
-    protected abstract void handleFailure(Entity entity, Throwable throwable) throws Exception;
+    protected abstract void handleFailure(Entity entity, Throwable throwable) throws SortPersistException;
 
-    protected abstract PreparedStatement prepareStatement(PreparedStatementCache psCache, Entity entity) throws SQLException;
+    protected abstract PreparedStatement prepareStatement(PreparedStatementCache psCache, Entity entity) throws SortPersistException;
 }

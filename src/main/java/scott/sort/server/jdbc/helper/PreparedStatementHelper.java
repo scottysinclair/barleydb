@@ -23,6 +23,7 @@ import scott.sort.api.core.entity.RefNode;
 import scott.sort.api.core.entity.ValueNode;
 import scott.sort.api.core.types.JavaType;
 import scott.sort.api.core.types.JdbcType;
+import scott.sort.api.exception.PreparingPersistStatementException;
 
 public class PreparedStatementHelper {
 
@@ -32,7 +33,7 @@ public class PreparedStatementHelper {
         this.definitions = definitions;
     }
 
-    public void setParameter(final PreparedStatement ps, final int index, final Node node) throws SQLException {
+    public void setParameter(final PreparedStatement ps, final int index, final Node node) throws PreparingPersistStatementException {
         final NodeDefinition nd = node.getNodeDefinition();
         if (node instanceof RefNode) {
             setParameter(ps, index, nd, ((RefNode) node).getEntityKey());
@@ -45,23 +46,28 @@ public class PreparedStatementHelper {
         }
     }
 
-    public void setParameter(final PreparedStatement ps, final int index, final Node node, final Object value) throws SQLException {
+    public void setParameter(final PreparedStatement ps, final int index, final Node node, final Object value) throws PreparingPersistStatementException {
         setParameter(ps, index, node.getNodeDefinition(), value);
     }
 
-    public void setParameter(final PreparedStatement ps, final int index, final NodeDefinition nd, final Object value) throws SQLException {
+    public void setParameter(final PreparedStatement ps, final int index, final NodeDefinition nd, final Object value) throws PreparingPersistStatementException {
         if (value == null) {
-            setNull(ps, index, nd.getJdbcType());
+            try {
+                setNull(ps, index, nd.getJdbcType());
+            } catch (SQLException x) {
+                throw new PreparingPersistStatementException("Could not set NULL on column " + nd.getColumnName() + " for table " + nd.getEntityType().getTableName(), x);
+            }
             return;
         }
 
         JavaType javaType = getJavaType(nd);
         JdbcType jdbcType = getJdbcType(nd);
 
-        if (setValue(ps, index, javaType, jdbcType, value)) {
-            return;
+        try {
+            setValue(ps, index, javaType, jdbcType, value);
+        } catch (SQLException x) {
+            throw new PreparingPersistStatementException("Could not set value " + value + " on column " + nd.getColumnName() + " for table " + nd.getEntityType().getTableName(), x);
         }
-        throw new IllegalStateException("Parameter not set for " + nd.getName() + " and value " + value);
     }
 
     private JavaType getJavaType(NodeDefinition nd) {
@@ -91,36 +97,36 @@ public class PreparedStatementHelper {
         throw new IllegalStateException(nd + " has no jdbctype");
     }
 
-    private final boolean setValue(PreparedStatement ps, int index, JavaType javaType, JdbcType jdbcType, Object value) throws SQLException {
+    private final void setValue(PreparedStatement ps, int index, JavaType javaType, JdbcType jdbcType, Object value) throws SQLException, PreparingPersistStatementException  {
         switch (javaType) {
         case ENUM:
             @SuppressWarnings("unchecked")
             Enum<? extends Enum<?>> eValue = (Enum<? extends Enum<?>>)value;
             setEnum(ps, index, jdbcType, eValue);
-            return true;
+            return;
         case BIGDECIMAL:
             setBigDecimal(ps, index, jdbcType, (BigDecimal) value);
-            return true;
+            return;
         case BOOLEAN:
             setBoolean(ps, index, jdbcType, (Boolean) value);
-            return true;
+            return;
         case INTEGER:
             setInteger(ps, index, jdbcType, (Integer) value);
-            return true;
+            return;
         case LONG:
             setLong(ps, index, jdbcType, (Long) value);
-            return true;
+            return;
         case SQL_DATE:
             setSqlDate(ps, index, jdbcType, (java.sql.Date) value);
-            return true;
+            return;
         case STRING:
             setString(ps, index, jdbcType, (String) value);
-            return true;
+            return;
         case UTIL_DATE:
             setUtilDate(ps, index, jdbcType, (Date) value);
-            return true;
+            return;
         default:
-            return false;
+            throw new PreparingPersistStatementException("Java type " + javaType + " is not supported");
         }
     }
 

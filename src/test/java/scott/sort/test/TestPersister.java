@@ -10,17 +10,18 @@ package scott.sort.test;
  * #L%
  */
 
-import java.sql.Connection;
 import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import scott.sort.api.core.Environment;
 import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.core.entity.ProxyController;
 import scott.sort.server.jdbc.persister.*;
 import scott.sort.server.jdbc.persister.exception.*;
+import scott.sort.test.TestEntityContextServices.PersisterFactory;
 import static org.junit.Assert.*;
 
 import com.smartstream.mac.model.AccessArea;
@@ -347,13 +348,7 @@ public class TestPersister extends TestBase {
      */
     @Test
     public void testSyntaxDeletedJustBeforeJdbcUpdateOperation() throws Exception {
-        /*
-         * insert a new full model
-         */
-        XMLSyntaxModel syntaxModel = buildSyntax();
-        entityContext.persist(new PersistRequest().save(syntaxModel));
-
-        Persister persisterToTriggerConcurrentModifcation = new Persister(env, namespace) {
+        final Persister persisterToTriggerConcurrentModifcation = new Persister(env, namespace) {
             @Override
             protected void preJdbcWorkHook() {
                 try {
@@ -365,12 +360,27 @@ public class TestPersister extends TestBase {
                      * We use another node context to get and update the structure, simulating a concurrent user modification
                      */
                     EntityContext otherUser = new EntityContext(env, namespace);
+                    otherUser.setAutocommit(false);
                     XMLSyntaxModel otherSyntax = otherUser.performQuery(qsyntax).getList().get(0);
-                    new Persister(env, namespace).persist(new PersistRequest().delete(otherSyntax));
+                    entityContextServices.setPersisterFactory(null);
+                    otherUser.persist( new PersistRequest().delete(otherSyntax) );
                 }
                 catch (Exception x) {}
             }
         };
+
+        /*
+         * insert a new full model
+         */
+        XMLSyntaxModel syntaxModel = buildSyntax();
+        entityContext.persist(new PersistRequest().save(syntaxModel));
+
+        entityContextServices.setPersisterFactory(new PersisterFactory() {
+            @Override
+            public Persister newPersister(Environment env, String namespace) {
+                return persisterToTriggerConcurrentModifcation;
+            }
+        });
 
         /*
         * modify the syntax in various ways
@@ -383,22 +393,19 @@ public class TestPersister extends TestBase {
          */
         try {
             System.out.println("-------------- CALLING PERSIST TO UPDATE CHANGES ------------------");
-            env.setThreadLocalResource(Connection.class.getName(), dataSource.getConnection());
-            persisterToTriggerConcurrentModifcation.persist(new PersistRequest().save(syntaxModel));
+            entityContext.persist(new PersistRequest().save(syntaxModel));
             fail("expected EntityMissingException");
         } catch (EntityMissingException x) {
             Entity entityToSave = ((ProxyController) syntaxModel).getEntity();
             Assert.assertSame(entityToSave.getEntityType(), x.getEntityType());
             Assert.assertSame(entityToSave.getKey().getValue(), syntaxModel.getId());
-        } finally {
-            env.clearThreadLocalResource(Connection.class.getName());
         }
     }
 
     @SuppressWarnings("unchecked")
     @Test
     public void testConcurrentModificationCausesActualUpdateCallToFail() throws Exception {
-        Persister persisterToTriggerConcurrentModifcation = new Persister(env, namespace) {
+        final Persister persisterToTriggerConcurrentModifcation = new Persister(env, namespace) {
             @Override
             protected void preJdbcWorkHook() {
                 try {
@@ -409,9 +416,12 @@ public class TestPersister extends TestBase {
                     qsyntax.joinToStructure();
                     qsyntax.where(qsyntax.syntaxName().equal("Scott's Syntax"));
                     EntityContext otherUser = new EntityContext(env, namespace);
+                    otherUser.setAutocommit(false);
                     XMLSyntaxModel otherSyntaxCopy = otherUser.performQuery(qsyntax).getList().get(0);
                     otherSyntaxCopy.setName("Scott's Syntax updated-hook");
-                    new Persister(env, namespace).persist(new PersistRequest().save(otherSyntaxCopy));
+
+                    entityContextServices.setPersisterFactory(null);
+                    otherUser.persist( new PersistRequest().save(otherSyntaxCopy) );
                 }
                 catch (Exception x) {}
             }
@@ -423,10 +433,16 @@ public class TestPersister extends TestBase {
         XMLSyntaxModel syntaxModel = buildSyntax();
         entityContext.persist(new PersistRequest().save(syntaxModel));
 
+        entityContextServices.setPersisterFactory(new PersisterFactory() {
+            @Override
+            public Persister newPersister(Environment env, String namespace) {
+                return persisterToTriggerConcurrentModifcation;
+            }
+        });
+
         syntaxModel.setName("Scott's Syntax updated");
         try {
-            env.setThreadLocalResource(Connection.class.getName(), dataSource.getConnection());
-            persisterToTriggerConcurrentModifcation.persist(new PersistRequest().save(syntaxModel));
+            entityContext.persist(new PersistRequest().save(syntaxModel));
             Assert.fail("Expected OptimisticLockMismatchException");
         } catch (OptimisticLockMismatchException x) {
             Entity entityWantedSave = ((ProxyController) syntaxModel).getEntity();
@@ -437,8 +453,6 @@ public class TestPersister extends TestBase {
             //assert that the database entity has a newer optimistic lock timestamp than the entity we wanted to save
             Assert.assertTrue(((Comparable<Object>) entityFromDb.getOptimisticLock().getValue()).compareTo(
                     (Comparable<Object>) entityWantedSave.getOptimisticLock().getValue()) > 0);
-        } finally {
-            env.clearThreadLocalResource(Connection.class.getName());
         }
     }
 
