@@ -5,21 +5,26 @@ import java.sql.SQLException;
 
 public class SqlServerDatabase implements Database {
 
+    private String info;
     private final boolean supportsMultipleResultSets;
     private final boolean supportsSelectForUpdate;
+
+    public SqlServerDatabase(DatabaseMetaData metaData) throws SQLException {
+        info = metaData.getDatabaseProductName() + " " + metaData.getDatabaseProductVersion();
+        supportsMultipleResultSets = metaData.supportsMultipleResultSets();
+        supportsSelectForUpdate = metaData.supportsSelectForUpdate();
+    }
+
+    @Override
+    public String getInfo() {
+        return info;
+    }
 
     @Override
     public boolean matches(DatabaseMetaData metaData) throws SQLException {
         return "Microsoft SQL Server".equals(metaData.getDatabaseProductName()) &&
                 metaData.getDatabaseProductVersion().compareTo("11.00.2100") >= 0;
     }
-
-
-    public SqlServerDatabase(DatabaseMetaData metaData) throws SQLException {
-        supportsMultipleResultSets = metaData.supportsMultipleResultSets();
-        supportsSelectForUpdate = metaData.supportsSelectForUpdate();
-    }
-
 
     @Override
     public boolean supportsMultipleResultSets() {

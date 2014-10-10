@@ -1,5 +1,6 @@
 package scott.sort.api.query;
 
+import scott.sort.api.exception.query.ForUpdateNotSupportedException;
 import scott.sort.api.exception.query.IllegalQueryStateException;
 
 /*
@@ -32,7 +33,7 @@ public class QExists extends QCondition {
     }
 
     @Override
-    public void visit(ConditionVisitor visitor) throws IllegalQueryStateException {
+    public void visit(ConditionVisitor visitor) throws IllegalQueryStateException, ForUpdateNotSupportedException {
         visitor.visitExists(this);
     }
 

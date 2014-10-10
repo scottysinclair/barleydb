@@ -12,6 +12,7 @@ package scott.sort.test;
 
 import java.io.ByteArrayInputStream;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 
 import javax.sql.DataSource;
 import javax.xml.bind.JAXBContext;
@@ -95,7 +96,12 @@ public abstract class TestBase {
         entityContextServices.setEnvironment(env);
 
         Connection connection = dataSource.getConnection();
-        entityContextServices.addDatabases(new HsqlDatabase(), new OracleDatabase(), new SqlServerDatabase(connection.getMetaData()));
+        DatabaseMetaData metadata = connection.getMetaData();
+        entityContextServices.addDatabases(
+                new HsqlDatabase(metadata),
+                new OracleDatabase(metadata),
+                new SqlServerDatabase(metadata));
+
         connection.close();
 
         class TestSequenceGenerator implements SequenceGenerator {

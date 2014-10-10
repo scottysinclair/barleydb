@@ -37,6 +37,10 @@ public class QueryObject<R> implements Serializable {
     private QJoin joined;
     private QCondition condition; //the user condition
     private List<QOrderBy> orderBy;
+    /**
+     * Select .. for update
+     */
+    private QForUpdate forUpdate;
 
     public QueryObject(Class<R> type) {
         this(type, type.getName(), null);
@@ -138,6 +142,20 @@ public class QueryObject<R> implements Serializable {
     public QueryObject<R> orderBy(QProperty<?> property, boolean ascending) {
         this.orderBy.add(new QOrderBy(property, ascending));
         return this;
+    }
+
+    public QueryObject<R> forUpdate() {
+        forUpdate = new QForUpdate(null);
+        return this;
+    }
+
+    public QueryObject<R> forUpdateWait(int seconds) {
+        forUpdate = new QForUpdate( seconds );
+        return this;
+    }
+
+    public QForUpdate getForUpdate() {
+        return forUpdate;
     }
 
     public List<QOrderBy> getOrderBy() {

@@ -1,4 +1,4 @@
-package scott.sort.server.jdbc.persister;
+package scott.sort.server.jdbc.helper;
 
 /*
  * #%L
@@ -23,10 +23,9 @@ import scott.sort.api.core.entity.Node;
 import scott.sort.api.core.entity.ToManyNode;
 import scott.sort.api.exception.ClosingStatementException;
 import scott.sort.api.exception.SortException;
-import scott.sort.server.jdbc.helper.*;
 import scott.sort.server.jdbc.resources.ConnectionResources;
 
-abstract class PreparedStatementCache<PREPARING_PERSIST_EX extends SortException, CONNECTION_REQ_EX extends SortException> implements AutoCloseable {
+public abstract class PreparedStatementCache<PREPARING_PERSIST_EX extends SortException, CONNECTION_REQ_EX extends SortException> implements AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(PreparedStatementCache.class);
 

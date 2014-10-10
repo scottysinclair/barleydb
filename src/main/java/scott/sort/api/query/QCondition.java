@@ -13,6 +13,7 @@ package scott.sort.api.query;
 
 import java.io.Serializable;
 
+import scott.sort.api.exception.query.ForUpdateNotSupportedException;
 import scott.sort.api.exception.query.IllegalQueryStateException;
 
 /**
@@ -41,5 +42,5 @@ public abstract class QCondition implements Serializable {
         return new QLogicalOp(this, new QExists(queryObject), QBooleanOps.AND);
     }
 
-    public abstract void visit(ConditionVisitor visitor) throws IllegalQueryStateException;
+    public abstract void visit(ConditionVisitor visitor) throws IllegalQueryStateException, ForUpdateNotSupportedException;
 }

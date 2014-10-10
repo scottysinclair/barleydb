@@ -149,7 +149,6 @@ public class EntityContextServices implements IEntityContextServices {
     @Override
     public <T> QueryResult<T> execute(String namespace, EntityContext entityContext, QueryObject<T> query) throws SortJdbcException, SortQueryException {
         env.preProcess(query, entityContext.getDefinitions());
-        QueryExecution<T> execution = new QueryExecution<T>(entityContext, query, env.getDefinitions(namespace));
 
         ConnectionResources conRes = ConnectionResources.get(entityContext);
         boolean returnToPool = false;
@@ -157,6 +156,8 @@ public class EntityContextServices implements IEntityContextServices {
             conRes = newConnectionResources(entityContext, true);
             returnToPool = true;
         }
+
+        QueryExecution<T> execution = new QueryExecution<T>(entityContext, query, env.getDefinitions(namespace));
 
         try (OptionalyClosingResources con = new OptionalyClosingResources(conRes, returnToPool)){
             QueryExecuter executer = new QueryExecuter(conRes.getDatabase(), con.getConnection(), entityContext);
@@ -167,6 +168,13 @@ public class EntityContextServices implements IEntityContextServices {
 
     @Override
     public QueryBatcher execute(String namespace, EntityContext entityContext, QueryBatcher queryBatcher) throws SortJdbcException, SortQueryException {
+        ConnectionResources conRes = ConnectionResources.get(entityContext);
+        boolean returnToPool = false;
+        if (conRes == null) {
+            conRes = newConnectionResources(entityContext, true);
+            returnToPool = true;
+        }
+
         QueryExecution<?> queryExecutions[] = new QueryExecution[queryBatcher.size()];
         int i = 0;
         for (QueryObject<?> queryObject : queryBatcher.getQueries()) {
@@ -174,12 +182,6 @@ public class EntityContextServices implements IEntityContextServices {
             queryExecutions[i++] = new QueryExecution<>(entityContext, queryObject, env.getDefinitions(namespace));
         }
 
-        ConnectionResources conRes = ConnectionResources.get(entityContext);
-        boolean returnToPool = false;
-        if (conRes == null) {
-            conRes = newConnectionResources(entityContext, true);
-            returnToPool = true;
-        }
 
         try (OptionalyClosingResources con = new OptionalyClosingResources(conRes, returnToPool);) {
             QueryExecuter exec = new QueryExecuter(conRes.getDatabase(), con.getConnection(), entityContext);

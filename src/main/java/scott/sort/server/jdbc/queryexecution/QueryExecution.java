@@ -28,11 +28,15 @@ import scott.sort.api.core.entity.ToManyNode;
 import scott.sort.api.core.entity.ValueNode;
 import scott.sort.api.exception.SortJdbcException;
 import scott.sort.api.exception.query.DowncastEntityException;
+import scott.sort.api.exception.query.ForUpdateNotSupportedException;
 import scott.sort.api.exception.query.IllegalQueryStateException;
+import scott.sort.api.exception.query.QueryConnectionRequiredException;
 import scott.sort.api.exception.query.SortQueryException;
 import scott.sort.api.query.QJoin;
 import scott.sort.api.query.QueryObject;
+import scott.sort.server.jdbc.database.Database;
 import scott.sort.server.jdbc.queryexecution.QueryGenerator.Param;
+import scott.sort.server.jdbc.resources.ConnectionResources;
 
 /**
  * Builds the SQL for a query
@@ -49,22 +53,23 @@ public class QueryExecution<T> {
     private final QueryObject<T> query;
     private final Definitions definitions;
     private final Projection projection;
+    private final Database database;
     private QueryResult<T> queryResult;
     private EntityLoaders entityLoaders;
     private QueryGenerator qGen;
 
-    public QueryExecution(EntityContext entityContext, QueryObject<T> query,
-            Definitions definitions) {
+    public QueryExecution(EntityContext entityContext, QueryObject<T> query, Definitions definitions) throws QueryConnectionRequiredException {
         this.entityContext = entityContext;
         this.query = query;
         this.definitions = definitions;
         this.projection = new Projection(definitions);
+        this.database = ConnectionResources.getMandatoryForQuery(entityContext).getDatabase();
         projection.build(query);
         queryResult = new QueryResult<>(entityContext, query.getTypeClass());
     }
 
-    public String getSql(List<Param> queryParameters) throws IllegalQueryStateException {
-        qGen = new QueryGenerator(query, definitions);
+    public String getSql(List<Param> queryParameters) throws IllegalQueryStateException, ForUpdateNotSupportedException {
+        qGen = new QueryGenerator(database, query, definitions);
         return qGen.generateSQL(projection, queryParameters);
     }
 

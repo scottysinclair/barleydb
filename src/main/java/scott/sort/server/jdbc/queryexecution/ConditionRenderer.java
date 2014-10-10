@@ -15,20 +15,24 @@ import java.util.List;
 import scott.sort.api.config.Definitions;
 import scott.sort.api.config.EntityType;
 import scott.sort.api.config.NodeDefinition;
+import scott.sort.api.exception.query.ForUpdateNotSupportedException;
 import scott.sort.api.exception.query.IllegalQueryStateException;
 import scott.sort.api.query.ConditionVisitor;
 import scott.sort.api.query.QExists;
 import scott.sort.api.query.QLogicalOp;
 import scott.sort.api.query.QPropertyCondition;
+import scott.sort.server.jdbc.database.Database;
 import scott.sort.server.jdbc.queryexecution.QueryGenerator.Param;
 
 public class ConditionRenderer implements ConditionVisitor {
+    private final Database database;
     private final StringBuilder sb;
     private final Definitions definitions;
     private int depth;
     private List<Param> params;
 
-    public ConditionRenderer(StringBuilder sb, Definitions definitions, List<Param> params) {
+    public ConditionRenderer(Database database, StringBuilder sb, Definitions definitions, List<Param> params) {
+        this.database = database;
         this.sb = sb;
         this.definitions = definitions;
         this.params = params;
@@ -67,7 +71,7 @@ public class ConditionRenderer implements ConditionVisitor {
         sb.append('?');
     }
 
-    public void visitLogicalOp(QLogicalOp qlo) throws IllegalQueryStateException {
+    public void visitLogicalOp(QLogicalOp qlo) throws IllegalQueryStateException, ForUpdateNotSupportedException {
         sb.append('(');
         depth++;
         qlo.getLeft().visit(this);
@@ -93,9 +97,9 @@ public class ConditionRenderer implements ConditionVisitor {
         sb.append(')');
     }
 
-    public void visitExists(QExists exists) throws IllegalQueryStateException {
+    public void visitExists(QExists exists) throws IllegalQueryStateException, ForUpdateNotSupportedException {
         sb.append("exists (");
-        QueryGenerator qGen = new QueryGenerator(exists.getSubQueryObject(), definitions);
+        QueryGenerator qGen = new QueryGenerator(database, exists.getSubQueryObject(), definitions);
         sb.append(qGen.generateSQL(params));
         sb.append(")");
     }

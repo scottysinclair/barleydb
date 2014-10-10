@@ -5,6 +5,17 @@ import java.sql.SQLException;
 
 public class OracleDatabase implements Database {
 
+    private String info;
+
+    public OracleDatabase(DatabaseMetaData metaData) throws SQLException {
+        info = metaData.getDatabaseProductName() + " " + metaData.getDatabaseProductVersion();
+    }
+
+    @Override
+    public String getInfo() {
+        return info;
+    }
+
     @Override
     public boolean matches(DatabaseMetaData metaData) throws SQLException {
         return "oracle".equalsIgnoreCase(metaData.getDatabaseProductName());

@@ -16,10 +16,12 @@ import java.util.*;
 import scott.sort.api.config.Definitions;
 import scott.sort.api.config.EntityType;
 import scott.sort.api.config.NodeDefinition;
+import scott.sort.api.exception.query.ForUpdateNotSupportedException;
 import scott.sort.api.exception.query.IllegalQueryStateException;
 import scott.sort.api.query.QJoin;
 import scott.sort.api.query.QOrderBy;
 import scott.sort.api.query.QueryObject;
+import scott.sort.server.jdbc.database.Database;
 
 public class QueryGenerator {
 
@@ -46,15 +48,17 @@ public class QueryGenerator {
         }
     }
 
+    private final Database database;
     private final QueryObject<?> query;
     private final Definitions definitions;
 
-    public QueryGenerator(QueryObject<?> query, Definitions definitions) {
+    public QueryGenerator(Database database, QueryObject<?> query, Definitions definitions) {
+        this.database = database;
         this.query = query;
         this.definitions = definitions;
     }
 
-    public String generateSQL(Projection projection, List<Param> params) throws IllegalQueryStateException {
+    public String generateSQL(Projection projection, List<Param> params) throws IllegalQueryStateException, ForUpdateNotSupportedException {
         EntityType entityType = definitions.getEntityTypeMatchingInterface(query.getTypeName(), true);
 
         StringBuilder sb = new StringBuilder();
@@ -72,13 +76,13 @@ public class QueryGenerator {
             generateSubQueryCondition(sb, query);
             if (query.getCondition() != null) {
                 sb.append(" AND ");
-                query.getCondition().visit(new ConditionRenderer(sb, definitions, params));
+                query.getCondition().visit(new ConditionRenderer(database, sb, definitions, params));
             }
         }
         else {
             if (query.getCondition() != null) {
                 sb.append("\nwhere ");
-                query.getCondition().visit(new ConditionRenderer(sb, definitions, params));
+                query.getCondition().visit(new ConditionRenderer(database, sb, definitions, params));
             }
             if (!query.getOrderBy().isEmpty()) {
                 sb.append("\norder by ");
@@ -94,11 +98,23 @@ public class QueryGenerator {
                 }
                 sb.setLength(sb.length() - 1);
             }
+            if (query.getForUpdate() != null) {
+                if (!database.supportsSelectForUpdate()) {
+                    throw new ForUpdateNotSupportedException("For update not supported by " + database.getInfo());
+                }
+                sb.append(" for update");
+                if (query.getForUpdate().getOptionalWaitInSeconds() != null) {
+                    if (!database.supportsSelectForUpdateWaitN()) {
+                        throw new ForUpdateNotSupportedException("For update wait <seconds> not supported by " + database.getInfo());
+                    }
+                    sb.append(" wait " + query.getForUpdate().getOptionalWaitInSeconds());
+                }
+            }
         }
         return sb.toString();
     }
 
-    public String generateSQL(List<Param> params) throws IllegalQueryStateException {
+    public String generateSQL(List<Param> params) throws IllegalQueryStateException, ForUpdateNotSupportedException {
         return generateSQL(null, params);
     }
 

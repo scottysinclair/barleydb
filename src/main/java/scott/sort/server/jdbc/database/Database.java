@@ -14,6 +14,8 @@ import java.sql.SQLException;
  */
 public interface Database {
 
+    String getInfo();
+
     boolean matches(DatabaseMetaData metaData) throws SQLException;
 
     /**

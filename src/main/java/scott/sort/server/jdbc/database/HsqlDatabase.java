@@ -5,6 +5,17 @@ import java.sql.SQLException;
 
 public class HsqlDatabase implements Database {
 
+    private String info;
+
+    public HsqlDatabase(DatabaseMetaData metaData) throws SQLException {
+        info = metaData.getDatabaseProductName() + " " + metaData.getDatabaseProductVersion();
+    }
+
+    @Override
+    public String getInfo() {
+        return info;
+    }
+
     @Override
     public boolean matches(DatabaseMetaData metaData) throws SQLException {
         return metaData.getDatabaseProductName().equals("HSQL Database Engine") &&

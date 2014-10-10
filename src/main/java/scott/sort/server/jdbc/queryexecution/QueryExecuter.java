@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.exception.SortJdbcException;
 import scott.sort.api.exception.persist.PreparingPersistStatementException;
+import scott.sort.api.exception.query.ForUpdateNotSupportedException;
 import scott.sort.api.exception.query.IllegalQueryStateException;
 import scott.sort.api.exception.query.PreparingQueryStatementException;
 import scott.sort.api.exception.query.SortQueryException;
@@ -218,7 +219,7 @@ public class QueryExecuter {
         }
     }
 
-    private String createCombinedQuery(List<Param> params, QueryExecution<?>... queryExecutions) throws IllegalQueryStateException {
+    private String createCombinedQuery(List<Param> params, QueryExecution<?>... queryExecutions) throws IllegalQueryStateException, ForUpdateNotSupportedException {
         StringBuilder combinedQuery = new StringBuilder();
 
         for (QueryExecution<?> qExec : queryExecutions) {

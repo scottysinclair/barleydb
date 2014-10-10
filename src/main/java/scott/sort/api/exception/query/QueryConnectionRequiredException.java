@@ -1,8 +1,6 @@
 package scott.sort.api.exception.query;
 
-import scott.sort.server.jdbc.persister.exception.SortPersistException;
-
-public class QueryConnectionRequiredException extends SortPersistException {
+public class QueryConnectionRequiredException extends SortQueryException {
 
     private static final long serialVersionUID = 1L;
 

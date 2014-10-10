@@ -3,8 +3,8 @@ package scott.sort.server.jdbc.queryexecution;
 import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.exception.query.PreparingQueryStatementException;
 import scott.sort.api.exception.query.QueryConnectionRequiredException;
+import scott.sort.server.jdbc.helper.PreparedStatementCache;
 import scott.sort.server.jdbc.helper.PreparedStatementHelper;
-import scott.sort.server.jdbc.persister.PreparedStatementCache;
 import scott.sort.server.jdbc.resources.ConnectionResources;
 
 /*
@@ -28,7 +28,5 @@ class PreparedStatementQueryCache extends PreparedStatementCache<PreparingQueryS
     protected ConnectionResources getConnectionResources(EntityContext entityContext) throws QueryConnectionRequiredException {
         return ConnectionResources.getMandatoryForQuery(entityContext);
     }
-
-
 
 }

@@ -1,5 +1,6 @@
 package scott.sort.api.query;
 
+import scott.sort.api.exception.query.ForUpdateNotSupportedException;
 import scott.sort.api.exception.query.IllegalQueryStateException;
 
 /*
@@ -21,7 +22,7 @@ import scott.sort.api.exception.query.IllegalQueryStateException;
 public interface ConditionVisitor {
     public void visitPropertyCondition(QPropertyCondition qpc) throws IllegalQueryStateException;
 
-    public void visitLogicalOp(QLogicalOp qlo) throws IllegalQueryStateException;
+    public void visitLogicalOp(QLogicalOp qlo) throws IllegalQueryStateException, ForUpdateNotSupportedException;
 
-    public void visitExists(QExists exists) throws IllegalQueryStateException;
+    public void visitExists(QExists exists) throws IllegalQueryStateException, ForUpdateNotSupportedException;
 }

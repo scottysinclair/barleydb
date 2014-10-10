@@ -1,5 +1,7 @@
 package scott.sort.api.query;
 
+import java.io.Serializable;
+
 /*
  * #%L
  * Simple Object Relational Framework
@@ -10,7 +12,9 @@ package scott.sort.api.query;
  * #L%
  */
 
-public class QOrderBy {
+public class QOrderBy implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private final QProperty<?> property;
 
