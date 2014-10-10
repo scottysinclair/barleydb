@@ -110,17 +110,10 @@ final class EntityLoader {
                             "Primary key cannot be null for: "
                                     + getEntityType());
                 }
-                // if (value instanceof String) {
-                // throw new
-                // IllegalStateException("testing: Primary key is string .. : "
-                // + getEntityType());
-                // }
                 return value;
             }
         }
-        throw new IllegalStateException(
-                "Cannot find primary key node definition for: "
-                        + getEntityType());
+        throw new IllegalQueryStateException("Cannot find primary key node definition for: " + getEntityType());
     }
 
     /**

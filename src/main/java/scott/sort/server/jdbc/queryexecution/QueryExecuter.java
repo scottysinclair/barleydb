@@ -95,7 +95,7 @@ public class QueryExecuter {
                         //the first query execution will set all parameters
                         setParameters(stmt, params);
                         if (!stmt.execute()) {
-                            throw new IllegalStateException("Query did not return a result set");
+                            throw new IllegalQueryStateException("Query did not return a result set");
                         }
                         processResults(stmt, queryExecutions);
                         }
