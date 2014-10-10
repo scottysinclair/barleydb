@@ -115,7 +115,7 @@ public class DatabaseDataSet {
 
         public void load() throws SortJdbcException, SortQueryException  {
             Database database = ConnectionResources.getMandatoryForQuery(myentityContext).getDatabase();
-            if (database.supportsBatchUpdateCounts()) {
+            if (!database.supportsBatchUpdateCounts()) {
                 if (database.supportsSelectForUpdate()) {
                     addForUpdatePessimistickLockToQueries(database);
                 }
