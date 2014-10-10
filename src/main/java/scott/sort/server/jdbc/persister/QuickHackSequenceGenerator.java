@@ -36,6 +36,7 @@ public class QuickHackSequenceGenerator implements SequenceGenerator {
         if (value == null) {
             try {
                 QueryObject<?> qo = env.getDefinitions(namespace).getQuery(entityType);
+                //a new entity context will consume a new connection
                 EntityContext entityContext = new EntityContext(env, namespace);
                 entityContext.performQuery(qo);
                 Long highest = 0l;

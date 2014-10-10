@@ -40,7 +40,6 @@ import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.core.entity.ProxyController;
 import scott.sort.api.core.types.JavaType;
 import scott.sort.api.core.types.JdbcType;
-import scott.sort.server.EntityContextServices;
 import scott.sort.server.jdbc.database.HsqlDatabase;
 import scott.sort.server.jdbc.database.OracleDatabase;
 import scott.sort.server.jdbc.database.SqlServerDatabase;

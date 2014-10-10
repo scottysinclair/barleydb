@@ -59,6 +59,20 @@ import static scott.sort.api.core.entity.EntityContextHelper.toParents;
 /**
  * Contains a set of entities
  * and has a session for performing operations.
+ *
+ * Has either status autocommit true or false.
+ *
+ * Transaction Handling:
+ * Client Side:
+ *   - only autocommit == true is supported, no connection resources are associated
+ *   with the entity context
+ *
+ * Server Side:
+ *     - autocommit == true, typically means no connection is associated with this entity context.
+ *     - autocommit == false, a connection is associated and has autocommit set to false.
+ *
+ *
+ *
  * @author scott
  *
  */
