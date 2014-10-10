@@ -22,6 +22,8 @@ import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.exception.SortJdbcException;
 import scott.sort.api.exception.query.SortQueryException;
 import scott.sort.api.query.*;
+import scott.sort.server.jdbc.database.Database;
+import scott.sort.server.jdbc.resources.ConnectionResources;
 
 /**
  * Used to load the original database data for all entities which we are updating, deleting or depending on.
@@ -112,6 +114,13 @@ public class DatabaseDataSet {
         }
 
         public void load() throws SortJdbcException, SortQueryException  {
+            Database database = ConnectionResources.getMandatoryForQuery(myentityContext).getDatabase();
+            if (database.supportsBatchUpdateCounts()) {
+                if (database.supportsSelectForUpdate()) {
+                    addForUpdatePessimistickLockToQueries(database);
+                }
+            }
+
             QueryBatcher batcher = new QueryBatcher();
             for (Map.Entry<EntityType, QueryObject<Object>> entry : map.entrySet()) {
                 batcher.addQuery(entry.getValue());
@@ -156,6 +165,18 @@ public class DatabaseDataSet {
                 map.put(entityType, qo);
             }
             return qo;
+        }
+
+        private void addForUpdatePessimistickLockToQueries(Database database) {
+            for (Map.Entry<EntityType, QueryObject<Object>> entry : map.entrySet()) {
+                QueryObject<Object> query = entry.getValue();
+                if (database.supportsSelectForUpdateWaitN()) {
+                    query.forUpdateWait(10);
+                }
+                else {
+                    query.forUpdate();
+                }
+            }
         }
 
     }
