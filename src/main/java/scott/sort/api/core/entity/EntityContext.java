@@ -153,6 +153,10 @@ public final class EntityContext implements Serializable {
         env.rollback(this);
     }
 
+    public void commit() throws SortJdbcException {
+        env.commit(this);
+    }
+
     public Object getResource(String key, boolean required) {
         Object value = resources.get(key);
         if (value == null && required) {

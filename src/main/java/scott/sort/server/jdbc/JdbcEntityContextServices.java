@@ -76,11 +76,6 @@ public class JdbcEntityContextServices implements IEntityContextServices {
         this.env = env;
     }
 
-    @Override
-    public Definitions getDefinitions(String namespace) {
-        return env.getDefinitions(namespace);
-    }
-
     public SequenceGenerator getSequenceGenerator() {
         return sequenceGenerator;
     }
@@ -154,6 +149,27 @@ public class JdbcEntityContextServices implements IEntityContextServices {
             }
             catch (SQLException x) {
                 throw new RollbackException("SQLException while performing rollback", x);
+            }
+        }
+    }
+
+    @Override
+    public void commit(EntityContext entityContext) throws SortJdbcException {
+        ConnectionResources conRes = ConnectionResources.get(entityContext);
+        if (conRes != null) {
+            try {
+                if (conRes.getConnection().getAutoCommit()) {
+                    throw new RollbackWithoutTransactionException("Cannot commit when the connection is in autocommit mode");
+                }
+            }
+            catch (SQLException x) {
+                throw new DatabaseAccessError("Database access error calling connection getAutoCommit before perfoming commit");
+            }
+            try {
+                conRes.getConnection().commit();
+            }
+            catch (SQLException x) {
+                throw new RollbackException("SQLException while performing commit", x);
             }
         }
     }

@@ -86,6 +86,10 @@ public final class Environment {
         entityContextServices.rollback(entityContext);
     }
 
+    public void commit(EntityContext entityContext) throws SortJdbcException {
+        entityContextServices.commit(entityContext);
+    }
+
     /**
      *
      * @param namespace
