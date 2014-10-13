@@ -45,7 +45,7 @@ public class Projection implements Iterable<ProjectionColumn> {
         for (NodeDefinition nd : entityType.getNodeDefinitions()) {
             if (nd.getColumnName() != null) {
                 ProjectionColumn pCol = new ProjectionColumn(this, query, qj, nd);
-                if (!query.isDisabled(nd.getName())) {
+                if (nd.isPrimaryKey() || !query.isDisabled(nd.getName())) {
                     columns.add(pCol);
                 }
             }

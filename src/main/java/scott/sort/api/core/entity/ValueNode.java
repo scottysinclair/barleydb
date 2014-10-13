@@ -30,7 +30,7 @@ public class ValueNode extends Node {
         if (value == NotLoaded.VALUE) {
             if (getParent().getKey().getValue() != null) {
                 //will only fetch if not in internal mode
-                getEntityContext().fetch(getParent(), false, true, true);
+                getEntityContext().fetch(getParent(), false, true, true, getName());
             }
             else {
                 throw new IllegalStateException("Value not loaded, but entity has no key.");

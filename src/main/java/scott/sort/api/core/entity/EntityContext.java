@@ -298,6 +298,12 @@ public final class EntityContext implements Serializable {
             LOG.debug("Unloaded entity " + entity + " " + entity.getUuid());
         }
         else {
+            for (RefNode refNode: entity.getChildren(RefNode.class)) {
+                if (refNode.getReference() != null) {
+                    removeReference(refNode, refNode.getReference());
+                }
+
+            }
             entities.remove(entity);
             proxies.remove(entity);
             LOG.debug("Removed from entityContext " + entity + " " + entity.getUuid());
@@ -441,7 +447,7 @@ public final class EntityContext implements Serializable {
      * @return
      */
     private static EntityContext getOperationContext(EntityContext entityContext, RuntimeProperties runtimeProperties) {
-        if (runtimeProperties == null  || runtimeProperties.getExecuteInSameContext() == null || !runtimeProperties.getExecuteInSameContext()) {
+        if (runtimeProperties.getExecuteInSameContext() == null || !runtimeProperties.getExecuteInSameContext()) {
             return entityContext.newEntityContextSharingTransaction();
         }
         return entityContext;
@@ -707,11 +713,10 @@ public final class EntityContext implements Serializable {
      * @param fetchInternal if true we use the internal query registry
      */
     public void fetch(Entity entity, boolean force, boolean fetchInternal) {
-        fetch(entity, force, fetchInternal, false);
-
+        fetch(entity, force, fetchInternal, false, null);
     }
 
-    public void fetch(Entity entity, boolean force, boolean fetchInternal, boolean evenIfLoaded) {
+    public void fetch(Entity entity, boolean force, boolean fetchInternal, boolean evenIfLoaded, String singlePropertyName) {
         if (!force && entity.getEntityContext().isInternal()) {
             return;
         }
@@ -727,6 +732,9 @@ public final class EntityContext implements Serializable {
         qo.where(pk.equal(entity.getKey().getValue()));
 
         try {
+            if (singlePropertyName != null) {
+                qo.disabledExcept(singlePropertyName);
+            }
             QueryResult<Object> result = performQuery(qo);
             /*
              * Some cleanup required.

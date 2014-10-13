@@ -99,7 +99,7 @@ public abstract class TestBase {
                 new RuntimeProperties()
                     .concurrency(Concurrency.READ_ONLY)
                     .fetchSize(100)
-                    .executeInSameContext(false)
+                    .executeInSameContext(true)
                     .scrollType(ScrollType.FORWARD_ONLY));
         env.setQueryPreProcessor(new QueryPreProcessor());
 

@@ -12,6 +12,7 @@ package scott.sort.api.query;
 
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -30,6 +31,7 @@ public class QueryObject<R> implements Serializable {
     private final String typeName;
     private final QueryObject<?> parent;
     private final Set<String> disabled;
+    private final Set<String> disabledExcept;
     private final List<QJoin> joins;
     private final List<QJoin> exists;
     private String alias;
@@ -55,6 +57,7 @@ public class QueryObject<R> implements Serializable {
         this.typeName = typeName;
         this.parent = parent;
         this.disabled = new HashSet<>();
+        this.disabledExcept = new HashSet<>();
         this.joins = new LinkedList<QJoin>();
         this.exists = new LinkedList<QJoin>();
         this.orderBy = new LinkedList<QOrderBy>();
@@ -74,11 +77,24 @@ public class QueryObject<R> implements Serializable {
     }
 
     public boolean isDisabled(String propertyName) {
-        return disabled.contains(propertyName);
+        if (disabled.isEmpty()) {
+            if (disabledExcept.isEmpty()) {
+                return false;
+            }
+            else {
+                return !disabledExcept.contains(propertyName);
+            }
+        }
+       return disabled.contains(propertyName);
     }
 
     public void addDisabled(String propertyDef) {
         disabled.add(propertyDef);
+    }
+
+    public void disabledExcept(String ...propertyDef) {
+        disabled.clear();
+        disabledExcept.addAll( Arrays.asList(propertyDef) );
     }
 
     public void addJoin(QueryObject<?> to, String propertyDef) {

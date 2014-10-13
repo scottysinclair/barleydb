@@ -13,9 +13,10 @@ package scott.sort.server.jdbc.queryexecution;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -60,7 +61,7 @@ final class EntityLoader {
     private final EntityContext entityContext;
     private final ResultSet resultSet;
     private final Map<Integer, Object> rowCache;
-    private final List<Entity> loadedEntities;
+    private final LinkedHashMap<Object,Entity> loadedEntities;
 
     public EntityLoader(EntityLoaders entityLoaders, Projection projection, QueryObject<?> queryObject,
             ResultSet resultSet, EntityContext entityContext) {
@@ -68,7 +69,7 @@ final class EntityLoader {
         this.resultSet = resultSet;
         this.queryObject = queryObject;
         this.entityContext = entityContext;
-        this.loadedEntities = new LinkedList<>();
+        this.loadedEntities = new LinkedHashMap<>();
         this.rowCache = new HashMap<>();
         this.myProjectionCols = projection.getColumnsFor(queryObject);
     }
@@ -88,10 +89,7 @@ final class EntityLoader {
     }
 
     public boolean isNotYetLoaded() throws SortJdbcException, SortQueryException  {
-        Entity entity = entityContext.getEntity(getEntityType(), getEntityKey(true), false);
-        boolean value = entity == null
-                || entity.getEntityState() == EntityState.NOTLOADED;
-        return value;
+        return !loadedEntities.containsKey( getEntityKey(true) );
     }
 
     public EntityType getEntityType() {
@@ -99,7 +97,7 @@ final class EntityLoader {
     }
 
     public List<Entity> getLoadedEntities() {
-        return loadedEntities;
+        return new ArrayList<>(loadedEntities.values());
     }
 
     public Object getEntityKey(boolean mustExist) throws SortJdbcException, SortQueryException {
@@ -131,20 +129,26 @@ final class EntityLoader {
                     + getEntityType() + " and key " + getEntityKey(true)
                     + " must exist in the entity context");
         }
-        if (!loadedEntities.contains(entity)) {
+        if (!loadedEntities.containsKey(entity.getKey().getValue())) {
             LOG.debug("Associating existing entity " + entity);
-            loadedEntities.add(entity);
+            loadedEntities.put(entity.getKey().getValue(), entity);
         }
     }
 
     public Entity load() throws SortQueryException, SortJdbcException {
         Entity entity = entityContext.getOrCreate(getEntityType(), getEntityKey(true));
-        entity.setEntityState(EntityState.LOADING);
-        for (ValueNode node : entity.getChildren(ValueNode.class)) {
-            if (entity.getKey() != node) {
-                node.setValue(NotLoaded.VALUE);
+        /*
+         * If the entity state is NOTLOADED, then the entityContext just created it.
+         * Therefore we can pre-init each ValueNode to NOTLOADED
+         */
+        if (entity.getEntityState() == EntityState.NOTLOADED) {
+            for (ValueNode node : entity.getChildren(ValueNode.class)) {
+                if (entity.getKey() != node) {
+                    node.setValue(NotLoaded.VALUE);
+                }
             }
         }
+        entity.setEntityState(EntityState.LOADING);
         for (ProjectionColumn column : myProjectionCols) {
             Object value = getValue(column);
             Node node = entity.getChild(column.getProperty(), Node.class);
@@ -155,7 +159,7 @@ final class EntityLoader {
             }
             // nothing to set on a ToMany node.
         }
-        loadedEntities.add(entity);
+        loadedEntities.put(entity.getKey().getValue(), entity);
         return entity;
     }
 
