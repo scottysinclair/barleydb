@@ -28,6 +28,7 @@ import scott.sort.api.exception.SortJdbcException;
 import scott.sort.api.exception.persist.IllegalPersistStateException;
 import scott.sort.api.exception.persist.PreparingPersistStatementException;
 import scott.sort.api.exception.query.SortQueryException;
+import scott.sort.server.jdbc.JdbcEntityContextServices;
 import scott.sort.server.jdbc.persister.audit.AuditInformation;
 import scott.sort.server.jdbc.persister.audit.AuditRecord;
 import scott.sort.server.jdbc.persister.audit.Change;
@@ -39,10 +40,12 @@ public class Persister {
 
     private final Environment env;
     private final String namespace;
+    private final JdbcEntityContextServices entityContextServices;
 
-    public Persister(Environment env, String namespace) {
+    public Persister(Environment env, String namespace, JdbcEntityContextServices entityContextServices) {
         this.env = env;
         this.namespace = namespace;
+        this.entityContextServices = entityContextServices;
     }
 
     public void persist(PersistAnalyser analyser) throws SortPersistException {
@@ -320,7 +323,7 @@ public class Persister {
     private void setPrimaryKeys(OperationGroup createGroup) throws SortPersistException {
         logStep("Setting primary keys");
         for (Entity entity : createGroup.getEntities()) {
-            Object value = env.getSequenceGenerator().getNextKey(entity.getEntityType());
+            Object value = entityContextServices.getSequenceGenerator().getNextKey(entity.getEntityType());
             LOG.debug("Setting key for " + entity + " to " + value);
             entity.getKey().setValue(value);
         }

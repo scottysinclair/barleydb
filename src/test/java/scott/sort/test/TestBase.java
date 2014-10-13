@@ -41,6 +41,9 @@ import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.core.entity.ProxyController;
 import scott.sort.api.core.types.JavaType;
 import scott.sort.api.core.types.JdbcType;
+import scott.sort.api.query.RuntimeProperties;
+import scott.sort.api.query.RuntimeProperties.Concurrency;
+import scott.sort.api.query.RuntimeProperties.ScrollType;
 import scott.sort.server.jdbc.database.HsqlDatabase;
 import scott.sort.server.jdbc.database.OracleDatabase;
 import scott.sort.server.jdbc.database.SqlServerDatabase;
@@ -92,7 +95,14 @@ public abstract class TestBase {
 
         entityContextServices = new TestEntityContextServices(dataSource);
         env = new Environment(entityContextServices);
+        env.setDefaultRuntimeProperties(
+                new RuntimeProperties()
+                    .concurrency(Concurrency.READ_ONLY)
+                    .fetchSize(100)
+                    .executeInSameContext(false)
+                    .scrollType(ScrollType.FORWARD_ONLY));
         env.setQueryPreProcessor(new QueryPreProcessor());
+
         entityContextServices.setEnvironment(env);
 
         Connection connection = dataSource.getConnection();
@@ -113,7 +123,7 @@ public abstract class TestBase {
             }
         }
         ;
-        env.setSequenceGenerator(new TestSequenceGenerator());
+        entityContextServices.setSequenceGenerator(new TestSequenceGenerator());
 
         /*
          * generate an entity configuration using the dsl

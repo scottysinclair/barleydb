@@ -28,6 +28,7 @@ import scott.sort.api.exception.query.ForUpdateNotSupportedException;
 import scott.sort.api.exception.query.IllegalQueryStateException;
 import scott.sort.api.exception.query.PreparingQueryStatementException;
 import scott.sort.api.exception.query.SortQueryException;
+import scott.sort.api.query.RuntimeProperties;
 import scott.sort.server.jdbc.database.Database;
 import scott.sort.server.jdbc.queryexecution.QueryGenerator.Param;
 
@@ -47,11 +48,13 @@ public class QueryExecuter {
     private final Connection connection;
     private final EntityContext entityContext;
     private final Database database;
+    private final RuntimeProperties runtimeProperties;
 
-    public QueryExecuter(Database database, Connection connection, EntityContext entityContext)  {
+    public QueryExecuter(Database database, Connection connection, EntityContext entityContext, RuntimeProperties runtimeProperties)  {
         this.database = database;
         this.connection = connection;
         this.entityContext = entityContext;
+        this.runtimeProperties = runtimeProperties;
     }
 
     /**
@@ -91,7 +94,10 @@ public class QueryExecuter {
             List<Param> params = new LinkedList<Param>();
             String sql = createCombinedQuery(params, queryExecutions);
             if (!params.isEmpty()) {
-                try (PreparedStatement stmt = connection.prepareStatement(sql);) {
+                try (PreparedStatement stmt = prepareStatement(sql, runtimeProperties)) {
+
+                    setFetch(stmt, runtimeProperties);
+
                     try {
                         //the first query execution will set all parameters
                         setParameters(stmt, params);
@@ -179,7 +185,10 @@ public class QueryExecuter {
         List<Param> params = new LinkedList<Param>();
         String sql = queryExecution.getSql(params);
         if (!params.isEmpty()) {
-            try (PreparedStatement stmt = connection.prepareStatement(sql);) {
+            try (PreparedStatement stmt = prepareStatement(sql, runtimeProperties)) {
+
+                setFetch(stmt, runtimeProperties);
+
                 LOG.debug("============================================");
                 LOG.debug("Executing individual query:\n" + sql);
                 setParameters(stmt, params);
@@ -195,7 +204,10 @@ public class QueryExecuter {
             }
         }
         else {
-            try (Statement stmt = connection.createStatement();) {
+            try (Statement stmt = createStatement(runtimeProperties)) {
+
+                setFetch(stmt, runtimeProperties);
+
                 LOG.debug("============================================");
                 LOG.debug("Executing individual query:\n" + sql);
                 try (ResultSet resultSet = stmt.executeQuery(sql)) {
@@ -208,6 +220,56 @@ public class QueryExecuter {
             catch (SQLException x) {
                 throw new SortJdbcException("SQLException creating statement", x);
             }
+        }
+    }
+
+    private void setFetch(Statement stmt, RuntimeProperties runtimeProperties) throws SortJdbcException {
+        if (runtimeProperties != null && runtimeProperties.getFetchSize() != null) {
+            try {
+                stmt.setFetchSize( runtimeProperties.getFetchSize() );
+                stmt.setFetchDirection(ResultSet.FETCH_FORWARD);
+            }
+            catch (SQLException x) {
+                throw new SortJdbcException("SQLException setting fetch size and direction", x);
+            }
+        }
+    }
+
+    private PreparedStatement prepareStatement(String sql, RuntimeProperties runtimeProperties) throws SortQueryException, SQLException {
+        return connection.prepareStatement(sql, getResultSetType(runtimeProperties), getResultSetConcurrency(runtimeProperties));
+    }
+
+    private Statement createStatement(RuntimeProperties runtimeProperties) throws SortQueryException, SQLException {
+        return connection.createStatement(getResultSetType(runtimeProperties), getResultSetConcurrency(runtimeProperties));
+    }
+
+    private static int getResultSetType(RuntimeProperties props) throws SortQueryException {
+        if (props.getScrollType() == null) {
+            return ResultSet.TYPE_FORWARD_ONLY;
+        }
+        switch(props.getScrollType()) {
+            case FORWARD_ONLY:
+                return ResultSet.TYPE_FORWARD_ONLY;
+            case SCROLL_INSENSITIVE:
+                return ResultSet.TYPE_SCROLL_INSENSITIVE;
+            case SCROLL_SENSITIVE:
+                return ResultSet.TYPE_SCROLL_SENSITIVE;
+            default:
+                throw new IllegalQueryStateException("Unknown scroll type '" + props.getScrollType() + "'");
+        }
+    }
+
+    private static int getResultSetConcurrency(RuntimeProperties props) throws SortQueryException {
+        if (props == null) {
+            return ResultSet.CONCUR_READ_ONLY;
+        }
+        switch (props.getConcurrency()) {
+            case READ_ONLY:
+                return ResultSet.CONCUR_READ_ONLY;
+            case UPDATABLE:
+                return ResultSet.CONCUR_UPDATABLE;
+            default:
+                throw new IllegalQueryStateException("Unknown concurrency '" + props.getConcurrency() + "'");
         }
     }
 

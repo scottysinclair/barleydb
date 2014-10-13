@@ -1,5 +1,15 @@
 package scott.sort.server.jdbc.persister;
 
+/*
+ * #%L
+ * Simple Object Relational Framework
+ * %%
+ * Copyright (C) 2014 Scott Sinclair <scottysinclair@gmail.com>
+ * %%
+ * All rights reserved.
+ * #L%
+ */
+
 import scott.sort.api.config.Definitions;
 import scott.sort.api.exception.persist.PreparingPersistStatementException;
 import scott.sort.server.jdbc.helper.PreparedStatementHelper;

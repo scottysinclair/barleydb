@@ -1,4 +1,4 @@
-package scott.sort.server;
+package scott.sort.server.jdbc;
 
 /*
  * #%L
@@ -32,9 +32,11 @@ import scott.sort.api.exception.SetAutoCommitException;
 import scott.sort.api.exception.SortJdbcException;
 import scott.sort.api.exception.query.SortQueryException;
 import scott.sort.api.query.QueryObject;
+import scott.sort.api.query.RuntimeProperties;
 import scott.sort.server.jdbc.database.Database;
 import scott.sort.server.jdbc.persister.PersistAnalyser;
 import scott.sort.server.jdbc.persister.Persister;
+import scott.sort.server.jdbc.persister.SequenceGenerator;
 import scott.sort.server.jdbc.persister.exception.SortPersistException;
 import scott.sort.server.jdbc.queryexecution.QueryExecuter;
 import scott.sort.server.jdbc.queryexecution.QueryExecution;
@@ -42,11 +44,11 @@ import scott.sort.server.jdbc.queryexecution.QueryResult;
 import scott.sort.server.jdbc.resources.ConnectionResources;
 
 /**
- * Server implementation of entity context services
+ * JDBC implementation of entity context services which queries and persists using JDBC.
  * @author scott
  *
  */
-public class EntityContextServices implements IEntityContextServices {
+public class JdbcEntityContextServices implements IEntityContextServices {
 
     private Environment env;
 
@@ -54,7 +56,9 @@ public class EntityContextServices implements IEntityContextServices {
 
     private final List<Database> databases = new LinkedList<>();
 
-    public EntityContextServices(DataSource dataSource) {
+    private SequenceGenerator sequenceGenerator;
+
+    public JdbcEntityContextServices(DataSource dataSource) {
         this.dataSource = dataSource;
     }
 
@@ -75,6 +79,14 @@ public class EntityContextServices implements IEntityContextServices {
     @Override
     public Definitions getDefinitions(String namespace) {
         return env.getDefinitions(namespace);
+    }
+
+    public SequenceGenerator getSequenceGenerator() {
+        return sequenceGenerator;
+    }
+
+    public void setSequenceGenerator(SequenceGenerator sequenceGenerator) {
+        this.sequenceGenerator = sequenceGenerator;
     }
 
     /**
@@ -147,7 +159,7 @@ public class EntityContextServices implements IEntityContextServices {
     }
 
     @Override
-    public <T> QueryResult<T> execute(String namespace, EntityContext entityContext, QueryObject<T> query) throws SortJdbcException, SortQueryException {
+    public <T> QueryResult<T> execute(String namespace, EntityContext entityContext, QueryObject<T> query, RuntimeProperties props) throws SortJdbcException, SortQueryException {
         env.preProcess(query, entityContext.getDefinitions());
 
         ConnectionResources conRes = ConnectionResources.get(entityContext);
@@ -160,14 +172,14 @@ public class EntityContextServices implements IEntityContextServices {
         QueryExecution<T> execution = new QueryExecution<T>(entityContext, query, env.getDefinitions(namespace));
 
         try (OptionalyClosingResources con = new OptionalyClosingResources(conRes, returnToPool)){
-            QueryExecuter executer = new QueryExecuter(conRes.getDatabase(), con.getConnection(), entityContext);
+            QueryExecuter executer = new QueryExecuter(conRes.getDatabase(), con.getConnection(), entityContext, props);
             executer.execute(execution);
             return execution.getResult();
         }
     }
 
     @Override
-    public QueryBatcher execute(String namespace, EntityContext entityContext, QueryBatcher queryBatcher) throws SortJdbcException, SortQueryException {
+    public QueryBatcher execute(String namespace, EntityContext entityContext, QueryBatcher queryBatcher, RuntimeProperties props) throws SortJdbcException, SortQueryException {
         ConnectionResources conRes = ConnectionResources.get(entityContext);
         boolean returnToPool = false;
         if (conRes == null) {
@@ -184,7 +196,7 @@ public class EntityContextServices implements IEntityContextServices {
 
 
         try (OptionalyClosingResources con = new OptionalyClosingResources(conRes, returnToPool);) {
-            QueryExecuter exec = new QueryExecuter(conRes.getDatabase(), con.getConnection(), entityContext);
+            QueryExecuter exec = new QueryExecuter(conRes.getDatabase(), con.getConnection(), entityContext, props);
             exec.execute(queryExecutions);
             for (i = 0; i < queryExecutions.length; i++) {
                 queryBatcher.addResult(queryExecutions[i].getResult());
@@ -194,7 +206,7 @@ public class EntityContextServices implements IEntityContextServices {
     }
 
     protected Persister newPersister(Environment env, String namespace) {
-        return new Persister(env, namespace);
+        return new Persister(env, namespace, this);
     }
 
     @Override

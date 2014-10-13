@@ -1,5 +1,15 @@
 package scott.sort.server.jdbc.database;
 
+/*
+ * #%L
+ * Simple Object Relational Framework
+ * %%
+ * Copyright (C) 2014 Scott Sinclair <scottysinclair@gmail.com>
+ * %%
+ * All rights reserved.
+ * #L%
+ */
+
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 

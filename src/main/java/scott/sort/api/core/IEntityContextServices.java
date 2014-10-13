@@ -15,10 +15,16 @@ import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.exception.SortJdbcException;
 import scott.sort.api.exception.query.SortQueryException;
 import scott.sort.api.query.QueryObject;
+import scott.sort.api.query.RuntimeProperties;
 import scott.sort.server.jdbc.persister.PersistAnalyser;
 import scott.sort.server.jdbc.persister.exception.SortPersistException;
 import scott.sort.server.jdbc.queryexecution.QueryResult;
 
+/**
+ * Interface for performing queries and persisting entities
+ * @author scott
+ *
+ */
 public interface IEntityContextServices {
 
     void setAutocommit(EntityContext entityContext, boolean value) throws SortJdbcException;
@@ -31,9 +37,9 @@ public interface IEntityContextServices {
 
     Definitions getDefinitions(String namespace);
 
-    <T> QueryResult<T> execute(String namespace, EntityContext entityContext, QueryObject<T> query) throws SortJdbcException, SortQueryException;
+    <T> QueryResult<T> execute(String namespace, EntityContext entityContext, QueryObject<T> query, RuntimeProperties props) throws SortJdbcException, SortQueryException;
 
-    QueryBatcher execute(String namespace, EntityContext entityContext, QueryBatcher queryBatcher) throws SortJdbcException, SortQueryException;
+    QueryBatcher execute(String namespace, EntityContext entityContext, QueryBatcher queryBatcher, RuntimeProperties props) throws SortJdbcException, SortQueryException;
 
     PersistAnalyser execute(PersistAnalyser persistAnalyser) throws SortJdbcException, SortPersistException;
 }

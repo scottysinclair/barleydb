@@ -21,7 +21,7 @@ import scott.sort.api.core.proxy.EntityProxy;
 import scott.sort.api.core.proxy.ProxyFactory;
 import scott.sort.api.exception.SortJdbcException;
 import scott.sort.api.query.QueryObject;
-import scott.sort.server.jdbc.persister.SequenceGenerator;
+import scott.sort.api.query.RuntimeProperties;
 import scott.sort.server.jdbc.queryexecution.QueryPreProcessor;
 
 /**
@@ -39,14 +39,22 @@ public final class Environment {
 
     private QueryPreProcessor queryPreProcessor;
 
-    private final IEntityContextServices entityContextServices;
+    private RuntimeProperties defaultRuntimeProperties;
 
-    private SequenceGenerator sequenceGenerator;
+    private final IEntityContextServices entityContextServices;
 
     public void preProcess(QueryObject<?> query, Definitions definitions) {
         if (queryPreProcessor != null) {
             queryPreProcessor.preProcess(query, definitions);
         }
+    }
+
+    public RuntimeProperties getDefaultRuntimeProperties() {
+        return defaultRuntimeProperties;
+    }
+
+    public void setDefaultRuntimeProperties(RuntimeProperties defaultRuntimeProperties) {
+        this.defaultRuntimeProperties = defaultRuntimeProperties;
     }
 
     public IEntityContextServices getEntityContextServices() {
@@ -60,14 +68,6 @@ public final class Environment {
     public Environment(IEntityContextServices entityContextServices) {
         this.entityContextServices = entityContextServices;
         this.definitionsSet = new DefinitionsSet();
-    }
-
-    public SequenceGenerator getSequenceGenerator() {
-        return sequenceGenerator;
-    }
-
-    public void setSequenceGenerator(SequenceGenerator sequenceGenerator) {
-        this.sequenceGenerator = sequenceGenerator;
     }
 
     public void setAutocommit(EntityContext entityContext, boolean value) throws SortJdbcException {
@@ -97,12 +97,33 @@ public final class Environment {
     }
 
     public void addDefinitions(Definitions definitions) {
+        if (defaultRuntimeProperties == null) {
+            throw new IllegalStateException("Default runtime properties are not set");
+        }
         definitionsSet.addDefinitions(definitions);
     }
 
     public IEntityContextServices services() {
         return entityContextServices;
     }
+
+    /**
+     * Null safe overriding of runtime properties
+     * @param props
+     * @return
+     */
+    public RuntimeProperties overrideProps(RuntimeProperties props) {
+        if (props == null) {
+            return defaultRuntimeProperties;
+        }
+        else if (defaultRuntimeProperties == null) {
+            return props;
+        }
+        else {
+            return props.override( defaultRuntimeProperties );
+        }
+    }
+
 
     public <T> T generateProxy(Entity entity) throws ClassNotFoundException {
         //LOG.debug("generateProxy for " + entity);

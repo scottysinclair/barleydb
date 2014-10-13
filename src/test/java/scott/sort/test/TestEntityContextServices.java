@@ -3,10 +3,10 @@ package scott.sort.test;
 import javax.sql.DataSource;
 
 import scott.sort.api.core.Environment;
-import scott.sort.server.EntityContextServices;
+import scott.sort.server.jdbc.JdbcEntityContextServices;
 import scott.sort.server.jdbc.persister.Persister;
 
-public class TestEntityContextServices extends EntityContextServices {
+public class TestEntityContextServices extends JdbcEntityContextServices {
 
     public interface PersisterFactory {
         public Persister newPersister(Environment env, String namespace);

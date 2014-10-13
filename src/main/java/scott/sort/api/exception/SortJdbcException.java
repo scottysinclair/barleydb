@@ -1,5 +1,15 @@
 package scott.sort.api.exception;
 
+/*
+ * #%L
+ * Simple Object Relational Framework
+ * %%
+ * Copyright (C) 2014 Scott Sinclair <scottysinclair@gmail.com>
+ * %%
+ * All rights reserved.
+ * #L%
+ */
+
 /**
  * Class for all exceptions which come from the JDBC drivers
  * ie all of the SQLExceptions

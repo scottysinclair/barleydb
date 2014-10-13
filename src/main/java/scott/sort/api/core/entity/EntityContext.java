@@ -49,6 +49,7 @@ import scott.sort.api.exception.SortJdbcException;
 import scott.sort.api.exception.query.SortQueryException;
 import scott.sort.api.query.QProperty;
 import scott.sort.api.query.QueryObject;
+import scott.sort.api.query.RuntimeProperties;
 import scott.sort.server.jdbc.persister.PersistAnalyser;
 import scott.sort.server.jdbc.persister.PersistRequest;
 import scott.sort.server.jdbc.persister.exception.OptimisticLockMismatchException;
@@ -363,37 +364,62 @@ public final class EntityContext implements Serializable {
     }
 
     public <T> void performQueries(QueryBatcher queryBatcher) throws SortJdbcException, SortQueryException {
+        performQueries(queryBatcher, null);
+    }
+    public <T> void performQueries(QueryBatcher queryBatcher, RuntimeProperties runtimeProperties) throws SortJdbcException, SortQueryException {
         /*
-         * Performs the query in a fresh context which is copied back to us
+         * We can perform the query in a fresh context which is copied back to us
          * it gives us control over any replace vs merge logic.
          *
          * It's also means that we don't potentially send our full entity context across the wire
+         *
+         * But we let the runtime properties decide.
          */
-        queryBatcher = env.services().execute(namespace, newEntityContextSharingTransaction(), queryBatcher);
+
+        runtimeProperties = env.overrideProps( runtimeProperties  );
+        EntityContext opContext = getOperationContext(this, runtimeProperties);
+
+        queryBatcher = env.services().execute(namespace, opContext, queryBatcher, runtimeProperties);
         queryBatcher.copyResultTo(this);
     }
 
     public <T> QueryResult<T> performQuery(QueryObject<T> queryObject) throws SortJdbcException, SortQueryException {
+        return performQuery(queryObject, null);
+    }
+    public <T> QueryResult<T> performQuery(QueryObject<T> queryObject, RuntimeProperties runtimeProperties) throws SortJdbcException, SortQueryException {
         /*
-         * performs the query in a fresh context which is copied back to us
+         * We can perform the query in a fresh context which is copied back to us
          * it gives us control over any replace vs merge logic
          *
          * It's also means that we don't potentially send our full entity context across the wire
+         *
+         * But we let the runtime properties decide.
          */
-        QueryResult<T> queryResult = env.services().execute(namespace, newEntityContextSharingTransaction(), queryObject);
+
+        runtimeProperties = env.overrideProps( runtimeProperties  );
+        EntityContext opContext = getOperationContext(this, runtimeProperties);
+
+        QueryResult<T> queryResult = env.services().execute(namespace, opContext, queryObject, runtimeProperties);
         return queryResult.copyResultTo(this);
     }
 
     public void persist(PersistRequest persistRequest) throws SortJdbcException, SortPersistException  {
+        persist(persistRequest, null);
+    }
+    public void persist(PersistRequest persistRequest, RuntimeProperties runtimeProperties) throws SortJdbcException, SortPersistException  {
         beginSaving();
+
+        runtimeProperties = env.overrideProps( runtimeProperties );
         try {
             PersistAnalyser analyser = new PersistAnalyser(this);
             analyser.analyse(persistRequest);
             /*
-             * Copy the data to  be persisted to a new context
+             * We can optionally copy the data to  be persisted to a new context
              * This way we only apply the changes back if the whole persist succeeds.
              */
-            analyser = analyser.deepCopy();
+            if (runtimeProperties.getExecuteInSameContext() == null || !runtimeProperties.getExecuteInSameContext()) {
+                analyser = analyser.deepCopy();
+            }
             LOG.debug(analyser.report());
             try {
                 analyser = env.services().execute(analyser);
@@ -406,6 +432,19 @@ public final class EntityContext implements Serializable {
         } finally {
             endSaving();
         }
+    }
+
+    /**
+     * Decides on the entity context to use for a query or persist based on the runtime properties.
+     * @param entityContext
+     * @param runtimeProperties
+     * @return
+     */
+    private static EntityContext getOperationContext(EntityContext entityContext, RuntimeProperties runtimeProperties) {
+        if (runtimeProperties == null  || runtimeProperties.getExecuteInSameContext() == null || !runtimeProperties.getExecuteInSameContext()) {
+            return entityContext.newEntityContextSharingTransaction();
+        }
+        return entityContext;
     }
 
     /**

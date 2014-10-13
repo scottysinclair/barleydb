@@ -348,7 +348,7 @@ public class TestPersister extends TestBase {
      */
     @Test
     public void testSyntaxDeletedJustBeforeJdbcUpdateOperation() throws Exception {
-        final Persister persisterToTriggerConcurrentModifcation = new Persister(env, namespace) {
+        final Persister persisterToTriggerConcurrentModifcation = new Persister(env, namespace, entityContextServices) {
             @Override
             protected void preJdbcWorkHook() {
                 try {
@@ -405,7 +405,7 @@ public class TestPersister extends TestBase {
     @SuppressWarnings("unchecked")
     @Test
     public void testConcurrentModificationCausesActualUpdateCallToFail() throws Exception {
-        final Persister persisterToTriggerConcurrentModifcation = new Persister(env, namespace) {
+        final Persister persisterToTriggerConcurrentModifcation = new Persister(env, namespace, entityContextServices) {
             @Override
             protected void preJdbcWorkHook() {
                 try {
