@@ -29,10 +29,12 @@ import scott.sort.api.exception.persist.IllegalPersistStateException;
 import scott.sort.api.exception.persist.PreparingPersistStatementException;
 import scott.sort.api.exception.query.SortQueryException;
 import scott.sort.server.jdbc.JdbcEntityContextServices;
+import scott.sort.server.jdbc.database.Database;
 import scott.sort.server.jdbc.persister.audit.AuditInformation;
 import scott.sort.server.jdbc.persister.audit.AuditRecord;
 import scott.sort.server.jdbc.persister.audit.Change;
 import scott.sort.server.jdbc.persister.exception.*;
+import scott.sort.server.jdbc.resources.ConnectionResources;
 
 public class Persister {
 
@@ -49,6 +51,7 @@ public class Persister {
     }
 
     public void persist(PersistAnalyser analyser) throws SortPersistException {
+        Database database = ConnectionResources.getMandatoryForPersist(analyser.getEntityContext()).getDatabase();
         DatabaseDataSet databaseDataSet = new DatabaseDataSet(analyser.getEntityContext());
         try {
             loadAndValidate(databaseDataSet, analyser.getUpdateGroup(), analyser.getDeleteGroup(), analyser.getDependsOnGroup());
@@ -111,7 +114,7 @@ public class Persister {
          * We always insert before we update, in-case a pending update depends on a created record
          */
         try {
-            insert(analyser.getCreateGroup(), newOptimisticLockTime);
+            insert(analyser.getCreateGroup(), newOptimisticLockTime, database);
         }
         catch (SortJdbcException x) {
             throw new SortPersistException("Error during insert", x);
@@ -121,14 +124,14 @@ public class Persister {
          * We always update before we delete, in-case a delete depends on a FK removal.
          */
         try {
-            update(analyser.getUpdateGroup(), newOptimisticLockTime);
+            update(analyser.getUpdateGroup(), newOptimisticLockTime, database);
         }
         catch (SortJdbcException x) {
             throw new SortPersistException("Error during update", x);
         }
 
         try {
-            delete(analyser.getDeleteGroup());
+            delete(analyser.getDeleteGroup(), database);
         }
         catch (SortJdbcException x) {
             throw new SortPersistException("Error during delete", x);
@@ -506,12 +509,17 @@ public class Persister {
         }
     }
 
-    private void insert(OperationGroup createGroup, final Long optimisticLockTime) throws SortPersistException, SortJdbcException  {
+    private void insert(OperationGroup createGroup, final Long optimisticLockTime, final Database database) throws SortPersistException, SortJdbcException  {
         logStep("Performing inserts");
-        BatchExecuter batchExecuter = new BatchExecuter(createGroup, "insert") {
+        BatchExecuter batchExecuter = new BatchExecuter(createGroup, "insert", database) {
             @Override
             protected PreparedStatement prepareStatement(PreparedStatementPersistCache psCache, Entity entity) throws SortPersistException {
                 return psCache.prepareInsertStatement(entity, optimisticLockTime);
+            }
+
+            @Override
+            protected void handleNoop(Entity entity, Throwable throwable) throws SortPersistException {
+                throw new IllegalPersistStateException("No update count from insert operation for entity " + entity);
             }
 
             @Override
@@ -522,14 +530,17 @@ public class Persister {
         batchExecuter.execute(env.getDefinitions(namespace));
     }
 
-    private void update(OperationGroup updateGroup, final Long newOptimisticLockTime) throws PreparingPersistStatementException, SortJdbcException, SortPersistException {
+    private void update(OperationGroup updateGroup, final Long newOptimisticLockTime, final Database database) throws PreparingPersistStatementException, SortJdbcException, SortPersistException {
         logStep("Performing updates");
-        BatchExecuter batchExecuter = new BatchExecuter(updateGroup, "update") {
+        BatchExecuter batchExecuter = new BatchExecuter(updateGroup, "update", database) {
             @Override
             protected PreparedStatement prepareStatement(PreparedStatementPersistCache psCache, Entity entity) throws SortPersistException {
                 return psCache.prepareUpdateStatement(entity, newOptimisticLockTime);
             }
-
+            @Override
+            protected void handleNoop(Entity entity, Throwable throwable) throws SortPersistException {
+                handleUpdateFailure(entity, throwable);
+            }
             @Override
             protected void handleFailure(Entity entity, Throwable throwable) throws SortPersistException {
                 handleUpdateFailure(entity, throwable);
@@ -538,14 +549,17 @@ public class Persister {
         batchExecuter.execute(env.getDefinitions(namespace));
     }
 
-    private void delete(OperationGroup deleteGroup) throws PreparingPersistStatementException, SortPersistException, SortJdbcException {
+    private void delete(OperationGroup deleteGroup, final Database database) throws PreparingPersistStatementException, SortPersistException, SortJdbcException {
         logStep("Performing deletes");
-        BatchExecuter batchExecuter = new BatchExecuter(deleteGroup, "delete") {
+        BatchExecuter batchExecuter = new BatchExecuter(deleteGroup, "delete", database) {
             @Override
             protected PreparedStatement prepareStatement(PreparedStatementPersistCache psCache, Entity entity) throws SortPersistException {
                 return psCache.prepareDeleteStatement(entity);
             }
-
+            @Override
+            protected void handleNoop(Entity entity, Throwable throwable) throws SortPersistException {
+                handleDeleteFailure(entity, throwable);
+            }
             @Override
             protected void handleFailure(Entity entity, Throwable throwable) throws SortPersistException {
                 handleDeleteFailure(entity, throwable);
@@ -658,6 +672,13 @@ public class Persister {
         }
     }
 
+    /**
+     * Check if the entity has been deleted from the database preventing our update.
+     * Check for optimistic lock violation.
+     * @param entity
+     * @param throwable
+     * @throws SortPersistException
+     */
     private void handleUpdateFailure(Entity entity, Throwable throwable) throws SortPersistException {
         EntityContext tempCtx = entity.getEntityContext().newEntityContextSharingTransaction();
         Entity loadedEntity = tempCtx.getOrLoad(entity.getEntityType(), entity.getKey().getValue());

@@ -24,7 +24,9 @@ import scott.sort.api.config.Definitions;
 import scott.sort.api.core.entity.Entity;
 import scott.sort.api.exception.AddBatchException;
 import scott.sort.api.exception.SortJdbcException;
+import scott.sort.api.exception.persist.IllegalPersistStateException;
 import scott.sort.api.exception.persist.PreparingPersistStatementException;
+import scott.sort.server.jdbc.database.Database;
 import scott.sort.server.jdbc.persister.exception.SortPersistException;
 
 /**
@@ -39,10 +41,12 @@ abstract class BatchExecuter {
 
     private final OperationGroup group;
     private final String operationName;
+    private final Database database;
 
-    public BatchExecuter(OperationGroup group, String operationName) {
+    public BatchExecuter(OperationGroup group, String operationName, Database database) {
         this.group = group;
         this.operationName = operationName;
+        this.database = database;
     }
 
     public void execute(Definitions definitions) throws PreparingPersistStatementException, SortPersistException, SortJdbcException {
@@ -57,7 +61,6 @@ abstract class BatchExecuter {
                 if (psLast != null && psLast != ps) {
                     executeBatch(psLast, entities);
                     entities.clear();
-
                 }
                 try {
                     ps.addBatch();
@@ -84,22 +87,30 @@ abstract class BatchExecuter {
             int totalMods = 0;
             for (int i = 0; i < counts.length; i++) {
                 if (counts[i] == Statement.SUCCESS_NO_INFO) {
-
+                    if (database.supportsBatchUpdateCounts())  {
+                        throw new IllegalPersistStateException("Received SUCCESS_NO_INFO from database: " + database + " which should support batch update counts.");
+                    }
                 }
                 else if (counts[i] == Statement.EXECUTE_FAILED) {
                     /*
-                     * Indicates that an operation failed.
-                     * The driver only gives this if the database continues processing
-                     * the other commands in the batch
+                     * This makes no sense, a batch update exception should have been thrown.
+                     *
                      */
                     handleFailure(entities.get(i), null);
                 }
-                totalMods += counts[i];
-                if (counts[i] == 0) {
-                    handleFailure(entities.get(i), null);
+                else if (counts[i] == 0) {
+                   handleNoop(entities.get(i), null);
+                }
+                else {
+                    totalMods += counts[i];
                 }
             }
-            LOG.debug(totalMods + " rows were modified in total");
+            if (database.supportsBatchUpdateCounts())  {
+                LOG.debug(totalMods + " rows were modified in total");
+            }
+            else {
+                LOG.debug(database.getInfo() + " does not support batch update counts, pemissistic locking was used to guarantee optimistic lock.");
+            }
         }
         catch (BatchUpdateException x) {
             int counts[] = x.getUpdateCounts();
@@ -132,6 +143,8 @@ abstract class BatchExecuter {
     }
 
     protected abstract void handleFailure(Entity entity, Throwable throwable) throws SortPersistException;
+
+    protected abstract void handleNoop(Entity entity, Throwable throwable) throws SortPersistException;
 
     protected abstract PreparedStatement prepareStatement(PreparedStatementPersistCache psCache, Entity entity) throws SortPersistException;
 }
