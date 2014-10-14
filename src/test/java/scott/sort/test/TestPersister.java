@@ -21,6 +21,7 @@ import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.core.entity.ProxyController;
 import scott.sort.server.jdbc.persister.*;
 import scott.sort.server.jdbc.persister.exception.*;
+import scott.sort.server.jdbc.resources.ConnectionResources;
 import scott.sort.test.TestEntityContextServices.PersisterFactory;
 import static org.junit.Assert.*;
 
@@ -343,11 +344,19 @@ public class TestPersister extends TestBase {
     }
 
     /**
-     * Tests the exception when you try and update something that was deleted
+     * Tests the exception when you try and update something that was deleted during your persist operation.
+     * The failure is detected by checking the batch update counts and seeing that there was a noop.
      * @throws Exception
      */
     @Test
     public void testSyntaxDeletedJustBeforeJdbcUpdateOperation() throws Exception {
+        if (!ConnectionResources.getMandatoryForPersist(entityContext).getDatabase().supportsBatchUpdateCounts()) {
+            /**
+             * If batch update counts are not supported then upfront optimistic locking is used and this test case is not relevant.
+             */
+            return;
+        }
+
         final Persister persisterToTriggerConcurrentModifcation = new Persister(env, namespace, entityContextServices) {
             @Override
             protected void preJdbcWorkHook() {
@@ -402,9 +411,22 @@ public class TestPersister extends TestBase {
         }
     }
 
+    /**
+     * Performs a concurrent modification during a persist call.
+     * The concurrent modification causes our persist call to fail (due to checking the batch update counts)
+     *
+     * @throws Exception
+     */
     @SuppressWarnings("unchecked")
     @Test
     public void testConcurrentModificationCausesActualUpdateCallToFail() throws Exception {
+        if (!ConnectionResources.getMandatoryForPersist(entityContext).getDatabase().supportsBatchUpdateCounts()) {
+            /**
+             * If batch update counts are not supported then upfront optimistic locking is used and this test case is not relevant.
+             */
+            return;
+        }
+
         final Persister persisterToTriggerConcurrentModifcation = new Persister(env, namespace, entityContextServices) {
             @Override
             protected void preJdbcWorkHook() {
