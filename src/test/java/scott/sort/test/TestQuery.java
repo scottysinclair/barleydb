@@ -62,7 +62,10 @@ public class TestQuery extends TestBase {
         qcsm.joinToStructure(INNER).joinToFields(LEFT_OUTER);
 
         QCsvStructure aStructure = qcsm.existsStructure();
-        qcsm.whereExists(aStructure.where(aStructure.name().equal("csv-str-1")));
+        qcsm.where(qcsm.syntaxName().equal("John"));
+        qcsm.orExists(aStructure.where(aStructure.name().equal("csv-str-1")));
+        qcsm.or(qcsm.syntaxType().equal(SyntaxType.ROOT));
+        qcsm.or(qcsm.syntaxType().equal(SyntaxType.SUBSYNTAX));
 
         QueryResult<CsvSyntaxModel> result = entityContext.performQuery(qcsm);
 

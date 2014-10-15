@@ -17,6 +17,7 @@ import scott.sort.api.query.QueryObject;
 
 import com.smartstream.mac.query.QUser;
 import com.smartstream.messaging.model.CsvSyntaxModel;
+import com.smartstream.messaging.model.SyntaxType;
 
 import static scott.sort.api.query.JoinType.*;
 
@@ -68,8 +69,8 @@ public class QCsvSyntaxModel extends QueryObject<CsvSyntaxModel> {
         return structure;
     }
 
-    public QProperty<Integer> syntaxType() {
-        return new QProperty<Integer>(this, "syntaxType");
+    public QProperty<SyntaxType> syntaxType() {
+        return new QProperty<SyntaxType>(this, "syntaxType");
     }
 
     public QProperty<String> syntaxName() {

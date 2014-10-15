@@ -51,8 +51,8 @@ public class QueryPreProcessor {
         }
 
         final QCondition finalCondition = andConditions(
-                query.getCondition(),
-                generatePreConditionsForFixedValues(query, definitions));
+                generatePreConditionsForFixedValues(query, definitions),
+                query.getCondition());
 
         if (finalCondition != null) {
             //set the new where clause for the query
