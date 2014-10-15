@@ -98,13 +98,16 @@ public class ConditionRenderer implements ConditionVisitor {
             sb.append(')');
         }
 
+        if (!Character.isWhitespace(sb.charAt(sb.length()-1))) {
+            sb.append(' ');
+        }
         switch (qlo.getExpr()) {
             case AND: {
-                sb.append(" AND ");
+                sb.append("AND ");
                 break;
             }
             case OR: {
-                sb.append(" OR ");
+                sb.append("OR ");
                 break;
             }
         }
