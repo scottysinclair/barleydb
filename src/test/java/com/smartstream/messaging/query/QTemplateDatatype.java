@@ -29,7 +29,7 @@ public class QTemplateDatatype extends QueryObject<Template> {
 
     public QDatatype joinToDatatype() {
         QDatatype datatype = new QDatatype();
-        addJoin(datatype, "datatype");
+        addLeftOuterJoin(datatype, "datatype");
         return datatype;
     }
 }

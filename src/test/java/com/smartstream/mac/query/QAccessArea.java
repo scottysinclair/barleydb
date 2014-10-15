@@ -34,13 +34,13 @@ public class QAccessArea extends QueryObject<AccessArea> {
 
     public QAccessArea joinToParent() {
         QAccessArea parent = new QAccessArea(this);
-        addJoin(parent, "parent");
+        addLeftOuterJoin(parent, "parent");
         return parent;
     }
 
     public QAccessArea joinToChildren() {
         QAccessArea children = new QAccessArea(this);
-        addJoin(children, "children");
+        addLeftOuterJoin(children, "children");
         return children;
     }
 

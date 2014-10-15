@@ -64,7 +64,7 @@ class QAbstractSyntaxModel<T extends SyntaxModel, CHILD extends QAbstractSyntaxM
 
     public QUser joinToUser() {
         QUser user = new QUser();
-        addJoin(user, "user");
+        addLeftOuterJoin(user, "user");
         return user;
     }
 

@@ -667,7 +667,7 @@ public final class EntityContext implements Serializable {
                 NodeDefinition datatypeNodeDef = toManyNode.getEntityType().getNode(toManyDef.getJoinProperty(), true);
                 EntityType datatype = definitions.getEntityTypeMatchingInterface(datatypeNodeDef.getRelationInterfaceName(), true);
                 QueryObject<Object> qdatatype = getQuery(datatype, fetchInternal);
-                qo.addJoin(qdatatype, datatypeNodeDef.getName());
+                qo.addLeftOuterJoin(qdatatype, datatypeNodeDef.getName());
             }
 
             try {
@@ -692,7 +692,7 @@ public final class EntityContext implements Serializable {
              * add the join from template to query
              * the query generator knows to include the join table
              */
-            fromQo.addJoin(toQo, toManyNode.getName());
+            fromQo.addLeftOuterJoin(toQo, toManyNode.getName());
             /*
              * constrain from query to only return data for the entity we are fetching for
              * ie contrain the template query by the id of the template we are fetching for

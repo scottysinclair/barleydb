@@ -18,25 +18,29 @@ import scott.sort.api.config.NodeDefinition;
 import scott.sort.api.exception.query.ForUpdateNotSupportedException;
 import scott.sort.api.exception.query.IllegalQueryStateException;
 import scott.sort.api.query.ConditionVisitor;
+import scott.sort.api.query.QCondition;
 import scott.sort.api.query.QExists;
 import scott.sort.api.query.QLogicalOp;
 import scott.sort.api.query.QPropertyCondition;
 import scott.sort.server.jdbc.database.Database;
 import scott.sort.server.jdbc.queryexecution.QueryGenerator.Param;
+import static scott.sort.server.jdbc.queryexecution.QueryGenerator.*;
 
 public class ConditionRenderer implements ConditionVisitor {
     private final Database database;
     private final StringBuilder sb;
     private final Definitions definitions;
-    private int depth;
     private List<Param> params;
+    @SuppressWarnings("unused")
+    private int depth = 0;
+    private String initialIndent;
 
-    public ConditionRenderer(Database database, StringBuilder sb, Definitions definitions, List<Param> params) {
+    public ConditionRenderer(Database database, StringBuilder sb, Definitions definitions, List<Param> params, String initialIndent) {
         this.database = database;
         this.sb = sb;
         this.definitions = definitions;
         this.params = params;
-        depth = 0;
+        this.initialIndent = initialIndent;
     }
 
     public void visitPropertyCondition(QPropertyCondition qpc) throws IllegalQueryStateException {
@@ -71,36 +75,63 @@ public class ConditionRenderer implements ConditionVisitor {
         sb.append('?');
     }
 
-    public void visitLogicalOp(QLogicalOp qlo) throws IllegalQueryStateException, ForUpdateNotSupportedException {
-        sb.append('(');
-        depth++;
-        qlo.getLeft().visit(this);
-        depth--;
-        sb.append(')');
+    private boolean parensRequired(QLogicalOp parent, QCondition child) {
+        if (!(child instanceof QLogicalOp)) {
+            return false;
+        }
+        QLogicalOp lChild = (QLogicalOp)child;
+        return !lChild.getExpr().equals( parent.getExpr() );
+    }
 
-        sb.append(depth == 0 ? '\n' : ' ');
+    public void visitLogicalOp(QLogicalOp qlo) throws IllegalQueryStateException, ForUpdateNotSupportedException {
+        if (!parensRequired(qlo, qlo.getLeft())) {
+            //same operator to parenthesis required
+            depth++;
+            qlo.getLeft().visit(this);
+            depth--;
+        }
+        else {
+            sb.append('(');
+            depth++;
+            qlo.getLeft().visit(this);
+            depth--;
+            sb.append(')');
+        }
+
         switch (qlo.getExpr()) {
-        case AND: {
-            sb.append("AND ");
-            break;
+            case AND: {
+                sb.append(" AND ");
+                break;
+            }
+            case OR: {
+                sb.append(" OR ");
+                break;
+            }
         }
-        case OR: {
-            sb.append("OR ");
-            break;
+        if (!parensRequired(qlo, qlo.getRight())) {
+            //same operator to parenthesis required
+            depth++;
+            qlo.getRight().visit(this);
+            depth--;
         }
+        else {
+            sb.append('(');
+            depth++;
+            qlo.getRight().visit(this);
+            depth--;
+            sb.append(')');
         }
-        sb.append('(');
-        depth++;
-//		LOG.debug(qlo);
-        qlo.getRight().visit(this);
-        depth--;
-        sb.append(')');
     }
 
     public void visitExists(QExists exists) throws IllegalQueryStateException, ForUpdateNotSupportedException {
-        sb.append("exists (");
+        sb.append("exists (\n");
+        sb.append( toSpaces( getQueryDepth( exists.getSubQueryObject() )  ) );
         QueryGenerator qGen = new QueryGenerator(database, exists.getSubQueryObject(), definitions);
         sb.append(qGen.generateSQL(params));
-        sb.append(")");
+        sb.append('\n');
+        sb.append( initialIndent );
+        sb.append(')');
+        sb.append('\n');
+        sb.append( initialIndent );
     }
 }

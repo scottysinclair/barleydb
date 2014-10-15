@@ -10,7 +10,6 @@ package scott.sort.api.core;
  * #L%
  */
 
-import scott.sort.api.config.Definitions;
 import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.exception.SortJdbcException;
 import scott.sort.api.exception.query.SortQueryException;

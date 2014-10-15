@@ -29,13 +29,13 @@ public class QTemplate extends QueryObject<Template> {
 
     public QTemplateContent joinToContent() {
         QTemplateContent content = new QTemplateContent();
-        addJoin(content, "contents");
+        addLeftOuterJoin(content, "contents");
         return content;
     }
 
     public QDatatype joinToDatatype() {
         QTemplateDatatype dt = new QTemplateDatatype();
-        addJoin(dt, "datatypes");
+        addLeftOuterJoin(dt, "datatypes");
         return dt.joinToDatatype();
     }
 

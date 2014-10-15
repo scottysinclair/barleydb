@@ -21,6 +21,7 @@ import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.test.jdbc.SimpleJdbcTestUtils;
 
 import scott.sort.api.core.QueryBatcher;
+import static scott.sort.api.query.JoinType.*;
 import scott.sort.server.jdbc.queryexecution.QueryResult;
 
 import com.smartstream.mac.query.QUser;
@@ -36,21 +37,35 @@ public class TestQuery extends TestBase {
         SimpleJdbcTestUtils.executeSqlScript(new SimpleJdbcTemplate(dataSource), new ClassPathResource("/inserts.sql"), false);
     }
 
+    /*
+    @Test
+    public void testCsvSyntaxModelQueryForUpdate() throws Exception {
+        QCsvSyntaxModel qcsm = new QCsvSyntaxModel();
+        qcsm.joinToUser();
+        qcsm.joinToStructure().joinToFields();
+        qcsm.forUpdate();
+
+        QueryResult<CsvSyntaxModel> result = entityContext.performQuery(qcsm);
+
+        System.out.println();
+        System.out.println("printing syntax models (" + result.getList().size() + ") => ");
+        for (CsvSyntaxModel syntaxModel : result.getList()) {
+            print("", syntaxModel);
+        }
+    }*/
+
     @Test
     public void testCsvSyntaxModelQuery() throws Exception {
 
         QCsvSyntaxModel qcsm = new QCsvSyntaxModel();
-        qcsm.joinToUser();
-        qcsm.joinToStructure().joinToFields();
+        qcsm.joinToUser(INNER);
+        qcsm.joinToStructure(INNER).joinToFields(LEFT_OUTER);
 
         QCsvStructure aStructure = qcsm.existsStructure();
         qcsm.whereExists(aStructure.where(aStructure.name().equal("csv-str-1")));
 
         QueryResult<CsvSyntaxModel> result = entityContext.performQuery(qcsm);
 
-        System.out.println();
-        System.out.println();
-        System.out.println();
         System.out.println();
         System.out.println("printing syntax models (" + result.getList().size() + ") => ");
         for (CsvSyntaxModel syntaxModel : result.getList()) {

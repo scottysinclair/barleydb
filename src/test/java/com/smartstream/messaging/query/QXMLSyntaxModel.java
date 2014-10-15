@@ -28,13 +28,13 @@ public class QXMLSyntaxModel extends QAbstractSyntaxModel<XMLSyntaxModel, QXMLSy
 
     public QXMLMapping joinToMappings() {
         QXMLMapping mapping = new QXMLMapping();
-        addJoin(mapping, "mappings");
+        addLeftOuterJoin(mapping, "mappings");
         return mapping;
     }
 
     public QXMLStructure joinToStructure() {
         QXMLStructure structure = new QXMLStructure(this);
-        addJoin(structure, "structure");
+        addLeftOuterJoin(structure, "structure");
         return structure;
     }
 

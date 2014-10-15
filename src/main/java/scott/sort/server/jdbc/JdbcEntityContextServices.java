@@ -19,7 +19,6 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import scott.sort.api.config.Definitions;
 import scott.sort.api.core.Environment;
 import scott.sort.api.core.IEntityContextServices;
 import scott.sort.api.core.QueryBatcher;

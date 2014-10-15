@@ -30,7 +30,7 @@ public class QXMLMapping extends QueryObject<XMLMapping> {
 
     public QXMLSyntaxModel joinToSubSyntax() {
         QXMLSyntaxModel subSyntax = new QXMLSyntaxModel();
-        addJoin(subSyntax, "subSyntaxModel");
+        addLeftOuterJoin(subSyntax, "subSyntaxModel");
         return subSyntax;
     }
 

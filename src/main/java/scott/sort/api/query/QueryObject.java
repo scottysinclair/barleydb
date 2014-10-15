@@ -97,15 +97,23 @@ public class QueryObject<R> implements Serializable {
         disabledExcept.addAll( Arrays.asList(propertyDef) );
     }
 
-    public void addJoin(QueryObject<?> to, String propertyDef) {
-        QJoin qj = new QJoin(this, to, propertyDef);
+    public void addInnerJoin(QueryObject<?> to, String propertyDef) {
+        addJoin(to, propertyDef, JoinType.INNER);
+    }
+
+    public void addLeftOuterJoin(QueryObject<?> to, String propertyDef) {
+        addJoin(to, propertyDef, JoinType.LEFT_OUTER);
+    }
+
+    public void addJoin(QueryObject<?> to, String propertyDef, JoinType joinType) {
+        QJoin qj = new QJoin(this, to, propertyDef, joinType);
         to.joined = qj;
         to.aliasGenerator = getAliasGenerator();
         joins.add(qj);
     }
 
     public void addExists(QueryObject<?> to, String propertyDef) {
-        QJoin qe = new QJoin(this, to, propertyDef);
+        QJoin qe = new QJoin(this, to, propertyDef, JoinType.EXISTS);
         to.aliasGenerator = getAliasGenerator();
         exists.add(qe);
     }
@@ -118,6 +126,11 @@ public class QueryObject<R> implements Serializable {
         return joined;
     }
 
+    /**
+     * Gets the join used to join this subquery to
+     * the parent query.
+     * @return
+     */
     public QJoin getSubQueryJoin() {
         if (parent != null) {
             for (QJoin join : parent.exists) {
@@ -180,6 +193,14 @@ public class QueryObject<R> implements Serializable {
 
     public QCondition getCondition() {
         return condition;
+    }
+
+    /**
+     *
+     * @return the parent query if this instance is a sub query.
+     */
+    public QueryObject<?> getParent() {
+        return parent;
     }
 
     public boolean isSubQuery() {

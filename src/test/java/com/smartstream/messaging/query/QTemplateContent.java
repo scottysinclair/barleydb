@@ -29,7 +29,7 @@ public class QTemplateContent extends QueryObject<TemplateContent> {
 
     public QTemplate joinToTemplate() {
         QTemplate template = new QTemplate();
-        addJoin(template, "template");
+        addLeftOuterJoin(template, "template");
         return template;
     }
 

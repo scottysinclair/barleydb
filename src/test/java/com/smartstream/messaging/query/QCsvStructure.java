@@ -10,10 +10,13 @@ package com.smartstream.messaging.query;
  * #L%
  */
 
+import scott.sort.api.query.JoinType;
 import scott.sort.api.query.QProperty;
 import scott.sort.api.query.QueryObject;
 
 import com.smartstream.messaging.model.CsvStructure;
+
+import static scott.sort.api.query.JoinType.*;
 
 public class QCsvStructure extends QueryObject<CsvStructure> {
 
@@ -28,8 +31,11 @@ public class QCsvStructure extends QueryObject<CsvStructure> {
     }
 
     public QCsvStructureField joinToFields() {
+        return joinToFields(LEFT_OUTER);
+    }
+    public QCsvStructureField joinToFields(JoinType joinType) {
         QCsvStructureField fields = new QCsvStructureField();
-        addJoin(fields, "fields");
+        addJoin(fields, "fields", joinType);
         return fields;
     }
 

@@ -75,14 +75,15 @@ public abstract class TestBase {
     }
 
     private void initDb() {
-        DriverManagerDataSource dmDataSource = new DriverManagerDataSource();
-        dmDataSource.setDriverClassName("org.hsqldb.jdbcDriver");
-        dmDataSource.setUrl("jdbc:hsqldb:mem:testdb");
-        //dmDataSource.setUrl( "jdbc:hsqldb:mem:testdb;close_result=true;hsqldb.applog=3;hsqldb.sqllog=3");
-        dmDataSource.setUsername("sa");
-        dmDataSource.setPassword("");
-        dataSource = dmDataSource;
         if (!databaseInitialized) {
+            DriverManagerDataSource dmDataSource = new DriverManagerDataSource();
+            dmDataSource.setDriverClassName("org.hsqldb.jdbcDriver");
+            dmDataSource.setUrl("jdbc:hsqldb:mem:testdb");
+            //dmDataSource.setUrl( "jdbc:hsqldb:mem:testdb;close_result=true;hsqldb.applog=3;hsqldb.sqllog=3");
+            dmDataSource.setUsername("sa");
+            dmDataSource.setPassword("");
+            dataSource = dmDataSource;
+
             SimpleJdbcTestUtils.executeSqlScript(new SimpleJdbcTemplate(dataSource), new ClassPathResource("/schema.sql"), false);
             databaseInitialized = true;
         }
@@ -396,7 +397,7 @@ public abstract class TestBase {
     protected static void print(String prefix, XMLSyntaxModel syntaxModel) {
         System.out.println(prefix + "XMLSyntax Id   " + syntaxModel.getId());
         System.out.println(prefix + "XMLSyntax Name " + syntaxModel.getName());
-        System.out.println(prefix + "XMLSyntax Type " + syntaxModel.getSyntaxType());
+        System.out.println(prefix + "XMLSyntax JoinType " + syntaxModel.getSyntaxType());
         if (syntaxModel.getUser() != null) {
             print(prefix + "  ", syntaxModel.getUser());
         }
@@ -413,7 +414,7 @@ public abstract class TestBase {
     protected static void print(String prefix, CsvSyntaxModel syntaxModel) {
         System.out.println(prefix + "CSVSyntax Id   " + syntaxModel.getId());
         System.out.println(prefix + "CSVSyntax Name " + syntaxModel.getName());
-        System.out.println(prefix + "CSVSyntax Type " + syntaxModel.getSyntaxType());
+        System.out.println(prefix + "CSVSyntax JoinType " + syntaxModel.getSyntaxType());
         if (syntaxModel.getUser() != null) {
             print(prefix + "  ", syntaxModel.getUser());
         }
