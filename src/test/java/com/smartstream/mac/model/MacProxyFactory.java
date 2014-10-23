@@ -17,6 +17,8 @@ import scott.sort.api.core.proxy.ProxyFactory;
 
 public class MacProxyFactory implements ProxyFactory {
 
+    private static final long serialVersionUID = 1L;
+
     @SuppressWarnings("unchecked")
     @Override
     public <T> T newProxy(Entity entity) {

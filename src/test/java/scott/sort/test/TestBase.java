@@ -240,7 +240,7 @@ public abstract class TestBase {
                 new QTemplateDatatype(),
                 new QDatatype());
 
-        env.getDefinitions("com.smartstream.mi").registerProxyFactory(new MessagingProxyFactory());
+        env.getDefinitions("com.smartstream.mi").registerProxyFactory(new MiProxyFactory());
 
         /*
          * Convert to XML and print out, just for fun.

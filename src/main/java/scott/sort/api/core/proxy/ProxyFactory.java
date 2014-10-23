@@ -10,10 +10,18 @@ package scott.sort.api.core.proxy;
  * #L%
  */
 
+import java.io.Serializable;
+
 import scott.sort.api.core.entity.Entity;
+import scott.sort.api.exception.model.ProxyCreationException;
 
-public interface ProxyFactory {
+/**
+ * Interface for generating type safe proxy objects for the entities.
+ * @author scott
+ *
+ */
+public interface ProxyFactory extends Serializable {
 
-    public <T> T newProxy(Entity entity);
+    public <T> T newProxy(Entity entity) throws ProxyCreationException;
 
 }

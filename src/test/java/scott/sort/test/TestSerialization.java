@@ -15,12 +15,10 @@ import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import scott.sort.api.persist.PersistAnalyser;
 import scott.sort.api.persist.PersistRequest;
-import scott.sort.server.jdbc.persist.Persister;
 
 import com.smartstream.mac.model.User;
 import com.smartstream.mi.model.SyntaxType;
@@ -88,7 +86,6 @@ public class TestSerialization extends TestBase {
     }
 
     @Test
-    @Ignore
     public void testPersistNewXMLSyntax() throws Exception {
         System.out.println("STARTING TEST testPersistNewXMLSyntax");
         XMLSyntaxModel syntaxModel = buildSyntax();

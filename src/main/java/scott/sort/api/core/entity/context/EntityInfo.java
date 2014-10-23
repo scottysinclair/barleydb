@@ -10,6 +10,7 @@ package scott.sort.api.core.entity.context;
  * #L%
  */
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -17,7 +18,9 @@ import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.RefNode;
 import static scott.sort.api.core.entity.EntityContextHelper.toParents;
 
-public final class EntityInfo {
+public final class EntityInfo implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private final Entity entity;
 
     /*

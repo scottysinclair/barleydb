@@ -11,12 +11,16 @@ package com.smartstream.mi.model;
  */
 
 import scott.sort.api.core.entity.Entity;
+import scott.sort.api.core.proxy.EntityProxy;
 import scott.sort.api.core.proxy.ProxyFactory;
+import scott.sort.api.exception.model.ProxyCreationException;
 
-public class MessagingProxyFactory implements ProxyFactory {
+public class MiProxyFactory implements ProxyFactory {
+
+    private static final long serialVersionUID = 1L;
 
     @SuppressWarnings("unchecked")
-    public <T> T newProxy(Entity entity) {
+    public <T> T newProxy(Entity entity) throws ProxyCreationException {
         if (entity.getEntityType().getInterfaceName().equals(XMLSyntaxModel.class.getName())) {
             return (T) new XMLSyntaxModel(entity);
         }
@@ -29,7 +33,11 @@ public class MessagingProxyFactory implements ProxyFactory {
         if (entity.getEntityType().getInterfaceName().equals(XMLMapping.class.getName())) {
             return (T) new XMLMapping(entity);
         }
-        return null;
+        try {
+            return EntityProxy.generateProxy(getClass().getClassLoader(), entity);
+        } catch (ClassNotFoundException x) {
+            throw new ProxyCreationException("Could not generate dynamic proxy", x);
+        }
     }
 
 }

@@ -42,8 +42,6 @@ public class Definitions implements Serializable {
     @XmlElement(name = "entity")
     private Map<String, EntityType> entities = new HashMap<String, EntityType>();
 
-    private ClassLoader proxyClassLoader;
-
     @XmlTransient
     private ProxyFactory proxyFactory;
 
@@ -53,10 +51,6 @@ public class Definitions implements Serializable {
      * contains the standard query (no joins, no conditions) for each entity type
      */
     private final QueryRegistry internalQueryRegistry = new QueryRegistry();
-
-    public Definitions() {
-        proxyClassLoader = Thread.currentThread().getContextClassLoader();
-    }
 
     public void registerProxyFactory(ProxyFactory proxyFactory) {
         this.proxyFactory = proxyFactory;
@@ -83,10 +77,6 @@ public class Definitions implements Serializable {
 
     public void registerQueries(QueryObject<?>... qos) {
         internalQueryRegistry.register(qos);
-    }
-
-    public ClassLoader getProxyClassLoader() {
-        return proxyClassLoader;
     }
 
     /**
