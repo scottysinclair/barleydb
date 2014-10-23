@@ -15,7 +15,7 @@ import java.util.List;
 
 import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.query.QueryObject;
-import scott.sort.server.jdbc.queryexecution.QueryResult;
+import scott.sort.server.jdbc.query.QueryResult;
 
 public class QueryBatcher {
 

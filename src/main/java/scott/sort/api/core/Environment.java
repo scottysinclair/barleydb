@@ -22,7 +22,7 @@ import scott.sort.api.core.proxy.ProxyFactory;
 import scott.sort.api.exception.execution.SortServiceProviderException;
 import scott.sort.api.query.QueryObject;
 import scott.sort.api.query.RuntimeProperties;
-import scott.sort.server.jdbc.queryexecution.QueryPreProcessor;
+import scott.sort.server.jdbc.query.QueryPreProcessor;
 
 /**
  * Exists on both the client and the server

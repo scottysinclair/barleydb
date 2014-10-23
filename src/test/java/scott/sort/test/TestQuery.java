@@ -22,7 +22,7 @@ import org.springframework.test.jdbc.SimpleJdbcTestUtils;
 
 import scott.sort.api.core.QueryBatcher;
 import static scott.sort.api.query.JoinType.*;
-import scott.sort.server.jdbc.queryexecution.QueryResult;
+import scott.sort.server.jdbc.query.QueryResult;
 
 import com.smartstream.mac.query.QUser;
 import com.smartstream.messaging.model.*;

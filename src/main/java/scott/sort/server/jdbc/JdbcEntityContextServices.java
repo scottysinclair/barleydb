@@ -31,16 +31,16 @@ import scott.sort.api.exception.execution.jdbc.SetAutoCommitException;
 import scott.sort.api.exception.execution.jdbc.SortJdbcException;
 import scott.sort.api.exception.execution.persist.SortPersistException;
 import scott.sort.api.exception.execution.query.SortQueryException;
+import scott.sort.api.persist.PersistAnalyser;
 import scott.sort.api.query.QueryObject;
 import scott.sort.api.query.RuntimeProperties;
-import scott.sort.server.jdbc.database.Database;
-import scott.sort.server.jdbc.persister.PersistAnalyser;
-import scott.sort.server.jdbc.persister.Persister;
-import scott.sort.server.jdbc.persister.SequenceGenerator;
-import scott.sort.server.jdbc.queryexecution.QueryExecuter;
-import scott.sort.server.jdbc.queryexecution.QueryExecution;
-import scott.sort.server.jdbc.queryexecution.QueryResult;
+import scott.sort.server.jdbc.persist.Persister;
+import scott.sort.server.jdbc.persist.SequenceGenerator;
+import scott.sort.server.jdbc.query.QueryExecuter;
+import scott.sort.server.jdbc.query.QueryExecution;
+import scott.sort.server.jdbc.query.QueryResult;
 import scott.sort.server.jdbc.resources.ConnectionResources;
+import scott.sort.server.jdbc.vendor.Database;
 
 /**
  * JDBC implementation of entity context services which queries and persists using JDBC.

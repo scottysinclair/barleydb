@@ -4,7 +4,7 @@ import javax.sql.DataSource;
 
 import scott.sort.api.core.Environment;
 import scott.sort.server.jdbc.JdbcEntityContextServices;
-import scott.sort.server.jdbc.persister.Persister;
+import scott.sort.server.jdbc.persist.Persister;
 
 public class TestEntityContextServices extends JdbcEntityContextServices {
 

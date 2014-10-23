@@ -18,9 +18,9 @@ import java.io.ObjectOutputStream;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import scott.sort.server.jdbc.persister.PersistAnalyser;
-import scott.sort.server.jdbc.persister.PersistRequest;
-import scott.sort.server.jdbc.persister.Persister;
+import scott.sort.api.persist.PersistAnalyser;
+import scott.sort.api.persist.PersistRequest;
+import scott.sort.server.jdbc.persist.Persister;
 
 import com.smartstream.mac.model.User;
 import com.smartstream.messaging.model.SyntaxType;

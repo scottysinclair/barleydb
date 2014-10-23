@@ -14,7 +14,9 @@ import org.junit.Test;
 
 import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.EntityContext;
-import scott.sort.server.jdbc.persister.*;
+import scott.sort.api.persist.PersistAnalyser;
+import scott.sort.api.persist.PersistRequest;
+import scott.sort.server.jdbc.persist.*;
 import static org.junit.Assert.*;
 
 import com.smartstream.mac.model.User;

@@ -14,10 +14,10 @@ import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.exception.execution.SortServiceProviderException;
 import scott.sort.api.exception.execution.persist.SortPersistException;
 import scott.sort.api.exception.execution.query.SortQueryException;
+import scott.sort.api.persist.PersistAnalyser;
 import scott.sort.api.query.QueryObject;
 import scott.sort.api.query.RuntimeProperties;
-import scott.sort.server.jdbc.persister.PersistAnalyser;
-import scott.sort.server.jdbc.queryexecution.QueryResult;
+import scott.sort.server.jdbc.query.QueryResult;
 
 /**
  * Interface for performing queries and persisting entities

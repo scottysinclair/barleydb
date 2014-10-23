@@ -18,7 +18,7 @@ import java.util.Set;
 import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.exception.execution.persist.PersistTransactionRequiredException;
 import scott.sort.api.exception.execution.query.QueryConnectionRequiredException;
-import scott.sort.server.jdbc.database.Database;
+import scott.sort.server.jdbc.vendor.Database;
 
 public class ConnectionResources {
 
