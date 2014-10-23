@@ -166,14 +166,16 @@ public class TestQuery extends TestBase {
          */
         QXMLSyntaxModel qxsm = new QXMLSyntaxModel();
         qxsm.joinToStructure();
-        qxsm.joinToUser();
+        QUser quser = qxsm.joinToUser();
         QXMLSyntaxModel sub = qxsm.joinToMappings().joinToSubSyntax();
         sub.joinToStructure();
         sub.joinToUser();
         sub.joinToMappings();
 
-        qxsm.disableName();
-        sub.disableName();
+        qxsm.select(qxsm.syntaxType());
+        quser.select(quser.userName());
+        sub.select(sub.syntaxName(), sub.syntaxType());
+
 
         /*
          * get a copy of the syntax query

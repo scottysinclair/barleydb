@@ -10,6 +10,7 @@ package com.smartstream.messaging.query;
  * #L%
  */
 
+import scott.sort.api.query.JoinType;
 import scott.sort.api.query.QProperty;
 import scott.sort.api.query.QueryObject;
 
@@ -56,15 +57,13 @@ class QAbstractSyntaxModel<T extends SyntaxModel, CHILD extends QAbstractSyntaxM
         super(modelClasss, parent);
     }
 
-    @SuppressWarnings("unchecked")
-    public CHILD disableName() {
-        addDisabled("name");
-        return (CHILD) this;
-    }
-
     public QUser joinToUser() {
+        return joinToUser(JoinType.LEFT_OUTER);
+
+    }
+    public QUser joinToUser(JoinType joinType) {
         QUser user = new QUser();
-        addLeftOuterJoin(user, "user");
+        addJoin(user, "user", joinType);
         return user;
     }
 

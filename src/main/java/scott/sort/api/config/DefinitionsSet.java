@@ -20,7 +20,7 @@ import java.util.Map;
  */
 public class DefinitionsSet {
 
-    private Map<String, Definitions> definitionsByNamespace = new HashMap<>();
+    private final Map<String, Definitions> definitionsByNamespace = new HashMap<>();
 
     public void addDefinitions(Definitions definitions) {
         definitionsByNamespace.put(definitions.getNamespace(), definitions);

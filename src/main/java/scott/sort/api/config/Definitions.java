@@ -12,6 +12,7 @@ package scott.sort.api.config;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -59,6 +60,14 @@ public class Definitions implements Serializable {
 
     public void registerProxyFactory(ProxyFactory proxyFactory) {
         this.proxyFactory = proxyFactory;
+    }
+
+    /**
+     * Gets all of the queries in the standard internal query registry.
+     * @return
+     */
+    public Collection<QueryObject<?>> getAllQueries() {
+        return internalQueryRegistry.getAll();
     }
 
     public List<ProxyFactory> getProxyFactories() {

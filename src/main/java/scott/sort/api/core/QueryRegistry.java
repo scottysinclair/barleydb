@@ -15,6 +15,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,6 +29,7 @@ import scott.sort.api.query.QueryObject;
  */
 public class QueryRegistry implements Serializable, Cloneable {
     private static final long serialVersionUID = 1L;
+
     private Map<String, QueryObject<?>> map = new HashMap<String, QueryObject<?>>();
 
     public QueryRegistry() {}
@@ -37,6 +40,10 @@ public class QueryRegistry implements Serializable, Cloneable {
 
     public void addAll(QueryRegistry qr) {
         map.putAll(qr.map);
+    }
+
+    public Collection<QueryObject<?>> getAll() {
+        return Collections.unmodifiableCollection(map.values());
     }
 
     /**
@@ -57,20 +64,11 @@ public class QueryRegistry implements Serializable, Cloneable {
 
     public void register(QueryObject<?>... qos) {
         for (QueryObject<?> qo : qos) {
-            if (map.containsKey(getKey(qo))) {
-                register("user", qo);
-            } else {
-                register(null, qo);
+            String key = getKey(qo);
+            if (!map.containsKey(key)) {
+                map.put(key, qo);
             }
         }
-    }
-
-    private void register(String name, QueryObject<?> qo) {
-        map.put(getKey(qo), qo);
-    }
-
-    private String getKey(QueryObject<? extends Object> qo) {
-        return qo.getTypeName();
     }
 
     public QueryObject<Object> getQuery(EntityType entityType) {
@@ -85,6 +83,10 @@ public class QueryRegistry implements Serializable, Cloneable {
     @SuppressWarnings("unchecked")
     public <T> QueryObject<T> getQuery(Class<T> interfaceType) {
         return clone((QueryObject<T>) map.get(interfaceType.getName()));
+    }
+
+    private String getKey(QueryObject<? extends Object> qo) {
+        return qo.getTypeName();
     }
 
     @SuppressWarnings("unchecked")

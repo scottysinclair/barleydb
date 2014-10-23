@@ -12,7 +12,6 @@ package scott.sort.api.query;
 
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -21,6 +20,21 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import scott.sort.api.exception.query.QPropertyInvalidException;
+import scott.sort.api.exception.query.QPropertyMissingException;
+import scott.sort.api.exception.query.SortQueryModelRuntimeException;
+
+/**
+ *
+ * The core abstraction for querying.
+ * The query object is the entry point for an abstract model based query API.
+ *
+ * The query API is in no way specific to JDBC.
+ *
+ * @author scott
+ *
+ * @param <R>
+ */
 public class QueryObject<R> implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -30,8 +44,17 @@ public class QueryObject<R> implements Serializable {
     private final Class<R> typeClass;
     private final String typeName;
     private final QueryObject<?> parent;
-    private final Set<String> disabled;
-    private final Set<String> disabledExcept;
+
+    /**
+     * Allows QProperty objects to be looked up based on name.
+     */
+    private final QPropertyLookup propertyLookup;
+
+    /**
+     * The set of entity properties returned by the query
+     * if empty then all properties will be returned.
+     */
+    private final Set<String> projectedProperties;
     private final List<QJoin> joins;
     private final List<QJoin> exists;
     private String alias;
@@ -56,11 +79,41 @@ public class QueryObject<R> implements Serializable {
         this.typeClass = typeClass;
         this.typeName = typeName;
         this.parent = parent;
-        this.disabled = new HashSet<>();
-        this.disabledExcept = new HashSet<>();
+        this.projectedProperties = new HashSet<>();
         this.joins = new LinkedList<QJoin>();
         this.exists = new LinkedList<QJoin>();
         this.orderBy = new LinkedList<QOrderBy>();
+        try {
+            /*
+             * Letting 'this' escape is ok, QPropertyLookup only looks at the static class info.
+             */
+            this.propertyLookup = new QPropertyLookup(this);
+        } catch (QPropertyInvalidException x) {
+            /*
+             * We wrap the checked exception with a runtime exception as this will
+             * a) rarely occur and the client programmer should not always have to check for it
+             * b) will be throw when setting up the definitions at startup so the client programmer code would not be reached anyway.
+             */
+            throw new SortQueryModelRuntimeException("Class " + getClass().getName() + " has an invalid query property", x);
+        }
+    }
+
+    /**
+     * The select clause can accept properties across all joined query objects
+     * @param properties
+     * @return
+     */
+    public QueryObject<R> select(QProperty<?> ...properties) {
+        /**
+         * Configure each query object according to the properties.
+         */
+        for (QProperty<?> property: properties) {
+            property.getQueryObject().projectedProperties.clear();
+        }
+        for (QProperty<?> property: properties) {
+            property.getQueryObject().projectedProperties.add(property.getName());
+        }
+        return this;
     }
 
     @SuppressWarnings("unchecked")
@@ -76,25 +129,13 @@ public class QueryObject<R> implements Serializable {
         return typeClass;
     }
 
-    public boolean isDisabled(String propertyName) {
-        if (disabled.isEmpty()) {
-            if (disabledExcept.isEmpty()) {
-                return false;
-            }
-            else {
-                return !disabledExcept.contains(propertyName);
-            }
+    public boolean isProjected(String propertyName) {
+        if (projectedProperties.isEmpty()) {
+            return true;
         }
-       return disabled.contains(propertyName);
-    }
-
-    public void addDisabled(String propertyDef) {
-        disabled.add(propertyDef);
-    }
-
-    public void disabledExcept(String ...propertyDef) {
-        disabled.clear();
-        disabledExcept.addAll( Arrays.asList(propertyDef) );
+        else {
+            return projectedProperties.contains(propertyName);
+        }
     }
 
     public void addInnerJoin(QueryObject<?> to, String propertyDef) {
@@ -229,6 +270,10 @@ public class QueryObject<R> implements Serializable {
     public QueryObject<R> orExists(QueryObject<?> queryObject) {
         this.condition = new QLogicalOp(this.condition, exists(queryObject), QBooleanOps.OR);
         return this;
+    }
+
+    public QProperty<?> getMandatoryQProperty(String propertyName) throws QPropertyMissingException, QPropertyInvalidException {
+        return propertyLookup.getProperty(propertyName);
     }
 
     private QExists exists(QueryObject<?> queryObject) {

@@ -45,7 +45,7 @@ public class Projection implements Iterable<ProjectionColumn> {
         for (NodeDefinition nd : entityType.getNodeDefinitions()) {
             if (nd.getColumnName() != null) {
                 ProjectionColumn pCol = new ProjectionColumn(this, query, qj, nd);
-                if (nd.isPrimaryKey() || !query.isDisabled(nd.getName())) {
+                if (requiredInProjection(query, nd)) {
                     columns.add(pCol);
                 }
             }
@@ -64,6 +64,34 @@ public class Projection implements Iterable<ProjectionColumn> {
             throw new IllegalQueryStateException("Projection column not found in projection: " + column);
         }
         return i + 1; //resultset style 1-N index
+    }
+
+    private boolean requiredInProjection(QueryObject<?> query, NodeDefinition nd) {
+        if (nd.isPrimaryKey()) {
+            /*
+             * We always project primary keys
+             */
+            return true;
+        }
+        if (nd.isOptimisticLock()) {
+            /*
+             * We always project optimistic locks
+             */
+            return true;
+        }
+        else if (nd.getFixedValue() != null) {
+            /*
+             * We always project fixed values which are used in parent / child relationship analysis
+             */
+            return true;
+        }
+        else if (nd.getRelationInterfaceName() != null) {
+            /*
+             * We are a FK relation so we always include it
+             */
+            return true;
+        }
+        return query.isProjected(nd.getName());
     }
 
     public List<ProjectionColumn> getColumns() {

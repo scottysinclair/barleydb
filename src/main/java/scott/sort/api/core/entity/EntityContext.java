@@ -737,7 +737,8 @@ public final class EntityContext implements Serializable {
 
         try {
             if (singlePropertyName != null) {
-                qo.disabledExcept(singlePropertyName);
+                QProperty<?> property =  qo.getMandatoryQProperty( singlePropertyName );
+                qo.select(property);
             }
             QueryResult<Object> result = performQuery(qo);
             /*
