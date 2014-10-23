@@ -76,7 +76,7 @@ import static scott.sort.api.core.entity.EntityContextHelper.toParents;
  * @author scott
  *
  */
-public final class EntityContext implements Serializable {
+public class EntityContext implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private static final Logger LOG = LoggerFactory.getLogger(EntityContext.class);

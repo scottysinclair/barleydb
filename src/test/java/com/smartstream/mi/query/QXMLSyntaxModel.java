@@ -1,4 +1,4 @@
-package com.smartstream.messaging.query;
+package com.smartstream.mi.query;
 
 /*
  * #%L
@@ -13,7 +13,7 @@ package com.smartstream.messaging.query;
 
 import scott.sort.api.query.QueryObject;
 
-import com.smartstream.messaging.model.*;
+import com.smartstream.mi.model.*;
 
 public class QXMLSyntaxModel extends QAbstractSyntaxModel<XMLSyntaxModel, QXMLSyntaxModel> {
     private static final long serialVersionUID = 1L;

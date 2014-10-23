@@ -1,4 +1,4 @@
-package com.smartstream.messaging.model;
+package com.smartstream.mi.model;
 
 /*
  * #%L
@@ -10,16 +10,14 @@ package com.smartstream.messaging.model;
  * #L%
  */
 
-import java.util.List;
-
-public interface Template {
+public interface TemplateContent {
     Long getId();
 
     String getName();
 
     void setName(String name);
 
-    List<TemplateContent> getContents();
+    Template getTemplate();
 
-    List<Datatype> getDatatypes();
+    void setTemplate(Template template);
 }

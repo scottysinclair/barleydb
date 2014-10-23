@@ -23,10 +23,10 @@ import scott.sort.api.persist.PersistRequest;
 import scott.sort.server.jdbc.persist.Persister;
 
 import com.smartstream.mac.model.User;
-import com.smartstream.messaging.model.SyntaxType;
-import com.smartstream.messaging.model.XMLMapping;
-import com.smartstream.messaging.model.XMLStructure;
-import com.smartstream.messaging.model.XMLSyntaxModel;
+import com.smartstream.mi.model.SyntaxType;
+import com.smartstream.mi.model.XMLMapping;
+import com.smartstream.mi.model.XMLStructure;
+import com.smartstream.mi.model.XMLSyntaxModel;
 
 public class TestSerialization extends TestBase {
 
@@ -87,8 +87,8 @@ public class TestSerialization extends TestBase {
         return syntaxModel;
     }
 
-    @Ignore
     @Test
+    @Ignore
     public void testPersistNewXMLSyntax() throws Exception {
         System.out.println("STARTING TEST testPersistNewXMLSyntax");
         XMLSyntaxModel syntaxModel = buildSyntax();

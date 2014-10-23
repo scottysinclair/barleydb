@@ -1,4 +1,4 @@
-package com.smartstream.messaging.model;
+package com.smartstream.mi.model;
 
 /*
  * #%L
@@ -10,6 +10,10 @@ package com.smartstream.messaging.model;
  * #L%
  */
 
-public interface XMLStructure extends Structure {
+import java.util.List;
+
+public interface CsvStructure extends Structure {
+
+    List<CsvStructureField> getFields();
 
 }

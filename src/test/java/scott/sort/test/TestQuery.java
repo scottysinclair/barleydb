@@ -25,8 +25,8 @@ import static scott.sort.api.query.JoinType.*;
 import scott.sort.server.jdbc.query.QueryResult;
 
 import com.smartstream.mac.query.QUser;
-import com.smartstream.messaging.model.*;
-import com.smartstream.messaging.query.*;
+import com.smartstream.mi.model.*;
+import com.smartstream.mi.query.*;
 
 @SuppressWarnings("deprecation")
 public class TestQuery extends TestBase {

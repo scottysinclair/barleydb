@@ -1,4 +1,4 @@
-package com.smartstream.messaging.query;
+package com.smartstream.mi.query;
 
 /*
  * #%L
@@ -13,7 +13,7 @@ package com.smartstream.messaging.query;
 
 import scott.sort.api.query.QueryObject;
 
-import com.smartstream.messaging.model.CsvMapping;
+import com.smartstream.mi.model.CsvMapping;
 
 public class QCsvMapping extends QueryObject<CsvMapping> {
 

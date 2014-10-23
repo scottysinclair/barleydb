@@ -20,7 +20,7 @@ import scott.sort.server.jdbc.persist.*;
 import static org.junit.Assert.*;
 
 import com.smartstream.mac.model.User;
-import com.smartstream.messaging.model.*;
+import com.smartstream.mi.model.*;
 
 public class TestDatabaseDataSet extends TestBase {
 

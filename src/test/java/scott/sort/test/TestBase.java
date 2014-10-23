@@ -56,8 +56,9 @@ import com.smartstream.mac.model.MacProxyFactory;
 import com.smartstream.mac.model.User;
 import com.smartstream.mac.query.QAccessArea;
 import com.smartstream.mac.query.QUser;
-import com.smartstream.messaging.model.*;
-import com.smartstream.messaging.query.*;
+import com.smartstream.mi.MiEntityContext;
+import com.smartstream.mi.model.*;
+import com.smartstream.mi.query.*;
 
 @SuppressWarnings("deprecation")
 public abstract class TestBase {
@@ -67,7 +68,7 @@ public abstract class TestBase {
     protected static TestEntityContextServices entityContextServices;
     protected static String transformXml;
 
-    protected static final String namespace = "com.smartstream.messaging";
+    protected static final String namespace = "com.smartstream.mi";
     protected static DataSource dataSource;
     protected EntityContext entityContext;
 
@@ -153,7 +154,7 @@ public abstract class TestBase {
                 .newEntity(CsvStructure.class, "SS_CSVSTRUCTURE")
                     .withKey("id", JavaType.LONG, "ID", JdbcType.BIGINT)
                     .withValue("name", JavaType.STRING, "NAME", JdbcType.VARCHAR)
-                    .ownsMany("fields", com.smartstream.messaging.model.CsvStructureField.class, "structure")
+                    .ownsMany("fields", com.smartstream.mi.model.CsvStructureField.class, "structure")
                     .withOptimisticLock("modifiedAt", JavaType.LONG, "MODIFIED_AT", JdbcType.TIMESTAMP)
 
                 .newEntity(CsvStructureField.class, "SS_CSVSTRUCTURE_FIELD")
@@ -161,7 +162,7 @@ public abstract class TestBase {
                     .withValue("name", JavaType.STRING, "NAME", JdbcType.VARCHAR)
                     .withValue("columnIndex", JavaType.INTEGER, "COL_INDEX", JdbcType.INT)
                     .withValue("optional", JavaType.BOOLEAN, "OPTIONAL", JdbcType.INT)
-                    .withOne("structure", com.smartstream.messaging.model.CsvStructure.class, "STRUCTURE_ID", JdbcType.BIGINT)
+                    .withOne("structure", com.smartstream.mi.model.CsvStructure.class, "STRUCTURE_ID", JdbcType.BIGINT)
 
                 .newAbstractEntity(SyntaxModel.class, "SS_SYNTAX_MODEL")
                     .withKey("id", JavaType.LONG, "ID", JdbcType.BIGINT)
@@ -175,32 +176,32 @@ public abstract class TestBase {
 
                 .newChildEntity(XMLSyntaxModel.class, SyntaxModel.class)
                     .withFixedValue("structureType", JavaType.INTEGER, "STRUCTURE_TYPE", JdbcType.INT, 1)
-                    .dependsOnOne("structure", com.smartstream.messaging.model.XMLStructure.class, "STRUCTURE_ID", JdbcType.BIGINT)
-                    .ownsMany("mappings", com.smartstream.messaging.model.XMLMapping.class, "syntaxModel")
+                    .dependsOnOne("structure", com.smartstream.mi.model.XMLStructure.class, "STRUCTURE_ID", JdbcType.BIGINT)
+                    .ownsMany("mappings", com.smartstream.mi.model.XMLMapping.class, "syntaxModel")
 
                 .newEntity(XMLMapping.class, "SS_XML_MAPPING")
                     .withKey("id", JavaType.LONG, "ID", JdbcType.BIGINT)
                     .withValue("xpath", JavaType.STRING, "XPATH", JdbcType.VARCHAR)
                     .withValue("target", JavaType.STRING, "TARGET_FIELD_NAME", JdbcType.VARCHAR)
-                    .withOne("syntaxModel", com.smartstream.messaging.model.XMLSyntaxModel.class, "SYNTAX_MODEL_ID", JdbcType.BIGINT)
-                    .ownsOne("subSyntaxModel", com.smartstream.messaging.model.XMLSyntaxModel.class, "SUB_SYNTAX_MODEL_ID", JdbcType.BIGINT)
+                    .withOne("syntaxModel", com.smartstream.mi.model.XMLSyntaxModel.class, "SYNTAX_MODEL_ID", JdbcType.BIGINT)
+                    .ownsOne("subSyntaxModel", com.smartstream.mi.model.XMLSyntaxModel.class, "SUB_SYNTAX_MODEL_ID", JdbcType.BIGINT)
 
                 .newChildEntity(CsvSyntaxModel.class, SyntaxModel.class)
                     .withFixedValue("structureType", JavaType.INTEGER, "STRUCTURE_TYPE", JdbcType.INT, 2)
-                    .dependsOnOne("structure", com.smartstream.messaging.model.CsvStructure.class, "STRUCTURE_ID", JdbcType.BIGINT)
-                    .ownsMany("mappings", com.smartstream.messaging.model.CsvMapping.class, "syntaxModel")
+                    .dependsOnOne("structure", com.smartstream.mi.model.CsvStructure.class, "STRUCTURE_ID", JdbcType.BIGINT)
+                    .ownsMany("mappings", com.smartstream.mi.model.CsvMapping.class, "syntaxModel")
 
                 .newEntity(CsvMapping.class, "SS_CSV_MAPPING")
                     .withKey("id", JavaType.LONG, "ID", JdbcType.BIGINT)
                     .withValue("columnIndex", JavaType.INTEGER, "COL_INDEX", JdbcType.INT)
                     .withValue("target", JavaType.STRING, "TARGET_FIELD_NAME", JdbcType.VARCHAR)
-                    .withOne("syntaxModel", com.smartstream.messaging.model.CsvSyntaxModel.class, "SYNTAX_MODEL_ID", JdbcType.BIGINT)
+                    .withOne("syntaxModel", com.smartstream.mi.model.CsvSyntaxModel.class, "SYNTAX_MODEL_ID", JdbcType.BIGINT)
 
                 .newEntity(Template.class, "SS_TEMPLATE")
                     .withKey("id", JavaType.LONG, "ID", JdbcType.BIGINT)
                     .withValue("name", JavaType.STRING, "NAME", JdbcType.VARCHAR)
-                    .ownsMany("contents", com.smartstream.messaging.model.TemplateContent.class, "template")
-                    .ownsMany("datatypes", "com.smartstream.messaging.TemplateDatatype", "template", "datatype")
+                    .ownsMany("contents", com.smartstream.mi.model.TemplateContent.class, "template")
+                    .ownsMany("datatypes", "com.smartstream.mi.TemplateDatatype", "template", "datatype")
                     .withOptimisticLock("modifiedAt", JavaType.LONG, "MODIFIED_AT", JdbcType.TIMESTAMP)
 
                 .newEntity(TemplateContent.class, "SS_TEMPLATE_CONTENT")
@@ -214,7 +215,7 @@ public abstract class TestBase {
                     .withValue("name", JavaType.STRING, "NAME", JdbcType.VARCHAR)
                     .withOptimisticLock("modifiedAt", JavaType.LONG, "MODIFIED_AT", JdbcType.TIMESTAMP)
 
-                .newEntity("com.smartstream.messaging.TemplateDatatype", "SS_TEMPLATE_DATATYPE")
+                .newEntity("com.smartstream.mi.TemplateDatatype", "SS_TEMPLATE_DATATYPE")
                     .withKey("id", JavaType.LONG, "ID", JdbcType.BIGINT)
                     .withOne("template", Template.class, "TEMPLATE_ID", JdbcType.BIGINT)
                     .dependsOnOne("datatype", Datatype.class, "DATATYPE_ID", JdbcType.BIGINT)
@@ -226,7 +227,7 @@ public abstract class TestBase {
 
         env.getDefinitions("com.smartstream.mac").registerProxyFactory(new MacProxyFactory());
 
-        env.getDefinitions("com.smartstream.messaging").registerQueries(
+        env.getDefinitions("com.smartstream.mi").registerQueries(
                 new QXMLSyntaxModel(),
                 new QXMLStructure(),
                 new QXMLMapping(),
@@ -239,7 +240,7 @@ public abstract class TestBase {
                 new QTemplateDatatype(),
                 new QDatatype());
 
-        env.getDefinitions("com.smartstream.messaging").registerProxyFactory(new MessagingProxyFactory());
+        env.getDefinitions("com.smartstream.mi").registerProxyFactory(new MessagingProxyFactory());
 
         /*
          * Convert to XML and print out, just for fun.
@@ -274,7 +275,7 @@ public abstract class TestBase {
         /*
          * create a session with the definitions above, the query registry and a datasource.
          */
-        entityContext = new EntityContext(env, namespace);
+        entityContext = new MiEntityContext(env);
         entityContext.setAutocommit(false);
 
     }

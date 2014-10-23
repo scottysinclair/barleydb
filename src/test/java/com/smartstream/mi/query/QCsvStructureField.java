@@ -1,4 +1,4 @@
-package com.smartstream.messaging.query;
+package com.smartstream.mi.query;
 
 /*
  * #%L
@@ -13,17 +13,18 @@ package com.smartstream.messaging.query;
 import scott.sort.api.query.QProperty;
 import scott.sort.api.query.QueryObject;
 
-import com.smartstream.messaging.model.XMLStructure;
+import com.smartstream.mi.model.CsvStructureField;
 
-public class QXMLStructure extends QueryObject<XMLStructure> {
+public class QCsvStructureField extends QueryObject<CsvStructureField> {
+
     private static final long serialVersionUID = 1L;
 
-    public QXMLStructure() {
-        super(XMLStructure.class);
+    public QCsvStructureField() {
+        super(CsvStructureField.class);
     }
 
-    public QXMLStructure(QueryObject<?> parent) {
-        super(XMLStructure.class, parent);
+    public QCsvStructureField(QueryObject<?> parent) {
+        super(CsvStructureField.class, parent);
     }
 
     public QProperty<String> name() {

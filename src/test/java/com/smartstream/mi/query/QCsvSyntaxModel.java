@@ -1,4 +1,4 @@
-package com.smartstream.messaging.query;
+package com.smartstream.mi.query;
 
 /*
  * #%L
@@ -14,7 +14,7 @@ package com.smartstream.messaging.query;
 import scott.sort.api.query.JoinType;
 import scott.sort.api.query.QueryObject;
 
-import com.smartstream.messaging.model.CsvSyntaxModel;
+import com.smartstream.mi.model.CsvSyntaxModel;
 
 import static scott.sort.api.query.JoinType.*;
 

@@ -1,4 +1,4 @@
-package com.smartstream.messaging.query;
+package com.smartstream.mi.query;
 
 /*
  * #%L
@@ -13,7 +13,7 @@ package com.smartstream.messaging.query;
 import scott.sort.api.query.QProperty;
 import scott.sort.api.query.QueryObject;
 
-import com.smartstream.messaging.model.Template;
+import com.smartstream.mi.model.Template;
 
 public class QTemplate extends QueryObject<Template> {
 

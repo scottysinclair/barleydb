@@ -1,4 +1,4 @@
-package com.smartstream.messaging.model;
+package com.smartstream.mi.model;
 
 /*
  * #%L

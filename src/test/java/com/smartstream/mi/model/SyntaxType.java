@@ -1,4 +1,4 @@
-package com.smartstream.messaging.model;
+package com.smartstream.mi.model;
 
 /*
  * #%L
@@ -10,11 +10,8 @@ package com.smartstream.messaging.model;
  * #L%
  */
 
-public interface Structure {
 
-    Long getId();
-
-    String getName();
-
-    void setName(String name);
+public enum SyntaxType {
+    ROOT,
+    SUBSYNTAX
 }

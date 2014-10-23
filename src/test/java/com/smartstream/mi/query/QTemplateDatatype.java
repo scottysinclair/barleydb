@@ -1,4 +1,4 @@
-package com.smartstream.messaging.query;
+package com.smartstream.mi.query;
 
 /*
  * #%L
@@ -12,19 +12,19 @@ package com.smartstream.messaging.query;
 
 import scott.sort.api.query.QueryObject;
 
-import com.smartstream.messaging.model.Template;
+import com.smartstream.mi.model.Template;
 
 public class QTemplateDatatype extends QueryObject<Template> {
 
     private static final long serialVersionUID = 1L;
 
     public QTemplateDatatype(QueryObject<?> parent) {
-        super(null, "com.smartstream.messaging.TemplateDatatype", parent);
+        super(null, "com.smartstream.mi.TemplateDatatype", parent);
 
     }
 
     public QTemplateDatatype() {
-        super(null, "com.smartstream.messaging.TemplateDatatype", null);
+        super(null, "com.smartstream.mi.TemplateDatatype", null);
     }
 
     public QDatatype joinToDatatype() {

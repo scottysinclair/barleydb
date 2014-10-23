@@ -10,6 +10,7 @@ package scott.sort.api.config;
  * #L%
  */
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,7 +19,9 @@ import java.util.Map;
  * @author scott
  *
  */
-public class DefinitionsSet {
+public class DefinitionsSet implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private final Map<String, Definitions> definitionsByNamespace = new HashMap<>();
 

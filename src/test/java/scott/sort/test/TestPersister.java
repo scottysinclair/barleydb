@@ -30,8 +30,8 @@ import static org.junit.Assert.*;
 import com.smartstream.mac.model.AccessArea;
 import com.smartstream.mac.model.User;
 import com.smartstream.mac.query.QAccessArea;
-import com.smartstream.messaging.model.*;
-import com.smartstream.messaging.query.*;
+import com.smartstream.mi.model.*;
+import com.smartstream.mi.query.*;
 
 public class TestPersister extends TestBase {
     private XMLSyntaxModel buildSyntax() {
