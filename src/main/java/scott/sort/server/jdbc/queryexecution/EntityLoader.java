@@ -34,11 +34,11 @@ import scott.sort.api.core.entity.RefNode;
 import scott.sort.api.core.entity.ValueNode;
 import scott.sort.api.core.types.JavaType;
 import scott.sort.api.core.types.JdbcType;
-import scott.sort.api.exception.InvalidNodeDefinitionException;
-import scott.sort.api.exception.SortJdbcException;
-import scott.sort.api.exception.query.IllegalQueryStateException;
-import scott.sort.api.exception.query.ResultDataConversionException;
-import scott.sort.api.exception.query.SortQueryException;
+import scott.sort.api.exception.execution.jdbc.SortJdbcException;
+import scott.sort.api.exception.execution.query.IllegalQueryStateException;
+import scott.sort.api.exception.execution.query.InvalidNodeDefinitionException;
+import scott.sort.api.exception.execution.query.ResultDataConversionException;
+import scott.sort.api.exception.execution.query.SortQueryException;
 import scott.sort.api.query.QueryObject;
 
 /**

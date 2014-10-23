@@ -22,7 +22,7 @@ import scott.sort.api.core.entity.EntityContextHelper;
 import scott.sort.api.core.entity.ProxyController;
 import scott.sort.api.core.entity.RefNode;
 import scott.sort.api.core.entity.ToManyNode;
-import scott.sort.api.exception.persist.IllegalPersistStateException;
+import scott.sort.api.exception.execution.persist.IllegalPersistStateException;
 
 public class PersistAnalyser implements Serializable {
 

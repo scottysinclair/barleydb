@@ -19,7 +19,7 @@ import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.core.proxy.EntityProxy;
 import scott.sort.api.core.proxy.ProxyFactory;
-import scott.sort.api.exception.SortJdbcException;
+import scott.sort.api.exception.execution.SortServiceProviderException;
 import scott.sort.api.query.QueryObject;
 import scott.sort.api.query.RuntimeProperties;
 import scott.sort.server.jdbc.queryexecution.QueryPreProcessor;
@@ -70,7 +70,7 @@ public final class Environment {
         this.definitionsSet = new DefinitionsSet();
     }
 
-    public void setAutocommit(EntityContext entityContext, boolean value) throws SortJdbcException {
+    public void setAutocommit(EntityContext entityContext, boolean value) throws SortServiceProviderException {
         entityContextServices.setAutocommit(entityContext, value);
     }
 
@@ -78,15 +78,15 @@ public final class Environment {
         entityContextServices.joinTransaction(newContext, context);
     }
 
-    public boolean getAutocommit(EntityContext entityContext) throws SortJdbcException {
+    public boolean getAutocommit(EntityContext entityContext) throws SortServiceProviderException {
         return entityContextServices.getAutocommit(entityContext);
     }
 
-    public void rollback(EntityContext entityContext) throws SortJdbcException {
+    public void rollback(EntityContext entityContext) throws SortServiceProviderException {
         entityContextServices.rollback(entityContext);
     }
 
-    public void commit(EntityContext entityContext) throws SortJdbcException {
+    public void commit(EntityContext entityContext) throws SortServiceProviderException {
         entityContextServices.commit(entityContext);
     }
 

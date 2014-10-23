@@ -14,7 +14,7 @@ import java.util.*;
 
 import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.core.entity.ProxyController;
-import scott.sort.api.exception.persist.IllegalPersistStateException;
+import scott.sort.api.exception.execution.persist.IllegalPersistStateException;
 
 public class PersistRequest {
 

@@ -11,7 +11,7 @@ package scott.sort.server.jdbc.persister;
  */
 
 import scott.sort.api.config.EntityType;
-import scott.sort.server.jdbc.persister.exception.SortPersistException;
+import scott.sort.api.exception.execution.persist.SortPersistException;
 
 public interface SequenceGenerator {
 

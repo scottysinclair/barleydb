@@ -1,4 +1,4 @@
-package scott.sort.api.exception.persist;
+package scott.sort.api.exception.execution.persist;
 
 /*
  * #%L
@@ -10,7 +10,6 @@ package scott.sort.api.exception.persist;
  * #L%
  */
 
-import scott.sort.server.jdbc.persister.exception.SortPersistException;
 
 public class IllegalPersistStateException extends SortPersistException {
 

@@ -2,8 +2,8 @@ package scott.sort.server.jdbc.persister;
 
 import scott.sort.api.config.Definitions;
 import scott.sort.api.core.entity.EntityContext;
-import scott.sort.api.exception.persist.PersistTransactionRequiredException;
-import scott.sort.api.exception.persist.PreparingPersistStatementException;
+import scott.sort.api.exception.execution.persist.PersistTransactionRequiredException;
+import scott.sort.api.exception.execution.persist.PreparingPersistStatementException;
 import scott.sort.server.jdbc.helper.PreparedStatementCache;
 import scott.sort.server.jdbc.resources.ConnectionResources;
 

@@ -20,9 +20,9 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import scott.sort.api.exception.query.QPropertyInvalidException;
-import scott.sort.api.exception.query.QPropertyMissingException;
-import scott.sort.api.exception.query.SortQueryModelRuntimeException;
+import scott.sort.api.exception.model.QPropertyInvalidException;
+import scott.sort.api.exception.model.QPropertyMissingException;
+import scott.sort.api.exception.model.SortQueryModelRuntimeException;
 
 /**
  *

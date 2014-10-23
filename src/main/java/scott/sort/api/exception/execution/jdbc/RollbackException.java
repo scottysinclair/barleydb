@@ -1,4 +1,4 @@
-package scott.sort.api.exception;
+package scott.sort.api.exception.execution.jdbc;
 
 /*
  * #%L

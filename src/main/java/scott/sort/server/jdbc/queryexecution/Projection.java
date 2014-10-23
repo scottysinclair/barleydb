@@ -17,7 +17,7 @@ import java.util.List;
 import scott.sort.api.config.Definitions;
 import scott.sort.api.config.EntityType;
 import scott.sort.api.config.NodeDefinition;
-import scott.sort.api.exception.query.IllegalQueryStateException;
+import scott.sort.api.exception.execution.query.IllegalQueryStateException;
 import scott.sort.api.query.QJoin;
 import scott.sort.api.query.QueryObject;
 

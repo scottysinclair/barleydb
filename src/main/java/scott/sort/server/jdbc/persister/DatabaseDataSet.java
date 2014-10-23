@@ -19,8 +19,9 @@ import scott.sort.api.config.*;
 import scott.sort.api.core.*;
 import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.EntityContext;
-import scott.sort.api.exception.SortJdbcException;
-import scott.sort.api.exception.query.SortQueryException;
+import scott.sort.api.exception.execution.SortServiceProviderException;
+import scott.sort.api.exception.execution.jdbc.SortJdbcException;
+import scott.sort.api.exception.execution.query.SortQueryException;
 import scott.sort.api.query.*;
 import scott.sort.server.jdbc.database.Database;
 import scott.sort.server.jdbc.resources.ConnectionResources;
@@ -56,7 +57,7 @@ public class DatabaseDataSet {
      * @throws SortJdbcException
      * @throws SortQueryException
      */
-    public void loadEntities(OperationGroup updateGroup, OperationGroup deleteGroup, OperationGroup dependsOnGroup) throws SortJdbcException, SortQueryException  {
+    public void loadEntities(OperationGroup updateGroup, OperationGroup deleteGroup, OperationGroup dependsOnGroup) throws SortServiceProviderException, SortQueryException  {
 
         /*
          * Build queries to load all of these entites
@@ -113,7 +114,7 @@ public class DatabaseDataSet {
             addKeyCondition(entityType, key);
         }
 
-        public void load() throws SortJdbcException, SortQueryException  {
+        public void load() throws SortServiceProviderException, SortQueryException  {
             Database database = ConnectionResources.getMandatoryForQuery(myentityContext).getDatabase();
             if (!database.supportsBatchUpdateCounts()) {
                 if (database.supportsSelectForUpdate()) {

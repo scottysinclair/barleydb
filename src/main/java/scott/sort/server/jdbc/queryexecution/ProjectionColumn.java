@@ -12,7 +12,7 @@ package scott.sort.server.jdbc.queryexecution;
 
 
 import scott.sort.api.config.NodeDefinition;
-import scott.sort.api.exception.query.IllegalQueryStateException;
+import scott.sort.api.exception.execution.query.IllegalQueryStateException;
 import scott.sort.api.query.QJoin;
 import scott.sort.api.query.QueryObject;
 

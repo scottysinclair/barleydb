@@ -22,12 +22,12 @@ import org.slf4j.LoggerFactory;
 
 import scott.sort.api.config.Definitions;
 import scott.sort.api.core.entity.Entity;
-import scott.sort.api.exception.AddBatchException;
-import scott.sort.api.exception.SortJdbcException;
-import scott.sort.api.exception.persist.IllegalPersistStateException;
-import scott.sort.api.exception.persist.PreparingPersistStatementException;
+import scott.sort.api.exception.execution.jdbc.AddBatchException;
+import scott.sort.api.exception.execution.jdbc.SortJdbcException;
+import scott.sort.api.exception.execution.persist.IllegalPersistStateException;
+import scott.sort.api.exception.execution.persist.PreparingPersistStatementException;
+import scott.sort.api.exception.execution.persist.SortPersistException;
 import scott.sort.server.jdbc.database.Database;
-import scott.sort.server.jdbc.persister.exception.SortPersistException;
 
 /**
  * Executes batch operations on a set of entities across various tables.

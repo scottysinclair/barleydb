@@ -11,12 +11,12 @@ package scott.sort.api.core;
  */
 
 import scott.sort.api.core.entity.EntityContext;
-import scott.sort.api.exception.SortJdbcException;
-import scott.sort.api.exception.query.SortQueryException;
+import scott.sort.api.exception.execution.SortServiceProviderException;
+import scott.sort.api.exception.execution.persist.SortPersistException;
+import scott.sort.api.exception.execution.query.SortQueryException;
 import scott.sort.api.query.QueryObject;
 import scott.sort.api.query.RuntimeProperties;
 import scott.sort.server.jdbc.persister.PersistAnalyser;
-import scott.sort.server.jdbc.persister.exception.SortPersistException;
 import scott.sort.server.jdbc.queryexecution.QueryResult;
 
 /**
@@ -36,7 +36,7 @@ public interface IEntityContextServices {
      * @throws SortJdbcException if an access error occurred, if an attempted commit failed.
      *  if the auto commit mode is not supported by the environment.
      */
-    void setAutocommit(EntityContext entityContext, boolean value) throws SortJdbcException;
+    void setAutocommit(EntityContext entityContext, boolean value) throws SortServiceProviderException;
 
     /**
      * Gets the auto commit mode of the entity context.
@@ -44,7 +44,7 @@ public interface IEntityContextServices {
      * @return
      * @throws SortJdbcException if an access error occurred.
      */
-    boolean getAutocommit(EntityContext entityContext) throws SortJdbcException;
+    boolean getAutocommit(EntityContext entityContext) throws SortServiceProviderException;
 
     /**
      * Makes the newContext join the same transaction as contextWithTransaction.<br/>
@@ -62,14 +62,14 @@ public interface IEntityContextServices {
      * @param entityContext
      * @throws SortJdbcException if the commit failed, if we are in auto commit mode.
      */
-    void commit(EntityContext entityContext) throws SortJdbcException;
+    void commit(EntityContext entityContext) throws SortServiceProviderException;
 
     /**
      * Rolls the transaction for the given entity context back.
      * @param entityContext
      * @throws SortJdbcException
      */
-    void rollback(EntityContext entityContext) throws SortJdbcException;
+    void rollback(EntityContext entityContext) throws SortServiceProviderException;
 
     /**
      * Executes the query populating the given entity context with the result.
@@ -82,7 +82,7 @@ public interface IEntityContextServices {
      * @throws SortJdbcException
      * @throws SortQueryException
      */
-    <T> QueryResult<T> execute(String namespace, EntityContext entityContext, QueryObject<T> query, RuntimeProperties props) throws SortJdbcException, SortQueryException;
+    <T> QueryResult<T> execute(String namespace, EntityContext entityContext, QueryObject<T> query, RuntimeProperties props) throws SortServiceProviderException, SortQueryException;
 
     /**
      * Executes the batch of queries populating the given entity context with the result.
@@ -95,7 +95,7 @@ public interface IEntityContextServices {
      * @throws SortJdbcException
      * @throws SortQueryException
      */
-    QueryBatcher execute(String namespace, EntityContext entityContext, QueryBatcher queryBatcher, RuntimeProperties props) throws SortJdbcException, SortQueryException;
+    QueryBatcher execute(String namespace, EntityContext entityContext, QueryBatcher queryBatcher, RuntimeProperties props) throws SortServiceProviderException, SortQueryException;
 
     /**
      * Executes the persist analysis
@@ -105,5 +105,5 @@ public interface IEntityContextServices {
      * @throws SortJdbcException
      * @throws SortPersistException
      */
-    PersistAnalyser execute(PersistAnalyser persistAnalyser) throws SortJdbcException, SortPersistException;
+    PersistAnalyser execute(PersistAnalyser persistAnalyser) throws SortServiceProviderException, SortPersistException;
 }

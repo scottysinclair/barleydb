@@ -1,4 +1,6 @@
-package scott.sort.api.exception;
+package scott.sort.api.exception.execution.jdbc;
+
+import scott.sort.api.exception.execution.SortServiceProviderException;
 
 /*
  * #%L
@@ -16,7 +18,7 @@ package scott.sort.api.exception;
  * @author scott
  *
  */
-public class SortJdbcException extends SortException {
+public class SortJdbcException extends SortServiceProviderException {
 
     private static final long serialVersionUID = 1L;
 

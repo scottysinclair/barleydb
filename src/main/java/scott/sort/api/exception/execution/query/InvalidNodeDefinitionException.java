@@ -1,4 +1,4 @@
-package scott.sort.api.exception;
+package scott.sort.api.exception.execution.query;
 
 /*
  * #%L
@@ -11,8 +11,13 @@ package scott.sort.api.exception;
  */
 
 import scott.sort.api.config.NodeDefinition;
-import scott.sort.api.exception.query.SortQueryException;
 
+/**
+ * TODO: Problems using this exception should be detected on startup and so this exception
+ * should be moved to scott.sort.api.exception.model and an IllegalQueryStateException should be used instead.
+ * @author scott
+ *
+ */
 public class InvalidNodeDefinitionException extends SortQueryException {
 
     private static final long serialVersionUID = 1L;

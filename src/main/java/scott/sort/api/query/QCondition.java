@@ -13,8 +13,8 @@ package scott.sort.api.query;
 
 import java.io.Serializable;
 
-import scott.sort.api.exception.query.ForUpdateNotSupportedException;
-import scott.sort.api.exception.query.IllegalQueryStateException;
+import scott.sort.api.exception.execution.query.ForUpdateNotSupportedException;
+import scott.sort.api.exception.execution.query.IllegalQueryStateException;
 
 /**
  * Base class for query conditions.

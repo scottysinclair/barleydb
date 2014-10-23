@@ -20,7 +20,7 @@ import scott.sort.api.config.EntityType;
 import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.Node;
 import scott.sort.api.core.entity.ValueNode;
-import scott.sort.api.exception.persist.IllegalPersistStateException;
+import scott.sort.api.exception.execution.persist.IllegalPersistStateException;
 
 public final class AuditRecord {
     private final EntityType entityType;

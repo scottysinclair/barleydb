@@ -1,4 +1,4 @@
-package scott.sort.server.jdbc.persister.exception;
+package scott.sort.api.exception.execution.persist;
 
 import scott.sort.api.exception.SortException;
 

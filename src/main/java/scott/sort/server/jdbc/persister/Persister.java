@@ -24,10 +24,15 @@ import scott.sort.api.core.entity.Node;
 import scott.sort.api.core.entity.RefNode;
 import scott.sort.api.core.entity.ToManyNode;
 import scott.sort.api.core.entity.ValueNode;
-import scott.sort.api.exception.SortJdbcException;
-import scott.sort.api.exception.persist.IllegalPersistStateException;
-import scott.sort.api.exception.persist.PreparingPersistStatementException;
-import scott.sort.api.exception.query.SortQueryException;
+import scott.sort.api.exception.execution.SortServiceProviderException;
+import scott.sort.api.exception.execution.jdbc.SortJdbcException;
+import scott.sort.api.exception.execution.persist.EntityMissingException;
+import scott.sort.api.exception.execution.persist.IllegalPersistStateException;
+import scott.sort.api.exception.execution.persist.OptimisticLockMismatchException;
+import scott.sort.api.exception.execution.persist.PreparingPersistStatementException;
+import scott.sort.api.exception.execution.persist.PrimaryKeyExistsException;
+import scott.sort.api.exception.execution.persist.SortPersistException;
+import scott.sort.api.exception.execution.query.SortQueryException;
 import scott.sort.server.jdbc.JdbcEntityContextServices;
 import scott.sort.server.jdbc.database.Database;
 import scott.sort.server.jdbc.persister.audit.AuditInformation;
@@ -55,7 +60,7 @@ public class Persister {
         DatabaseDataSet databaseDataSet = new DatabaseDataSet(analyser.getEntityContext());
         try {
             loadAndValidate(databaseDataSet, analyser.getUpdateGroup(), analyser.getDeleteGroup(), analyser.getDependsOnGroup());
-        } catch (SortJdbcException x) {
+        } catch (SortServiceProviderException x) {
             throw new SortPersistException("Error loading original data", x);
         }
 
@@ -182,7 +187,7 @@ public class Persister {
      * @throws SortJdbcException
      * @throws SortPersistException
      */
-    private void loadAndValidate(DatabaseDataSet databaseDataSet, OperationGroup updateGroup, OperationGroup deleteGroup, OperationGroup dependsOnGroup) throws SortJdbcException, SortPersistException  {
+    private void loadAndValidate(DatabaseDataSet databaseDataSet, OperationGroup updateGroup, OperationGroup deleteGroup, OperationGroup dependsOnGroup) throws SortServiceProviderException, SortPersistException  {
         logStep("Loading dataset from database");
         try {
             databaseDataSet.loadEntities(updateGroup, deleteGroup, dependsOnGroup);

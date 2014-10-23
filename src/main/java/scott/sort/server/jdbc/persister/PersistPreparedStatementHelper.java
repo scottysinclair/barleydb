@@ -11,7 +11,7 @@ package scott.sort.server.jdbc.persister;
  */
 
 import scott.sort.api.config.Definitions;
-import scott.sort.api.exception.persist.PreparingPersistStatementException;
+import scott.sort.api.exception.execution.persist.PreparingPersistStatementException;
 import scott.sort.server.jdbc.helper.PreparedStatementHelper;
 
 public class PersistPreparedStatementHelper extends PreparedStatementHelper<PreparingPersistStatementException> {

@@ -45,15 +45,15 @@ import scott.sort.api.core.QueryBatcher;
 import scott.sort.api.core.QueryRegistry;
 import scott.sort.api.core.entity.context.Entities;
 import scott.sort.api.core.entity.context.EntityInfo;
-import scott.sort.api.exception.SortJdbcException;
-import scott.sort.api.exception.query.SortQueryException;
+import scott.sort.api.exception.execution.SortServiceProviderException;
+import scott.sort.api.exception.execution.persist.OptimisticLockMismatchException;
+import scott.sort.api.exception.execution.persist.SortPersistException;
+import scott.sort.api.exception.execution.query.SortQueryException;
 import scott.sort.api.query.QProperty;
 import scott.sort.api.query.QueryObject;
 import scott.sort.api.query.RuntimeProperties;
 import scott.sort.server.jdbc.persister.PersistAnalyser;
 import scott.sort.server.jdbc.persister.PersistRequest;
-import scott.sort.server.jdbc.persister.exception.OptimisticLockMismatchException;
-import scott.sort.server.jdbc.persister.exception.SortPersistException;
 import scott.sort.server.jdbc.queryexecution.QueryResult;
 import static scott.sort.api.core.entity.EntityContextHelper.toParents;
 
@@ -141,19 +141,19 @@ public final class EntityContext implements Serializable {
         return namespace;
     }
 
-    public void setAutocommit(boolean value) throws SortJdbcException {
+    public void setAutocommit(boolean value) throws SortServiceProviderException {
         env.setAutocommit(this, value);
     }
 
-    public boolean getAutocommit() throws SortJdbcException {
+    public boolean getAutocommit() throws SortServiceProviderException {
         return env.getAutocommit(this);
     }
 
-    public void rollback() throws SortJdbcException {
+    public void rollback() throws SortServiceProviderException {
         env.rollback(this);
     }
 
-    public void commit() throws SortJdbcException {
+    public void commit() throws SortServiceProviderException {
         env.commit(this);
     }
 
@@ -373,10 +373,10 @@ public final class EntityContext implements Serializable {
         this.entityContextState = EntityContextState.USER;
     }
 
-    public <T> void performQueries(QueryBatcher queryBatcher) throws SortJdbcException, SortQueryException {
+    public <T> void performQueries(QueryBatcher queryBatcher) throws SortServiceProviderException, SortQueryException {
         performQueries(queryBatcher, null);
     }
-    public <T> void performQueries(QueryBatcher queryBatcher, RuntimeProperties runtimeProperties) throws SortJdbcException, SortQueryException {
+    public <T> void performQueries(QueryBatcher queryBatcher, RuntimeProperties runtimeProperties) throws SortServiceProviderException, SortQueryException {
         /*
          * We can perform the query in a fresh context which is copied back to us
          * it gives us control over any replace vs merge logic.
@@ -393,10 +393,10 @@ public final class EntityContext implements Serializable {
         queryBatcher.copyResultTo(this);
     }
 
-    public <T> QueryResult<T> performQuery(QueryObject<T> queryObject) throws SortJdbcException, SortQueryException {
+    public <T> QueryResult<T> performQuery(QueryObject<T> queryObject) throws SortServiceProviderException, SortQueryException {
         return performQuery(queryObject, null);
     }
-    public <T> QueryResult<T> performQuery(QueryObject<T> queryObject, RuntimeProperties runtimeProperties) throws SortJdbcException, SortQueryException {
+    public <T> QueryResult<T> performQuery(QueryObject<T> queryObject, RuntimeProperties runtimeProperties) throws SortServiceProviderException, SortQueryException {
         /*
          * We can perform the query in a fresh context which is copied back to us
          * it gives us control over any replace vs merge logic
@@ -413,10 +413,10 @@ public final class EntityContext implements Serializable {
         return queryResult.copyResultTo(this);
     }
 
-    public void persist(PersistRequest persistRequest) throws SortJdbcException, SortPersistException  {
+    public void persist(PersistRequest persistRequest) throws SortServiceProviderException, SortPersistException  {
         persist(persistRequest, null);
     }
-    public void persist(PersistRequest persistRequest, RuntimeProperties runtimeProperties) throws SortJdbcException, SortPersistException  {
+    public void persist(PersistRequest persistRequest, RuntimeProperties runtimeProperties) throws SortServiceProviderException, SortPersistException  {
         beginSaving();
 
         runtimeProperties = env.overrideProps( runtimeProperties );

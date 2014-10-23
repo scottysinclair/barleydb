@@ -1,4 +1,4 @@
-package scott.sort.api.exception.query;
+package scott.sort.api.exception.execution.query;
 
 /*
  * #%L

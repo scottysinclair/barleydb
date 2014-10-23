@@ -22,12 +22,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import scott.sort.api.core.entity.EntityContext;
-import scott.sort.api.exception.SortJdbcException;
-import scott.sort.api.exception.persist.PreparingPersistStatementException;
-import scott.sort.api.exception.query.ForUpdateNotSupportedException;
-import scott.sort.api.exception.query.IllegalQueryStateException;
-import scott.sort.api.exception.query.PreparingQueryStatementException;
-import scott.sort.api.exception.query.SortQueryException;
+import scott.sort.api.exception.execution.jdbc.SortJdbcException;
+import scott.sort.api.exception.execution.persist.PreparingPersistStatementException;
+import scott.sort.api.exception.execution.query.ForUpdateNotSupportedException;
+import scott.sort.api.exception.execution.query.IllegalQueryStateException;
+import scott.sort.api.exception.execution.query.PreparingQueryStatementException;
+import scott.sort.api.exception.execution.query.SortQueryException;
 import scott.sort.api.query.RuntimeProperties;
 import scott.sort.server.jdbc.database.Database;
 import scott.sort.server.jdbc.queryexecution.QueryGenerator.Param;

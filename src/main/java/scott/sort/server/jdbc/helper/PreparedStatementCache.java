@@ -21,8 +21,8 @@ import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.core.entity.Node;
 import scott.sort.api.core.entity.ToManyNode;
-import scott.sort.api.exception.ClosingStatementException;
 import scott.sort.api.exception.SortException;
+import scott.sort.api.exception.execution.jdbc.ClosingStatementException;
 import scott.sort.server.jdbc.resources.ConnectionResources;
 
 public abstract class PreparedStatementCache<PREPARING_PERSIST_EX extends SortException, CONNECTION_REQ_EX extends SortException> implements AutoCloseable {

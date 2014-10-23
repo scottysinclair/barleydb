@@ -17,8 +17,8 @@ import scott.sort.api.config.EntityType;
 import scott.sort.api.core.Environment;
 import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.EntityContext;
+import scott.sort.api.exception.execution.persist.SortPersistException;
 import scott.sort.api.query.QueryObject;
-import scott.sort.server.jdbc.persister.exception.SortPersistException;
 
 public class QuickHackSequenceGenerator implements SequenceGenerator {
     private Environment env;

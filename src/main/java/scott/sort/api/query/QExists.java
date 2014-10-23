@@ -1,7 +1,7 @@
 package scott.sort.api.query;
 
-import scott.sort.api.exception.query.ForUpdateNotSupportedException;
-import scott.sort.api.exception.query.IllegalQueryStateException;
+import scott.sort.api.exception.execution.query.ForUpdateNotSupportedException;
+import scott.sort.api.exception.execution.query.IllegalQueryStateException;
 
 /*
  * #%L

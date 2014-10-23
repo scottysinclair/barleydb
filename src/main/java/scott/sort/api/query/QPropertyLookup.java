@@ -7,8 +7,8 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-import scott.sort.api.exception.query.QPropertyInvalidException;
-import scott.sort.api.exception.query.QPropertyMissingException;
+import scott.sort.api.exception.model.QPropertyInvalidException;
+import scott.sort.api.exception.model.QPropertyMissingException;
 
 /**
  * Allows QProperties to be looked up by name
