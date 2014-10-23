@@ -282,13 +282,13 @@ VERIFYING CREATE RIGHT FOR Entity [XMLMapping.id=708]
 ==================================================================================
 Performing inserts...
 
-Executing insert batch for EntityType [ com.smartstream.messaging.model.XMLStructure ] of size 1
+Executing insert batch for EntityType [ com.smartstream.mi.model.XMLStructure ] of size 1
 1 rows were modified in total
 Executing insert batch for EntityType [ com.smartstream.mac.model.User ] of size 1
 1 rows were modified in total
-Executing insert batch for EntityType [ com.smartstream.messaging.model.XMLSyntaxModel ] of size 2
+Executing insert batch for EntityType [ com.smartstream.mi.model.XMLSyntaxModel ] of size 2
 2 rows were modified in total
-Executing insert batch for EntityType [ com.smartstream.messaging.model.XMLMapping ] of size 5
+Executing insert batch for EntityType [ com.smartstream.mi.model.XMLMapping ] of size 5
 5 rows were modified in total
 
 ==================================================================================
@@ -392,11 +392,11 @@ Defining the models and relations can be specified in XML or in a Java DSL
 	 - Owns - Owned entities are inserted, updated and deleted with their owners.   
 	  
 
-    <entity interface="com.smartstream.messaging.model.XMLSyntaxModel" table="SS_SYNTAX_MODEL" key="id">
+    <entity interface="com.smartstream.mi.model.XMLSyntaxModel" table="SS_SYNTAX_MODEL" key="id">
         <node name="id"   		javaType="LONG"   columnName="ID"   		jdbcType="BIGINT"/>
         <node name="name" 		javaType="STRING" columnName="NAME" 		jdbcType="VARCHAR"/>
         <node name="syntaxType" 				  columnName="SYNTAX_TYPE" 	jdbcType="INT">
-            <enumType>com.smartstream.messaging.model.SyntaxType</enumType>
+            <enumType>com.smartstream.mi.model.SyntaxType</enumType>
         </node>
         <node name="structureType" javaType="INTEGER" columnName="STRUCTURE_TYPE" jdbcType="INT">
             <fixedValue xsi:type="xs:int">1</fixedValue>
@@ -405,11 +405,11 @@ Defining the models and relations can be specified in XML or in a Java DSL
             <interfaceName>com.smartstream.mac.model.User</interfaceName>
         </node>
         <node name="structure" columnName="STRUCTURE_ID" jdbcType="BIGINT">
-            <interfaceName>com.smartstream.messaging.model.XMLStructure</interfaceName>
+            <interfaceName>com.smartstream.mi.model.XMLStructure</interfaceName>
             <relationType>DEPENDS</relationType>
         </node>
         <node name="mappings">
-            <interfaceName>com.smartstream.messaging.model.XMLMapping</interfaceName>
+            <interfaceName>com.smartstream.mi.model.XMLMapping</interfaceName>
             <foreignNodeName>syntaxModel</foreignNodeName>
             <relationType>OWNS</relationType>
         </node>
@@ -418,15 +418,15 @@ Defining the models and relations can be specified in XML or in a Java DSL
         </node>
     </entity>
 
-    <entity interface="com.smartstream.messaging.model.XMLMapping" table="SS_XML_MAPPING" key="id">
+    <entity interface="com.smartstream.mi.model.XMLMapping" table="SS_XML_MAPPING" key="id">
         <node name="id" 		javaType="LONG" 	columnName="ID" 					jdbcType="BIGINT"/>
         <node name="xpath" 		javaType="STRING" 	columnName="XPATH" 					jdbcType="VARCHAR"/>
         <node name="target" 	javaType="STRING" 	columnName="TARGET_FIELD_NAME" 		jdbcType="VARCHAR"/>
         <node name="syntaxModel" 					columnName="SYNTAX_MODEL_ID" 		jdbcType="BIGINT">
-            <interfaceName>com.smartstream.messaging.model.XMLSyntaxModel</interfaceName>
+            <interfaceName>com.smartstream.mi.model.XMLSyntaxModel</interfaceName>
         </node>
         <node name="subSyntaxModel" 				columnName="SUB_SYNTAX_MODEL_ID"	jdbcType="BIGINT">
-            <interfaceName>com.smartstream.messaging.model.XMLSyntaxModel</interfaceName>
+            <interfaceName>com.smartstream.mi.model.XMLSyntaxModel</interfaceName>
             <relationType>OWNS</relationType>
         </node>
     </entity>

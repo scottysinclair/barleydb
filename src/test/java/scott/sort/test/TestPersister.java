@@ -30,6 +30,7 @@ import static org.junit.Assert.*;
 import com.smartstream.mac.model.AccessArea;
 import com.smartstream.mac.model.User;
 import com.smartstream.mac.query.QAccessArea;
+import com.smartstream.mi.MiEntityContext;
 import com.smartstream.mi.model.*;
 import com.smartstream.mi.query.*;
 
@@ -221,7 +222,7 @@ public class TestPersister extends TestBase {
         qsyntax.where(qsyntax.syntaxName().equal("Scott's Syntax"));
 
         System.out.println("-------------- OTHER USER SAVING SYNTAX ------------------");
-        EntityContext otherUser = new EntityContext(env, namespace);
+        EntityContext otherUser = new MiEntityContext(env);
         XMLSyntaxModel otherSyntax = otherUser.performQuery(qsyntax).getList().get(0);
         print("", otherSyntax);
 
@@ -272,7 +273,7 @@ public class TestPersister extends TestBase {
         /*
          * We use another node context to get and update the structure, simulating a concurrent user modification
          */
-        EntityContext otherUser = new EntityContext(env, namespace);
+        EntityContext otherUser = new MiEntityContext(env);
         XMLSyntaxModel otherSyntax = otherUser.performQuery(qsyntax).getList().get(0);
         otherSyntax.getStructure().setName("updated-structure-name");
         otherUser.persist(new PersistRequest().save(otherSyntax.getStructure()));
@@ -321,7 +322,7 @@ public class TestPersister extends TestBase {
         /*
          * We use another node context to get and update the structure, simulating a concurrent user modification
          */
-        EntityContext otherUser = new EntityContext(env, namespace);
+        EntityContext otherUser = new MiEntityContext(env);
         XMLSyntaxModel otherSyntax = otherUser.performQuery(qsyntax).getList().get(0);
         otherUser.persist(new PersistRequest().delete(otherSyntax));
 
@@ -370,7 +371,7 @@ public class TestPersister extends TestBase {
                     /*
                      * We use another node context to get and update the structure, simulating a concurrent user modification
                      */
-                    EntityContext otherUser = new EntityContext(env, namespace);
+                    EntityContext otherUser = new MiEntityContext(env);
                     otherUser.setAutocommit(false);
                     XMLSyntaxModel otherSyntax = otherUser.performQuery(qsyntax).getList().get(0);
                     entityContextServices.setPersisterFactory(null);
@@ -439,7 +440,7 @@ public class TestPersister extends TestBase {
                     QXMLSyntaxModel qsyntax = new QXMLSyntaxModel();
                     qsyntax.joinToStructure();
                     qsyntax.where(qsyntax.syntaxName().equal("Scott's Syntax"));
-                    EntityContext otherUser = new EntityContext(env, namespace);
+                    EntityContext otherUser = new MiEntityContext(env);
                     otherUser.setAutocommit(false);
                     XMLSyntaxModel otherSyntaxCopy = otherUser.performQuery(qsyntax).getList().get(0);
                     otherSyntaxCopy.setName("Scott's Syntax updated-hook");
@@ -651,7 +652,7 @@ public class TestPersister extends TestBase {
         Template template = entityContext.performQuery(qtemplate).getSingleResult();
 
         System.out.println("===================  LOAD DATA FOR USER 2 =================");
-        EntityContext ctx2 = new EntityContext(env, entityContext.getNamespace());
+        EntityContext ctx2 = new MiEntityContext(env);
         Template template2 = ctx2.performQuery(qtemplate).getSingleResult();
         template2.getDatatypes().get(0).setName("updated-name");
         ctx2.persist(new PersistRequest().save(template2.getDatatypes().get(0)));

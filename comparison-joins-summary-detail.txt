@@ -59,7 +59,7 @@ public class TemplateContentSummary implements ControllableObject {
    	  <result property="accessAreaId" 	column="T_ACCESS_AREA_ID" 	jdbcType="BIGINT"/>
 	  <result property="updateUserId" 	column="T_UPDATE_USER_ID" 	jdbcType="BIGINT"/>
       <result property="modifiedAt"		column="T_MODIFIED_AT"		jdbcType="TIMESTAMP" />
-	  <result property="carrier" 		column="T_CARRIER_EID" 		jdbcType="INTEGER" typeHandler="com.smartstream.messaging.templates.dao.impl.CarrierTypeHandler"/>
+	  <result property="carrier" 		column="T_CARRIER_EID" 		jdbcType="INTEGER" typeHandler="com.smartstream.mi.templates.dao.impl.CarrierTypeHandler"/>
 	  <collection property="templateContentSummaries" column="TC_ID" javaType="ArrayList" ofType="TemplateContentSummary" resultMap="TemplateContentSummaryMap"/>
 	</resultMap>
 
@@ -73,7 +73,7 @@ public class TemplateContentSummary implements ControllableObject {
 
 3) Create the mybatis query that returns data into those result maps.
 
-	<select id="TemplateSummary_query" resultMap="com.smartstream.messaging.templates.common.TemplateSummaryMap">
+	<select id="TemplateSummary_query" resultMap="com.smartstream.mi.templates.common.TemplateSummaryMap">
 	  select 	t.ID "T_ID",
 	  			t.NAME "T_NAME",
 	  			t.ACCESS_AREA_ID "T_ACCESS_AREA_ID",
@@ -127,7 +127,7 @@ TASK: CREATE A UI EDITOR WITH ALL DATA REQUIRED FOR EDITING TEMPLATES
    	  <result property="accessAreaId" 	column="T_ACCESS_AREA_ID" 	jdbcType="BIGINT"/>
 	  <result property="updateUserId" 	column="T_UPDATE_USER_ID" 	jdbcType="BIGINT"/>
 	  <result property="modifiedAt"		column="T_MODIFIED_AT"		jdbcType="TIMESTAMP" />
-	  <result property="carrier" 		column="T_CARRIER_EID" 		jdbcType="INTEGER" typeHandler="com.smartstream.messaging.templates.dao.impl.CarrierTypeHandler"/>
+	  <result property="carrier" 		column="T_CARRIER_EID" 		jdbcType="INTEGER" typeHandler="com.smartstream.mi.templates.dao.impl.CarrierTypeHandler"/>
 	  <result property="gUID"			column="T_UUID"				jdbcType="CHAR" />
 	  <collection property="templateContents" column="TC_ID"  javaType="ArrayList" ofType="TemplateContent" resultMap="TemplateContentMap"/>
 	</resultMap>
@@ -157,7 +157,7 @@ TASK: CREATE A UI EDITOR WITH ALL DATA REQUIRED FOR EDITING TEMPLATES
 
 2) Create the query with the joins to template content
 
-	<select id="Template_query" resultMap="com.smartstream.messaging.templates.common.TemplateMap">
+	<select id="Template_query" resultMap="com.smartstream.mi.templates.common.TemplateMap">
 	  select 	t.ID "T_ID",
 	  			t.NAME "T_NAME",
 	  			t.ACCESS_AREA_ID "T_ACCESS_AREA_ID",
@@ -190,7 +190,7 @@ TASK: CREATE A UI EDITOR WITH ALL DATA REQUIRED FOR EDITING TEMPLATES
 
 3) Create the query to load the full datatype
 
-	<select id="TemplateDatatype_for_template_query" resultMap="com.smartstream.messaging.templates.common.TemplateDatatypeMap">
+	<select id="TemplateDatatype_for_template_query" resultMap="com.smartstream.mi.templates.common.TemplateDatatypeMap">
  		select 	td.ID "TD_ID",
 	  			td.NAME "TD_NAME",
 	  			td.ACCESS_AREA_ID "TD_ACCESS_AREA_ID",
