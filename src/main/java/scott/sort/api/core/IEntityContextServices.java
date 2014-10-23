@@ -36,7 +36,7 @@ public interface IEntityContextServices {
      * @throws SortJdbcException if an access error occurred, if an attempted commit failed.
      *  if the auto commit mode is not supported by the environment.
      */
-    void setAutocommit(EntityContext entityContext, boolean value) throws SortServiceProviderException;
+    void setAutoCommit(EntityContext entityContext, boolean value) throws SortServiceProviderException;
 
     /**
      * Gets the auto commit mode of the entity context.
@@ -44,7 +44,7 @@ public interface IEntityContextServices {
      * @return
      * @throws SortJdbcException if an access error occurred.
      */
-    boolean getAutocommit(EntityContext entityContext) throws SortServiceProviderException;
+    boolean getAutoCommit(EntityContext entityContext) throws SortServiceProviderException;
 
     /**
      * Makes the newContext join the same transaction as contextWithTransaction.<br/>

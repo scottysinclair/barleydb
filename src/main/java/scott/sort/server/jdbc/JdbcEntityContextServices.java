@@ -95,7 +95,7 @@ public class JdbcEntityContextServices implements IEntityContextServices {
     }
 
     @Override
-    public void setAutocommit(EntityContext entityContext, boolean value) throws SortJdbcException {
+    public void setAutoCommit(EntityContext entityContext, boolean value) throws SortJdbcException {
         ConnectionResources conRes = ConnectionResources.get(entityContext);
         if (conRes == null) {
             /*
@@ -118,7 +118,7 @@ public class JdbcEntityContextServices implements IEntityContextServices {
 
 
     @Override
-    public boolean getAutocommit(EntityContext entityContext) throws SortJdbcException {
+    public boolean getAutoCommit(EntityContext entityContext) throws SortJdbcException {
         ConnectionResources conRes = ConnectionResources.get(entityContext);
         if (conRes == null) {
             return true;

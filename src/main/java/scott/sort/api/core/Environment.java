@@ -71,7 +71,7 @@ public final class Environment {
     }
 
     public void setAutocommit(EntityContext entityContext, boolean value) throws SortServiceProviderException {
-        entityContextServices.setAutocommit(entityContext, value);
+        entityContextServices.setAutoCommit(entityContext, value);
     }
 
     public void joinTransaction(EntityContext newContext, EntityContext context) {
@@ -79,7 +79,7 @@ public final class Environment {
     }
 
     public boolean getAutocommit(EntityContext entityContext) throws SortServiceProviderException {
-        return entityContextServices.getAutocommit(entityContext);
+        return entityContextServices.getAutoCommit(entityContext);
     }
 
     public void rollback(EntityContext entityContext) throws SortServiceProviderException {
