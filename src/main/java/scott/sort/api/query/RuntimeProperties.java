@@ -3,7 +3,11 @@ package scott.sort.api.query;
 import java.io.Serializable;
 
 /**
- * Runtime properties for a query execution
+ * Runtime properties for a query execution.<br/>
+ *<br/>
+ * These objects can be passed in with a query during execution.<br/>
+ * They decide on how exactly the query executes.
+ *
  * @author scott
  *
  */

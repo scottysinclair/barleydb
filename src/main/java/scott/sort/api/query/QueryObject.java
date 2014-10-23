@@ -99,7 +99,11 @@ public class QueryObject<R> implements Serializable {
     }
 
     /**
-     * The select clause can accept properties across all joined query objects
+     * The select clause defines what columns are selected for.<br/>
+     *<br/>
+     * note: the underlying query executer may decide to select more columns than specified, if required.<br/>
+     * Examples would be primary keys and optimistic lock values.
+     *
      * @param properties
      * @return
      */
