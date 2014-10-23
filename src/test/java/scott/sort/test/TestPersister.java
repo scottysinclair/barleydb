@@ -22,7 +22,6 @@ import scott.sort.api.core.entity.ProxyController;
 import scott.sort.api.exception.execution.persist.EntityMissingException;
 import scott.sort.api.exception.execution.persist.OptimisticLockMismatchException;
 import scott.sort.server.jdbc.persister.*;
-import scott.sort.server.jdbc.persister.exception.*;
 import scott.sort.server.jdbc.resources.ConnectionResources;
 import scott.sort.test.TestEntityContextServices.PersisterFactory;
 import static org.junit.Assert.*;

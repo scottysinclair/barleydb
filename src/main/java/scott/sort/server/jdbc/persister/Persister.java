@@ -38,7 +38,6 @@ import scott.sort.server.jdbc.database.Database;
 import scott.sort.server.jdbc.persister.audit.AuditInformation;
 import scott.sort.server.jdbc.persister.audit.AuditRecord;
 import scott.sort.server.jdbc.persister.audit.Change;
-import scott.sort.server.jdbc.persister.exception.*;
 import scott.sort.server.jdbc.resources.ConnectionResources;
 
 public class Persister {
