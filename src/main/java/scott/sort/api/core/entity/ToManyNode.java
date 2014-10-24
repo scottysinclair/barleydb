@@ -240,6 +240,7 @@ public class ToManyNode extends Node {
 
     }
 
+    @SuppressWarnings("unchecked")
     private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException {
         String interfaceName = ois.readUTF();
         entityType = getEntityContext().getDefinitions().getEntityTypeMatchingInterface(interfaceName, true);

@@ -48,7 +48,7 @@ public final class RefNode extends Node {
     private Object entityKey;
 
     /**
-     * Holds the saved / loaded entity key which was removed from this association.
+     * Holds the existing (in database) entity key which was removed by changing the reference.
      */
     private Object removedEntityKey;
 
@@ -57,40 +57,66 @@ public final class RefNode extends Node {
      */
     private Entity reference;
 
-    /**
-     * The reference which was set by the user
-     */
-    private Entity updatedReference;
 
     public RefNode(Entity parent, String name, EntityType entityType) {
         super(parent, name);
         this.entityType = entityType;
     }
 
+    /**
+     * Called when setting the entity to null or to an entity which has a key
+     * @param newEntityKey
+     */
     public void setEntityKey(Object newEntityKey) {
         if (Objects.equals(entityKey, newEntityKey)) {
+            /*
+             * Same key, do nothing
+             */
             return;
         }
+        /*
+         * We were referring to an entity already so we need to remove this
+         * reference from the entity context tracking.
+         */
         if (entityKey != null) {
             getEntityContext().removeReference(this, getReference());
         }
 
         if (getEntityContext().isUser()) {
             /*
-             * If we are in user mode then we track the previous entityKey
+             * If we are in user mode then the model is being manipulated by
+             * the user code and so we track the previous entityKey
              * so that we know what has been changed
              */
             if (removedEntityKey == null) {
+                /*
+                 * Once the removedEntityKey is set we never have to set it again
+                 * because we are tracking the original entity which was removed from this reference.
+                 *
+                 * TODO: we have to make sure that removedEntityKey can only point to
+                 * the original database entity
+                 */
                 removedEntityKey = entityKey;
             } else if (removedEntityKey.equals(newEntityKey)) {
-                //reversing the removal of the original key
+                /*
+                 * the removedEntityKey was restored by this operation.
+                 */
                 removedEntityKey = null;
             }
         }
+
+        /*
+         * Set the new key
+         */
         entityKey = newEntityKey;
         if (entityKey != null) {
-            //get or create the corresponding entity in the context
+            /*
+             * Create the entity in the context if it is not there yet.
+             */
             reference = getEntityContext().getOrCreate(entityType, entityKey);
+            /*
+             * add the tracking to the entity context.
+             */
             getEntityContext().addReference(this, reference);
         }
     }
@@ -120,7 +146,7 @@ public final class RefNode extends Node {
      * reference key and reference, more like a reset really
      */
     public void clear() {
-        reference = updatedReference = null;
+        reference = null;
         removedEntityKey = null;
         if (entityKey != null) {
             //get or create the corresponding entity in the context
@@ -133,42 +159,58 @@ public final class RefNode extends Node {
      */
     public void refresh() {}
 
+    /**
+     * The reference is being set, it can be either an entity which
+     * exists in the database or a new entity
+     * @param entity
+     */
     public void setReference(Entity entity) {
-        getParent().checkFetched(); //TODO:why do we check if the parent is fetched here?
+        /*
+         * Force ourselves to get fetched so that we will have the correct
+         * initial state before changing the reference, so that removedEntityKey can be set.
+         */
+        getParent().checkFetched();
+
+        /*
+         * If the the entity matches our current reference then do nothing.
+         */
         Entity origReference = getReference();
         if (origReference == entity) {
             return;
         }
-        final Object origKey = origReference != null ? origReference.getKey().getValue() : null;
-        final Object newKey = entity != null ? entity.getKey().getValue() : null;
-        if (origKey != null && origKey == newKey) {
-            return;
-        }
-        if (newKey != null && newKey.equals(removedEntityKey)) {
-            /*
-             * The reference is being set back to it's original one
-             * usually the key is set before the reference so this logic would not be reached
-             */
-            if (origReference != null) {
-                getEntityContext().removeReference(this, origReference);
-            }
-            entityKey = removedEntityKey;
-            removedEntityKey = null;
-            if (entity != null) {
-                getEntityContext().addReference(this, entity);
-            }
-            updatedReference = null;
-            return;
-        }
+
         /*
-         * the reference is really being updated
+         * If we have a current reference then stop tracking it in the context.
          */
         if (origReference != null) {
             getEntityContext().removeReference(this, origReference);
         }
-        this.reference = updatedReference = entity;
-        if (updatedReference != null) {
-            getEntityContext().addReference(this, updatedReference);
+
+
+        /*
+         * Get the key of our original reference.
+         */
+        final Object origKey = origReference != null ? origReference.getKey().getValue() : null;
+        /*
+         * Get the key of our new reference.
+         */
+        final Object newKey = entity != null ? entity.getKey().getValue() : null;
+        if (origKey != null && origKey == newKey) {
+            return;
+        }
+        /*
+         * Check if the reference is being set back to it's original one from the database.
+         */
+        if (newKey != null && newKey.equals(removedEntityKey)) {
+            entityKey = removedEntityKey;
+            removedEntityKey = null;
+        }
+        /*
+         * set the reference to the new entity
+         */
+        this.reference = entity;
+        if (reference != null) {
+            getEntityContext().addReference(this, reference);
         }
     }
 
@@ -191,9 +233,7 @@ public final class RefNode extends Node {
      * which by definition must exist if we have an entityKey
      */
     public Entity getReference() {
-        if (updatedReference != null) {
-            return updatedReference;
-        } else if (reference != null) {
+        if (reference != null) {
             return reference;
         } else if (entityKey != null) {
             return reference = getEntityContext().getEntity(entityType, entityKey, true);
@@ -212,7 +252,7 @@ public final class RefNode extends Node {
         element.setAttribute("key", String.valueOf(entityKey));
         Entity ref = getReference();
         if (ref != null) {
-            if (ref == updatedReference) {
+            if (removedEntityKey != null) {
                 element.setAttribute("updated", "true");
             }
             if (ref.getUuid() != null) {
@@ -227,7 +267,6 @@ public final class RefNode extends Node {
         oos.writeUTF(entityType.getInterfaceName());
         oos.writeObject(reference);
         oos.writeObject(removedEntityKey);
-        oos.writeObject(updatedReference);
     }
 
     private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException {
@@ -236,10 +275,10 @@ public final class RefNode extends Node {
         entityType = getParent().getEntityContext().getDefinitions().getEntityTypeMatchingInterface(interfaceName, true);
         reference = (Entity)ois.readObject();
         removedEntityKey = ois.readObject();
-        updatedReference = (Entity)ois.readObject();
-//        if (reference != null) {
-//            getEntityContext().addReference(this, reference);
-//        }
+        /*
+         * Our reference to an entity gets registered with the entity context later in
+         * EntityContext.postDeserialization.
+         */
     }
 
     @Override

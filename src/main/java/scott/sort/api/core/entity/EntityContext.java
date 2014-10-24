@@ -870,12 +870,6 @@ public class EntityContext implements Serializable {
     }
 
     public void postDeserialization() {
-        //make sure all PKs are registered
-        for (Entity entity: entities) {
-            if (entity.getKey().getValue() != null) {
-                entities.keyChanged(entity, entity.getKey().getValue());
-            }
-        }
         //make sure all refnodes register their references
         for (Entity entity: entities) {
             for (RefNode ref: entity.getChildren(RefNode.class)) {

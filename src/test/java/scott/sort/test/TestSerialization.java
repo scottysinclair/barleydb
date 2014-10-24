@@ -18,6 +18,7 @@ import java.io.ObjectOutputStream;
 
 import org.junit.Test;
 
+import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.core.util.EnvironmentAccessor;
 import scott.sort.api.persist.PersistAnalyser;
 import scott.sort.api.persist.PersistRequest;
@@ -111,8 +112,26 @@ public class TestSerialization extends TestBase {
         analyser = env.services().execute(analyser);
 
         System.out.println("-------------- PRINTING RESULT OF PERIST ------------------");
-  //      System.out.println(analyser.getEntityContext().printXml());
+/*
+        EntityContext ec = analyser.getEntityContext();
+        ec.getEntityByUuid(syntaxModel.get, mustExist)
 
+        v        PersistRequest request = new PersistRequest();
+        request.save(syntaxModel);
+
+
+        /*
+         *Reserialize the saved model
+
+        System.out.println("-------------- SAVING AND LOADING ANALYSER ------------------");
+        analyser = writeRead(analyser, "/tmp/out.bin");
+        System.out.println("-------------- POST DESERIALIZATION ------------------");
+        analyser.getEntityContext().postDeserialization();
+
+        //then do a noop resave
+        analyser = env.services().execute(analyser);
+  //      System.out.println(analyser.getEntityContext().printXml());
+*/
     }
 
     private <T> T writeRead(Object obj, String file) throws IOException, ClassNotFoundException {

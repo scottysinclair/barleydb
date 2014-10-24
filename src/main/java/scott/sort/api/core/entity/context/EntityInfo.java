@@ -42,13 +42,15 @@ public final class EntityInfo implements Serializable {
     }
 
     public void addAssociation(RefNode refNode) {
-        fkReferences.add(refNode);
-        LOG.trace("Added association from {} to {}", entity, refNode.getParent());
+        if (fkReferences.add(refNode)) {
+            LOG.trace("Added association from {} to {}", entity, refNode.getParent());
+        }
     }
 
     public void removeAssociation(RefNode refNode) {
-        fkReferences.remove(refNode);
-        LOG.trace("Removed association from {} to {}", entity, refNode.getParent());
+        if (fkReferences.remove(refNode)) {
+            LOG.trace("Removed association from {} to {}", entity, refNode.getParent());
+        }
     }
 
     public Set<RefNode> getFkReferences() {
