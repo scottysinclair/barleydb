@@ -12,6 +12,7 @@ package scott.sort.api.core.entity;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.Serializable;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.WeakHashMap;
 
@@ -45,6 +47,7 @@ import scott.sort.api.core.QueryBatcher;
 import scott.sort.api.core.QueryRegistry;
 import scott.sort.api.core.entity.context.Entities;
 import scott.sort.api.core.entity.context.EntityInfo;
+import scott.sort.api.core.util.EnvironmentAccessor;
 import scott.sort.api.exception.execution.SortServiceProviderException;
 import scott.sort.api.exception.execution.persist.OptimisticLockMismatchException;
 import scott.sort.api.exception.execution.persist.SortPersistException;
@@ -81,18 +84,18 @@ public class EntityContext implements Serializable {
 
     private static final Logger LOG = LoggerFactory.getLogger(EntityContext.class);
 
-    private final String namespace;
+    private String namespace;
     private Entities entities;
     private EntityContextState entityContextState;
 
-    private transient Environment env;
-    private transient final QueryRegistry userQueryRegistry;
-    private transient Definitions definitions;
-    private transient Map<Entity, WeakReference<ProxyHolder<Object>>> proxies;
+    private Environment env;
+    private QueryRegistry userQueryRegistry;
+    private Definitions definitions;
+    private Map<Entity, WeakReference<ProxyHolder<Object>>> proxies;
     /**
      * A place to store extra resources like transaction information
      */
-    private transient Map<String,Object> resources;
+    private Map<String,Object> resources;
 
     private static class ProxyHolder<T> {
         private List<DeleteListener<T>> listeners = null;
@@ -121,6 +124,10 @@ public class EntityContext implements Serializable {
     public EntityContext(Environment env, String namespace) {
         this.env = env;
         this.namespace = namespace;
+        init();
+    }
+
+    private void init() {
         this.definitions = env.getDefinitions(namespace);
         this.userQueryRegistry = definitions.newUserQueryRegistry();
         /*
@@ -840,6 +847,43 @@ public class EntityContext implements Serializable {
             }
         }
         return list;
+    }
+
+    /**
+     * The entity context does not write it's contents to the stream.
+     *
+     * entities are transmitted based on their relationships to each other.
+     *
+     * @param stream
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
+    private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        namespace = stream.readUTF();
+        env = EnvironmentAccessor.get();
+        Objects.requireNonNull(env, "Could not get environment");
+        init();
+    }
+
+    private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
+        stream.writeUTF(namespace);
+    }
+
+    public void postDeserialization() {
+        //make sure all PKs are registered
+        for (Entity entity: entities) {
+            if (entity.getKey().getValue() != null) {
+                entities.keyChanged(entity, entity.getKey().getValue());
+            }
+        }
+        //make sure all refnodes register their references
+        for (Entity entity: entities) {
+            for (RefNode ref: entity.getChildren(RefNode.class)) {
+                if (ref.getReference() != null) {
+                    addReference(ref, ref.getReference());
+                }
+            }
+        }
     }
 
     public String printXml() {

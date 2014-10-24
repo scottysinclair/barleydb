@@ -12,11 +12,13 @@ package scott.sort.test;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
 import org.junit.Test;
 
+import scott.sort.api.core.util.EnvironmentAccessor;
 import scott.sort.api.persist.PersistAnalyser;
 import scott.sort.api.persist.PersistRequest;
 
@@ -91,26 +93,37 @@ public class TestSerialization extends TestBase {
         XMLSyntaxModel syntaxModel = buildSyntax();
         print("", syntaxModel);
         PersistRequest request = new PersistRequest();
+        request.save(syntaxModel);
+
+        EnvironmentAccessor.set(env);
+
+//        writeRead(entityContext, "/tmp/out.bin");
 
         PersistAnalyser analyser = new PersistAnalyser(entityContext);
         analyser.analyse(request);
 
-        ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("/tmp/out.bin"));
-        out.writeObject(analyser);
+        System.out.println("-------------- SAVING AND LOADING ANALYSER ------------------");
+        analyser = writeRead(analyser, "/tmp/out.bin");
+        System.out.println("-------------- POST DESERIALIZATION ------------------");
+        analyser.getEntityContext().postDeserialization();
+        System.out.println(analyser.getEntityContext().printXml());
+
+        analyser = env.services().execute(analyser);
+
+        System.out.println("-------------- PRINTING RESULT OF PERIST ------------------");
+  //      System.out.println(analyser.getEntityContext().printXml());
+
+    }
+
+    private <T> T writeRead(Object obj, String file) throws IOException, ClassNotFoundException {
+        ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream( file ));
+        out.writeObject(obj);
         out.flush();
         out.close();
 
-        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream("/tmp/out.bin"))) {
-            analyser = (PersistAnalyser) in.readObject();
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream( file ))) {
+            return (T)in.readObject();
         }
-
-        request.save(syntaxModel);
-
-        entityContext.persist(request);
-
-        System.out.println("-------------- PRINTING RESULT OF PERIST ------------------");
-        print("", syntaxModel);
-
     }
 
 }

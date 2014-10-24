@@ -14,12 +14,17 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.RefNode;
 import static scott.sort.api.core.entity.EntityContextHelper.toParents;
 
 public final class EntityInfo implements Serializable {
     private static final long serialVersionUID = 1L;
+
+    private static final Logger LOG = LoggerFactory.getLogger(EntityInfo.class);
 
     private final Entity entity;
 
@@ -38,10 +43,12 @@ public final class EntityInfo implements Serializable {
 
     public void addAssociation(RefNode refNode) {
         fkReferences.add(refNode);
+        LOG.trace("Added association from {} to {}", entity, refNode.getParent());
     }
 
     public void removeAssociation(RefNode refNode) {
         fkReferences.remove(refNode);
+        LOG.trace("Removed association from {} to {}", entity, refNode.getParent());
     }
 
     public Set<RefNode> getFkReferences() {

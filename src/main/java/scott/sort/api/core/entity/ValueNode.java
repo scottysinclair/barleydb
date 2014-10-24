@@ -20,7 +20,7 @@ public class ValueNode extends Node {
     private Object value;
 
     public ValueNode(Entity parent, String name) {
-        super(parent.getEntityContext(), parent, name);
+        super(parent, name);
         value = parent.getEntityType().getNode(name, true).getFixedValue();
     }
 

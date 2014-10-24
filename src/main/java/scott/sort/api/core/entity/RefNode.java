@@ -40,7 +40,7 @@ public final class RefNode extends Node {
     /**
      * The type of entity we refer to
      */
-    private transient EntityType entityType;
+    private EntityType entityType;
 
     /**
      * The key of the saved/loaded entity we are associated to.
@@ -63,7 +63,7 @@ public final class RefNode extends Node {
     private Entity updatedReference;
 
     public RefNode(Entity parent, String name, EntityType entityType) {
-        super(parent.getEntityContext(), parent, name);
+        super(parent, name);
         this.entityType = entityType;
     }
 
@@ -83,7 +83,7 @@ public final class RefNode extends Node {
             if (removedEntityKey == null) {
                 removedEntityKey = entityKey;
             } else if (removedEntityKey.equals(newEntityKey)) {
-                //reversing the removal of the orignal key
+                //reversing the removal of the original key
                 removedEntityKey = null;
             }
         }
@@ -166,7 +166,7 @@ public final class RefNode extends Node {
         if (origReference != null) {
             getEntityContext().removeReference(this, origReference);
         }
-        this.updatedReference = entity;
+        this.reference = updatedReference = entity;
         if (updatedReference != null) {
             getEntityContext().addReference(this, updatedReference);
         }
@@ -223,14 +223,23 @@ public final class RefNode extends Node {
     }
 
     private void writeObject(ObjectOutputStream oos) throws IOException {
-        oos.defaultWriteObject();
+        oos.writeObject(entityKey);
         oos.writeUTF(entityType.getInterfaceName());
+        oos.writeObject(reference);
+        oos.writeObject(removedEntityKey);
+        oos.writeObject(updatedReference);
     }
 
     private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException {
-        ois.defaultReadObject();
+        entityKey = ois.readObject();
         String interfaceName = ois.readUTF();
-        entityType = getEntityContext().getDefinitions().getEntityTypeMatchingInterface(interfaceName, true);
+        entityType = getParent().getEntityContext().getDefinitions().getEntityTypeMatchingInterface(interfaceName, true);
+        reference = (Entity)ois.readObject();
+        removedEntityKey = ois.readObject();
+        updatedReference = (Entity)ois.readObject();
+//        if (reference != null) {
+//            getEntityContext().addReference(this, reference);
+//        }
     }
 
     @Override

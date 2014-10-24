@@ -34,8 +34,8 @@ public class Entity implements Serializable {
 
     private static final Logger LOG = LoggerFactory.getLogger(Entity.class);
 
-    private final EntityContext entityContext;
-    private transient EntityType entityType;
+    private EntityContext entityContext;
+    private EntityType entityType;
     private TreeMap<String, Node> children;
     private EntityState entityState;
     private UUID uuid;
@@ -328,14 +328,21 @@ public class Entity implements Serializable {
     }
 
     private void writeObject(ObjectOutputStream oos) throws IOException {
-        oos.defaultWriteObject();
+        oos.writeObject(entityContext);
+        oos.writeObject(entityState);
+        oos.writeObject(uuid);
         oos.writeUTF(entityType.getInterfaceName());
+        oos.writeObject(children);
     }
 
+    @SuppressWarnings("unchecked")
     private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException {
-        ois.defaultReadObject();
-        String interfaceName = ois.readUTF();
-        entityType = entityContext.getDefinitions().getEntityTypeMatchingInterface(interfaceName, true);
+        entityContext = (EntityContext)ois.readObject();
+        entityState = (EntityState)ois.readObject();
+        uuid = (UUID)ois.readObject();
+        entityType = entityContext.getDefinitions().getEntityTypeMatchingInterface( ois.readUTF(), true);
+        children = (TreeMap<String, Node>)ois.readObject();
+        entityContext.add(this);
     }
 
     @Override

@@ -21,14 +21,11 @@ public abstract class Node implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private final EntityContext context;
-
     private final Entity parent;
 
     private final String name;
 
-    public Node(final EntityContext context, final Entity parent, final String name) {
-        this.context = context;
+    public Node(final Entity parent, final String name) {
         this.parent = parent;
         this.name = name;
     }
@@ -38,7 +35,7 @@ public abstract class Node implements Serializable {
     }
 
     public EntityContext getEntityContext() {
-        return context;
+        return parent.getEntityContext();
     }
 
     public Entity getParent() {

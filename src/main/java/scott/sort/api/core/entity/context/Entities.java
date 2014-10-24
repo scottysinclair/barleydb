@@ -22,11 +22,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import scott.sort.api.config.EntityType;
 import scott.sort.api.core.entity.Entity;
 
 public final class Entities implements Iterable<Entity>, Serializable {
     private static final long serialVersionUID = 1L;
+
+    private static final Logger LOG = LoggerFactory.getLogger(Entities.class);
+
     /*
      * contains all entities
      */
@@ -81,6 +87,7 @@ public final class Entities implements Iterable<Entity>, Serializable {
     }
 
     public EntityInfo keyChanged(Entity entity, Object origKey) {
+        LOG.trace("Key changed for entity {} to {}", entity, origKey);
         final String iname = entity.getEntityType().getInterfaceName();
         final Object key = entity.getKey().getValue();
         EntityInfo entityInfo = entitiesByUuid.get(entity.getUuid());

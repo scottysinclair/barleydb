@@ -42,7 +42,7 @@ public class ToManyNode extends Node {
     /**
      * The entity type that we refer to
      */
-    private transient EntityType entityType;
+    private EntityType entityType;
 
     /*
      * tracks all entities that we reference currently
@@ -59,7 +59,7 @@ public class ToManyNode extends Node {
     private boolean fetched;
 
     public ToManyNode(Entity parent, String name, EntityType entityType) {
-        super(parent.getEntityContext(), parent, name);
+        super(parent, name);
         this.entityType = entityType;
         this.entities = new LinkedList<Entity>();
         this.newEntities = new LinkedList<Entity>();

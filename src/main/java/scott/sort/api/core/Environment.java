@@ -10,9 +10,6 @@ package scott.sort.api.core;
  * #L%
  */
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +17,6 @@ import scott.sort.api.config.Definitions;
 import scott.sort.api.config.DefinitionsSet;
 import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.EntityContext;
-import scott.sort.api.core.proxy.EntityProxy;
 import scott.sort.api.core.proxy.ProxyFactory;
 import scott.sort.api.exception.execution.SortServiceProviderException;
 import scott.sort.api.exception.model.ProxyCreationException;
