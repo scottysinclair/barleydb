@@ -47,15 +47,15 @@ public class ToManyNode extends Node {
     /*
      * tracks all entities that we reference currently
      */
-    private final List<Entity> entities;
+    private List<Entity> entities;
     /*
      * only refers to new entities
      */
-    private final List<Entity> newEntities;
+    private List<Entity> newEntities;
     /*
      * tracks entities which have been removed
      */
-    private final List<Entity> removedEntities;
+    private List<Entity> removedEntities;
     private boolean fetched;
 
     public ToManyNode(Entity parent, String name, EntityType entityType) {
@@ -232,14 +232,21 @@ public class ToManyNode extends Node {
     }
 
     private void writeObject(ObjectOutputStream oos) throws IOException {
-        oos.defaultWriteObject();
         oos.writeUTF(entityType.getInterfaceName());
+        oos.writeBoolean(fetched);
+        oos.writeObject(entities);
+        oos.writeObject(newEntities);
+        oos.writeObject(removedEntities);
+
     }
 
     private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException {
-        ois.defaultReadObject();
         String interfaceName = ois.readUTF();
         entityType = getEntityContext().getDefinitions().getEntityTypeMatchingInterface(interfaceName, true);
+        fetched = ois.readBoolean();
+        entities = (List<Entity>)ois.readObject();
+        newEntities = (List<Entity>)ois.readObject();
+        removedEntities = (List<Entity>)ois.readObject();
     }
 
 }
