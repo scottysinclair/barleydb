@@ -46,23 +46,6 @@ import com.smartstream.mi.query.*;
 @RunWith(Parameterized.class)
 public class TestQuery extends TestRemoteClientBase {
 
-    private static class EntityContextGetter {
-        private final boolean client;
-        public EntityContextGetter(boolean client) {
-            this.client = client;
-        }
-
-        public EntityContext get(TestQuery thisTest) {
-            if (client) {
-                return thisTest.clientEntityContext;
-            }
-            else {
-                return thisTest.entityContext;
-            }
-        }
-
-    }
-
     @Parameters
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][] {

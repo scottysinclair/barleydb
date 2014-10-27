@@ -10,6 +10,9 @@ package scott.sort.api.config;
  * #L%
  */
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
@@ -17,6 +20,20 @@ import java.util.List;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.*;
 
+import scott.sort.api.core.util.EnvironmentAccessor;
+
+/**
+ * The static configuration information about an entity.
+ *
+ * Entity types are serializable and can be sent to the client on startup of a client environment.
+ *
+ * Runtime data which refer to entity types, should just send the namespace and interface name of the entity type
+ * instead of the actual object
+ *
+ *
+ * @author scott
+ *
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 public class EntityType implements Serializable {
 
@@ -143,6 +160,16 @@ public class EntityType implements Serializable {
             }
         }
         throw new IllegalStateException("Node '" + name + "' must exist in entity '" + interfaceName);
+    }
+
+    public void write(ObjectOutputStream out) throws IOException {
+        out.writeUTF(definitions.getNamespace());
+        out.writeUTF(interfaceName);
+    }
+
+    public static EntityType read(ObjectInputStream ois) throws IOException {
+        final String namespace = ois.readUTF();
+        return EnvironmentAccessor.get().getDefinitions(namespace).getEntityTypeMatchingInterface(ois.readUTF(), true);
     }
 
     @Override

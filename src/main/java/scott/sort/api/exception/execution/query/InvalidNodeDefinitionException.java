@@ -10,6 +10,13 @@ package scott.sort.api.exception.execution.query;
  * #L%
  */
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import scott.sort.api.config.NodeDefinition;
 
 /**
@@ -22,7 +29,9 @@ public class InvalidNodeDefinitionException extends SortQueryException {
 
     private static final long serialVersionUID = 1L;
 
-    private final NodeDefinition nodeDefinition;
+    private static final Logger LOG = LoggerFactory.getLogger(InvalidNodeDefinitionException.class);
+
+    private NodeDefinition nodeDefinition;
 
     public InvalidNodeDefinitionException(NodeDefinition nodeDefinition, String message) {
         super(message);
@@ -32,5 +41,16 @@ public class InvalidNodeDefinitionException extends SortQueryException {
     public NodeDefinition getNodeDefinition() {
         return nodeDefinition;
     }
+
+    private void writeObject(ObjectOutputStream oos) throws IOException {
+        LOG.trace("Serializing InvalidNodeDefinitionException {}", this);
+        nodeDefinition.write(oos);
+    }
+
+    private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException {
+        nodeDefinition = NodeDefinition.read(ois);
+        LOG.trace("Deserialized InvalidNodeDefinitionException {}", this);
+    }
+
 
 }

@@ -10,6 +10,9 @@ package scott.sort.api.config;
  * #L%
  */
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 import javax.xml.bind.annotation.*;
@@ -17,6 +20,7 @@ import javax.xml.bind.*;
 
 import scott.sort.api.core.types.JavaType;
 import scott.sort.api.core.types.JdbcType;
+import scott.sort.api.core.util.EnvironmentAccessor;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 public class NodeDefinition implements Serializable, Cloneable {
@@ -191,6 +195,19 @@ public class NodeDefinition implements Serializable, Cloneable {
 
     public boolean dependsOrOwns() {
         return isOwns() || isDependsOn();
+    }
+
+    public void write(ObjectOutputStream out) throws IOException {
+        out.writeUTF(entityType.getDefinitions().getNamespace());
+        out.writeUTF(entityType.getInterfaceName());
+        out.writeUTF(name);
+    }
+
+    public static NodeDefinition read(ObjectInputStream ois) throws IOException {
+        String namespace = ois.readUTF();
+        String entityTypeName = ois.readUTF();
+        String nodeName = ois.readUTF();
+        return EnvironmentAccessor.get().getDefinitions(namespace).getEntityTypeMatchingInterface(entityTypeName, true).getNode(nodeName, true);
     }
 
     @Override

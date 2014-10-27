@@ -19,6 +19,7 @@ import scott.sort.api.exception.execution.SortServiceProviderException;
 import scott.sort.api.exception.execution.TransactionsNoSupportedException;
 import scott.sort.api.exception.execution.jdbc.CommitWithoutTransactionException;
 import scott.sort.api.exception.execution.jdbc.RollbackWithoutTransactionException;
+import scott.sort.api.exception.execution.persist.EntityMissingException;
 import scott.sort.api.exception.execution.persist.SortPersistException;
 import scott.sort.api.exception.execution.query.SortQueryException;
 import scott.sort.api.persist.PersistAnalyser;
@@ -239,11 +240,39 @@ public class RemoteClientEntityContextServices implements IEntityContextServices
 
             return analysis;
         }
+        catch(SortServiceProviderException x) {
+            throw serialize(x);
+        }
+        catch(SortPersistException x) {
+            throw serialize(x);
+        }
         catch(IOException x) {
             throw new IllegalStateException("Serialization error", x);
         }
         catch(ClassNotFoundException x) {
             throw new IllegalStateException("Serialization error", x);
+        }
+        finally {
+            EnvironmentAccessor.remove();
+        }
+    }
+
+    private <T extends Throwable> T serialize(T exception)  {
+        EnvironmentAccessor.set( clientEnvironment );
+        try {
+            ByteArrayOutputStream bout = new ByteArrayOutputStream();
+            ObjectOutputStream oot = new ObjectOutputStream(bout);
+            oot.writeObject(exception);
+            oot.flush();
+            oot.close();
+
+            ObjectInputStream oin = new ObjectInputStream(new ByteArrayInputStream(bout.toByteArray()));
+            exception = (T)oin.readObject();
+            oin.close();
+            return exception;
+        }
+        catch(Exception x) {
+            throw new IllegalStateException("Error serializing/de-serializing exception", x);
         }
         finally {
             EnvironmentAccessor.remove();

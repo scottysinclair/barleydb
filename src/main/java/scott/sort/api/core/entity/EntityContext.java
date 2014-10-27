@@ -442,8 +442,9 @@ public class EntityContext implements Serializable {
                 if (analyser.getEntityContext() != this) {
                     analyser.applyChanges(this);
                 }
-            } catch (OptimisticLockMismatchException x) {
-                throw switchEntities(this, x);
+            }
+            catch (OptimisticLockMismatchException x) {
+                x.switchEntitiesAndThrow(this);
             }
         } finally {
             endSaving();
@@ -461,19 +462,6 @@ public class EntityContext implements Serializable {
             return entityContext.newEntityContextSharingTransaction();
         }
         return entityContext;
-    }
-
-    /**
-     * Switches the entities on the exception, used when we copy the entity context before persisting.
-     * @param entityContext
-     * @param x
-     * @return
-     */
-    private OptimisticLockMismatchException switchEntities(EntityContext entityContext, OptimisticLockMismatchException x) {
-        Entity oe = entityContext.getEntityByUuid(x.getEntity().getUuid(), true);
-        OptimisticLockMismatchException xnew = new OptimisticLockMismatchException(oe, x.getDatabaseEntity());
-        xnew.setStackTrace(x.getStackTrace());
-        return xnew;
     }
 
     /**

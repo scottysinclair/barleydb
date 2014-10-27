@@ -171,8 +171,7 @@ public class PersistAnalyser implements Serializable {
                     analyseUpdate(entity);
                 }
             }
-            for (Object toDelete : persistRequest.getToDelete()) {
-                final Entity entity = ((ProxyController) toDelete).getEntity();
+            for (Entity entity : persistRequest.getToDelete()) {
                 removeAnalysis(entity);
                 if (entity.getEntityContext() != entityContext) {
                     throw new IllegalPersistStateException("Cannot persist entity from a different context");

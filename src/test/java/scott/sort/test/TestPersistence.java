@@ -10,10 +10,18 @@ package scott.sort.test;
  * #L%
  */
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+import org.springframework.test.jdbc.SimpleJdbcTestUtils;
 
 import scott.sort.api.core.Environment;
 import scott.sort.api.core.entity.Entity;
@@ -34,36 +42,66 @@ import com.smartstream.mi.MiEntityContext;
 import com.smartstream.mi.model.*;
 import com.smartstream.mi.query.*;
 
-public class TestServerPersistence extends TestBase {
-    
+@SuppressWarnings("deprecation")
+@RunWith(Parameterized.class)
+public class TestPersistence extends TestRemoteClientBase {
+
+    @Parameters
+    public static Collection<Object[]> data() {
+        return Arrays.asList(new Object[][] {
+                {new EntityContextGetter(false) },
+                {new EntityContextGetter(true) }
+           });
+    }
+
+
+    private EntityContextGetter getter;
+    private EntityContext theEntityContext;
+
+    public TestPersistence(EntityContextGetter getter) {
+        this.getter = getter;
+    }
+
+    protected void prepareData() {
+        super.prepareData();
+        SimpleJdbcTestUtils.executeSqlScript(new SimpleJdbcTemplate(dataSource), new ClassPathResource("/clean.sql"), false);
+    }
+
+
+    @Override
+    public void setup() throws Exception {
+        super.setup();
+        this.theEntityContext = getter.get(this);
+    }
+
     private XMLSyntaxModel buildSyntax() {
-        XMLSyntaxModel syntaxModel = entityContext.newModel(XMLSyntaxModel.class);
+        XMLSyntaxModel syntaxModel = theEntityContext.newModel(XMLSyntaxModel.class);
         syntaxModel.setName("Scott's Syntax");
         syntaxModel.setSyntaxType(SyntaxType.ROOT);
 
-        User user = entityContext.newModel(User.class);
+        User user = theEntityContext.newModel(User.class);
         user.setName("Jimmy");
 
         syntaxModel.setUser(user);
 
-        XMLStructure structure = entityContext.newModel(XMLStructure.class);
+        XMLStructure structure = theEntityContext.newModel(XMLStructure.class);
         structure.setName("scott's structure");
         syntaxModel.setStructure(structure);
 
-        XMLMapping mapping = entityContext.newModel(XMLMapping.class);
+        XMLMapping mapping = theEntityContext.newModel(XMLMapping.class);
         mapping.setSyntaxModel(syntaxModel);
         mapping.setXpath("/root1");
         mapping.setTarget("target1");
         syntaxModel.getMappings().add(mapping);
 
-        mapping = entityContext.newModel(XMLMapping.class);
+        mapping = theEntityContext.newModel(XMLMapping.class);
         mapping.setSyntaxModel(syntaxModel);
         mapping.setXpath("/root2");
         mapping.setTarget("target2");
         syntaxModel.getMappings().add(mapping);
 
         //create the sub syntax
-        XMLSyntaxModel subSyntaxModel = entityContext.newModel(XMLSyntaxModel.class);
+        XMLSyntaxModel subSyntaxModel = theEntityContext.newModel(XMLSyntaxModel.class);
         subSyntaxModel.setName("SubSyntaxModel - ooooh");
         subSyntaxModel.setStructure(structure);
         subSyntaxModel.setSyntaxType(SyntaxType.SUBSYNTAX);
@@ -72,20 +110,20 @@ public class TestServerPersistence extends TestBase {
         mapping.setSubSyntaxModel(subSyntaxModel); //set the subsyntax on the mapping
 
         //add another mapping to the root level syntax
-        mapping = entityContext.newModel(XMLMapping.class);
+        mapping = theEntityContext.newModel(XMLMapping.class);
         mapping.setSyntaxModel(syntaxModel);
         mapping.setXpath("/root3");
         mapping.setTarget("target3");
         syntaxModel.getMappings().add(mapping);
 
         //do the sub-syntax mappings
-        mapping = entityContext.newModel(XMLMapping.class);
+        mapping = theEntityContext.newModel(XMLMapping.class);
         mapping.setSyntaxModel(subSyntaxModel);
         mapping.setXpath("sub1");
         mapping.setTarget("subtarget1");
         subSyntaxModel.getMappings().add(mapping);
 
-        mapping = entityContext.newModel(XMLMapping.class);
+        mapping = theEntityContext.newModel(XMLMapping.class);
         mapping.setSyntaxModel(subSyntaxModel);
         mapping.setXpath("sub2");
         mapping.setTarget("subtarget2");
@@ -94,12 +132,12 @@ public class TestServerPersistence extends TestBase {
     }
 
     private AccessArea buildAccessAreas() {
-        AccessArea root = entityContext.newModel(AccessArea.class);
+        AccessArea root = theEntityContext.newModel(AccessArea.class);
         root.setName("root");
-        AccessArea hsbc = entityContext.newModel(AccessArea.class);
+        AccessArea hsbc = theEntityContext.newModel(AccessArea.class);
         hsbc.setName("hsbc");
         hsbc.setParent(root);
-        AccessArea jpmorgan = entityContext.newModel(AccessArea.class);
+        AccessArea jpmorgan = theEntityContext.newModel(AccessArea.class);
         jpmorgan.setName("jpmorgan");
         jpmorgan.setParent(root);
         root.getChildren().add(hsbc);
@@ -116,7 +154,7 @@ public class TestServerPersistence extends TestBase {
             PersistRequest request = new PersistRequest();
             request.save(syntaxModel);
 
-            entityContext.persist(request);
+            theEntityContext.persist(request);
 
             System.out.println("-------------- PRINTING RESULT OF PERIST ------------------");
             print("", syntaxModel);
@@ -134,12 +172,12 @@ public class TestServerPersistence extends TestBase {
         PersistRequest request = new PersistRequest();
         request.save(root);
 
-        entityContext.persist(request);
+        theEntityContext.persist(request);
 
         System.out.println("-------------- PRINTING NODE CONTEXT AFTER PERSIST  ------------------");
-        printentityContext(entityContext);
+        printEntityContext(theEntityContext);
 
-        entityContext.clear();
+        theEntityContext.clear();
 
         System.out.println("-------------- PRINTING RESULT OF PERIST ------------------");
         print("", root);
@@ -149,7 +187,7 @@ public class TestServerPersistence extends TestBase {
         qaa.joinToChildren().joinToChildren();
         qaa.where(qaa.name().equal("root"));
 
-        List<AccessArea> result = entityContext.performQuery(qaa).getList();
+        List<AccessArea> result = theEntityContext.performQuery(qaa).getList();
         assertEquals(1, result.size());
         print("", result.get(0));
     }
@@ -160,7 +198,7 @@ public class TestServerPersistence extends TestBase {
          * insert a new full model
          */
         XMLSyntaxModel syntaxModel = buildSyntax();
-        entityContext.persist(new PersistRequest().save(syntaxModel));
+        theEntityContext.persist(new PersistRequest().save(syntaxModel));
 
         /*
         * reload the full model, for testing purposes, not actually necessary for updating
@@ -173,11 +211,11 @@ public class TestServerPersistence extends TestBase {
         qsyntax.joinToStructure();
         qsyntax.where(qsyntax.syntaxName().equal("Scott's Syntax"));
 
-        entityContext.clear();
-        XMLSyntaxModel syntax = entityContext.performQuery(qsyntax).getList().get(0);
-        System.out.println(entityContext.printXml());
+        theEntityContext.clear();
+        XMLSyntaxModel syntax = theEntityContext.performQuery(qsyntax).getList().get(0);
+        System.out.println(theEntityContext.printXml());
         print("", syntax);
-        System.out.println(entityContext.printXml());
+        System.out.println(theEntityContext.printXml());
         assertNotNull(((ProxyController) syntax).getEntity().getOptimisticLock().getValue());
 
         /*
@@ -191,12 +229,12 @@ public class TestServerPersistence extends TestBase {
         subSyntax.getMappings().get(0).setXpath("updated-submapping");
 
         System.out.println("-------------- CALLING PERSIST TO UPDATE CHANGES ------------------");
-        entityContext.persist(new PersistRequest().save(syntax));
+        theEntityContext.persist(new PersistRequest().save(syntax));
 
         System.out.println("-------------- RELOADING FROM SCRATCH TO OUTPUT THE REAL DATABASE DATA ------------------");
-        entityContext.clear();
+        theEntityContext.clear();
         qsyntax.where(qsyntax.syntaxName().equal("Scott's Syntax - updated"));
-        syntax = entityContext.performQuery(qsyntax).getList().get(0);
+        syntax = theEntityContext.performQuery(qsyntax).getList().get(0);
         print("", syntax);
     }
 
@@ -206,9 +244,9 @@ public class TestServerPersistence extends TestBase {
          * insert a new full model
          */
         XMLSyntaxModel syntaxModel = buildSyntax();
-        entityContext.persist(new PersistRequest().save(syntaxModel));
+        theEntityContext.persist(new PersistRequest().save(syntaxModel));
 
-        System.out.println("------------------- AFTER FIRST PERSIST\n" + entityContext.printXml() + "\n");
+        System.out.println("------------------- AFTER FIRST PERSIST\n" + theEntityContext.printXml() + "\n");
 
         /*
         * reload the full model for fun, not necessary for updating
@@ -240,7 +278,7 @@ public class TestServerPersistence extends TestBase {
         syntaxModel.getMappings().get(0).setXpath("/updated");
         try {
             System.out.println("-------------- CALLING PERSIST TO UPDATE CHANGES ------------------");
-            entityContext.persist(new PersistRequest().save(syntaxModel));
+            theEntityContext.persist(new PersistRequest().save(syntaxModel));
             fail("expected OptimisticLockMismatchException");
         } catch (OptimisticLockMismatchException x) {
             //expected
@@ -258,7 +296,7 @@ public class TestServerPersistence extends TestBase {
          * insert a new full model
          */
         XMLSyntaxModel syntaxModel = buildSyntax();
-        entityContext.persist(new PersistRequest().save(syntaxModel));
+        theEntityContext.persist(new PersistRequest().save(syntaxModel));
 
         /*
         * reload the full model for fun, not necessary for updating
@@ -290,7 +328,7 @@ public class TestServerPersistence extends TestBase {
          */
         try {
             System.out.println("-------------- CALLING PERSIST TO UPDATE CHANGES ------------------");
-            entityContext.persist(new PersistRequest().save(syntaxModel));
+            theEntityContext.persist(new PersistRequest().save(syntaxModel));
             fail("expected OptimisticLockMismatchException");
         } catch (OptimisticLockMismatchException x) {
             //expected
@@ -307,7 +345,7 @@ public class TestServerPersistence extends TestBase {
          * insert a new full model
          */
         XMLSyntaxModel syntaxModel = buildSyntax();
-        entityContext.persist(new PersistRequest().save(syntaxModel));
+        theEntityContext.persist(new PersistRequest().save(syntaxModel));
 
         /*
         * reload the full model for fun, not necessary for updating
@@ -338,7 +376,7 @@ public class TestServerPersistence extends TestBase {
          */
         try {
             System.out.println("-------------- CALLING PERSIST TO UPDATE CHANGES ------------------");
-            entityContext.persist(new PersistRequest().save(syntaxModel));
+            theEntityContext.persist(new PersistRequest().save(syntaxModel));
             fail("expected EntityMissingException");
         } catch (EntityMissingException x) {
             Entity entityToSave = ((ProxyController) syntaxModel).getEntity();
@@ -354,7 +392,7 @@ public class TestServerPersistence extends TestBase {
      */
     @Test
     public void testSyntaxDeletedJustBeforeJdbcUpdateOperation() throws Exception {
-        if (!ConnectionResources.getMandatoryForPersist(entityContext).getDatabase().supportsBatchUpdateCounts()) {
+        if (!ConnectionResources.getMandatoryForPersist(theEntityContext).getDatabase().supportsBatchUpdateCounts()) {
             /**
              * If batch update counts are not supported then upfront optimistic locking is used and this test case is not relevant.
              */
@@ -386,7 +424,7 @@ public class TestServerPersistence extends TestBase {
          * insert a new full model
          */
         XMLSyntaxModel syntaxModel = buildSyntax();
-        entityContext.persist(new PersistRequest().save(syntaxModel));
+        theEntityContext.persist(new PersistRequest().save(syntaxModel));
 
         entityContextServices.setPersisterFactory(new PersisterFactory() {
             @Override
@@ -406,7 +444,7 @@ public class TestServerPersistence extends TestBase {
          */
         try {
             System.out.println("-------------- CALLING PERSIST TO UPDATE CHANGES ------------------");
-            entityContext.persist(new PersistRequest().save(syntaxModel));
+            theEntityContext.persist(new PersistRequest().save(syntaxModel));
             fail("expected EntityMissingException");
         } catch (EntityMissingException x) {
             Entity entityToSave = ((ProxyController) syntaxModel).getEntity();
@@ -424,7 +462,7 @@ public class TestServerPersistence extends TestBase {
     @SuppressWarnings("unchecked")
     @Test
     public void testConcurrentModificationCausesActualUpdateCallToFail() throws Exception {
-        if (!ConnectionResources.getMandatoryForPersist(entityContext).getDatabase().supportsBatchUpdateCounts()) {
+        if (!ConnectionResources.getMandatoryForPersist(theEntityContext).getDatabase().supportsBatchUpdateCounts()) {
             /**
              * If batch update counts are not supported then upfront optimistic locking is used and this test case is not relevant.
              */
@@ -457,7 +495,7 @@ public class TestServerPersistence extends TestBase {
          * insert a new full model
          */
         XMLSyntaxModel syntaxModel = buildSyntax();
-        entityContext.persist(new PersistRequest().save(syntaxModel));
+        theEntityContext.persist(new PersistRequest().save(syntaxModel));
 
         entityContextServices.setPersisterFactory(new PersisterFactory() {
             @Override
@@ -468,7 +506,7 @@ public class TestServerPersistence extends TestBase {
 
         syntaxModel.setName("Scott's Syntax updated");
         try {
-            entityContext.persist(new PersistRequest().save(syntaxModel));
+            theEntityContext.persist(new PersistRequest().save(syntaxModel));
             Assert.fail("Expected OptimisticLockMismatchException");
         } catch (OptimisticLockMismatchException x) {
             Entity entityWantedSave = ((ProxyController) syntaxModel).getEntity();
@@ -488,7 +526,7 @@ public class TestServerPersistence extends TestBase {
          * insert a new full model
          */
         XMLSyntaxModel syntaxModel = buildSyntax();
-        entityContext.persist(new PersistRequest().save(syntaxModel));
+        theEntityContext.persist(new PersistRequest().save(syntaxModel));
 
         Long syntaxOl = getOptimisticLock(syntaxModel);
         Long subSyntaxOl = getOptimisticLock(syntaxModel.getMappings().get(1).getSubSyntaxModel());
@@ -497,14 +535,14 @@ public class TestServerPersistence extends TestBase {
         //save the sub-syntax with an updated mapping
         //we expect the sub-syntax ol to be touched but the syntax ol not.
         syntaxModel.getMappings().get(1).getSubSyntaxModel().getMappings().get(0).setXpath("/updated");
-        entityContext.persist(new PersistRequest().save(syntaxModel.getMappings().get(1).getSubSyntaxModel()));
+        theEntityContext.persist(new PersistRequest().save(syntaxModel.getMappings().get(1).getSubSyntaxModel()));
 
         /*
          * reload the syntax from the db
          */
         QXMLSyntaxModel qsyntax = new QXMLSyntaxModel();
         qsyntax.where(qsyntax.syntaxName().equal("Scott's Syntax"));
-        XMLSyntaxModel updatedSyntaxModel = entityContext.performQuery(qsyntax).getList().get(0);
+        XMLSyntaxModel updatedSyntaxModel = theEntityContext.performQuery(qsyntax).getList().get(0);
 
         //the optimistic lock of the original syntax is the same as before
         Long updatedSyntaxOl = getOptimisticLock(updatedSyntaxModel);
@@ -521,11 +559,11 @@ public class TestServerPersistence extends TestBase {
          * insert a new full model
          */
         XMLSyntaxModel syntaxModel = buildSyntax();
-        entityContext.persist(new PersistRequest().save(syntaxModel));
+        theEntityContext.persist(new PersistRequest().save(syntaxModel));
 
         Long expectedOptimisticLock = getOptimisticLock(syntaxModel);
 
-        entityContext.persist(new PersistRequest().save(syntaxModel));
+        theEntityContext.persist(new PersistRequest().save(syntaxModel));
 
         Long actualOptimisticLock = getOptimisticLock(syntaxModel);
         Assert.assertEquals(expectedOptimisticLock, actualOptimisticLock);
@@ -541,54 +579,54 @@ public class TestServerPersistence extends TestBase {
          * insert a new full model
          */
         XMLSyntaxModel syntaxModel = buildSyntax();
-        entityContext.persist(new PersistRequest().save(syntaxModel));
+        theEntityContext.persist(new PersistRequest().save(syntaxModel));
 
         /*
          * Then delete it.
          */
-        entityContext.persist(new PersistRequest().delete(syntaxModel));
+        theEntityContext.persist(new PersistRequest().delete(syntaxModel));
 
         /*
          * verify that the syntax was removed
          */
-        assertTrue(entityContext.performQuery(new QXMLSyntaxModel()).getList().isEmpty());
-        assertEquals(2, entityContext.size()); //only the user and the structure remain
+        assertTrue(theEntityContext.performQuery(new QXMLSyntaxModel()).getList().isEmpty());
+        assertEquals(2, theEntityContext.size()); //only the user and the structure remain
     }
 
     @Test
     public void testSaveTemplateWithContentAndDatatypes() throws Exception {
         try {
-            Template template = entityContext.newModel(Template.class);
+            Template template = theEntityContext.newModel(Template.class);
             template.setName("test-template");
 
-            TemplateContent content = entityContext.newModel(TemplateContent.class);
+            TemplateContent content = theEntityContext.newModel(TemplateContent.class);
             content.setName("test-template-content-1");
             content.setTemplate(template);
             template.getContents().add(content);
 
-            content = entityContext.newModel(TemplateContent.class);
+            content = theEntityContext.newModel(TemplateContent.class);
             content.setName("test-template-content-2");
             //todo: setting is required in both directions (set + add)
             content.setTemplate(template);
             template.getContents().add(content);
 
-            Datatype datatype = entityContext.newModel(Datatype.class);
+            Datatype datatype = theEntityContext.newModel(Datatype.class);
             datatype.setName("test-datatype-1");
             //todo: setting not required in both directions (set + add)
             template.getDatatypes().add(datatype);
 
-            datatype = entityContext.newModel(Datatype.class);
+            datatype = theEntityContext.newModel(Datatype.class);
             datatype.setName("test-datatype-2");
             //todo: setting not required in both directions (set + add)
             template.getDatatypes().add(datatype);
 
-            entityContext.persist(new PersistRequest().save(template));
+            theEntityContext.persist(new PersistRequest().save(template));
 
             /*
              * For fun now a noop persist
              */
             System.out.println("===================  NOOP PERSIST =================");
-            entityContext.persist(new PersistRequest()
+            theEntityContext.persist(new PersistRequest()
                     .save(template)
                     .save(template.getDatatypes().get(0))
                     .save(template.getDatatypes().get(1)));
@@ -598,7 +636,7 @@ public class TestServerPersistence extends TestBase {
             qtemplate.joinToContent();
             qtemplate.joinToDatatype();
             qtemplate.where(qtemplate.name().equal("test-template"));
-            template = entityContext.performQuery(qtemplate).getSingleResult();
+            template = theEntityContext.performQuery(qtemplate).getSingleResult();
             print("", template);
         } catch (Exception x) {
             x.printStackTrace();
@@ -609,15 +647,15 @@ public class TestServerPersistence extends TestBase {
     @Test
     public void testDeleteTemplateWithContent() throws Exception {
         testSaveTemplateWithContentAndDatatypes();
-        entityContext.clear();
+        theEntityContext.clear();
 
         System.out.println("===================  LOAD BEFORE DELETE  =================");
         QTemplate qtemplate = new QTemplate();
         qtemplate.where(qtemplate.name().equal("test-template"));
-        Template template = entityContext.performQuery(qtemplate).getSingleResult();
+        Template template = theEntityContext.performQuery(qtemplate).getSingleResult();
 
         System.out.println("===================  DELETE  =================");
-        entityContext.persist(new PersistRequest()
+        theEntityContext.persist(new PersistRequest()
                 .delete(template));
 
     }
@@ -625,15 +663,15 @@ public class TestServerPersistence extends TestBase {
     @Test
     public void testDeleteTemplateWithContentAndDatatypes() throws Exception {
         testSaveTemplateWithContentAndDatatypes();
-        entityContext.clear();
+        theEntityContext.clear();
 
         System.out.println("===================  LOAD BEFORE DELETE  =================");
         QTemplate qtemplate = new QTemplate();
         qtemplate.where(qtemplate.name().equal("test-template"));
-        Template template = entityContext.performQuery(qtemplate).getSingleResult();
+        Template template = theEntityContext.performQuery(qtemplate).getSingleResult();
 
         System.out.println("===================  DELETE  =================");
-        entityContext.persist(new PersistRequest()
+        theEntityContext.persist(new PersistRequest()
                 .delete(template)
                 .delete(template.getDatatypes().get(0))
                 .delete(template.getDatatypes().get(1))
@@ -644,13 +682,13 @@ public class TestServerPersistence extends TestBase {
     @Test
     public void testSaveTemplateFailsWhenDatatypeOutOfDate() throws Exception {
         testSaveTemplateWithContentAndDatatypes();
-        entityContext.clear();
+        theEntityContext.clear();
 
         System.out.println("===================  LOAD DATA FOR USER 1 =================");
         QTemplate qtemplate = new QTemplate();
         qtemplate.joinToDatatype();
         qtemplate.where(qtemplate.name().equal("test-template"));
-        Template template = entityContext.performQuery(qtemplate).getSingleResult();
+        Template template = theEntityContext.performQuery(qtemplate).getSingleResult();
 
         System.out.println("===================  LOAD DATA FOR USER 2 =================");
         EntityContext ctx2 = new MiEntityContext(env);
@@ -661,7 +699,7 @@ public class TestServerPersistence extends TestBase {
         System.out.println("===================  SAVE WHICH FAILS  =================");
         try {
             template.setName(template.getName() + "-updated");
-            entityContext.persist(new PersistRequest().save(template));
+            theEntityContext.persist(new PersistRequest().save(template));
         } catch (OptimisticLockMismatchException x) {
             assertEquals(template.getDatatypes().get(0).getId(), x.getEntity().getKey().getValue());
         }

@@ -296,7 +296,7 @@ public abstract class TestBase {
         return ((ProxyController) object).getEntity();
     }
 
-    protected void printentityContext(EntityContext entityContext) throws Exception {
+    protected void printEntityContext(EntityContext entityContext) throws Exception {
         Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
         Element el = entityContext.toXml(doc);
         doc.appendChild(el);
