@@ -1,26 +1,8 @@
 package scott.sort.test;
 
-/*
- * #%L
- * Simple Object Relational Framework
- * %%
- * Copyright (C) 2014 Scott Sinclair <scottysinclair@gmail.com>
- * %%
- * All rights reserved.
- * #L%
- */
-
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
 import org.junit.Test;
 
 import scott.sort.api.core.entity.EntityContext;
-import scott.sort.api.core.util.EnvironmentAccessor;
-import scott.sort.api.persist.PersistAnalyser;
 import scott.sort.api.persist.PersistRequest;
 
 import com.smartstream.mac.model.User;
@@ -29,9 +11,9 @@ import com.smartstream.mi.model.XMLMapping;
 import com.smartstream.mi.model.XMLStructure;
 import com.smartstream.mi.model.XMLSyntaxModel;
 
-public class TestSerialization extends TestBase {
+public class TestClientPersistence extends TestRemoteClientBase {
 
-    private XMLSyntaxModel buildSyntax() {
+    private XMLSyntaxModel buildSyntax(EntityContext entityContext) {
         XMLSyntaxModel syntaxModel = entityContext.newModel(XMLSyntaxModel.class);
         syntaxModel.setName("Scott's Syntax");
         syntaxModel.setSyntaxType(SyntaxType.ROOT);
@@ -90,53 +72,22 @@ public class TestSerialization extends TestBase {
 
     @Test
     public void testPersistNewXMLSyntax() throws Exception {
-        System.out.println("STARTING TEST testPersistNewXMLSyntax");
-        XMLSyntaxModel syntaxModel = buildSyntax();
-        print("", syntaxModel);
-        PersistRequest request = new PersistRequest();
-        request.save(syntaxModel);
+        try {
+            System.out.println("STARTING TEST testPersistNewXMLSyntax");
+            XMLSyntaxModel syntaxModel = buildSyntax(clientEntityContext);
+            print("", syntaxModel);
+            PersistRequest request = new PersistRequest();
+            request.save(syntaxModel);
 
-        EnvironmentAccessor.set(env);
+            clientEntityContext.persist(request);
 
-        System.out.println("-------------- SAVING AND LOADING ANALYSER ------------------");
-        request = writeRead(request, "/tmp/out.bin");
-        System.out.println("-------------- POST DESERIALIZATION ------------------");
-        System.out.println(request.getEntityContext().printXml());
-
-        PersistAnalyser analysis = env.services().execute(request, null);
-
-        System.out.println("-------------- PRINTING RESULT OF PERIST ------------------");
-/*
-        EntityContext ec = analyser.getEntityContext();
-        ec.getEntityByUuid(syntaxModel.get, mustExist)
-
-        v        PersistRequest request = new PersistRequest();
-        request.save(syntaxModel);
-
-
-        /*
-         *Reserialize the saved model
-
-        System.out.println("-------------- SAVING AND LOADING ANALYSER ------------------");
-        analyser = writeRead(analyser, "/tmp/out.bin");
-        System.out.println("-------------- POST DESERIALIZATION ------------------");
-        analyser.getEntityContext().postDeserialization();
-
-        //then do a noop resave
-        analyser = env.services().execute(analyser);
-  //      System.out.println(analyser.getEntityContext().printXml());
-*/
-    }
-
-    private <T> T writeRead(Object obj, String file) throws IOException, ClassNotFoundException {
-        ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream( file ));
-        out.writeObject(obj);
-        out.flush();
-        out.close();
-
-        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream( file ))) {
-            return (T)in.readObject();
+            System.out.println("-------------- PRINTING RESULT OF PERIST ------------------");
+            print("", syntaxModel);
+        } catch (Exception x) {
+            x.printStackTrace();
+            throw x;
         }
     }
+
 
 }

@@ -34,6 +34,14 @@ import com.smartstream.mac.query.QUser;
 import com.smartstream.mi.model.*;
 import com.smartstream.mi.query.*;
 
+/**
+ * Tests various types of queries in a server environment and a remote client environment.
+ *
+ * Remote clients cannot set auto-commit to false which is not required for these tests.
+ *
+ * @author scott
+ *
+ */
 @SuppressWarnings("deprecation")
 @RunWith(Parameterized.class)
 public class TestQuery extends TestRemoteClientBase {
@@ -76,25 +84,6 @@ public class TestQuery extends TestRemoteClientBase {
         SimpleJdbcTestUtils.executeSqlScript(new SimpleJdbcTemplate(dataSource), new ClassPathResource("/inserts.sql"), false);
     }
 
-
-
-    /*
-    @Test
-    public void testCsvSyntaxModelQueryForUpdate() throws Exception {
-        QCsvSyntaxModel qcsm = new QCsvSyntaxModel();
-        qcsm.joinToUser();
-        qcsm.joinToStructure().joinToFields();
-        qcsm.forUpdate();
-
-        QueryResult<CsvSyntaxModel> result = theEntityContext.performQuery(qcsm);
-
-        System.out.println();
-        System.out.println("printing syntax models (" + result.getList().size() + ") => ");
-        for (CsvSyntaxModel syntaxModel : result.getList()) {
-            print("", syntaxModel);
-        }
-    }*/
-
     @Override
     public void setup() throws Exception {
         super.setup();
@@ -103,7 +92,6 @@ public class TestQuery extends TestRemoteClientBase {
 
     @Test
     public void testCsvSyntaxModelQuery() throws Exception {
-
         QCsvSyntaxModel qcsm = new QCsvSyntaxModel();
         qcsm.joinToUser(INNER);
         qcsm.joinToStructure(INNER).joinToFields(LEFT_OUTER);
@@ -125,7 +113,6 @@ public class TestQuery extends TestRemoteClientBase {
 
     @Test
     public void testSyntaxModelComplexQuery() throws Exception {
-
         System.out.println();
         System.out.println();
         System.out.println();

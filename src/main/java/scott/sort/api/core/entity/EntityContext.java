@@ -137,7 +137,6 @@ public class EntityContext implements Serializable {
         entities = new Entities();
         proxies = new WeakHashMap<Entity, WeakReference<ProxyHolder<Object>>>();
         resources = new HashMap<String, Object>();
-        entityContextState = EntityContextState.USER;
     }
 
     public void register(QueryObject<?>... qos) {
@@ -861,6 +860,7 @@ public class EntityContext implements Serializable {
      */
     private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
         namespace = stream.readUTF();
+        entityContextState = (EntityContextState)stream.readObject();
         env = EnvironmentAccessor.get();
         Objects.requireNonNull(env, "Could not get environment");
         init();
@@ -868,6 +868,7 @@ public class EntityContext implements Serializable {
 
     private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
         stream.writeUTF(namespace);
+        stream.writeObject(entityContextState);
     }
 
     public String printXml() {

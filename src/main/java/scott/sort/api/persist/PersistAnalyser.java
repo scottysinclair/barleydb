@@ -16,12 +16,14 @@ import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import scott.sort.api.config.EntityType;
 import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.core.entity.EntityContextHelper;
 import scott.sort.api.core.entity.ProxyController;
 import scott.sort.api.core.entity.RefNode;
 import scott.sort.api.core.entity.ToManyNode;
+import scott.sort.api.exception.execution.persist.EntityMissingException;
 import scott.sort.api.exception.execution.persist.IllegalPersistStateException;
 import scott.sort.server.jdbc.persist.OperationGroup;
 
@@ -42,6 +44,8 @@ public class PersistAnalyser implements Serializable {
     private final OperationGroup allGroups[];
 
     private final EntityContext entityContext;
+
+    private final Set<Entity> loadedDuringAnalysis = new HashSet<>();
 
     private final Set<Entity> analysing = new HashSet<>();
 
@@ -143,15 +147,15 @@ public class PersistAnalyser implements Serializable {
     }
 
     /**
-     * Analyzes the persistRequest 
-     *  
+     * Analyzes the persistRequest
+     *
      * @param persistRequest
      * @throws IllegalPersistStateException
+     * @throws EntityMissingException
      */
-    public void analyse(PersistRequest persistRequest) throws IllegalPersistStateException {
+    public void analyse(PersistRequest persistRequest) throws IllegalPersistStateException, EntityMissingException {
         try {
-            for (Object toSave : persistRequest.getToSave()) {
-                final Entity entity = ((ProxyController) toSave).getEntity();
+            for (Entity entity : persistRequest.getToSave()) {
                 /*
                  * top level toSave entities get analyzed by themselves
                  * so if they have been analyzed already then clear that.
@@ -179,14 +183,14 @@ public class PersistAnalyser implements Serializable {
             analysing.clear();
         }
     }
-    
+
     /**
-     * 
+     *
      * @param persistRequest
      * @throws IllegalPersistStateException
      */
     public void analysePhase2(PersistRequest persistRequest) throws IllegalPersistStateException {
-        
+
     }
 
     private void removeAnalysis(Entity entity) {
@@ -199,7 +203,7 @@ public class PersistAnalyser implements Serializable {
 
     }
 
-    private void analyseCreate(Entity entity) {
+    private void analyseCreate(Entity entity) throws EntityMissingException {
         if (!analysing.add(entity)) {
             return;
         }
@@ -225,7 +229,7 @@ public class PersistAnalyser implements Serializable {
         }
     }
 
-    private void analyseUpdate(Entity entity) {
+    private void analyseUpdate(Entity entity) throws EntityMissingException {
         if (!analysing.add(entity)) {
             return;
         }
@@ -245,7 +249,7 @@ public class PersistAnalyser implements Serializable {
         for (RefNode refNode : entity.getChildren(RefNode.class)) {
             final Object entityKey = checkForRemovedReference(refNode);
             if (entityKey != null) {
-                Entity removedEntity = entity.getEntityContext().getOrLoad(refNode.getEntityType(), entityKey);
+                Entity removedEntity = getOrLoadForAnalysis(entity.getEntityContext(), refNode.getEntityType(), entityKey);
                 analyseDelete(removedEntity);
             }
         }
@@ -273,7 +277,7 @@ public class PersistAnalyser implements Serializable {
         }
     }
 
-    private void analyseDelete(Entity entity) {
+    private void analyseDelete(Entity entity) throws EntityMissingException {
         if (!analysing.add(entity)) {
             return;
         }
@@ -342,14 +346,28 @@ public class PersistAnalyser implements Serializable {
                  */
                 final Object entityKey = checkForRemovedReference(refNode);
                 if (entityKey != null) {
-                    Entity removedEntity = entity.getEntityContext().getOrLoad(refNode.getEntityType(), entityKey);
+                    Entity removedEntity = getOrLoadForAnalysis(entityContext, refNode.getEntityType(),  entityKey);
                     analyseDelete(removedEntity);
                 }
             }
         }
     }
 
-    private void analyseDependsOn(Entity entity) {
+    private Entity getOrLoadForAnalysis(EntityContext entityContext, EntityType entityType, Object entityKey) throws EntityMissingException {
+        Entity entity = entityContext.getEntity(entityType, entityKey, false);
+        if (entity == null) {
+            entity = entityContext.getOrLoad(entityType, entityKey);
+            if (entity != null) {
+                loadedDuringAnalysis.add(entity);
+            }
+            else {
+                throw new EntityMissingException(entityType, entityKey);
+            }
+        }
+        return entity;
+    }
+
+    private void analyseDependsOn(Entity entity) throws EntityMissingException {
         if (!analysing.add(entity)) {
             return;
         }
@@ -391,7 +409,7 @@ public class PersistAnalyser implements Serializable {
         return refNode.getNodeDefinition().isOwns() ? refNode.getRemovedEntityKey() : null;
     }
 
-    private void analyseRefNodes(Entity entity, boolean updateOwnedRefs) {
+    private void analyseRefNodes(Entity entity, boolean updateOwnedRefs) throws EntityMissingException {
         for (RefNode refNode : entity.getChildren(RefNode.class)) {
             final Entity refEntity = refNode.getReference();
             /*
@@ -446,7 +464,8 @@ public class PersistAnalyser implements Serializable {
         EntityContextHelper.copyRefStates(entityContext, otherContext, otherEntities, new EntityContextHelper.EntityFilter() {
             @Override
             public boolean includesEntity(Entity entity) {
-                return true; // everything gets copied back
+             // everything gets copied back apart from entities loaded during analysis.
+                return !loadedDuringAnalysis.contains(entity);
             }
         });
         EntityContextHelper.removeEntities(deleteGroup.getEntities(), otherContext, true);

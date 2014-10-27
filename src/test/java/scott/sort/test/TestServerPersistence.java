@@ -34,7 +34,8 @@ import com.smartstream.mi.MiEntityContext;
 import com.smartstream.mi.model.*;
 import com.smartstream.mi.query.*;
 
-public class TestPersister extends TestBase {
+public class TestServerPersistence extends TestBase {
+    
     private XMLSyntaxModel buildSyntax() {
         XMLSyntaxModel syntaxModel = entityContext.newModel(XMLSyntaxModel.class);
         syntaxModel.setName("Scott's Syntax");
