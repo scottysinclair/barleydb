@@ -16,6 +16,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.TreeMap;
 import java.util.List;
 import java.util.LinkedList;
@@ -328,21 +329,70 @@ public class Entity implements Serializable {
     }
 
     private void writeObject(ObjectOutputStream oos) throws IOException {
+        LOG.trace("Serializing entity {}", this);
         oos.writeObject(entityContext);
         oos.writeObject(entityState);
-        oos.writeObject(uuid);
         oos.writeUTF(entityType.getInterfaceName());
+        oos.writeObject(uuid);
+        oos.writeObject(getKey().getValue());
         oos.writeObject(children);
     }
 
     @SuppressWarnings("unchecked")
     private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException {
+        /*
+         * Get the basic data
+         */
         entityContext = (EntityContext)ois.readObject();
         entityState = (EntityState)ois.readObject();
-        uuid = (UUID)ois.readObject();
         entityType = entityContext.getDefinitions().getEntityTypeMatchingInterface( ois.readUTF(), true);
-        children = (TreeMap<String, Node>)ois.readObject();
+        uuid = (UUID)ois.readObject();
+        /*
+         * Initialize nodes with no values so that the entity is in a better state to be added to the context
+         */
+        children = new TreeMap<String, Node>();
+        initNodes();
+        /*
+         * Set the primary key
+         */
+        getKey().setValue( ois.readObject() );
+        /*
+         * Add the entity to the context (UUID and PK lookup will work).
+         */
         entityContext.add(this);
+        /*
+         * Copy the node values across
+         */
+        EntityContextState state = entityContext.getEntityContextState();
+        try {
+            entityContext.beginLoading();
+            for (Node child: ((Map<String, Node>)ois.readObject()).values()) {
+                if (child instanceof ValueNode) {
+                    ValueNode fromStream = (ValueNode)child;
+                    ValueNode ours = getChild(fromStream.getName(), ValueNode.class, true);
+                    /*
+                     * If a PK then this would set the PK to the existing value which it has
+                     * no event for FK references is required.
+                     */
+                    ours.copyFrom(fromStream);
+                }
+                else if (child instanceof RefNode) {
+                    RefNode fromStream = (RefNode)child;
+                    RefNode ours = getChild(fromStream.getName(), RefNode.class, true);
+                    ours.copyFrom(fromStream);
+                }
+                else if (child instanceof ToManyNode) {
+                    ToManyNode fromStream = (ToManyNode)child;
+                    ToManyNode ours = getChild(fromStream.getName(), ToManyNode.class, true);
+                    ours.copyFrom(fromStream);
+                }
+            }
+            //trace at end once object is constructed
+            LOG.trace("Deserializing entity {}", this);
+        }
+        finally {
+            entityContext.setEntityContextState(state);
+        }
     }
 
     @Override

@@ -137,6 +137,7 @@ public class EntityContext implements Serializable {
         entities = new Entities();
         proxies = new WeakHashMap<Entity, WeakReference<ProxyHolder<Object>>>();
         resources = new HashMap<String, Object>();
+        entityContextState = EntityContextState.USER;
     }
 
     public void register(QueryObject<?>... qos) {
@@ -344,6 +345,14 @@ public class EntityContext implements Serializable {
 
     public Definitions getDefinitions() {
         return definitions;
+    }
+
+    public EntityContextState getEntityContextState() {
+        return entityContextState;
+    }
+
+    public void setEntityContextState(EntityContextState entityContextState) {
+        this.entityContextState = entityContextState;
     }
 
     public boolean isUser() {
@@ -867,17 +876,6 @@ public class EntityContext implements Serializable {
 
     private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
         stream.writeUTF(namespace);
-    }
-
-    public void postDeserialization() {
-        //make sure all refnodes register their references
-        for (Entity entity: entities) {
-            for (RefNode ref: entity.getChildren(RefNode.class)) {
-                if (ref.getReference() != null) {
-                    addReference(ref, ref.getReference());
-                }
-            }
-        }
     }
 
     public String printXml() {

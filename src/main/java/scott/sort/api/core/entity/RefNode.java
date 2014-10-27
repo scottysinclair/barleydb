@@ -263,6 +263,7 @@ public final class RefNode extends Node {
     }
 
     private void writeObject(ObjectOutputStream oos) throws IOException {
+        LOG.trace("Serializing reference to {}", this);
         oos.writeObject(entityKey);
         oos.writeUTF(entityType.getInterfaceName());
         oos.writeObject(reference);
@@ -275,10 +276,17 @@ public final class RefNode extends Node {
         entityType = getParent().getEntityContext().getDefinitions().getEntityTypeMatchingInterface(interfaceName, true);
         reference = (Entity)ois.readObject();
         removedEntityKey = ois.readObject();
-        /*
-         * Our reference to an entity gets registered with the entity context later in
-         * EntityContext.postDeserialization.
-         */
+        //trace at end once object is constructed
+        LOG.trace("Deserialized reference to {}", this);
+    }
+
+    public void copyFrom(RefNode other) {
+        this.entityKey = other.entityKey;
+        this.reference = other.reference;
+        this.removedEntityKey = other.removedEntityKey;
+        if (this.reference  != null) {
+            getEntityContext().addReference(this, this.reference);
+        }
     }
 
     @Override

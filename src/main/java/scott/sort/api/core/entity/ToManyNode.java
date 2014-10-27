@@ -231,13 +231,20 @@ public class ToManyNode extends Node {
         return getParent().getEntityType().getNode(getName(), true);
     }
 
+    public void copyFrom(ToManyNode other) {
+        this.fetched = other.fetched;
+        this.entities = new LinkedList<Entity>(other.entities);
+        this.newEntities = new LinkedList<Entity>(other.newEntities);
+        this.removedEntities = new LinkedList<Entity>(other.removedEntities);
+    }
+
     private void writeObject(ObjectOutputStream oos) throws IOException {
+        LOG.trace("Serializing many references {}", this);
         oos.writeUTF(entityType.getInterfaceName());
         oos.writeBoolean(fetched);
         oos.writeObject(entities);
         oos.writeObject(newEntities);
         oos.writeObject(removedEntities);
-
     }
 
     @SuppressWarnings("unchecked")
@@ -248,6 +255,8 @@ public class ToManyNode extends Node {
         entities = (List<Entity>)ois.readObject();
         newEntities = (List<Entity>)ois.readObject();
         removedEntities = (List<Entity>)ois.readObject();
-    }
+        //trace at end once object is constructed
+        LOG.trace("Deserialized many references {}", this);
+   }
 
 }

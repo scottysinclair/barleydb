@@ -142,13 +142,19 @@ public class PersistAnalyser implements Serializable {
         }
     }
 
+    /**
+     * Analyzes the persistRequest 
+     *  
+     * @param persistRequest
+     * @throws IllegalPersistStateException
+     */
     public void analyse(PersistRequest persistRequest) throws IllegalPersistStateException {
         try {
             for (Object toSave : persistRequest.getToSave()) {
                 final Entity entity = ((ProxyController) toSave).getEntity();
                 /*
-                 * top level toSave entities get analysed by themselves
-                 * so if they have been analysed already then clear that.
+                 * top level toSave entities get analyzed by themselves
+                 * so if they have been analyzed already then clear that.
                  */
                 removeAnalysis(entity);
 
@@ -173,6 +179,15 @@ public class PersistAnalyser implements Serializable {
             analysing.clear();
         }
     }
+    
+    /**
+     * 
+     * @param persistRequest
+     * @throws IllegalPersistStateException
+     */
+    public void analysePhase2(PersistRequest persistRequest) throws IllegalPersistStateException {
+        
+    }
 
     private void removeAnalysis(Entity entity) {
         if (analysing.remove(entity)) {
@@ -190,7 +205,7 @@ public class PersistAnalyser implements Serializable {
         }
         LOG.debug("analysing " + entity + " for create");
         /*
-         * I can only be created after any of my fk refs are created.
+         * I can only be created after any of my FK references are created.
          */
         analyseRefNodes(entity, true);
 
@@ -201,7 +216,7 @@ public class PersistAnalyser implements Serializable {
 
         /*
          * Look at the to many relations, they must require creation
-         * as our pk doesn't exist yet
+         * as our PK doesn't exist yet
          */
         for (ToManyNode toManyNode : entity.getChildren(ToManyNode.class)) {
             for (Entity refEntity : toManyNode.getList()) {
@@ -216,7 +231,7 @@ public class PersistAnalyser implements Serializable {
         }
         LOG.debug("analysing " + entity + " for update");
         /*
-         * I may now refer to different fks so they should be processed before my update.
+         * I may now refer to different FKs so they should be processed before my update.
          */
         analyseRefNodes(entity, true);
         /*
@@ -224,8 +239,8 @@ public class PersistAnalyser implements Serializable {
          */
         updateGroup.add(entity);
         /*
-         * if we own any refs which were removed then we have to delete the
-         * entities which the refs pointed at
+         * if we own any references which were removed then we have to delete the
+         * entities which the references pointed at
          */
         for (RefNode refNode : entity.getChildren(RefNode.class)) {
             final Object entityKey = checkForRemovedReference(refNode);
@@ -272,7 +287,7 @@ public class PersistAnalyser implements Serializable {
              */
             if (!toManyNode.getNodeDefinition().isOwns()) {
                 //TODO: we should also check if the entities in the many side
-                //are part of the same delete request, of so we should analyse them too
+                //are part of the same delete request, of so we should analyze them too
                 continue;
             }
             /*
@@ -302,19 +317,19 @@ public class PersistAnalyser implements Serializable {
         deleteGroup.add(entity);
 
         /*
-         * Then delete any refs which we own
+         * Then delete any references which we own
          */
         for (RefNode refNode : entity.getChildren(RefNode.class)) {
             final Entity refEntity = refNode.getReference();
             /*
-             * An empty ref, nothing to analyse
+             * An empty reference, nothing to analyze
              */
             if (refEntity == null) {
                 continue;
             }
             if (refNode.getNodeDefinition().isOwns()) {
                 /*
-                 * If the ref is used then schedule the ref'd entity for deletion
+                 * If the reference is used then schedule the ref'd entity for deletion
                  */
                 if (refEntity.getKey().getValue() != null) {
                     if (!refEntity.isLoaded()) {
@@ -323,7 +338,7 @@ public class PersistAnalyser implements Serializable {
                     analyseDelete(refEntity);
                 }
                 /*
-                 * If the ref has a removed reference, then this needs to be deleted also.
+                 * If the reference has a removed reference, then this needs to be deleted also.
                  */
                 final Object entityKey = checkForRemovedReference(refNode);
                 if (entityKey != null) {
@@ -359,7 +374,7 @@ public class PersistAnalyser implements Serializable {
             }
             if (!toManyNode.getNodeDefinition().dependsOrOwns()) {
                 /*
-                 * We only need to look at tomany refs if we depend-on or own them
+                 * We only need to look at ToMany references if we depend-on or own them
                  */
                 continue;
             }
@@ -380,19 +395,19 @@ public class PersistAnalyser implements Serializable {
         for (RefNode refNode : entity.getChildren(RefNode.class)) {
             final Entity refEntity = refNode.getReference();
             /*
-             * An empty ref, nothing to analyse
+             * An empty reference, nothing to analyze
              */
             if (refEntity == null) {
                 continue;
             }
             if (refEntity.getKey().getValue() == null) {
                 /*
-                 * we are refering to an entity which is not yet created, process it first
+                 * we are referring to an entity which is not yet created, process it first
                  */
                 analyseCreate(refEntity);
             } else if (updateOwnedRefs && refNode.getNodeDefinition().isOwns() && refEntity.isLoaded()) {
                 /*
-                 * the entity aleady exists in the db, but we own it so we are also going to perform an update.
+                 * the entity already exists in the database, but we own it so we are also going to perform an update.
                  * as long as it was loaded
                  */
                 analyseUpdate(refEntity);
@@ -400,9 +415,9 @@ public class PersistAnalyser implements Serializable {
             else if (refNode.getNodeDefinition().dependsOrOwns() && refEntity.isLoaded()) {
                 /*
                  * We don't own, but logically depend on this reference to be considered valid
-                 * since the entity was loaded, we need to analyse this dependency incase the version
+                 * since the entity was loaded, we need to analyze this dependency in-case the version
                  * is out of date.
-                 * ie we don't want to allow saving of a syntax based on an out-of-date structure.
+                 * i.e. we don't want to allow saving of a syntax based on an out-of-date structure.
                  *
                  */
                 analyseDependsOn(refEntity);

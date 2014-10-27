@@ -65,6 +65,10 @@ public class ValueNode extends Node {
         return (Entity) super.getParent();
     }
 
+    public void copyFrom(ValueNode other) {
+        this.value = other.value;
+    }
+
     @Override
     public String toString() {
         return String.valueOf(value);

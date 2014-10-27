@@ -106,7 +106,6 @@ public class TestSerialization extends TestBase {
         System.out.println("-------------- SAVING AND LOADING ANALYSER ------------------");
         analyser = writeRead(analyser, "/tmp/out.bin");
         System.out.println("-------------- POST DESERIALIZATION ------------------");
-        analyser.getEntityContext().postDeserialization();
         System.out.println(analyser.getEntityContext().printXml());
 
         analyser = env.services().execute(analyser);
