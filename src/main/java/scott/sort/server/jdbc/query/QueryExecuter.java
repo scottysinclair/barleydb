@@ -184,8 +184,6 @@ public class QueryExecuter {
     private void executeQuery(QueryExecution<?> queryExecution) throws SortJdbcException, PreparingPersistStatementException, SortQueryException  {
         List<Param> params = new LinkedList<Param>();
         String sql = queryExecution.getSql(params);
-        LOG.debug("============================================");
-        LOG.debug("Executing individual query:\n" + sql);
 
         if (!params.isEmpty()) {
             try (PreparedStatement stmt = prepareStatement(sql, runtimeProperties)) {
@@ -193,6 +191,9 @@ public class QueryExecuter {
                 setFetch(stmt, runtimeProperties);
 
                 setParameters(stmt, params);
+
+                LOG.debug("============================================");
+                LOG.debug("Executing individual query:\n" + sql);
                 try (ResultSet resultSet = stmt.executeQuery()) {
                     queryExecution.processResultSet(resultSet);
                 }

@@ -10,6 +10,7 @@ package scott.sort.api.core;
  * #L%
  */
 
+import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -17,7 +18,9 @@ import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.query.QueryObject;
 import scott.sort.server.jdbc.query.QueryResult;
 
-public class QueryBatcher {
+public class QueryBatcher implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private List<QueryObject<?>> queries = new LinkedList<>();
     private List<QueryResult<?>> results = new LinkedList<>();
@@ -45,16 +48,23 @@ public class QueryBatcher {
         results.add(result);
     }
 
-    public QueryBatcher copyResultTo(EntityContext newEntityContext) {
-        if (results.isEmpty() || results.get(0).getEntityContext() == newEntityContext) {
-            return this;
+    /**
+     * Copies the data from this query batcher into copyTo and
+     * copies the results into newEntityContext if they are not already there.
+     * @param newEntityContext
+     * @param copyTo
+     */
+    public void copyTo(EntityContext newEntityContext, QueryBatcher copyTo) {
+        if (copyTo != this) {
+            copyTo.queries.clear();
+            copyTo.results.clear();
+            copyTo.queries.addAll( queries );
         }
-        QueryBatcher newBatchResult = new QueryBatcher();
-        for (QueryResult<?> result : results) {
-            QueryResult<?> newResult = result.copyResultTo(newEntityContext);
-            newBatchResult.addResult(newResult);
+        if (copyTo.results != results) {
+            for (QueryResult<?> result : results) {
+                copyTo.results.add( result.copyResultTo(newEntityContext) );
+            }
         }
-        return newBatchResult;
     }
 
 }

@@ -404,8 +404,11 @@ public class EntityContext implements Serializable {
         runtimeProperties = env.overrideProps( runtimeProperties  );
         EntityContext opContext = getOperationContext(this, runtimeProperties);
 
-        queryBatcher = env.services().execute(opContext, queryBatcher, runtimeProperties);
-        queryBatcher.copyResultTo(this);
+        QueryBatcher result = env.services().execute(opContext, queryBatcher, runtimeProperties);
+        /*
+         * Copy the result into the original query batcher if required.
+         */
+        result.copyTo(this, queryBatcher);
     }
 
     public <T> QueryResult<T> performQuery(QueryObject<T> queryObject) throws SortServiceProviderException, SortQueryException {
