@@ -392,7 +392,10 @@ public class TestPersistence extends TestRemoteClientBase {
      */
     @Test
     public void testSyntaxDeletedJustBeforeJdbcUpdateOperation() throws Exception {
-        if (!ConnectionResources.getMandatoryForPersist(theEntityContext).getDatabase().supportsBatchUpdateCounts()) {
+        /*
+         * this check is for test and is a "server side" check on the entity context of the server.
+         */
+        if (!ConnectionResources.getMandatoryForPersist(entityContext).getDatabase().supportsBatchUpdateCounts()) {
             /**
              * If batch update counts are not supported then upfront optimistic locking is used and this test case is not relevant.
              */
@@ -462,7 +465,10 @@ public class TestPersistence extends TestRemoteClientBase {
     @SuppressWarnings("unchecked")
     @Test
     public void testConcurrentModificationCausesActualUpdateCallToFail() throws Exception {
-        if (!ConnectionResources.getMandatoryForPersist(theEntityContext).getDatabase().supportsBatchUpdateCounts()) {
+        /*
+         * this check is for test and is a "server side" check on the entity context of the server.
+         */
+        if (!ConnectionResources.getMandatoryForPersist(entityContext).getDatabase().supportsBatchUpdateCounts()) {
             /**
              * If batch update counts are not supported then upfront optimistic locking is used and this test case is not relevant.
              */
