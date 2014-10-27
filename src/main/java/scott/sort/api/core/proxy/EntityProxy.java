@@ -70,10 +70,6 @@ public class EntityProxy implements InvocationHandler, Serializable {
             return entity;
         }
 
-        if (entity.isDeleted()) {
-            throw new IllegalStateException("Entity is deleted from node context.");
-        }
-
         boolean set = methodName.startsWith("set");
         final String nodeName;
         if (set || methodName.startsWith("get")) {

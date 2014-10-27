@@ -20,7 +20,6 @@ import scott.sort.api.config.EntityType;
 import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.core.entity.EntityContextHelper;
-import scott.sort.api.core.entity.ProxyController;
 import scott.sort.api.core.entity.RefNode;
 import scott.sort.api.core.entity.ToManyNode;
 import scott.sort.api.exception.execution.persist.EntityMissingException;
@@ -458,16 +457,18 @@ public class PersistAnalyser implements Serializable {
 
     public void applyChanges(EntityContext otherContext) {
         LOG.debug("APPLYING CHANGES -------------------------");
-        OperationGroup changed = createGroup.mergedCopy(updateGroup);
-        List<Entity> otherEntities = EntityContextHelper.applyChanges(changed.getEntities(), otherContext);
-        EntityContextHelper.copyRefStates(entityContext, otherContext, otherEntities, new EntityContextHelper.EntityFilter() {
+        OperationGroup changed = createGroup.mergedCopy(updateGroup).mergedCopy(deleteGroup);
+
+        EntityContextHelper.EntityFilter filter = new EntityContextHelper.EntityFilter() {
             @Override
             public boolean includesEntity(Entity entity) {
              // everything gets copied back apart from entities loaded during analysis.
                 return !loadedDuringAnalysis.contains(entity);
             }
-        });
-        EntityContextHelper.removeEntities(deleteGroup.getEntities(), otherContext, true);
+        };
+
+        List<Entity> otherEntities = EntityContextHelper.applyChanges(changed.getEntities(), otherContext, filter);
+        EntityContextHelper.copyRefStates(entityContext, otherContext, otherEntities, filter);
     }
 
 }

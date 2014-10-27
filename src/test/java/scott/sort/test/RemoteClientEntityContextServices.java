@@ -19,7 +19,6 @@ import scott.sort.api.exception.execution.SortServiceProviderException;
 import scott.sort.api.exception.execution.TransactionsNoSupportedException;
 import scott.sort.api.exception.execution.jdbc.CommitWithoutTransactionException;
 import scott.sort.api.exception.execution.jdbc.RollbackWithoutTransactionException;
-import scott.sort.api.exception.execution.persist.EntityMissingException;
 import scott.sort.api.exception.execution.persist.SortPersistException;
 import scott.sort.api.exception.execution.query.SortQueryException;
 import scott.sort.api.persist.PersistAnalyser;
@@ -257,6 +256,7 @@ public class RemoteClientEntityContextServices implements IEntityContextServices
         }
     }
 
+    @SuppressWarnings("unchecked")
     private <T extends Throwable> T serialize(T exception)  {
         EnvironmentAccessor.set( clientEnvironment );
         try {

@@ -52,30 +52,17 @@ public class EntityContextHelper {
         return copiedEntities;
     }
 
-    public static List<Entity> removeEntities(List<Entity> entities, EntityContext newContext, boolean setDeleted) {
-        List<Entity> toRemove = new LinkedList<>();
-        for (Entity entity : entities) {
-            Entity e = newContext.getEntityByUuidOrKey(entity.getUuid(), entity.getEntityType(), entity.getKey().getValue(), false);
-            if (e != null) {
-                toRemove.add(e);
-                if (setDeleted) {
-                    newContext.fireDeleted(e);
-                    e.setDeleted();
-                }
-            }
-        }
-        newContext.remove(toRemove);
-        return toRemove;
-    }
-
     /**
-     * Equivalent entities must exist in otherContext
+     * Applies the changes to the new context
      * @param entities
      * @param newContext
      */
-    public static List<Entity> applyChanges(List<Entity> entities, EntityContext newContext) {
+    public static List<Entity> applyChanges(List<Entity> entities, EntityContext newContext, EntityFilter filter) {
         List<Entity> newEntities = new LinkedList<Entity>();
         for (Entity entity : entities) {
+            if (!filter.includesEntity(entity)) {
+                continue;
+            }
             Entity e = newContext.getEntityByUuidOrKey(entity.getUuid(), entity.getEntityType(), entity.getKey().getValue(), true);
             e.copyValueNodesToMe(entity);
             e.setEntityState(entity.getEntityState());

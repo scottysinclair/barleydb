@@ -91,35 +91,14 @@ public class EntityContext implements Serializable {
     private Environment env;
     private QueryRegistry userQueryRegistry;
     private Definitions definitions;
-    private Map<Entity, WeakReference<ProxyHolder<Object>>> proxies;
+    /**
+     * weak hashmap used to allow garbage collection of the entity
+     */
+    private WeakHashMap<Entity, WeakReference<Object>> proxies;
     /**
      * A place to store extra resources like transaction information
      */
     private Map<String,Object> resources;
-
-    private static class ProxyHolder<T> {
-        private List<DeleteListener<T>> listeners = null;
-        public final T proxy;
-
-        public ProxyHolder(T proxy) {
-            this.proxy = proxy;
-        }
-
-        public void addListener(DeleteListener<T> listener) {
-            if (listeners == null) {
-                listeners = new LinkedList<DeleteListener<T>>();
-            }
-            listeners.add(listener);
-        }
-
-        public void fireDeleted() {
-            if (listeners != null) {
-                for (DeleteListener<? super T> listener : listeners) {
-                    listener.entityDeleted(proxy);
-                }
-            }
-        }
-    }
 
     public EntityContext(Environment env, String namespace) {
         this.env = env;
@@ -135,7 +114,7 @@ public class EntityContext implements Serializable {
          * so that we always have proper ordering of Lists etc.
          */
         entities = new Entities();
-        proxies = new WeakHashMap<Entity, WeakReference<ProxyHolder<Object>>>();
+        proxies = new WeakHashMap<Entity, WeakReference<Object>>();
         resources = new HashMap<String, Object>();
     }
 
@@ -282,14 +261,6 @@ public class EntityContext implements Serializable {
         }
     }
 
-    void fireDeleted(Entity entity) {
-        WeakReference<ProxyHolder<Object>> ref = proxies.get(entity);
-        if (ref == null || ref.get() == null) {
-            return;
-        }
-        ref.get().fireDeleted();
-    }
-
     public void remove(Entity entity) {
         remove(entity, Collections.<Entity> emptyList());
     }
@@ -320,26 +291,18 @@ public class EntityContext implements Serializable {
         }
     }
 
-    public void addDeleteListener(Object proxy, DeleteListener<Object> deleteListener) {
-        Entity entity = ((ProxyController) proxy).getEntity();
-        WeakReference<ProxyHolder<Object>> p = proxies.get(entity);
-        if (p != null && p.get() != null) {
-            p.get().addListener(deleteListener);
-        }
-    }
-
     public Object getProxy(Entity entity) {
-        WeakReference<ProxyHolder<Object>> p = proxies.get(entity);
-        if (p == null || p.get() == null || p.get().proxy == null) {
+        WeakReference<Object> p = proxies.get(entity);
+        if (p == null || p.get() == null ) {
             try {
                 Object o = env.generateProxy(entity);
-                proxies.put(entity, new WeakReference<>(new ProxyHolder<Object>(o)));
+                proxies.put(entity, new WeakReference<>(o));
                 return o;
             } catch (Exception x) {
                 throw new IllegalStateException("Could not generated proxy", x);
             }
         }
-        return p.get().proxy;
+        return p.get();
     }
 
     public Definitions getDefinitions() {

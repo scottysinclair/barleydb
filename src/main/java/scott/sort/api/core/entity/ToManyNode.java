@@ -116,7 +116,7 @@ public class ToManyNode extends Node {
          */
         for (Iterator<Entity> i = removedEntities.iterator(); i.hasNext();) {
             Entity e = i.next();
-            if (e.getKey().getValue() == null || e.isDeleted()) {
+            if (e.getKey().getValue() == null) {
                 i.remove();
             }
         }
