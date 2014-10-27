@@ -1,5 +1,15 @@
 package scott.sort.api.exception.execution;
 
+/*
+ * #%L
+ * Simple Object Relational Framework
+ * %%
+ * Copyright (C) 2014 Scott Sinclair <scottysinclair@gmail.com>
+ * %%
+ * All rights reserved.
+ * #L%
+ */
+
 /**
  * Thrown if transactions are not supported in the environment
  * @author scott
