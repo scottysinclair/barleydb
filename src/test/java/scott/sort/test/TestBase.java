@@ -98,6 +98,10 @@ public abstract class TestBase {
 
         entityContextServices = new TestEntityContextServices(dataSource);
         env = new Environment(entityContextServices);
+        /*
+         * The server executes by default in the same context
+         * and provides reasonable values for result-set scrolling and fetching
+         */
         env.setDefaultRuntimeProperties(
                 new RuntimeProperties()
                     .concurrency(Concurrency.READ_ONLY)

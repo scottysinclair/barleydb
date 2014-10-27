@@ -1,4 +1,4 @@
-package scott.sort.test.remoteclient;
+package scott.sort.test;
 
 import com.smartstream.mi.MiEntityContext;
 
@@ -7,7 +7,6 @@ import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.query.RuntimeProperties;
 import scott.sort.api.query.RuntimeProperties.Concurrency;
 import scott.sort.api.query.RuntimeProperties.ScrollType;
-import scott.sort.test.TestBase;
 
 /**
  * Tests based on a remote client environment
@@ -39,6 +38,13 @@ public class TestRemoteClientBase extends TestBase {
             clientEntityContextServices.setClientEnvironment( clientEnv );
             clientEnv.loadDefinitions();
 
+            /*
+             * The client executes by default in the same context
+             * The client is anyway remote, so the entity context is always copied
+             * So setting executeInSameContext to false would cause double copying.
+             *
+             * Provides reasonable values for result-set scrolling and fetching
+             */
             clientEnv.setDefaultRuntimeProperties(
                     new RuntimeProperties()
                         .concurrency(Concurrency.READ_ONLY)

@@ -10,9 +10,14 @@ package scott.sort.test;
  * #L%
  */
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
 import static org.junit.Assert.*;
 
@@ -21,6 +26,7 @@ import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.test.jdbc.SimpleJdbcTestUtils;
 
 import scott.sort.api.core.QueryBatcher;
+import scott.sort.api.core.entity.EntityContext;
 import static scott.sort.api.query.JoinType.*;
 import scott.sort.server.jdbc.query.QueryResult;
 
@@ -29,13 +35,48 @@ import com.smartstream.mi.model.*;
 import com.smartstream.mi.query.*;
 
 @SuppressWarnings("deprecation")
-public class TestQuery extends TestBase {
+@RunWith(Parameterized.class)
+public class TestQuery extends TestRemoteClientBase {
+
+    private static class EntityContextGetter {
+        private final boolean client;
+        public EntityContextGetter(boolean client) {
+            this.client = client;
+        }
+
+        public EntityContext get(TestQuery thisTest) {
+            if (client) {
+                return thisTest.clientEntityContext;
+            }
+            else {
+                return thisTest.entityContext;
+            }
+        }
+
+    }
+
+    @Parameters
+    public static Collection<Object[]> data() {
+        return Arrays.asList(new Object[][] {
+                {new EntityContextGetter(false) },
+                {new EntityContextGetter(true) }
+           });
+    }
+
+    private EntityContextGetter getter;
+    private EntityContext theEntityContext;
+
+    public TestQuery(EntityContextGetter getter) {
+        this.getter = getter;
+    }
 
     @Override
     protected void prepareData() {
         super.prepareData();
         SimpleJdbcTestUtils.executeSqlScript(new SimpleJdbcTemplate(dataSource), new ClassPathResource("/inserts.sql"), false);
     }
+
+
 
     /*
     @Test
@@ -45,7 +86,7 @@ public class TestQuery extends TestBase {
         qcsm.joinToStructure().joinToFields();
         qcsm.forUpdate();
 
-        QueryResult<CsvSyntaxModel> result = entityContext.performQuery(qcsm);
+        QueryResult<CsvSyntaxModel> result = theEntityContext.performQuery(qcsm);
 
         System.out.println();
         System.out.println("printing syntax models (" + result.getList().size() + ") => ");
@@ -53,6 +94,12 @@ public class TestQuery extends TestBase {
             print("", syntaxModel);
         }
     }*/
+
+    @Override
+    public void setup() throws Exception {
+        super.setup();
+        this.theEntityContext = getter.get(this);
+    }
 
     @Test
     public void testCsvSyntaxModelQuery() throws Exception {
@@ -67,7 +114,7 @@ public class TestQuery extends TestBase {
         qcsm.or(qcsm.syntaxType().equal(SyntaxType.ROOT));
         qcsm.or(qcsm.syntaxType().equal(SyntaxType.SUBSYNTAX));
 
-        QueryResult<CsvSyntaxModel> result = entityContext.performQuery(qcsm);
+        QueryResult<CsvSyntaxModel> result = theEntityContext.performQuery(qcsm);
 
         System.out.println();
         System.out.println("printing syntax models (" + result.getList().size() + ") => ");
@@ -93,12 +140,12 @@ public class TestQuery extends TestBase {
                 .joinToSubSyntax()
                 .joinToUser();
 
-        entityContext.register(qxsm);
+        theEntityContext.register(qxsm);
 
         /*
          * get a copy of the syntax query
          */
-        QXMLSyntaxModel syntax = (QXMLSyntaxModel) entityContext.getQuery(XMLSyntaxModel.class);
+        QXMLSyntaxModel syntax = (QXMLSyntaxModel) theEntityContext.getQuery(XMLSyntaxModel.class);
 
         /*
          * add a where clause
@@ -118,7 +165,7 @@ public class TestQuery extends TestBase {
         /*
          * Execute the query and process the result
          */
-        QueryResult<XMLSyntaxModel> result = entityContext.performQuery(syntax);
+        QueryResult<XMLSyntaxModel> result = theEntityContext.performQuery(syntax);
 
         //result.getList().get(0).getMappings();
 
@@ -149,7 +196,7 @@ public class TestQuery extends TestBase {
         qsyntax.where(qsyntax.syntaxType().equal(SyntaxType.ROOT));
         qsyntax.joinToUser();
 
-        List<SyntaxModel> syntaxModels = entityContext.performQuery(qsyntax).getList();
+        List<SyntaxModel> syntaxModels = theEntityContext.performQuery(qsyntax).getList();
         for (SyntaxModel syntaxModel : syntaxModels) {
             syntaxModel.getStructure().getName();
             System.out.println(syntaxModel.getName() + " -- " + syntaxModel.getUser().getName() + " -- " + syntaxModel.getStructure().getName());
@@ -180,8 +227,8 @@ public class TestQuery extends TestBase {
         /*
          * get a copy of the syntax query
          */
-        List<XMLSyntaxModel> list = entityContext.performQuery(qxsm).getList();
-        System.out.println(entityContext.printXml());
+        List<XMLSyntaxModel> list = theEntityContext.performQuery(qxsm).getList();
+        System.out.println(theEntityContext.printXml());
         for (XMLSyntaxModel syntaxModel : list) {
             print("", syntaxModel);
         }
@@ -196,7 +243,7 @@ public class TestQuery extends TestBase {
         templatesQuery.joinToContent();
         templatesQuery.joinToDatatype();
 
-        QueryResult<Template> result2 = entityContext.performQuery(templatesQuery);
+        QueryResult<Template> result2 = theEntityContext.performQuery(templatesQuery);
         for (Template t : result2.getList()) {
             print("", t);
         }
@@ -210,7 +257,7 @@ public class TestQuery extends TestBase {
         QTemplate templatesQuery = new QTemplate();
         //templatesQuery.joinToDatatype();
 
-        QueryResult<Template> result2 = entityContext.performQuery(templatesQuery);
+        QueryResult<Template> result2 = theEntityContext.performQuery(templatesQuery);
         for (Template t : result2.getList()) {
             print("", t);
         }
@@ -221,7 +268,7 @@ public class TestQuery extends TestBase {
         /*
          * Build a syntax model query
          */
-        QXMLSyntaxModel syntax = (QXMLSyntaxModel) entityContext.getDefinitions().getQuery(XMLSyntaxModel.class);
+        QXMLSyntaxModel syntax = (QXMLSyntaxModel) theEntityContext.getDefinitions().getQuery(XMLSyntaxModel.class);
         QXMLMapping aMapping = syntax.existsMapping();
         QUser aUser = syntax.existsUser();
         syntax.where(syntax.syntaxName().equal("syntax-xml-1"))
@@ -237,7 +284,7 @@ public class TestQuery extends TestBase {
         QueryBatcher qBatch = new QueryBatcher();
         qBatch.addQuery(syntax, templatesQuery);
 
-        entityContext.performQueries(qBatch);
+        theEntityContext.performQueries(qBatch);
 
         System.out.println();
         System.out.println();
@@ -261,7 +308,7 @@ public class TestQuery extends TestBase {
         qsyntax.where(qsyntax.syntaxType().equal(null));
         qsyntax.joinToUser();
 
-        assertTrue(entityContext.performQuery(qsyntax).getList().isEmpty());
+        assertTrue(theEntityContext.performQuery(qsyntax).getList().isEmpty());
 
     }
 

@@ -1,4 +1,4 @@
-package scott.sort.test.remoteclient;
+package scott.sort.test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
