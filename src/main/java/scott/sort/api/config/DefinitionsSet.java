@@ -30,6 +30,10 @@ public class DefinitionsSet implements Serializable {
         definitions.setDefinitionsSet(this);
     }
 
+    public void addAll(DefinitionsSet definitionsSet) {
+        definitionsByNamespace.putAll( definitionsSet.definitionsByNamespace );
+    }
+
     /**
      *
      * @param namespace

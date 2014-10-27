@@ -98,17 +98,12 @@ public class TestSerialization extends TestBase {
 
         EnvironmentAccessor.set(env);
 
-//        writeRead(entityContext, "/tmp/out.bin");
-
-        PersistAnalyser analyser = new PersistAnalyser(entityContext);
-        analyser.analyse(request);
-
         System.out.println("-------------- SAVING AND LOADING ANALYSER ------------------");
-        analyser = writeRead(analyser, "/tmp/out.bin");
+        request = writeRead(request, "/tmp/out.bin");
         System.out.println("-------------- POST DESERIALIZATION ------------------");
-        System.out.println(analyser.getEntityContext().printXml());
+        System.out.println(request.getEntityContext().printXml());
 
-        analyser = env.services().execute(analyser);
+        PersistAnalyser analysis = env.services().execute(request, null);
 
         System.out.println("-------------- PRINTING RESULT OF PERIST ------------------");
 /*

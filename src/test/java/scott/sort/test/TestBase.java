@@ -107,6 +107,7 @@ public abstract class TestBase {
         env.setQueryPreProcessor(new QueryPreProcessor());
 
         entityContextServices.setEnvironment(env);
+        env.loadDefinitions();
 
         Connection connection = dataSource.getConnection();
         DatabaseMetaData metadata = connection.getMetaData();

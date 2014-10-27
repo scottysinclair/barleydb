@@ -19,11 +19,15 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
+import scott.sort.api.config.DefinitionsSet;
 import scott.sort.api.core.Environment;
 import scott.sort.api.core.IEntityContextServices;
 import scott.sort.api.core.QueryBatcher;
 import scott.sort.api.core.entity.EntityContext;
+import scott.sort.api.exception.execution.SortServiceProviderException;
 import scott.sort.api.exception.execution.jdbc.AquireConnectionException;
+import scott.sort.api.exception.execution.jdbc.CommitException;
+import scott.sort.api.exception.execution.jdbc.CommitWithoutTransactionException;
 import scott.sort.api.exception.execution.jdbc.DatabaseAccessError;
 import scott.sort.api.exception.execution.jdbc.RollbackException;
 import scott.sort.api.exception.execution.jdbc.RollbackWithoutTransactionException;
@@ -32,6 +36,7 @@ import scott.sort.api.exception.execution.jdbc.SortJdbcException;
 import scott.sort.api.exception.execution.persist.SortPersistException;
 import scott.sort.api.exception.execution.query.SortQueryException;
 import scott.sort.api.persist.PersistAnalyser;
+import scott.sort.api.persist.PersistRequest;
 import scott.sort.api.query.QueryObject;
 import scott.sort.api.query.RuntimeProperties;
 import scott.sort.server.jdbc.persist.Persister;
@@ -83,6 +88,11 @@ public class JdbcEntityContextServices implements IEntityContextServices {
         this.sequenceGenerator = sequenceGenerator;
     }
 
+    @Override
+    public DefinitionsSet getDefinitionsSet() {
+        return env.getDefinitionsSet();
+    }
+
     /**
      * newContext will share the same connection resources as context
      */
@@ -132,7 +142,7 @@ public class JdbcEntityContextServices implements IEntityContextServices {
     }
 
     @Override
-    public void rollback(EntityContext entityContext) throws SortJdbcException {
+    public void rollback(EntityContext entityContext) throws SortServiceProviderException {
         ConnectionResources conRes = ConnectionResources.get(entityContext);
         if (conRes != null) {
             try {
@@ -153,12 +163,12 @@ public class JdbcEntityContextServices implements IEntityContextServices {
     }
 
     @Override
-    public void commit(EntityContext entityContext) throws SortJdbcException {
+    public void commit(EntityContext entityContext) throws SortServiceProviderException {
         ConnectionResources conRes = ConnectionResources.get(entityContext);
         if (conRes != null) {
             try {
                 if (conRes.getConnection().getAutoCommit()) {
-                    throw new RollbackWithoutTransactionException("Cannot commit when the connection is in autocommit mode");
+                    throw new CommitWithoutTransactionException("Cannot commit when the connection is in autocommit mode");
                 }
             }
             catch (SQLException x) {
@@ -168,13 +178,13 @@ public class JdbcEntityContextServices implements IEntityContextServices {
                 conRes.getConnection().commit();
             }
             catch (SQLException x) {
-                throw new RollbackException("SQLException while performing commit", x);
+                throw new CommitException("SQLException while performing commit", x);
             }
         }
     }
 
     @Override
-    public <T> QueryResult<T> execute(String namespace, EntityContext entityContext, QueryObject<T> query, RuntimeProperties props) throws SortJdbcException, SortQueryException {
+    public <T> QueryResult<T> execute(EntityContext entityContext, QueryObject<T> query, RuntimeProperties props) throws SortJdbcException, SortQueryException {
         env.preProcess(query, entityContext.getDefinitions());
 
         ConnectionResources conRes = ConnectionResources.get(entityContext);
@@ -184,7 +194,7 @@ public class JdbcEntityContextServices implements IEntityContextServices {
             returnToPool = true;
         }
 
-        QueryExecution<T> execution = new QueryExecution<T>(entityContext, query, env.getDefinitions(namespace));
+        QueryExecution<T> execution = new QueryExecution<T>(entityContext, query, env.getDefinitions(entityContext.getNamespace()));
 
         try (OptionalyClosingResources con = new OptionalyClosingResources(conRes, returnToPool)){
             QueryExecuter executer = new QueryExecuter(conRes.getDatabase(), con.getConnection(), entityContext, props);
@@ -194,7 +204,7 @@ public class JdbcEntityContextServices implements IEntityContextServices {
     }
 
     @Override
-    public QueryBatcher execute(String namespace, EntityContext entityContext, QueryBatcher queryBatcher, RuntimeProperties props) throws SortJdbcException, SortQueryException {
+    public QueryBatcher execute(EntityContext entityContext, QueryBatcher queryBatcher, RuntimeProperties props) throws SortJdbcException, SortQueryException {
         ConnectionResources conRes = ConnectionResources.get(entityContext);
         boolean returnToPool = false;
         if (conRes == null) {
@@ -206,7 +216,7 @@ public class JdbcEntityContextServices implements IEntityContextServices {
         int i = 0;
         for (QueryObject<?> queryObject : queryBatcher.getQueries()) {
             env.preProcess(queryObject, entityContext.getDefinitions());
-            queryExecutions[i++] = new QueryExecution<>(entityContext, queryObject, env.getDefinitions(namespace));
+            queryExecutions[i++] = new QueryExecution<>(entityContext, queryObject, env.getDefinitions(entityContext.getNamespace()));
         }
 
 
@@ -225,9 +235,20 @@ public class JdbcEntityContextServices implements IEntityContextServices {
     }
 
     @Override
-    public PersistAnalyser execute(PersistAnalyser persistAnalyser) throws SortJdbcException, SortPersistException {
-        Persister persister = newPersister(env, persistAnalyser.getEntityContext().getNamespace());
-        EntityContext entityContext = persistAnalyser.getEntityContext();
+    public PersistAnalyser execute(PersistRequest persistRequest, RuntimeProperties runtimeProperties) throws SortJdbcException, SortPersistException {
+        PersistAnalyser analyser = new PersistAnalyser(persistRequest.getEntityContext());
+        analyser.analyse(persistRequest);
+        /*
+         * We can optionally copy the data to  be persisted to a new context
+         * This way we only apply the changes back if the whole persist succeeds.
+         */
+        if (runtimeProperties.getExecuteInSameContext() == null || !runtimeProperties.getExecuteInSameContext()) {
+            analyser = analyser.deepCopy();
+        }
+
+
+        Persister persister = newPersister(env, analyser.getEntityContext().getNamespace());
+        EntityContext entityContext = analyser.getEntityContext();
 
         ConnectionResources conRes = ConnectionResources.get(entityContext);
         boolean returnToPool = false;
@@ -238,9 +259,9 @@ public class JdbcEntityContextServices implements IEntityContextServices {
 
         try (OptionalyClosingResources con = new OptionalyClosingResources(conRes, returnToPool);) {
             try {
-                persister.persist(persistAnalyser);
+                persister.persist(analyser);
                 con.getConnection().commit();
-                return persistAnalyser;
+                return analyser;
             }
             catch(SQLException x) {
                 rollback(con.getConnection(), "Error rolling back the persist request");

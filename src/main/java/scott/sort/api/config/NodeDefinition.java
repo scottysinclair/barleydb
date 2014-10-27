@@ -92,11 +92,11 @@ public class NodeDefinition implements Serializable, Cloneable {
 
     private Relation relation;
 
-    private transient String columnName;
+    private String columnName;
 
-    private transient JdbcType jdbcType;
+    private JdbcType jdbcType;
 
-    private transient Boolean optimisticLock;
+    private Boolean optimisticLock;
 
     private Class<?> enumType;
 
@@ -137,7 +137,6 @@ public class NodeDefinition implements Serializable, Cloneable {
         return relation != null && columnName != null;
     }
 
-    @XmlAttribute
     public boolean isOptimisticLock() {
         return optimisticLock != null && optimisticLock;
     }
@@ -166,12 +165,10 @@ public class NodeDefinition implements Serializable, Cloneable {
         return relation != null ? relation.getInterfaceName() : null;
     }
 
-    @XmlAttribute
     public String getColumnName() {
         return columnName;
     }
 
-    @XmlAttribute
     public JdbcType getJdbcType() {
         return jdbcType;
     }

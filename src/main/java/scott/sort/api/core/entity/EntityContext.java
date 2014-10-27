@@ -404,7 +404,7 @@ public class EntityContext implements Serializable {
         runtimeProperties = env.overrideProps( runtimeProperties  );
         EntityContext opContext = getOperationContext(this, runtimeProperties);
 
-        queryBatcher = env.services().execute(namespace, opContext, queryBatcher, runtimeProperties);
+        queryBatcher = env.services().execute(opContext, queryBatcher, runtimeProperties);
         queryBatcher.copyResultTo(this);
     }
 
@@ -424,7 +424,7 @@ public class EntityContext implements Serializable {
         runtimeProperties = env.overrideProps( runtimeProperties  );
         EntityContext opContext = getOperationContext(this, runtimeProperties);
 
-        QueryResult<T> queryResult = env.services().execute(namespace, opContext, queryObject, runtimeProperties);
+        QueryResult<T> queryResult = env.services().execute(opContext, queryObject, runtimeProperties);
         return queryResult.copyResultTo(this);
     }
 
@@ -433,26 +433,15 @@ public class EntityContext implements Serializable {
     }
     public void persist(PersistRequest persistRequest, RuntimeProperties runtimeProperties) throws SortServiceProviderException, SortPersistException  {
         beginSaving();
-
         runtimeProperties = env.overrideProps( runtimeProperties );
         try {
-            PersistAnalyser analyser = new PersistAnalyser(this);
-            analyser.analyse(persistRequest);
-            /*
-             * We can optionally copy the data to  be persisted to a new context
-             * This way we only apply the changes back if the whole persist succeeds.
-             */
-            if (runtimeProperties.getExecuteInSameContext() == null || !runtimeProperties.getExecuteInSameContext()) {
-                analyser = analyser.deepCopy();
-            }
-            LOG.debug(analyser.report());
             try {
-                analyser = env.services().execute(analyser);
+                PersistAnalyser analyser = env.services().execute(persistRequest, runtimeProperties);
+                if (analyser.getEntityContext() != this) {
+                    analyser.applyChanges(this);
+                }
             } catch (OptimisticLockMismatchException x) {
                 throw switchEntities(this, x);
-            }
-            if (analyser.getEntityContext() != this) {
-                analyser.applyChanges(this);
             }
         } finally {
             endSaving();

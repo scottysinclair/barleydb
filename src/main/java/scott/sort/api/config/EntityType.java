@@ -28,7 +28,7 @@ public class EntityType implements Serializable {
     @XmlAttribute(name = "interface")
     private String interfaceName;
 
-    private transient String tableName;
+    private String tableName;
 
     @XmlAttribute(name = "abstract")
     private boolean abstractEntity;
@@ -111,7 +111,6 @@ public class EntityType implements Serializable {
         return abstractEntity;
     }
 
-    @XmlAttribute(name = "table")
     public String getTableName() {
         return tableName;
     }

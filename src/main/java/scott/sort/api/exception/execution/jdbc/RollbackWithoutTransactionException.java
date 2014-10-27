@@ -1,5 +1,7 @@
 package scott.sort.api.exception.execution.jdbc;
 
+import scott.sort.api.exception.execution.SortServiceProviderException;
+
 /*
  * #%L
  * Simple Object Relational Framework
@@ -19,7 +21,7 @@ package scott.sort.api.exception.execution.jdbc;
  * @author scott
  *
  */
-public class RollbackWithoutTransactionException extends SortJdbcException {
+public class RollbackWithoutTransactionException extends SortServiceProviderException {
 
     private static final long serialVersionUID = 1L;
 

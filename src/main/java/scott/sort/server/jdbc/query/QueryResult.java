@@ -10,6 +10,7 @@ package scott.sort.server.jdbc.query;
  * #L%
  */
 
+import java.io.Serializable;
 import java.util.AbstractList;
 import java.util.LinkedList;
 import java.util.List;
@@ -27,7 +28,9 @@ import scott.sort.api.core.entity.EntityContextHelper;
  *
  * @param <T> the top level java type returned by the list
  */
-public class QueryResult<T> {
+public class QueryResult<T> implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private static final Logger LOG = LoggerFactory.getLogger(QueryResult.class);
 
@@ -93,7 +96,10 @@ public class QueryResult<T> {
     }
 }
 
-class QueryResultList<T> extends AbstractList<T> {
+class QueryResultList<T> extends AbstractList<T> implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     private final EntityContext entityContext;
     private final List<Entity> entities;
 

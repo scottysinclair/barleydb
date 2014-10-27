@@ -14,4 +14,8 @@ public class EnvironmentAccessor {
         environments.set(environment);
     }
 
+    public static void remove() {
+        environments.remove();
+    }
+
 }

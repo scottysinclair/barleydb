@@ -355,7 +355,7 @@ public class Entity implements Serializable {
         /*
          * Set the primary key
          */
-        getKey().setValue( ois.readObject() );
+        getKey().setValueNoEvent( ois.readObject() );
         /*
          * Add the entity to the context (UUID and PK lookup will work).
          */

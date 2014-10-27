@@ -10,11 +10,13 @@ package scott.sort.api.core;
  * #L%
  */
 
+import scott.sort.api.config.DefinitionsSet;
 import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.exception.execution.SortServiceProviderException;
 import scott.sort.api.exception.execution.persist.SortPersistException;
 import scott.sort.api.exception.execution.query.SortQueryException;
 import scott.sort.api.persist.PersistAnalyser;
+import scott.sort.api.persist.PersistRequest;
 import scott.sort.api.query.QueryObject;
 import scott.sort.api.query.RuntimeProperties;
 import scott.sort.server.jdbc.query.QueryResult;
@@ -25,6 +27,13 @@ import scott.sort.server.jdbc.query.QueryResult;
  *
  */
 public interface IEntityContextServices {
+
+    /**
+     * Gets all of the definitions of the environment which this
+     * entity context services executes in.
+     * @return
+     */
+    public DefinitionsSet getDefinitionsSet();
 
     /**
      * Sets the auto commit mode of the entity context.
@@ -82,7 +91,7 @@ public interface IEntityContextServices {
      * @throws SortJdbcException
      * @throws SortQueryException
      */
-    <T> QueryResult<T> execute(String namespace, EntityContext entityContext, QueryObject<T> query, RuntimeProperties props) throws SortServiceProviderException, SortQueryException;
+    <T> QueryResult<T> execute(EntityContext entityContext, QueryObject<T> query, RuntimeProperties props) throws SortServiceProviderException, SortQueryException;
 
     /**
      * Executes the batch of queries populating the given entity context with the result.
@@ -95,7 +104,7 @@ public interface IEntityContextServices {
      * @throws SortJdbcException
      * @throws SortQueryException
      */
-    QueryBatcher execute(String namespace, EntityContext entityContext, QueryBatcher queryBatcher, RuntimeProperties props) throws SortServiceProviderException, SortQueryException;
+    QueryBatcher execute(EntityContext entityContext, QueryBatcher queryBatcher, RuntimeProperties props) throws SortServiceProviderException, SortQueryException;
 
     /**
      * Executes the persist analysis
@@ -105,5 +114,5 @@ public interface IEntityContextServices {
      * @throws SortJdbcException
      * @throws SortPersistException
      */
-    PersistAnalyser execute(PersistAnalyser persistAnalyser) throws SortServiceProviderException, SortPersistException;
+    PersistAnalyser execute(PersistRequest persistRequest, RuntimeProperties props) throws SortServiceProviderException, SortPersistException;
 }

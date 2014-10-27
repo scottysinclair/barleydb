@@ -10,6 +10,8 @@ package scott.sort.api.core;
  * #L%
  */
 
+import javax.annotation.PostConstruct;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,12 +45,29 @@ public final class Environment {
 
     private final IEntityContextServices entityContextServices;
 
+    public Environment(IEntityContextServices entityContextServices) {
+        this.entityContextServices = entityContextServices;
+        this.definitionsSet = new DefinitionsSet();
+    }
+
+    @PostConstruct
+    public void loadDefinitions() {
+        DefinitionsSet ds = this.entityContextServices.getDefinitionsSet();
+        if (ds != null) {
+            definitionsSet.addAll(ds);
+        }
+    }
+
+
     public void preProcess(QueryObject<?> query, Definitions definitions) {
         if (queryPreProcessor != null) {
             queryPreProcessor.preProcess(query, definitions);
         }
     }
 
+    public DefinitionsSet getDefinitionsSet() {
+      return definitionsSet;
+    }
 
     public RuntimeProperties getDefaultRuntimeProperties() {
         return defaultRuntimeProperties;
@@ -64,11 +83,6 @@ public final class Environment {
 
     public void setQueryPreProcessor(QueryPreProcessor queryPreProcessor) {
         this.queryPreProcessor = queryPreProcessor;
-    }
-
-    public Environment(IEntityContextServices entityContextServices) {
-        this.entityContextServices = entityContextServices;
-        this.definitionsSet = new DefinitionsSet();
     }
 
     public void setAutocommit(EntityContext entityContext, boolean value) throws SortServiceProviderException {
@@ -119,6 +133,9 @@ public final class Environment {
      */
     public RuntimeProperties overrideProps(RuntimeProperties props) {
         if (props == null) {
+            if (defaultRuntimeProperties == null) {
+                throw new IllegalStateException("No default runtime properties for environment.");
+            }
             return defaultRuntimeProperties;
         }
         else if (defaultRuntimeProperties == null) {
