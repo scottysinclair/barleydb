@@ -23,33 +23,33 @@ public class TestPersistAnalyser extends TestBase {
 
     @Test
     public void testXMLSyntax() throws Exception {
-        XMLSyntaxModel syntaxModel = entityContext.newModel(XMLSyntaxModel.class);
+        XMLSyntaxModel syntaxModel = serverEntityContext.newModel(XMLSyntaxModel.class);
         syntaxModel.setName("Scott's Syntax");
         syntaxModel.setSyntaxType(SyntaxType.ROOT);
 
-        User user = entityContext.newModel(User.class);
+        User user = serverEntityContext.newModel(User.class);
         user.setName("Jimmy");
 
         syntaxModel.setUser(user);
 
-        XMLStructure structure = entityContext.newModel(XMLStructure.class);
+        XMLStructure structure = serverEntityContext.newModel(XMLStructure.class);
         structure.setName("scott's structure");
         syntaxModel.setStructure(structure);
 
-        XMLMapping mapping = entityContext.newModel(XMLMapping.class);
+        XMLMapping mapping = serverEntityContext.newModel(XMLMapping.class);
         mapping.setSyntaxModel(syntaxModel);
         mapping.setXpath("/root1");
         mapping.setTarget("target1");
         syntaxModel.getMappings().add(mapping);
 
-        mapping = entityContext.newModel(XMLMapping.class);
+        mapping = serverEntityContext.newModel(XMLMapping.class);
         mapping.setSyntaxModel(syntaxModel);
         mapping.setXpath("/root2");
         mapping.setTarget("target2");
         syntaxModel.getMappings().add(mapping);
 
         //create the sub syntax
-        XMLSyntaxModel subSyntaxModel = entityContext.newModel(XMLSyntaxModel.class);
+        XMLSyntaxModel subSyntaxModel = serverEntityContext.newModel(XMLSyntaxModel.class);
         subSyntaxModel.setName("SubSyntaxModel - ooooh");
         subSyntaxModel.setStructure(structure);
         subSyntaxModel.setSyntaxType(SyntaxType.SUBSYNTAX);
@@ -58,20 +58,20 @@ public class TestPersistAnalyser extends TestBase {
         mapping.setSubSyntaxModel(subSyntaxModel); //cool, lets do it
 
         //add another mapping to the root level syntax
-        mapping = entityContext.newModel(XMLMapping.class);
+        mapping = serverEntityContext.newModel(XMLMapping.class);
         mapping.setSyntaxModel(syntaxModel);
         mapping.setXpath("/root3");
         mapping.setTarget("target3");
         syntaxModel.getMappings().add(mapping);
 
         //do the sub-syntax mappings
-        mapping = entityContext.newModel(XMLMapping.class);
+        mapping = serverEntityContext.newModel(XMLMapping.class);
         mapping.setSyntaxModel(subSyntaxModel);
         mapping.setXpath("sub1");
         mapping.setTarget("subtarget1");
         subSyntaxModel.getMappings().add(mapping);
 
-        mapping = entityContext.newModel(XMLMapping.class);
+        mapping = serverEntityContext.newModel(XMLMapping.class);
         mapping.setSyntaxModel(subSyntaxModel);
         mapping.setXpath("sub2");
         mapping.setTarget("subtarget2");
@@ -80,7 +80,7 @@ public class TestPersistAnalyser extends TestBase {
         PersistRequest request = new PersistRequest();
         request.save(syntaxModel);
 
-        PersistAnalyser analyser = new PersistAnalyser(entityContext);
+        PersistAnalyser analyser = new PersistAnalyser(serverEntityContext);
         analyser.analyse(request);
         printAnalysis(analyser);
         System.out.println("Optimized copy pre create");
@@ -90,9 +90,9 @@ public class TestPersistAnalyser extends TestBase {
         assertTrue(analyser.getUpdateGroup().getEntities().isEmpty());
         assertTrue(analyser.getDeleteGroup().getEntities().isEmpty());
 
-        entityContext.persist(new PersistRequest().save(syntaxModel));
+        serverEntityContext.persist(new PersistRequest().save(syntaxModel));
 
-        analyser = new PersistAnalyser(entityContext);
+        analyser = new PersistAnalyser(serverEntityContext);
         analyser.analyse(request);
         printAnalysis(analyser);
         System.out.println("Optimized copy");
@@ -107,7 +107,7 @@ public class TestPersistAnalyser extends TestBase {
         syntaxModel.getMappings().remove(1); //delete the subsyntax mapping
         System.out.println("Deleted the subsyntax mapping!");
 
-        analyser = new PersistAnalyser(entityContext);
+        analyser = new PersistAnalyser(serverEntityContext);
         analyser.analyse(request);
         printAnalysis(analyser);
         System.out.println("Optimized copy");
@@ -120,33 +120,33 @@ public class TestPersistAnalyser extends TestBase {
 
     @Test
     public void testOptimizeXMLSyntaxUpdateOperations() throws Exception {
-        XMLSyntaxModel syntaxModel = entityContext.newModel(XMLSyntaxModel.class);
+        XMLSyntaxModel syntaxModel = serverEntityContext.newModel(XMLSyntaxModel.class);
         syntaxModel.setName("Scott's Syntax");
         syntaxModel.setSyntaxType(SyntaxType.ROOT);
 
-        User user = entityContext.newModel(User.class);
+        User user = serverEntityContext.newModel(User.class);
         user.setName("Jimmy");
 
         syntaxModel.setUser(user);
 
-        XMLStructure structure = entityContext.newModel(XMLStructure.class);
+        XMLStructure structure = serverEntityContext.newModel(XMLStructure.class);
         structure.setName("scott's structure");
         syntaxModel.setStructure(structure);
 
-        XMLMapping mapping = entityContext.newModel(XMLMapping.class);
+        XMLMapping mapping = serverEntityContext.newModel(XMLMapping.class);
         mapping.setSyntaxModel(syntaxModel);
         mapping.setXpath("/root1");
         mapping.setTarget("target1");
         syntaxModel.getMappings().add(mapping);
 
-        mapping = entityContext.newModel(XMLMapping.class);
+        mapping = serverEntityContext.newModel(XMLMapping.class);
         mapping.setSyntaxModel(syntaxModel);
         mapping.setXpath("/root2");
         mapping.setTarget("target2");
         syntaxModel.getMappings().add(mapping);
 
         //create the sub syntax
-        XMLSyntaxModel subSyntaxModel = entityContext.newModel(XMLSyntaxModel.class);
+        XMLSyntaxModel subSyntaxModel = serverEntityContext.newModel(XMLSyntaxModel.class);
         subSyntaxModel.setName("SubSyntaxModel - ooooh");
         subSyntaxModel.setStructure(structure);
         subSyntaxModel.setSyntaxType(SyntaxType.SUBSYNTAX);
@@ -155,20 +155,20 @@ public class TestPersistAnalyser extends TestBase {
         mapping.setSubSyntaxModel(subSyntaxModel); //cool, lets do it
 
         //add another mapping to the root level syntax
-        mapping = entityContext.newModel(XMLMapping.class);
+        mapping = serverEntityContext.newModel(XMLMapping.class);
         mapping.setSyntaxModel(syntaxModel);
         mapping.setXpath("/root3");
         mapping.setTarget("target3");
         syntaxModel.getMappings().add(mapping);
 
         //do the sub-syntax mappings
-        mapping = entityContext.newModel(XMLMapping.class);
+        mapping = serverEntityContext.newModel(XMLMapping.class);
         mapping.setSyntaxModel(subSyntaxModel);
         mapping.setXpath("sub1");
         mapping.setTarget("subtarget1");
         subSyntaxModel.getMappings().add(mapping);
 
-        mapping = entityContext.newModel(XMLMapping.class);
+        mapping = serverEntityContext.newModel(XMLMapping.class);
         mapping.setSyntaxModel(subSyntaxModel);
         mapping.setXpath("sub2");
         mapping.setTarget("subtarget2");
@@ -177,7 +177,7 @@ public class TestPersistAnalyser extends TestBase {
         PersistRequest request = new PersistRequest();
         request.save(syntaxModel);
 
-        PersistAnalyser analyser = new PersistAnalyser(entityContext);
+        PersistAnalyser analyser = new PersistAnalyser(serverEntityContext);
         analyser.analyse(request);
         printAnalysis(analyser);
         System.out.println("Optimized copy");
@@ -190,13 +190,13 @@ public class TestPersistAnalyser extends TestBase {
         /*
         * persist it the old way to redo an analysis
         */
-        entityContext.persist(new PersistRequest().save(syntaxModel));
+        serverEntityContext.persist(new PersistRequest().save(syntaxModel));
 
         System.out.println("Deleted the root synax!");
 
-        entityContext.persist(new PersistRequest().delete(syntaxModel));
+        serverEntityContext.persist(new PersistRequest().delete(syntaxModel));
 
-        analyser = new PersistAnalyser(entityContext);
+        analyser = new PersistAnalyser(serverEntityContext);
         analyser.analyse(request);
         printDeleteAnalysis(analyser);
         System.out.println("Optimized copy");

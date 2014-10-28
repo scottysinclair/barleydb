@@ -18,6 +18,26 @@ import java.util.Set;
 
 public class EntityContextHelper {
 
+    public static int countLoaded(Collection<Entity> entities) {
+        int count = 0;
+        for (Entity e: entities) {
+            if (e.isLoaded()) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public static int countNotLoaded(Collection<Entity> entities) {
+        int count = 0;
+        for (Entity e: entities) {
+            if (e.isNotLoaded()) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     public static Collection<Entity> toParents(Collection<RefNode> fkReferences) {
         Collection<Entity> list = new LinkedList<Entity>();
         for (RefNode refNode : fkReferences) {

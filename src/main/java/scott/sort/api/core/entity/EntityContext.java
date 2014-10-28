@@ -800,6 +800,12 @@ public class EntityContext implements Serializable {
         return list;
     }
 
+    public Collection<Entity> getEntitiesByType(Class<?> type) {
+        EntityType et = definitions.getEntityTypeForClass(type, true);
+        return entities.getEntitiesByType(et);
+    }
+
+
     /**
      * The entity context does not write it's contents to the stream.
      *

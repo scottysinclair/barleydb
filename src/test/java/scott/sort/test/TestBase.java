@@ -70,7 +70,7 @@ public abstract class TestBase {
 
     protected static final String namespace = "com.smartstream.mi";
     protected static DataSource dataSource;
-    protected EntityContext entityContext;
+    protected EntityContext serverEntityContext;
 
     protected void prepareData() {
         SimpleJdbcTestUtils.executeSqlScript(new SimpleJdbcTemplate(dataSource), new ClassPathResource("/clean.sql"), false);
@@ -280,15 +280,15 @@ public abstract class TestBase {
         /*
          * create a session with the definitions above, the query registry and a datasource.
          */
-        entityContext = new MiEntityContext(env);
-        entityContext.setAutocommit(false);
+        serverEntityContext = new MiEntityContext(env);
+        serverEntityContext.setAutocommit(false);
 
     }
 
     @After
     public void tearDown() throws Exception {
-        if (!entityContext.getAutocommit()) {
-            entityContext.rollback();
+        if (!serverEntityContext.getAutocommit()) {
+            serverEntityContext.rollback();
         }
     }
 

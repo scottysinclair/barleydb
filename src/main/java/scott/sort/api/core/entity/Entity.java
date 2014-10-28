@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
@@ -76,14 +77,6 @@ public class Entity implements Serializable {
 
     public boolean isNotLoaded() {
         return entityState == EntityState.NOTLOADED;
-    }
-
-    public void setDeleted() {
-        this.entityState = EntityState.DELETED;
-    }
-
-    public final boolean isDeleted() {
-        return entityState == EntityState.DELETED;
     }
 
     /**

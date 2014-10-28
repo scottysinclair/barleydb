@@ -651,10 +651,10 @@ public class Persister {
     }
 
     private void cleanDeletedItems(EntityContext entityContext, OperationGroup deleteGroup) {
-        logStep("cleaning deleted items from node context");
+        logStep("setting deleted entity keys to null and NOTLOADED");
         for (Entity entity : deleteGroup.getEntities()) {
             entity.getKey().setValue(null);
-            entityContext.remove(entity);
+            entity.setEntityState(EntityState.NOTLOADED);
         }
     }
 

@@ -13,7 +13,7 @@ public class EntityContextGetter {
             return thisTest.clientEntityContext;
         }
         else {
-            return thisTest.entityContext;
+            return thisTest.serverEntityContext;
         }
     }
 

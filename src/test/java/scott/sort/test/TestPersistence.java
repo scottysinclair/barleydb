@@ -26,6 +26,7 @@ import org.springframework.test.jdbc.SimpleJdbcTestUtils;
 import scott.sort.api.core.Environment;
 import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.EntityContext;
+import scott.sort.api.core.entity.EntityContextHelper;
 import scott.sort.api.core.entity.ProxyController;
 import scott.sort.api.exception.execution.persist.EntityMissingException;
 import scott.sort.api.exception.execution.persist.OptimisticLockMismatchException;
@@ -74,6 +75,14 @@ public class TestPersistence extends TestRemoteClientBase {
         this.theEntityContext = getter.get(this);
     }
 
+    /**
+     * Builds a syntax creating 9 entities
+     * 2 syntaxes
+     * 5 mappings
+     * 1 user
+     * 1 structure
+     * @return
+     */
     private XMLSyntaxModel buildSyntax() {
         XMLSyntaxModel syntaxModel = theEntityContext.newModel(XMLSyntaxModel.class);
         syntaxModel.setName("Scott's Syntax");
@@ -395,7 +404,7 @@ public class TestPersistence extends TestRemoteClientBase {
         /*
          * this check is for test and is a "server side" check on the entity context of the server.
          */
-        if (!ConnectionResources.getMandatoryForPersist(entityContext).getDatabase().supportsBatchUpdateCounts()) {
+        if (!ConnectionResources.getMandatoryForPersist(serverEntityContext).getDatabase().supportsBatchUpdateCounts()) {
             /**
              * If batch update counts are not supported then upfront optimistic locking is used and this test case is not relevant.
              */
@@ -468,7 +477,7 @@ public class TestPersistence extends TestRemoteClientBase {
         /*
          * this check is for test and is a "server side" check on the entity context of the server.
          */
-        if (!ConnectionResources.getMandatoryForPersist(entityContext).getDatabase().supportsBatchUpdateCounts()) {
+        if (!ConnectionResources.getMandatoryForPersist(serverEntityContext).getDatabase().supportsBatchUpdateCounts()) {
             /**
              * If batch update counts are not supported then upfront optimistic locking is used and this test case is not relevant.
              */
@@ -592,11 +601,17 @@ public class TestPersistence extends TestRemoteClientBase {
          */
         theEntityContext.persist(new PersistRequest().delete(syntaxModel));
 
+        printEntityContext(theEntityContext);
+
         /*
          * verify that the syntax was removed
          */
         assertTrue(theEntityContext.performQuery(new QXMLSyntaxModel()).getList().isEmpty());
-        assertEquals(2, theEntityContext.size()); //only the user and the structure remain
+        assertEquals(9, theEntityContext.size());
+        assertEquals(2, EntityContextHelper.countNotLoaded( theEntityContext.getEntitiesByType(XMLSyntaxModel.class) ) );
+        assertEquals(5, EntityContextHelper.countNotLoaded( theEntityContext.getEntitiesByType(XMLMapping.class) ) );
+        assertEquals(1, EntityContextHelper.countLoaded( theEntityContext.getEntitiesByType(XMLStructure.class) ) );
+        assertEquals(1, EntityContextHelper.countLoaded( theEntityContext.getEntitiesByType(User.class) ) );
     }
 
     @Test
@@ -659,6 +674,11 @@ public class TestPersistence extends TestRemoteClientBase {
         QTemplate qtemplate = new QTemplate();
         qtemplate.where(qtemplate.name().equal("test-template"));
         Template template = theEntityContext.performQuery(qtemplate).getSingleResult();
+
+        /*
+         * only the template is in the context
+         */
+        assertEquals(1, theEntityContext.size());
 
         System.out.println("===================  DELETE  =================");
         theEntityContext.persist(new PersistRequest()

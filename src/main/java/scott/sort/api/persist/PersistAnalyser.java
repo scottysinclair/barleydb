@@ -299,6 +299,9 @@ public class PersistAnalyser implements Serializable {
                 //load the relation if required, so we can delete the items
                 LOG.debug("Fetching 1:N relation as part of delete analysis");
                 entityContext.fetchSingle(toManyNode, true);
+                for (Entity fetchedEntity: toManyNode.getList()) {
+                    loadedDuringAnalysis.add(fetchedEntity);
+                }
             }
             /*
              *  schedule any many entities with non-null keys for deletion.

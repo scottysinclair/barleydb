@@ -87,7 +87,7 @@ public final class Entities implements Iterable<Entity>, Serializable {
     }
 
     public EntityInfo keyChanged(Entity entity, Object origKey) {
-        LOG.trace("Key changed for entity {} to {}", entity, origKey);
+        LOG.trace("Key changed from {} for entity {}", origKey, entity);
         final String iname = entity.getEntityType().getInterfaceName();
         final Object key = entity.getKey().getValue();
         EntityInfo entityInfo = entitiesByUuid.get(entity.getUuid());
