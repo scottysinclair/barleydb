@@ -42,6 +42,7 @@ public class DatabaseDataSet {
 
     public DatabaseDataSet(EntityContext entityContext) {
         myentityContext = entityContext.newEntityContextSharingTransaction();
+        myentityContext.setAllowGarbageCollection(false);
     }
 
     public EntityContext getOwnEntityContext() {
