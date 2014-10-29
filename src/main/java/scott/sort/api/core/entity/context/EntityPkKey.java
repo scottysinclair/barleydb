@@ -32,6 +32,11 @@ class EntityPkKey implements Serializable {
         this.key = key;
     }
 
+    public EntityPkKey(EntityInfo entityInfo) {
+        this.interfaceName = entityInfo.getEntityType().getInterfaceName();
+        this.key = entityInfo.getPrimaryKey();
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;

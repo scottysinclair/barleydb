@@ -67,6 +67,7 @@ public class TestGarbageCollection extends TestBase {
             }
             if (countCollected == requiredCollected) {
                 System.out.println(countCollected + " collected in total");
+                assertTrue(serverEntityContext.isCompletelyEmpty());
                 return;
             }
             System.gc();

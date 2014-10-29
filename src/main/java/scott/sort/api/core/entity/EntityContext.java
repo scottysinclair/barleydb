@@ -736,6 +736,10 @@ public class EntityContext implements Serializable {
         return ei != null ? ei.getEntity(mustExist) : null;
     }
 
+    public boolean isCompletelyEmpty() {
+        return entities.isCompletelyEmpty();
+    }
+
     /**
      * gets an entity by it's type and id
      * @return the entity or null if it is not in the context

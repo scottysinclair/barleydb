@@ -11,6 +11,7 @@ package scott.sort.api.core.entity.context;
  */
 
 import java.io.Serializable;
+import java.lang.ref.ReferenceQueue;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -31,10 +32,16 @@ public final class Entities implements Iterable<Entity>, Serializable {
     private static final long serialVersionUID = 1L;
 
     private static final Logger LOG = LoggerFactory.getLogger(Entities.class);
+    public static final Logger GC_LOG = LoggerFactory.getLogger("gc." + Entities.class.getName());
 
     private volatile boolean allowGarbageCollection;
 
     private Collection<Entity> collectionPreventingGarbageCollection;
+
+    /**
+     * Tracks when references get collected.
+     */
+    private final ReferenceQueue<Entity> entityReferenceQueue;
 
     /**
      * A WeakHashMap linking the entity to the entity info.
@@ -53,6 +60,7 @@ public final class Entities implements Iterable<Entity>, Serializable {
     public Entities(boolean allowGarbageCollection) {
         this.allowGarbageCollection = allowGarbageCollection;
         this.collectionPreventingGarbageCollection = new HashSet<Entity>();
+        this.entityReferenceQueue = new ReferenceQueue<>();
         this.entityInfos = new WeakHashMap<>();
         this.entityByUuid = new HashMap<>();
         this.entityByPk = new HashMap<>();
@@ -64,9 +72,10 @@ public final class Entities implements Iterable<Entity>, Serializable {
     }
 
     public void add(Entity entity) {
+        pollForCollectedEntities();
         EntityInfo entityInfo = entityInfos.get(entity);
         if (entityInfo == null) {
-            entityInfo = new EntityInfo(entity);
+            entityInfo = new EntityInfo(entity, entityReferenceQueue);
             entityInfos.put(entity, entityInfo);
             addEntityByType(entityInfo);
             entityByUuid.put(entity.getUuid(), entityInfo);
@@ -80,6 +89,7 @@ public final class Entities implements Iterable<Entity>, Serializable {
     }
 
     public void remove(Entity entity) {
+        pollForCollectedEntities();
         final Object pk = entity.getKey().getValue();
         if (pk != null) {
             entityByPk.remove( pk );
@@ -93,6 +103,7 @@ public final class Entities implements Iterable<Entity>, Serializable {
     }
 
     public EntityInfo getByUuid(UUID uuid, boolean mustExist) {
+        pollForCollectedEntities();
         EntityInfo entityInfo = entityByUuid.get(uuid);
         if (entityInfo != null) {
             return entityInfo;
@@ -100,11 +111,11 @@ public final class Entities implements Iterable<Entity>, Serializable {
         if (mustExist) {
             throw new IllegalStateException("Entity with uuid " + uuid + " must exist");
         }
-        System.out.println("ENTITY INFO NOT IN UUID MAP");
         return null;
     }
 
     public EntityInfo getByKey(EntityType entityType, Object key) {
+        pollForCollectedEntities();
         final EntityPkKey pkKey = new EntityPkKey(entityType.getInterfaceName(), key);
         return entityByPk.get(pkKey);
     }
@@ -116,9 +127,11 @@ public final class Entities implements Iterable<Entity>, Serializable {
         EntityInfo entityInfo = entityByUuid.get(entity.getUuid());
         if (origKey == null && key != null) {
             entityByPk.put(new EntityPkKey(iname, key), entityInfo);
+            entityInfo.setPrimaryKey(entity.getKey().getValue());
         }
         else if (origKey != null && key == null) {
             entityByPk.remove(new EntityPkKey(iname, origKey));
+            entityInfo.setPrimaryKey(null);
         }
         else {
             throw new IllegalStateException("Primary keys cannot be changed.");
@@ -171,8 +184,49 @@ public final class Entities implements Iterable<Entity>, Serializable {
         collectionPreventingGarbageCollection.clear();
     }
 
+    public boolean isCompletelyEmpty() {
+        if (!entityInfos.isEmpty()) {
+            return false;
+        }
+        if (!entityByPk.isEmpty()) {
+            return false;
+        }
+        if (!entityByUuid.isEmpty()) {
+            return false;
+        }
+        if (!entitiesByType.isEmpty()) {
+            return false;
+        }
+        if (!collectionPreventingGarbageCollection.isEmpty()) {
+            return false;
+        }
+        return true;
+    }
+
     public int size() {
+        pollForCollectedEntities();
         return entityInfos.size();
+    }
+
+    private void pollForCollectedEntities() {
+        EntityInfo entityInfo = null;
+        while((entityInfo = (EntityInfo)entityReferenceQueue.poll()) != null) {
+            if (entityInfo.getPrimaryKey() != null) {
+                if (entityByPk.remove(new EntityPkKey(entityInfo)) == null) {
+                    GC_LOG.warn("Failed to remove EntityInfo from prmary key lookup for " + entityInfo);
+                }
+            }
+            if (entityByUuid.remove(entityInfo.getUuid()) == null) {
+                GC_LOG.warn("Failed to remove EntityInfo from UUID lookup for " + entityInfo);
+            }
+            if (!removeEntityByType(entityInfo)) {
+                GC_LOG.warn("Failed to remove EntityInfo from set of entities by type" + entityInfo);
+            }
+            //calling size on WeakHashMap will force any stale references to be cleared.
+            //this is required for our EnityInfo which is stored as a map value.
+            entityInfos.size();
+            GC_LOG.trace("Removed entity info " + entityInfo + " for garbage collected entity");
+        }
     }
 
     private void addEntityByType(EntityInfo entityInfo) {
@@ -192,11 +246,25 @@ public final class Entities implements Iterable<Entity>, Serializable {
         infos.add(entityInfo);
     }
 
-    private void removeEntityByType(EntityInfo entityInfo) {
+    /**
+     *
+     * @param entityInfo
+     * @return true if the entity was removed,.
+     */
+    private boolean removeEntityByType(EntityInfo entityInfo) {
         Set<EntityInfo> set = entitiesByType.get(entityInfo.getEntityType());
         if (set != null) {
-            set.remove(entityInfo);
+            boolean modified = set.remove(entityInfo);
+            /*
+             * We also remove the set if it is empty, allows entitiesByType.isEmpty() to
+             * be more accurate.
+             */
+            if (set.isEmpty()) {
+                entitiesByType.remove(entityInfo.getEntityType());
+            }
+            return modified;
         }
+        return false;
     }
 
 

@@ -10,11 +10,12 @@ package scott.sort.api.core.entity.context;
  * #L%
  */
 
-import java.io.Serializable;
+import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
+import java.util.UUID;
+import java.util.WeakHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,32 +23,68 @@ import org.slf4j.LoggerFactory;
 import scott.sort.api.config.EntityType;
 import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.RefNode;
-import static scott.sort.api.core.entity.EntityContextHelper.toParents;
 
-public final class EntityInfo implements Serializable {
-    private static final long serialVersionUID = 1L;
+/**
+ * Tracks information about an entity and also holds a weak reference to it.
+ *
+ * This class extends the WeakReference so that EntityInfo instances can be directly polled from the queue.
+ *
+ * @author scott
+ *
+ */
+public final class EntityInfo extends WeakReference<Entity>  {
 
     private static final Logger LOG = LoggerFactory.getLogger(EntityInfo.class);
 
     private final EntityType entityType;
 
-    private final WeakReference<Entity> entityRef;
-
     /*
-     * FK references to this entityRef
+     * Tracking of FK references to the entity
+     * The values in this HashMap should always be null, as it is used as a weak hash set.
      */
-    private final Set<WeakReference<RefNode>> fkReferences = new HashSet<>();
+    private final WeakHashMap<RefNode,Object> fkReferences;
 
-    private String entityInfo;
+    private final UUID uuid;
 
-    public EntityInfo(Entity entity) {
-        this.entityRef = new WeakReference<Entity>(entity);
+    private Object primaryKey;
+
+    private String primaryKeyName;
+
+    public EntityInfo(Entity entity, ReferenceQueue<Entity> entityReferenceQueue) {
+        super(entity, entityReferenceQueue);
         this.entityType = entity.getEntityType();
-        this.entityInfo = entity.toString();
+        this.fkReferences = new WeakHashMap<>();
+        this.uuid = entity.getUuid();
+        /*
+         * PK may be null at this point, if so it gets set later
+         */
+        this.primaryKey = entity.getKey().getValue();
+        if (this.primaryKey != null) {
+            this.primaryKeyName  = entity.getKey().getName();
+        }
+    }
+
+    public Object getPrimaryKey() {
+        return primaryKey;
+    }
+
+    public UUID getUuid() {
+        return uuid;
+    }
+
+    public void setPrimaryKey(Object key) {
+        this.primaryKey = key;
     }
 
     public EntityType getEntityType() {
         return entityType;
+    }
+
+    public void clearCollectedRefs() {
+        /*
+         * The size method of the WeakHashMap expunges stale references.
+         */
+        fkReferences.size();
     }
 
     /**
@@ -55,45 +92,39 @@ public final class EntityInfo implements Serializable {
      * @return
      */
     public Entity getEntity(boolean mustExist) {
-        Entity entity = entityRef.get();
+        Entity entity = get();
         if (mustExist && entity == null) {
-            throw new IllegalStateException("Entity " + entityInfo  + " has been garbage collected, but  must exist");
+            throw new IllegalStateException("Entity " + this  + " has been garbage collected, but  must exist");
         }
         if (entity == null) {
-            System.out.println("I WAS COLLECTED");
+            Entities.GC_LOG.info("Entity {} was collected but the stale refs were not yet removed.");
         }
         return entity;
     }
 
     public void addAssociation(RefNode refNode) {
-        if (fkReferences.add(new WeakReference<>(refNode))) {
-            LOG.trace("Added association from {} to {}", entityRef.get(), refNode.getParent());
-        }
+        fkReferences.put(refNode, null);
+        LOG.trace("Added association from {} to {}", get(), refNode.getParent());
     }
 
     public void removeAssociation(RefNode refNode) {
-        if (fkReferences.remove(refNode)) {
-            LOG.trace("Removed association from {} to {}", entityRef.get(), refNode.getParent());
-        }
+        fkReferences.remove(refNode);
+        LOG.trace("Removed association from {} to {}", get(), refNode.getParent());
     }
 
     public Set<RefNode> getFkReferences() {
-        Set<RefNode> result = new HashSet<RefNode>();
-        for (Iterator<WeakReference<RefNode>> i = fkReferences.iterator(); i.hasNext();) {
-            RefNode refNode = i.next().get();
-            if (refNode != null) {
-                result.add( refNode );
-            }
-            else {
-                i.remove();
-            }
-        }
-        return result;
+        return new HashSet<RefNode>(fkReferences.keySet());
     }
 
     @Override
     public String toString() {
-        return "EntityInfo [entityRef=" + entityRef.get() + ", fkReferences=" + toParents(getFkReferences()) + "]";
+        if (primaryKey != null) {
+            return getEntityType().getInterfaceShortName() + " [" + primaryKeyName + "=" + primaryKey + "]";
+        }
+        else {
+            return getEntityType().getInterfaceShortName() + " [uuid=" + getUuid().toString().substring(0, 7) + "..]";
+        }
     }
 
 }
+
