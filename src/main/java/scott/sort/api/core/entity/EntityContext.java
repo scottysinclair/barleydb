@@ -94,7 +94,7 @@ public class EntityContext implements Serializable {
     /**
      * weak hashmap used to allow garbage collection of the entity
      */
-    private WeakHashMap<Entity, WeakReference<Object>> proxies;
+    private WeakHashMap<UUID, WeakReference<Object>> proxies;
     /**
      * A place to store extra resources like transaction information
      */
@@ -103,19 +103,27 @@ public class EntityContext implements Serializable {
     public EntityContext(Environment env, String namespace) {
         this.env = env;
         this.namespace = namespace;
-        init();
+        init(true);
     }
 
-    private void init() {
+    private void init(boolean allowGarbageCollection) {
         this.definitions = env.getDefinitions(namespace);
         this.userQueryRegistry = definitions.newUserQueryRegistry();
         /*
          * store in a sorted-set ordered by primary key,
          * so that we always have proper ordering of Lists etc.
          */
-        entities = new Entities();
-        proxies = new WeakHashMap<Entity, WeakReference<Object>>();
+        entities = new Entities(allowGarbageCollection);
+        proxies = new WeakHashMap<>();
         resources = new HashMap<String, Object>();
+    }
+
+    public void setAllowGarbageCollection(boolean allow) {
+        entities.setAllowGarbageCollection(allow);
+    }
+
+    public boolean isAllowGarbageCollection() {
+        return entities.isAllowGarbageCollection();
     }
 
     public void register(QueryObject<?>... qos) {
@@ -286,17 +294,17 @@ public class EntityContext implements Serializable {
 
             }
             entities.remove(entity);
-            proxies.remove(entity);
+            proxies.remove(entity.getUuid());
             LOG.debug("Removed from entityContext " + entity + " " + entity.getUuid());
         }
     }
 
     public Object getProxy(Entity entity) {
-        WeakReference<Object> p = proxies.get(entity);
+        WeakReference<Object> p = proxies.get(entity.getUuid());
         if (p == null || p.get() == null ) {
             try {
                 Object o = env.generateProxy(entity);
-                proxies.put(entity, new WeakReference<>(o));
+                proxies.put(entity.getUuid(), new WeakReference<>(o));
                 return o;
             } catch (Exception x) {
                 throw new IllegalStateException("Could not generated proxy", x);
@@ -725,7 +733,7 @@ public class EntityContext implements Serializable {
 
     public Entity getEntityByUuid(UUID uuid, boolean mustExist) {
         EntityInfo ei = entities.getByUuid(uuid, mustExist);
-        return ei != null ? ei.getEntity() : null;
+        return ei != null ? ei.getEntity(mustExist) : null;
     }
 
     /**
@@ -736,7 +744,7 @@ public class EntityContext implements Serializable {
     public Entity getEntity(EntityType entityType, Object key, boolean mustExist) {
         final EntityInfo ei = entities.getByKey(entityType, key);
         if (ei != null) {
-            return ei.getEntity();
+            return ei.getEntity(mustExist);
         }
         if (mustExist) {
             throw new IllegalStateException("Could not find entity of type '" + entityType.getInterfaceName() + "' with key '" + key + "'");
@@ -820,12 +828,14 @@ public class EntityContext implements Serializable {
         entityContextState = (EntityContextState)stream.readObject();
         env = EnvironmentAccessor.get();
         Objects.requireNonNull(env, "Could not get environment");
-        init();
+        boolean allowGarbageCollection = stream.readBoolean();
+        init(allowGarbageCollection);
     }
 
     private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
         stream.writeUTF(namespace);
         stream.writeObject(entityContextState);
+        stream.writeBoolean(entities.isAllowGarbageCollection());
     }
 
     public String printXml() {

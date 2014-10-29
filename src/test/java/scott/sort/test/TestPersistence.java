@@ -83,7 +83,10 @@ public class TestPersistence extends TestRemoteClientBase {
      * 1 structure
      * @return
      */
-    private XMLSyntaxModel buildSyntax() {
+    public XMLSyntaxModel buildSyntax() {
+        return buildSyntax(theEntityContext);
+    }
+    public static XMLSyntaxModel buildSyntax(EntityContext theEntityContext) {
         XMLSyntaxModel syntaxModel = theEntityContext.newModel(XMLSyntaxModel.class);
         syntaxModel.setName("Scott's Syntax");
         syntaxModel.setSyntaxType(SyntaxType.ROOT);

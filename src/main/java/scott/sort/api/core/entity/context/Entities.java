@@ -13,14 +13,13 @@ package scott.sort.api.core.entity.context;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.WeakHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,69 +32,93 @@ public final class Entities implements Iterable<Entity>, Serializable {
 
     private static final Logger LOG = LoggerFactory.getLogger(Entities.class);
 
-    /*
-     * contains all entities
-     */
-    private Map<UUID, EntityInfo> entitiesByUuid = new HashMap<>();
-    /*
-     * only contains entities which have a PK
-     */
-    private Map<EntityPkKey, EntityInfo> entitiesByPk = new HashMap<EntityPkKey, EntityInfo>();
+    private volatile boolean allowGarbageCollection;
 
-    private Map<EntityType, Set<Entity>> entitiesByType = new HashMap<EntityType, Set<Entity>>();
+    private Collection<Entity> collectionPreventingGarbageCollection;
+
+    /**
+     * A WeakHashMap linking the entity to the entity info.
+     *
+     * The WeakHashMap does not prevent the entity key from being collected.
+     *
+     * EntityInfo has a WeakReference to the entity and also does not prevent the
+     * entity from being collected.
+     */
+    private WeakHashMap<Entity, EntityInfo> entityInfos;
+
+    private Map<UUID, EntityInfo> entityByUuid;
+    private Map<EntityPkKey,EntityInfo> entityByPk;
+    private Map<EntityType,Set<EntityInfo>> entitiesByType;
+
+    public Entities(boolean allowGarbageCollection) {
+        this.allowGarbageCollection = allowGarbageCollection;
+        this.collectionPreventingGarbageCollection = new HashSet<Entity>();
+        this.entityInfos = new WeakHashMap<>();
+        this.entityByUuid = new HashMap<>();
+        this.entityByPk = new HashMap<>();
+        this.entitiesByType = new HashMap<>();
+    }
+
+    public boolean isAllowGarbageCollection() {
+        return allowGarbageCollection;
+    }
 
     public void add(Entity entity) {
-        final String iname = entity.getEntityType().getInterfaceName();
-        final UUID uuid = entity.getUuid();
-        EntityInfo entityInfo = entitiesByUuid.get(uuid);
+        EntityInfo entityInfo = entityInfos.get(entity);
         if (entityInfo == null) {
             entityInfo = new EntityInfo(entity);
-            entitiesByUuid.put(uuid, entityInfo);
-            addEntityByType(entity);
-        }
-        final Object key = entity.getKey().getValue();
-        if (key != null) {
-            entitiesByPk.put(new EntityPkKey(iname, key), entityInfo);
+            entityInfos.put(entity, entityInfo);
+            addEntityByType(entityInfo);
+            entityByUuid.put(entity.getUuid(), entityInfo);
+            if (entity.getKey().getValue() != null) {
+                entityByPk.put(new EntityPkKey(entity), entityInfo);
+            }
+            if (!allowGarbageCollection) {
+                collectionPreventingGarbageCollection.add(entity);
+            }
         }
     }
 
     public void remove(Entity entity) {
-        final String iname = entity.getEntityType().getInterfaceName();
-        final UUID uuid = entity.getUuid();
-        entitiesByUuid.remove(uuid);
-        removeEntityByType(entity);
-        final Object key = entity.getKey().getValue();
-        if (key != null) {
-            entitiesByPk.remove(new EntityPkKey(iname, key));
+        final Object pk = entity.getKey().getValue();
+        if (pk != null) {
+            entityByPk.remove( pk );
+        }
+        entityByUuid.remove( entity.getUuid() );
+        EntityInfo entityInfo = entityInfos.remove(entity);
+        removeEntityByType(entityInfo);
+        if (!collectionPreventingGarbageCollection.isEmpty()) {
+            collectionPreventingGarbageCollection.remove(entity);
         }
     }
 
     public EntityInfo getByUuid(UUID uuid, boolean mustExist) {
-        EntityInfo entityInfo = entitiesByUuid.get(uuid);
+        EntityInfo entityInfo = entityByUuid.get(uuid);
         if (entityInfo != null) {
             return entityInfo;
         }
         if (mustExist) {
             throw new IllegalStateException("Entity with uuid " + uuid + " must exist");
         }
+        System.out.println("ENTITY INFO NOT IN UUID MAP");
         return null;
     }
 
     public EntityInfo getByKey(EntityType entityType, Object key) {
         final EntityPkKey pkKey = new EntityPkKey(entityType.getInterfaceName(), key);
-        return entitiesByPk.get(pkKey);
+        return entityByPk.get(pkKey);
     }
 
     public EntityInfo keyChanged(Entity entity, Object origKey) {
         LOG.trace("Key changed from {} for entity {}", origKey, entity);
         final String iname = entity.getEntityType().getInterfaceName();
         final Object key = entity.getKey().getValue();
-        EntityInfo entityInfo = entitiesByUuid.get(entity.getUuid());
+        EntityInfo entityInfo = entityByUuid.get(entity.getUuid());
         if (origKey == null && key != null) {
-            entitiesByPk.put(new EntityPkKey(iname, key), entityInfo);
+            entityByPk.put(new EntityPkKey(iname, key), entityInfo);
         }
         else if (origKey != null && key == null) {
-            entitiesByPk.remove(new EntityPkKey(iname, origKey));
+            entityByPk.remove(new EntityPkKey(iname, origKey));
         }
         else {
             throw new IllegalStateException("Primary keys cannot be changed.");
@@ -104,52 +127,77 @@ public final class Entities implements Iterable<Entity>, Serializable {
     }
 
     public Collection<Entity> getEntitiesByType(EntityType entityType) {
-        Collection<Entity> col = entitiesByType.get(entityType);
-        return col != null ? col : Collections.<Entity> emptyList();
-    }
-
-    private void addEntityByType(Entity entity) {
-        //LOG.debug("add entity by type " + entity.getEntityType() + " " + entity.getUuid() + " " + System.identityHashCode(entity));
-        final EntityType et = entity.getEntityType();
-        Set<Entity> set = entitiesByType.get(et);
-        if (set == null) {
-            entitiesByType.put(et, set = new LinkedHashSet<Entity>());
+        Collection<EntityInfo> infos = entitiesByType.get(entityType);
+        Collection<Entity> result = new ArrayList<>(infos.size());
+        for (EntityInfo entityInfo: infos) {
+            Entity entity = entityInfo.getEntity(false);
+            if (entity != null) {
+                result.add( entity );
+            }
         }
-        set.add(entity);
+        return result;
     }
 
-    private void removeEntityByType(Entity entity) {
-        Set<Entity> set = entitiesByType.get(entity.getEntityType());
-        if (set != null) {
-            set.remove(entity);
+    public void setAllowGarbageCollection(boolean allow) {
+        if (allow) {
+            this.allowGarbageCollection = allow;
+            collectionPreventingGarbageCollection.clear();
+        }
+        else {
+            this.allowGarbageCollection = allow;
+            for (Entity entity: safe()) {
+                collectionPreventingGarbageCollection.add(entity);
+            }
         }
     }
 
-    public void clear() {
-        entitiesByUuid.clear();
-        entitiesByPk.clear();
-        entitiesByType.clear();
-    }
 
     @Override
     public Iterator<Entity> iterator() {
-        return toEntityList().iterator();
+        //wrap in a list so there is no garbage collection during the course
+        //of the iteration.
+        return new ArrayList<>(entityInfos.keySet()).iterator();
     }
 
     public Collection<Entity> safe() {
-        return new ArrayList<>(toEntityList());
+        return new ArrayList<>(entityInfos.keySet());
     }
 
-    private List<Entity> toEntityList() {
-        List<Entity> list = new ArrayList<>(entitiesByUuid.size());
-        for (EntityInfo ei : entitiesByUuid.values()) {
-            list.add(ei.getEntity());
-        }
-        return list;
+    public void clear() {
+        entityInfos.clear();
+        entityByPk.clear();
+        entityByUuid.clear();
+        entitiesByType.clear();
+        collectionPreventingGarbageCollection.clear();
     }
 
     public int size() {
-        return entitiesByUuid.size();
+        return entityInfos.size();
     }
+
+    private void addEntityByType(EntityInfo entityInfo) {
+        //LOG.debug("add entity by type " + entity.getEntityType() + " " + entity.getUuid() + " " + System.identityHashCode(entity));
+        Entity entity = entityInfo.getEntity(false);
+        /*
+         * Check if garbage collected
+         */
+        if (entity == null) {
+            return;
+        }
+        final EntityType entityType = entity.getEntityType();
+        Set<EntityInfo> infos = entitiesByType.get(entityType);
+        if (infos == null) {
+            entitiesByType.put(entityType, infos = new HashSet<>());
+        }
+        infos.add(entityInfo);
+    }
+
+    private void removeEntityByType(EntityInfo entityInfo) {
+        Set<EntityInfo> set = entitiesByType.get(entityInfo.getEntityType());
+        if (set != null) {
+            set.remove(entityInfo);
+        }
+    }
+
 
 }

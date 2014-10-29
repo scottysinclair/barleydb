@@ -12,6 +12,8 @@ package scott.sort.api.core.entity.context;
 
 import java.io.Serializable;
 
+import scott.sort.api.core.entity.Entity;
+
 class EntityPkKey implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -19,6 +21,11 @@ class EntityPkKey implements Serializable {
     private final String interfaceName;
 
     private final Object key;
+
+    public EntityPkKey(Entity entity) {
+        this.interfaceName = entity.getEntityType().getInterfaceName();
+        this.key = entity.getKey().getValue();
+    }
 
     public EntityPkKey(String interfaceName, Object key) {
         this.interfaceName = interfaceName;
