@@ -4,6 +4,10 @@ import scott.sort.api.core.entity.EntityContext;
 
 public class EntityContextGetter {
     private final boolean client;
+    /**
+     *
+     * @param client true for client context execution
+     */
     public EntityContextGetter(boolean client) {
         this.client = client;
     }

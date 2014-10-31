@@ -71,6 +71,7 @@ public abstract class TestBase {
     protected static final String namespace = "com.smartstream.mi";
     protected static DataSource dataSource;
     protected EntityContext serverEntityContext;
+    protected boolean autoCommitMode = false;
 
     protected void prepareData() {
         SimpleJdbcTestUtils.executeSqlScript(new SimpleJdbcTemplate(dataSource), new ClassPathResource("/clean.sql"), false);
@@ -281,8 +282,7 @@ public abstract class TestBase {
          * create a session with the definitions above, the query registry and a datasource.
          */
         serverEntityContext = new MiEntityContext(env);
-        serverEntityContext.setAutocommit(false);
-
+        serverEntityContext.setAutocommit( autoCommitMode );
     }
 
     @After

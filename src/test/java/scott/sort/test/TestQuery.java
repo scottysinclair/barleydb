@@ -49,16 +49,18 @@ public class TestQuery extends TestRemoteClientBase {
     @Parameters
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][] {
-                {new EntityContextGetter(false) },
-                {new EntityContextGetter(true) }
+                {new EntityContextGetter(false), false },
+                {new EntityContextGetter(false), true },
+                {new EntityContextGetter(true), false }
            });
     }
 
     private EntityContextGetter getter;
     private EntityContext theEntityContext;
 
-    public TestQuery(EntityContextGetter getter) {
+    public TestQuery(EntityContextGetter getter, boolean autoCommitMode) {
         this.getter = getter;
+        this.autoCommitMode = autoCommitMode;
     }
 
     @Override
@@ -92,6 +94,10 @@ public class TestQuery extends TestRemoteClientBase {
         for (CsvSyntaxModel syntaxModel : result.getList()) {
             print("", syntaxModel);
         }
+        /*
+         * check the server auto-commit mode hasn't changed somehow
+         */
+        assertEquals(autoCommitMode, serverEntityContext.getAutocommit());
     }
 
     @Test
@@ -152,6 +158,10 @@ public class TestQuery extends TestRemoteClientBase {
         for (XMLSyntaxModel syntaxModel : result.getList()) {
             print("", syntaxModel);
         }
+        /*
+         * check the server auto-commit mode hasn't changed somehow
+         */
+        assertEquals(autoCommitMode, serverEntityContext.getAutocommit());
     }
 
     /**
@@ -174,6 +184,10 @@ public class TestQuery extends TestRemoteClientBase {
         for (SyntaxModel syntaxModel : syntaxModels) {
             print("", syntaxModel);
         }
+        /*
+         * check the server auto-commit mode hasn't changed somehow
+         */
+        assertEquals(autoCommitMode, serverEntityContext.getAutocommit());
     }
 
     @Test
@@ -202,6 +216,10 @@ public class TestQuery extends TestRemoteClientBase {
         for (XMLSyntaxModel syntaxModel : list) {
             print("", syntaxModel);
         }
+        /*
+         * check the server auto-commit mode hasn't changed somehow
+         */
+        assertEquals(autoCommitMode, serverEntityContext.getAutocommit());
     }
 
     @Test
@@ -217,6 +235,10 @@ public class TestQuery extends TestRemoteClientBase {
         for (Template t : result2.getList()) {
             print("", t);
         }
+        /*
+         * check the server auto-commit mode hasn't changed somehow
+         */
+        assertEquals(autoCommitMode, serverEntityContext.getAutocommit());
     }
 
     @Test
@@ -231,6 +253,10 @@ public class TestQuery extends TestRemoteClientBase {
         for (Template t : result2.getList()) {
             print("", t);
         }
+        /*
+         * check the server auto-commit mode hasn't changed somehow
+         */
+        assertEquals(autoCommitMode, serverEntityContext.getAutocommit());
     }
 
     @Test
@@ -270,6 +296,10 @@ public class TestQuery extends TestRemoteClientBase {
         for (Template template : qBatch.getResult(1, Template.class).getList()) {
             print("", template);
         }
+        /*
+         * check the server auto-commit mode hasn't changed somehow
+         */
+        assertEquals(autoCommitMode, serverEntityContext.getAutocommit());
     }
 
     @Test
@@ -279,7 +309,10 @@ public class TestQuery extends TestRemoteClientBase {
         qsyntax.joinToUser();
 
         assertTrue(theEntityContext.performQuery(qsyntax).getList().isEmpty());
-
+        /*
+         * check the server auto-commit mode hasn't changed somehow
+         */
+        assertEquals(autoCommitMode, serverEntityContext.getAutocommit());
     }
 
 }

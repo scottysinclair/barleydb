@@ -2,9 +2,11 @@ package scott.sort.test;
 
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
 
 import org.junit.Ignore;
@@ -36,8 +38,6 @@ public class TestGarbageCollection extends TestBase {
 
         serverEntityContext.clear();
 
-        Thread.sleep(1000);
-
         QueryResult<XMLSyntaxModel> result = serverEntityContext.performQuery(new QXMLSyntaxModel());
         Collection<UUID> uuids = new LinkedList<>();
         for (XMLSyntaxModel syn: result.getList()) {
@@ -59,8 +59,6 @@ public class TestGarbageCollection extends TestBase {
         insert100FullSyntaxes();
 
         serverEntityContext.clear();
-
-        Thread.sleep(1000);
 
         QueryResult<XMLSyntaxModel> result = serverEntityContext.performQuery(new QXMLSyntaxModel());
         Collection<UUID> uuids = new LinkedList<>();
@@ -89,6 +87,33 @@ public class TestGarbageCollection extends TestBase {
         result = null;
 
         waitForEntitiesToBeCollected(uuids, true);
+    }
+
+    @Test
+    public void testHoldingOnToProxyPreventsGC() throws Exception {
+        serverEntityContext.setAllowGarbageCollection(true);
+
+        insert100FullSyntaxes();
+
+        serverEntityContext.clear();
+
+        QueryResult<XMLSyntaxModel> result = serverEntityContext.performQuery(new QXMLSyntaxModel());
+        Collection<UUID> uuids = new LinkedList<>();
+
+        /*
+         * We put the models into a normal list and hold it
+         */
+        List<XMLSyntaxModel> models = new ArrayList<>(result.getList());
+        Iterator<XMLSyntaxModel> i = models.iterator();
+        while(i.hasNext()) {
+            uuids.add(i.next().getEntity().getUuid());
+        }
+        i = null;
+        result = null;
+
+        assertEquals(200, uuids.size()); //100 syntaxes and their subsyntaxes were returned by the query.
+
+        waitForEntitiesToBeCollected(uuids, false);
     }
 
     private void waitForEntitiesToBeCollected(Collection<UUID> uuids, boolean expectedCollection) throws Exception {
