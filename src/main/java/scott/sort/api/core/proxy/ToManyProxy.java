@@ -11,14 +11,15 @@ package scott.sort.api.core.proxy;
  */
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.AbstractList;
+import java.util.Iterator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import scott.sort.api.config.Definitions;
 import scott.sort.api.config.EntityType;
-import scott.sort.api.config.NodeDefinition;
+import scott.sort.api.config.NodeType;
 import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.EntityState;
 import scott.sort.api.core.entity.ProxyController;
@@ -43,7 +44,7 @@ public class ToManyProxy<R> extends AbstractList<R> implements Serializable {
         //    LOG.debug("GET " + toManyNode.getParent() + "." + toManyNode.getName() + " = " + toManyNode);
         fetchIfNeeded();
         Entity en = toManyNode.getList().get(index);
-        String joinProperty = toManyNode.getNodeDefinition().getJoinProperty();
+        String joinProperty = toManyNode.getNodeType().getJoinProperty();
         if (joinProperty != null) {
             en = en.getChild(joinProperty, RefNode.class, true).getReference();
         }
@@ -59,18 +60,18 @@ public class ToManyProxy<R> extends AbstractList<R> implements Serializable {
             return;
         }
 
-        NodeDefinition nd = toManyNode.getNodeDefinition();
+        NodeType nd = toManyNode.getNodeType();
         Definitions defs = e.getEntityContext().getDefinitions();
         String joinProperty = nd.getJoinProperty();
         if (joinProperty != null) {
             EntityType joinEntityType = defs.getEntityTypeMatchingInterface(nd.getRelationInterfaceName(), true);
-            String typePastJoin = joinEntityType.getNode(joinProperty, true).getRelationInterfaceName();
+            String typePastJoin = joinEntityType.getNodeType(joinProperty, true).getRelationInterfaceName();
             if (e.getEntityType().getInterfaceName().equals(typePastJoin)) {
                 Entity joinEntity = new Entity(e.getEntityContext(), joinEntityType);
                 e.getEntityContext().add(joinEntity);
-                NodeDefinition nodeTypeReferringBack = joinEntityType.getNodeWithRelationTo(toManyNode.getParent().getEntityType().getInterfaceName());
+                NodeType nodeTypeReferringBack = joinEntityType.getNodeTypeWithRelationTo(toManyNode.getParent().getEntityType().getInterfaceName());
                 joinEntity.getChild(nodeTypeReferringBack.getName(), RefNode.class, true).setReference(toManyNode.getParent());
-                NodeDefinition nodeTypeReferringForward = joinEntityType.getNodeWithRelationTo(e.getEntityType().getInterfaceName());
+                NodeType nodeTypeReferringForward = joinEntityType.getNodeTypeWithRelationTo(e.getEntityType().getInterfaceName());
                 joinEntity.getChild(nodeTypeReferringForward.getName(), RefNode.class, true).setReference(e);
                 toManyNode.add(joinEntity);
                 return;

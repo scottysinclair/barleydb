@@ -11,7 +11,9 @@ package scott.sort.api.persist;
  */
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
 import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.EntityContext;

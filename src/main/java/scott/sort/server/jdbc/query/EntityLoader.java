@@ -24,7 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import scott.sort.api.config.EntityType;
-import scott.sort.api.config.NodeDefinition;
+import scott.sort.api.config.NodeType;
 import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.core.entity.EntityState;
@@ -36,7 +36,7 @@ import scott.sort.api.core.types.JavaType;
 import scott.sort.api.core.types.JdbcType;
 import scott.sort.api.exception.execution.jdbc.SortJdbcException;
 import scott.sort.api.exception.execution.query.IllegalQueryStateException;
-import scott.sort.api.exception.execution.query.InvalidNodeDefinitionException;
+import scott.sort.api.exception.execution.query.InvalidNodeTypeException;
 import scott.sort.api.exception.execution.query.ResultDataConversionException;
 import scott.sort.api.exception.execution.query.SortQueryException;
 import scott.sort.api.query.QueryObject;
@@ -82,7 +82,7 @@ final class EntityLoader {
      * checks if there is an entity that we can load
      *
      * @return
-     * @throws InvalidNodeDefinitionException
+     * @throws InvalidNodeTypeException
      */
     public boolean isEntityThere() throws SortJdbcException, SortQueryException {
         return getEntityKey(false) != null;
@@ -93,7 +93,7 @@ final class EntityLoader {
     }
 
     public EntityType getEntityType() {
-        return myProjectionCols.get(0).getNodeDefinition().getEntityType();
+        return myProjectionCols.get(0).getNodeType().getEntityType();
     }
 
     public List<Entity> getLoadedEntities() {
@@ -102,7 +102,7 @@ final class EntityLoader {
 
     public Object getEntityKey(boolean mustExist) throws SortJdbcException, SortQueryException {
         for (ProjectionColumn column : myProjectionCols) {
-            if (column.getNodeDefinition().isPrimaryKey()) {
+            if (column.getNodeType().isPrimaryKey()) {
                 Object value = getValue(column);
                 if (mustExist && value == null) {
                     throw new IllegalQueryStateException(
@@ -120,7 +120,7 @@ final class EntityLoader {
      *
      * @throws SQLException
      * @throws SortJdbcException
-     * @throws InvalidNodeDefinitionException
+     * @throws InvalidNodeTypeException
      */
     public void associateExistingEntity() throws SortQueryException, SortJdbcException {
         Entity entity = entityContext.getEntity(getEntityType(), getEntityKey(true), false);
@@ -181,22 +181,22 @@ final class EntityLoader {
 
     //we fall through and fail at the bottom
     private Object getResultSetValue(ResultSet rs, ProjectionColumn column) throws SortJdbcException, SortQueryException {
-        final NodeDefinition nd = column.getNodeDefinition();
+        final NodeType nd = column.getNodeType();
         final Integer index = column.getIndex();
         if (nd.getJdbcType() == null) {
-            throw new InvalidNodeDefinitionException(nd, "Node Definition " + nd + " must have a JDBC type");
+            throw new InvalidNodeTypeException(nd, "Node Definition " + nd + " must have a JDBC type");
         }
 
-        JavaType javaType = column.getNodeDefinition().getJavaType();
-        if (javaType == null && column.getNodeDefinition().getRelationInterfaceName() != null) {
+        JavaType javaType = column.getNodeType().getJavaType();
+        if (javaType == null && column.getNodeType().getRelationInterfaceName() != null) {
             /*
              * If there is no java type then it must be a 1:1 relation (RefNode)
              * A 1:N relation does not have a projection column
              */
-            EntityType entityType = entityContext.getDefinitions().getEntityTypeMatchingInterface(column.getNodeDefinition().getRelationInterfaceName(), true);
-            javaType = entityType.getNode(entityType.getKeyNodeName(), true).getJavaType();
+            EntityType entityType = entityContext.getDefinitions().getEntityTypeMatchingInterface(column.getNodeType().getRelationInterfaceName(), true);
+            javaType = entityType.getNodeType(entityType.getKeyNodeName(), true).getJavaType();
             if (javaType == null) {
-                throw new InvalidNodeDefinitionException(nd, "Could not get javaType for projection column " + column);
+                throw new InvalidNodeTypeException(nd, "Could not get javaType for projection column " + column);
             }
         }
         try {
@@ -216,7 +216,7 @@ final class EntityLoader {
         }
     }
 
-    private Object convertValue(NodeDefinition nd, Object value, JavaType javaType) throws InvalidNodeDefinitionException, ResultDataConversionException, IllegalQueryStateException {
+    private Object convertValue(NodeType nd, Object value, JavaType javaType) throws InvalidNodeTypeException, ResultDataConversionException, IllegalQueryStateException {
         if  (value == null) {
             return null;
         }
@@ -250,7 +250,7 @@ final class EntityLoader {
                     result = convertToUtilDate(value);
                     break;
                 default:
-                   throw new InvalidNodeDefinitionException(nd, "Java type " + javaType + " is not supported");
+                   throw new InvalidNodeTypeException(nd, "Java type " + javaType + " is not supported");
                }
         }
         if (result == null) {
@@ -277,7 +277,7 @@ final class EntityLoader {
     }
 
     @SuppressWarnings("unchecked")
-    private <E extends Enum<E>> Object convertToEnum(NodeDefinition nd, Object value) throws IllegalQueryStateException {
+    private <E extends Enum<E>> Object convertToEnum(NodeType nd, Object value) throws IllegalQueryStateException {
         if (value instanceof Number) {
             for (Enum<E> e : java.util.EnumSet.allOf((Class<E>) nd.getEnumType())) {
                 if (((Integer) e.ordinal()).equals(((Number)value).intValue())) {

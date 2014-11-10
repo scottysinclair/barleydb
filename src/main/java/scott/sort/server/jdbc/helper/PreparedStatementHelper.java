@@ -17,7 +17,7 @@ import java.util.Date;
 
 import scott.sort.api.config.Definitions;
 import scott.sort.api.config.EntityType;
-import scott.sort.api.config.NodeDefinition;
+import scott.sort.api.config.NodeType;
 import scott.sort.api.core.entity.Node;
 import scott.sort.api.core.entity.RefNode;
 import scott.sort.api.core.entity.ValueNode;
@@ -34,7 +34,7 @@ public abstract class PreparedStatementHelper<PREPARING_PERSIST_EX extends SortE
     }
 
     public void setParameter(final PreparedStatement ps, final int index, final Node node) throws PREPARING_PERSIST_EX {
-        final NodeDefinition nd = node.getNodeDefinition();
+        final NodeType nd = node.getNodeType();
         if (node instanceof RefNode) {
             setParameter(ps, index, nd, ((RefNode) node).getEntityKey());
         }
@@ -47,10 +47,10 @@ public abstract class PreparedStatementHelper<PREPARING_PERSIST_EX extends SortE
     }
 
     public void setParameter(final PreparedStatement ps, final int index, final Node node, final Object value) throws PREPARING_PERSIST_EX {
-        setParameter(ps, index, node.getNodeDefinition(), value);
+        setParameter(ps, index, node.getNodeType(), value);
     }
 
-    public void setParameter(final PreparedStatement ps, final int index, final NodeDefinition nd, final Object value) throws PREPARING_PERSIST_EX {
+    public void setParameter(final PreparedStatement ps, final int index, final NodeType nd, final Object value) throws PREPARING_PERSIST_EX {
         if (value == null) {
             setNull(ps, index, nd.getJdbcType());
             return;
@@ -60,13 +60,13 @@ public abstract class PreparedStatementHelper<PREPARING_PERSIST_EX extends SortE
         setValue(ps, index, javaType, jdbcType, value);
     }
 
-    private JavaType getJavaType(NodeDefinition nd) throws PREPARING_PERSIST_EX {
+    private JavaType getJavaType(NodeType nd) throws PREPARING_PERSIST_EX {
         if (nd.getJavaType() != null) {
             return nd.getJavaType();
         }
         if (nd.getRelationInterfaceName() != null) {
             final EntityType et = definitions.getEntityTypeMatchingInterface(nd.getRelationInterfaceName(), true);
-            final NodeDefinition nd2 = et.getNode(et.getKeyNodeName(), true);
+            final NodeType nd2 = et.getNodeType(et.getKeyNodeName(), true);
             return nd2.getJavaType();
         }
         if (nd.getEnumType() != null) {
@@ -75,13 +75,13 @@ public abstract class PreparedStatementHelper<PREPARING_PERSIST_EX extends SortE
         throw newPreparingPersistStatementException(nd + " has no javatype");
     }
 
-    private JdbcType getJdbcType(NodeDefinition nd) throws PREPARING_PERSIST_EX {
+    private JdbcType getJdbcType(NodeType nd) throws PREPARING_PERSIST_EX {
         if (nd.getJdbcType() != null) {
             return nd.getJdbcType();
         }
         if (nd.getRelationInterfaceName() != null) {
             final EntityType et = definitions.getEntityTypeMatchingInterface(nd.getRelationInterfaceName(), true);
-            final NodeDefinition nd2 = et.getNode(et.getKeyNodeName(), true);
+            final NodeType nd2 = et.getNodeType(et.getKeyNodeName(), true);
             return nd2.getJdbcType();
         }
         throw newPreparingPersistStatementException(nd + " has no jdbctype");

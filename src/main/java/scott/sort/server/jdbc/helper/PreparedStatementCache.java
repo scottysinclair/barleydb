@@ -10,13 +10,16 @@ package scott.sort.server.jdbc.helper;
  * #L%
  */
 
-import java.util.*;
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import scott.sort.api.config.*;
+import scott.sort.api.config.EntityType;
+import scott.sort.api.config.NodeType;
 import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.core.entity.Node;
@@ -136,7 +139,7 @@ public abstract class PreparedStatementCache<PREPARING_PERSIST_EX extends SortEx
             if (child instanceof ToManyNode) {
                 continue;
             }
-            final NodeDefinition nd = entity.getEntityType().getNode(child.getName(), true);
+            final NodeType nd = entity.getEntityType().getNodeType(child.getName(), true);
             sb.append(nd.getColumnName());
             sb.append(',');
         }
@@ -161,7 +164,7 @@ public abstract class PreparedStatementCache<PREPARING_PERSIST_EX extends SortEx
             if (child instanceof ToManyNode) {
                 continue;
             }
-            final NodeDefinition nd = entity.getEntityType().getNode(child.getName(), true);
+            final NodeType nd = entity.getEntityType().getNodeType(child.getName(), true);
             if (!nd.isPrimaryKey()) {
                 sb.append(nd.getColumnName());
                 sb.append(" = ?,");
@@ -187,7 +190,7 @@ public abstract class PreparedStatementCache<PREPARING_PERSIST_EX extends SortEx
         sb.append(" = ?");
         if (entity.getEntityType().supportsOptimisticLocking()) {
             sb.append(" and ");
-            sb.append(entity.getOptimisticLock().getNodeDefinition().getColumnName());
+            sb.append(entity.getOptimisticLock().getNodeType().getColumnName());
             sb.append(" = ?");
         }
     }
@@ -198,7 +201,7 @@ public abstract class PreparedStatementCache<PREPARING_PERSIST_EX extends SortEx
             if (child instanceof ToManyNode) {
                 continue;
             }
-            if (child.getNodeDefinition().isOptimisticLock()) {
+            if (child.getNodeType().isOptimisticLock()) {
                 //we set the new optimistic lock value, the OL node still contains the old value
                 helper.setParameter(ps, i++, child, newOptimisticLockTime);
             }
@@ -214,7 +217,7 @@ public abstract class PreparedStatementCache<PREPARING_PERSIST_EX extends SortEx
             if (child instanceof ToManyNode) {
                 continue;
             }
-            final NodeDefinition nd = entity.getEntityType().getNode(child.getName(), true);
+            final NodeType nd = entity.getEntityType().getNodeType(child.getName(), true);
             if (!nd.isPrimaryKey()) {
                 if (nd.isOptimisticLock()) {
                     //we set the new optimistic lock value, the OL node still contains the old value

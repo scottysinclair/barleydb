@@ -25,7 +25,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import scott.sort.api.config.EntityType;
-import scott.sort.api.config.NodeDefinition;
+import scott.sort.api.config.NodeType;
 
 /**
  * Contains information on how this node refers to many entities.
@@ -125,10 +125,10 @@ public class ToManyNode extends Node {
          */
         if (getParent().getKey().getValue() != null) {
             List<Entity> result = Collections.emptyList();
-            if (getNodeDefinition().getForeignNodeName() != null) {
+            if (getNodeType().getForeignNodeName() != null) {
                 result = getEntityContext().getEntitiesWithReferenceKey(
                         entityType,
-                        getNodeDefinition().getForeignNodeName(),
+                        getNodeType().getForeignNodeName(),
                         getParent().getEntityType(),
                         getParent().getKey().getValue());
 
@@ -227,8 +227,8 @@ public class ToManyNode extends Node {
         return entityType;
     }
 
-    public NodeDefinition getNodeDefinition() {
-        return getParent().getEntityType().getNode(getName(), true);
+    public NodeType getNodeType() {
+        return getParent().getEntityType().getNodeType(getName(), true);
     }
 
     public void copyFrom(ToManyNode other) {

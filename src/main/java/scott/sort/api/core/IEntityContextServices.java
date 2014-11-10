@@ -13,6 +13,7 @@ package scott.sort.api.core;
 import scott.sort.api.config.DefinitionsSet;
 import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.exception.execution.SortServiceProviderException;
+import scott.sort.api.exception.execution.jdbc.SortJdbcException;
 import scott.sort.api.exception.execution.persist.SortPersistException;
 import scott.sort.api.exception.execution.query.SortQueryException;
 import scott.sort.api.persist.PersistAnalyser;

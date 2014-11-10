@@ -16,7 +16,7 @@ import java.util.List;
 
 import scott.sort.api.config.Definitions;
 import scott.sort.api.config.EntityType;
-import scott.sort.api.config.NodeDefinition;
+import scott.sort.api.config.NodeType;
 import scott.sort.api.exception.execution.query.IllegalQueryStateException;
 import scott.sort.api.query.QJoin;
 import scott.sort.api.query.QueryObject;
@@ -42,7 +42,7 @@ public class Projection implements Iterable<ProjectionColumn> {
         /*
          * add all table columns defined by the EntityType for this QueryObject
          */
-        for (NodeDefinition nd : entityType.getNodeDefinitions()) {
+        for (NodeType nd : entityType.getNodeTypes()) {
             if (nd.getColumnName() != null) {
                 ProjectionColumn pCol = new ProjectionColumn(this, query, qj, nd);
                 if (requiredInProjection(query, nd)) {
@@ -66,7 +66,7 @@ public class Projection implements Iterable<ProjectionColumn> {
         return i + 1; //resultset style 1-N index
     }
 
-    private boolean requiredInProjection(QueryObject<?> query, NodeDefinition nd) {
+    private boolean requiredInProjection(QueryObject<?> query, NodeType nd) {
         if (nd.isPrimaryKey()) {
             /*
              * We always project primary keys

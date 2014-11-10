@@ -10,11 +10,14 @@ package scott.sort.server.jdbc.query;
  * #L%
  */
 
+import static scott.sort.server.jdbc.query.QueryGenerator.getQueryDepth;
+import static scott.sort.server.jdbc.query.QueryGenerator.toSpaces;
+
 import java.util.List;
 
 import scott.sort.api.config.Definitions;
 import scott.sort.api.config.EntityType;
-import scott.sort.api.config.NodeDefinition;
+import scott.sort.api.config.NodeType;
 import scott.sort.api.exception.execution.query.ForUpdateNotSupportedException;
 import scott.sort.api.exception.execution.query.IllegalQueryStateException;
 import scott.sort.api.query.ConditionVisitor;
@@ -24,7 +27,6 @@ import scott.sort.api.query.QLogicalOp;
 import scott.sort.api.query.QPropertyCondition;
 import scott.sort.server.jdbc.query.QueryGenerator.Param;
 import scott.sort.server.jdbc.vendor.Database;
-import static scott.sort.server.jdbc.query.QueryGenerator.*;
 
 public class ConditionRenderer implements ConditionVisitor {
     private final Database database;
@@ -45,8 +47,8 @@ public class ConditionRenderer implements ConditionVisitor {
 
     public void visitPropertyCondition(QPropertyCondition qpc) throws IllegalQueryStateException {
         EntityType et = definitions.getEntityTypeMatchingInterface(qpc.getProperty().getQueryObject().getTypeName(), true);
-        NodeDefinition nodeDef = et.getNode(qpc.getProperty().getName(), true);
-        sb.append(qpc.getProperty().getQueryObject().getAlias() + "." + nodeDef.getColumnName());
+        NodeType nodeType = et.getNodeType(qpc.getProperty().getName(), true);
+        sb.append(qpc.getProperty().getQueryObject().getAlias() + "." + nodeType.getColumnName());
         switch (qpc.getOperator()) {
         case EQ: {
             sb.append(" = ");
@@ -71,7 +73,7 @@ public class ConditionRenderer implements ConditionVisitor {
         default:
             throw new IllegalQueryStateException("Unexpected operator");
         }
-        params.add(new QueryGenerator.Param(nodeDef, qpc.getValue()));
+        params.add(new QueryGenerator.Param(nodeType, qpc.getValue()));
         sb.append('?');
     }
 

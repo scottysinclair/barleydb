@@ -19,7 +19,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 import scott.sort.api.core.QueryRegistry;
 import scott.sort.api.core.proxy.ProxyFactory;
@@ -196,7 +201,7 @@ public class Definitions implements Serializable {
         private String keyNodeName;
         private boolean abstractEntity;
         private Class<?> parentEntity;
-        private List<NodeDefinition> nodeDefinitions = new LinkedList<NodeDefinition>();
+        private List<NodeType> nodeTypes = new LinkedList<NodeType>();
 
         public EntityTypeDefinition interfaceName(String interfaceName) {
             this.interfaceName = interfaceName;
@@ -222,16 +227,16 @@ public class Definitions implements Serializable {
         }
 
         public EntityTypeDefinition withValue(String name, JavaType javaType, String columnName, JdbcType jdbcType) {
-            nodeDefinitions.add(
-                    new NodeDefinition.Builder()
+            nodeTypes.add(
+                    new NodeType.Builder()
                             .value(name, javaType, columnName, jdbcType)
                             .end());
             return this;
         }
 
         public EntityTypeDefinition withOptimisticLock(String name, JavaType javaType, String columnName, JdbcType jdbcType) {
-            nodeDefinitions.add(
-                    new NodeDefinition.Builder()
+            nodeTypes.add(
+                    new NodeType.Builder()
                             .value(name, javaType, columnName, jdbcType)
                             .optimisticLock()
                             .end());
@@ -239,16 +244,16 @@ public class Definitions implements Serializable {
         }
 
         public EntityTypeDefinition withEnum(String name, Class<? extends Enum<?>> enumType, String columnName, JdbcType jdbcType) {
-            nodeDefinitions.add(
-                    new NodeDefinition.Builder()
+            nodeTypes.add(
+                    new NodeType.Builder()
                             .enumm(name, enumType, columnName, jdbcType)
                             .end());
             return this;
         }
 
         public EntityTypeDefinition withFixedValue(String name, JavaType javaType, String columnName, JdbcType jdbcType, Object value) {
-            nodeDefinitions.add(
-                    new NodeDefinition.Builder()
+            nodeTypes.add(
+                    new NodeType.Builder()
                             .value(name, javaType, columnName, jdbcType)
                             .fixedValue(value)
                             .end());
@@ -257,8 +262,8 @@ public class Definitions implements Serializable {
 
         @SuppressWarnings("unchecked")
         public EntityTypeDefinition withFixedEnum(String name, Enum<?> value, String columnName, JdbcType jdbcType) {
-            nodeDefinitions.add(
-                    new NodeDefinition.Builder()
+            nodeTypes.add(
+                    new NodeType.Builder()
                             .enumm(name, (Class<? extends Enum<?>>) value.getClass(), columnName, jdbcType)
                             .fixedValue(value)
                             .end());
@@ -266,16 +271,16 @@ public class Definitions implements Serializable {
         }
 
         public EntityTypeDefinition withMany(String name, Class<?> clazz, String foreignNodeName) {
-            nodeDefinitions.add(
-                    new NodeDefinition.Builder()
+            nodeTypes.add(
+                    new NodeType.Builder()
                             .many(name, clazz.getName(), foreignNodeName, null)
                             .end());
             return this;
         }
 
         public EntityTypeDefinition dependsOnMany(String name, String interfaceName, String foreignNodeName, String joinProperty) {
-            nodeDefinitions.add(
-                    new NodeDefinition.Builder()
+            nodeTypes.add(
+                    new NodeType.Builder()
                             .many(name, interfaceName, foreignNodeName, joinProperty)
                             .dependsOn()
                             .end());
@@ -283,8 +288,8 @@ public class Definitions implements Serializable {
         }
 
         public EntityTypeDefinition ownsMany(String name, Class<?> clazz, String foreignNodeName) {
-            nodeDefinitions.add(
-                    new NodeDefinition.Builder()
+            nodeTypes.add(
+                    new NodeType.Builder()
                             .many(name, clazz.getName(), foreignNodeName, null)
                             .owns()
                             .end());
@@ -296,8 +301,8 @@ public class Definitions implements Serializable {
         }
 
         public EntityTypeDefinition ownsMany(String name, String interfaceName, String foreignNodeName, String toManyProperty) {
-            nodeDefinitions.add(
-                    new NodeDefinition.Builder()
+            nodeTypes.add(
+                    new NodeType.Builder()
                             .many(name, interfaceName, foreignNodeName, toManyProperty)
                             .owns()
                             .end());
@@ -305,16 +310,16 @@ public class Definitions implements Serializable {
         }
 
         public EntityTypeDefinition withOne(String name, Class<?> clazz, String columnName, JdbcType jdbcType) {
-            nodeDefinitions.add(
-                    new NodeDefinition.Builder()
+            nodeTypes.add(
+                    new NodeType.Builder()
                             .ref(name, clazz.getName(), columnName, jdbcType)
                             .end());
             return this;
         }
 
         public EntityTypeDefinition dependsOnOne(String name, Class<?> clazz, String columnName, JdbcType jdbcType) {
-            nodeDefinitions.add(
-                    new NodeDefinition.Builder()
+            nodeTypes.add(
+                    new NodeType.Builder()
                             .ref(name, clazz.getName(), columnName, jdbcType)
                             .dependsOn()
                             .end());
@@ -322,8 +327,8 @@ public class Definitions implements Serializable {
         }
 
         public EntityTypeDefinition ownsOne(String name, Class<?> clazz, String columnName, JdbcType jdbcType) {
-            nodeDefinitions.add(
-                    new NodeDefinition.Builder()
+            nodeTypes.add(
+                    new NodeType.Builder()
                             .ref(name, clazz.getName(), columnName, jdbcType)
                             .owns()
                             .end());
@@ -363,26 +368,26 @@ public class Definitions implements Serializable {
                         throw new IllegalStateException("Could not find parent entity type '" + parentEntity.getName() + "'");
                     }
                     //make sure the parent nodes are added to the start of the list
-                    List<NodeDefinition> parentNodes = new ArrayList<NodeDefinition>(parentEt.getNodeDefinitions());
+                    List<NodeType> parentNodes = new ArrayList<NodeType>(parentEt.getNodeTypes());
                     //we reverse the list since we add any missing parent node to pos 0
                     Collections.reverse(parentNodes);
-                    for (NodeDefinition nd : parentNodes) {
-                        if (missingNodeDefinition(nd.getName(), nodeDefinitions)) {
-                            nodeDefinitions.add(0, nd.clone());
+                    for (NodeType nd : parentNodes) {
+                        if (missingNodeType(nd.getName(), nodeTypes)) {
+                            nodeTypes.add(0, nd.clone());
                         }
                     }
                     tableName = parentEt.getTableName();
                     keyNodeName = parentEt.getKeyNodeName();
                     parentTypeName = parentEntity.getName();
                 }
-                this.et = new EntityType(Definitions.this, interfaceName, abstractEntity, parentTypeName, tableName, keyNodeName, nodeDefinitions);
+                this.et = new EntityType(Definitions.this, interfaceName, abstractEntity, parentTypeName, tableName, keyNodeName, nodeTypes);
                 entities.put(et.getInterfaceName(), et);
             }
             return Definitions.this;
         }
 
-        private boolean missingNodeDefinition(String name, List<NodeDefinition> nds) {
-            for (NodeDefinition nd : nds) {
+        private boolean missingNodeType(String name, List<NodeType> nds) {
+            for (NodeType nd : nds) {
                 if (nd.getName().equals(name)) {
                     return false;
                 }

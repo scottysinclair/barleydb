@@ -10,17 +10,21 @@ package scott.sort.test;
  * #L%
  */
 
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
 
 import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.persist.PersistAnalyser;
 import scott.sort.api.persist.PersistRequest;
-import scott.sort.server.jdbc.persist.*;
-import static org.junit.Assert.*;
+import scott.sort.server.jdbc.persist.DatabaseDataSet;
 
 import com.smartstream.mac.model.User;
-import com.smartstream.mi.model.*;
+import com.smartstream.mi.model.SyntaxType;
+import com.smartstream.mi.model.XMLMapping;
+import com.smartstream.mi.model.XMLStructure;
+import com.smartstream.mi.model.XMLSyntaxModel;
 
 public class TestDatabaseDataSet extends TestBase {
 

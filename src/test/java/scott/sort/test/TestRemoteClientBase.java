@@ -1,12 +1,12 @@
 package scott.sort.test;
 
-import com.smartstream.mi.MiEntityContext;
-
 import scott.sort.api.core.Environment;
 import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.query.RuntimeProperties;
 import scott.sort.api.query.RuntimeProperties.Concurrency;
 import scott.sort.api.query.RuntimeProperties.ScrollType;
+
+import com.smartstream.mi.MiEntityContext;
 
 /**
  * Tests based on a remote client environment

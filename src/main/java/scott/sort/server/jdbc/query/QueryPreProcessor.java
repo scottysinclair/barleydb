@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import scott.sort.api.config.Definitions;
 import scott.sort.api.config.EntityType;
-import scott.sort.api.config.NodeDefinition;
+import scott.sort.api.config.NodeType;
 import scott.sort.api.query.QCondition;
 import scott.sort.api.query.QProperty;
 import scott.sort.api.query.QueryObject;
@@ -82,7 +82,7 @@ public class QueryPreProcessor {
          */
         EntityType entityType = definitions.getEntityTypeMatchingInterface(query.getTypeName(), true);
         QCondition preCondition = null;
-        for (NodeDefinition nd : entityType.getNodeDefinitions()) {
+        for (NodeType nd : entityType.getNodeTypes()) {
             if (nd.getFixedValue() != null) {
                 QCondition newCondition = new QProperty<Object>(query, nd.getName()).equal(nd.getFixedValue());
                 preCondition = preCondition != null ? preCondition.and(newCondition) : newCondition;

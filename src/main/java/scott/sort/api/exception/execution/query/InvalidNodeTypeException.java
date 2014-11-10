@@ -17,7 +17,7 @@ import java.io.ObjectOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import scott.sort.api.config.NodeDefinition;
+import scott.sort.api.config.NodeType;
 
 /**
  * TODO: Problems using this exception should be detected on startup and so this exception
@@ -25,31 +25,31 @@ import scott.sort.api.config.NodeDefinition;
  * @author scott
  *
  */
-public class InvalidNodeDefinitionException extends SortQueryException {
+public class InvalidNodeTypeException extends SortQueryException {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Logger LOG = LoggerFactory.getLogger(InvalidNodeDefinitionException.class);
+    private static final Logger LOG = LoggerFactory.getLogger(InvalidNodeTypeException.class);
 
-    private NodeDefinition nodeDefinition;
+    private NodeType nodeType;
 
-    public InvalidNodeDefinitionException(NodeDefinition nodeDefinition, String message) {
+    public InvalidNodeTypeException(NodeType nodeType, String message) {
         super(message);
-        this.nodeDefinition = nodeDefinition;
+        this.nodeType = nodeType;
     }
 
-    public NodeDefinition getNodeDefinition() {
-        return nodeDefinition;
+    public NodeType getNodeType() {
+        return nodeType;
     }
 
     private void writeObject(ObjectOutputStream oos) throws IOException {
-        LOG.trace("Serializing InvalidNodeDefinitionException {}", this);
-        nodeDefinition.write(oos);
+        LOG.trace("Serializing InvalidNodeTypeException {}", this);
+        nodeType.write(oos);
     }
 
     private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException {
-        nodeDefinition = NodeDefinition.read(ois);
-        LOG.trace("Deserialized InvalidNodeDefinitionException {}", this);
+        nodeType = NodeType.read(ois);
+        LOG.trace("Deserialized InvalidNodeTypeException {}", this);
     }
 
 

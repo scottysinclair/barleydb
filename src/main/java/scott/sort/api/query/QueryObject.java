@@ -26,7 +26,7 @@ import scott.sort.api.exception.model.SortQueryModelRuntimeException;
 
 /**
  *
- * The core abstraction for querying.
+ * The scott.sort.definitions abstraction for querying.
  * The query object is the entry point for an abstract model based query API.
  *
  * The query API is in no way specific to JDBC.

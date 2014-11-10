@@ -10,13 +10,18 @@ package scott.sort.server.jdbc.persist;
  * #L%
  */
 
-import java.util.*;
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import scott.sort.api.core.*;
+import scott.sort.api.core.Environment;
 import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.core.entity.EntityState;
@@ -387,7 +392,7 @@ public class Persister {
                 continue;
             }
             //we don't own the node, so no changes reflect on us
-            if (!refNode.getNodeDefinition().isOwns()) {
+            if (!refNode.getNodeType().isOwns()) {
                 continue;
             }
             //the referred to entity type has it's own optimistic lock, so we don't need to touch ours
@@ -412,7 +417,7 @@ public class Persister {
                 continue;
             }
             //we don't own the node, so no changes reflect on us
-            if (!toManyNode.getNodeDefinition().isOwns()) {
+            if (!toManyNode.getNodeType().isOwns()) {
                 continue;
             }
             //the entity has it's own optimistic lock so we don't need to touch ours
@@ -598,7 +603,7 @@ public class Persister {
         logStep("Inserting audit records");
         for (AuditRecord auditRecord : audit.getRecords()) {
             for (Change change : auditRecord.changes()) {
-                System.out.format("AUDIT %1$-30s %2$-30s %3$-30s %4$-30s\n", auditRecord.getEntityType().getTableName(), change.node.getNodeDefinition().getColumnName(), change.oldValue, change.newValue);
+                System.out.format("AUDIT %1$-30s %2$-30s %3$-30s %4$-30s\n", auditRecord.getEntityType().getTableName(), change.node.getNodeType().getColumnName(), change.oldValue, change.newValue);
             }
         }
     }

@@ -17,7 +17,7 @@ import java.io.ObjectOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import scott.sort.api.config.*;
+import scott.sort.api.config.EntityType;
 import scott.sort.api.core.entity.Entity;
 
 public class EntityMissingException extends SortPersistException {

@@ -11,11 +11,11 @@ package scott.sort.server.jdbc.query;
  */
 
 
-import java.util.*;
+import java.util.List;
 
 import scott.sort.api.config.Definitions;
 import scott.sort.api.config.EntityType;
-import scott.sort.api.config.NodeDefinition;
+import scott.sort.api.config.NodeType;
 import scott.sort.api.exception.execution.query.ForUpdateNotSupportedException;
 import scott.sort.api.exception.execution.query.IllegalQueryStateException;
 import scott.sort.api.query.JoinType;
@@ -32,16 +32,16 @@ public class QueryGenerator {
      *
      */
     public static class Param {
-        private final NodeDefinition nodeDef;
+        private final NodeType nodeType;
         private final Object value;
 
-        public Param(NodeDefinition nodeDef, Object value) {
-            this.nodeDef = nodeDef;
+        public Param(NodeType nodeType, Object value) {
+            this.nodeType = nodeType;
             this.value = value;
         }
 
-        public NodeDefinition getNodeDefinition() {
-            return nodeDef;
+        public NodeType getNodeType() {
+            return nodeType;
         }
 
         public Object getValue() {
@@ -163,7 +163,7 @@ public class QueryGenerator {
     private void generateOrderBy(StringBuilder sb, EntityType entityType) {
         sb.append("\norder by ");
         for (QOrderBy orderby : query.getOrderBy()) {
-            sb.append(entityType.getNode(orderby.getProperty().getName(), true).getColumnName());
+            sb.append(entityType.getNodeType(orderby.getProperty().getName(), true).getColumnName());
             if (orderby.isAscending()) {
                 sb.append(" asc");
             }
@@ -200,17 +200,17 @@ public class QueryGenerator {
         EntityType entityTo = definitions.getEntityTypeMatchingInterface(qjoin.getTo().getTypeName(), true);
 
         //for example 'syntax' node in the XMLMappings entity, when doing a sub-query from syntax to mappings
-        String nodeNameInTo = entityFrom.getNode(qjoin.getFkeyProperty(), true).getForeignNodeName();
+        String nodeNameInTo = entityFrom.getNodeType(qjoin.getFkeyProperty(), true).getForeignNodeName();
         if (nodeNameInTo != null) {
-            sb.append(qjoin.getTo().getAlias() + "." + entityTo.getNode(nodeNameInTo, true).getColumnName());
+            sb.append(qjoin.getTo().getAlias() + "." + entityTo.getNodeType(nodeNameInTo, true).getColumnName());
             sb.append(" = ");
             sb.append(qjoin.getFrom().getAlias() + "." + entityFrom.getKeyColumn());
         }
         else {
-            NodeDefinition nodeDef = entityFrom.getNode(qjoin.getFkeyProperty(), true);
+            NodeType nodeType = entityFrom.getNodeType(qjoin.getFkeyProperty(), true);
             sb.append(qjoin.getTo().getAlias() + "." + entityTo.getKeyColumn());
             sb.append(" = ");
-            sb.append(qjoin.getFrom().getAlias() + "." + nodeDef.getColumnName());
+            sb.append(qjoin.getFrom().getAlias() + "." + nodeType.getColumnName());
         }
     }
 
@@ -253,9 +253,9 @@ public class QueryGenerator {
         EntityType entityTo = definitions.getEntityTypeMatchingInterface(join.getTo().getTypeName(), true);
         EntityType entityFrom = definitions.getEntityTypeMatchingInterface(join.getFrom().getTypeName(), true);
 
-        String nodeNameOfForeignKey = entityFrom.getNode(join.getFkeyProperty(), true).getForeignNodeName();
+        String nodeNameOfForeignKey = entityFrom.getNodeType(join.getFkeyProperty(), true).getForeignNodeName();
         if (nodeNameOfForeignKey != null) {
-            String foreignKeyCol = entityTo.getNode(nodeNameOfForeignKey, true).getColumnName();
+            String foreignKeyCol = entityTo.getNodeType(nodeNameOfForeignKey, true).getColumnName();
             sb.append(join.getTo().getAlias() + "." + foreignKeyCol);
             sb.append(" = ");
             sb.append(join.getFrom().getAlias() + "." + entityFrom.getKeyColumn());
@@ -263,7 +263,7 @@ public class QueryGenerator {
         else {
             sb.append(join.getTo().getAlias() + "." + entityTo.getKeyColumn());
             sb.append(" = ");
-            sb.append(join.getFrom().getAlias() + "." + entityFrom.getNode(join.getFkeyProperty(), true).getColumnName());
+            sb.append(join.getFrom().getAlias() + "." + entityFrom.getNodeType(join.getFkeyProperty(), true).getColumnName());
         }
         for (QJoin qj : join.getTo().getJoins()) {
             if (qj.getJoinType() == JoinType.INNER) {
@@ -278,9 +278,9 @@ public class QueryGenerator {
         EntityType entityFrom = definitions.getEntityTypeMatchingInterface(join.getFrom().getTypeName(), true);
 
         //nodeNameOfForeignKey, like the syntax node in the mappings entity which maps to the owning syntax.
-        String nodeNameOfForeignKey = entityFrom.getNode(join.getFkeyProperty(), true).getForeignNodeName();
+        String nodeNameOfForeignKey = entityFrom.getNodeType(join.getFkeyProperty(), true).getForeignNodeName();
         if (nodeNameOfForeignKey != null) {
-            String foreignKeyCol = entityTo.getNode(nodeNameOfForeignKey, true).getColumnName();
+            String foreignKeyCol = entityTo.getNodeType(nodeNameOfForeignKey, true).getColumnName();
             sb.append("\nleft outer join ");
             sb.append(entityTo.getTableName() + " " + join.getTo().getAlias());
             sb.append(" on ");
@@ -295,7 +295,7 @@ public class QueryGenerator {
             sb.append(" on ");
             sb.append(join.getTo().getAlias() + "." + entityTo.getKeyColumn());
             sb.append(" = ");
-            sb.append(join.getFrom().getAlias() + "." + entityFrom.getNode(join.getFkeyProperty(), true).getColumnName());
+            sb.append(join.getFrom().getAlias() + "." + entityFrom.getNodeType(join.getFkeyProperty(), true).getColumnName());
         }
 
         for (QJoin qj : join.getTo().getJoins()) {

@@ -11,12 +11,11 @@ package com.smartstream.mi.query;
  */
 
 
+import static scott.sort.api.query.JoinType.INNER;
 import scott.sort.api.query.JoinType;
 import scott.sort.api.query.QueryObject;
 
 import com.smartstream.mi.model.CsvSyntaxModel;
-
-import static scott.sort.api.query.JoinType.*;
 
 public class QCsvSyntaxModel extends QAbstractSyntaxModel<CsvSyntaxModel, QCsvSyntaxModel> {
 

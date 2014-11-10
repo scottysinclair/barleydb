@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import scott.sort.api.config.Definitions;
 import scott.sort.api.config.EntityType;
-import scott.sort.api.config.NodeDefinition;
+import scott.sort.api.config.NodeType;
 import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.core.entity.EntityState;
@@ -155,7 +155,7 @@ public class QueryExecution<T> {
     private boolean canDowncastEntity(Entity entity, EntityType entityType) throws IllegalQueryStateException {
         int fvFound = 0;
         int fvMatch = 0;
-        for (NodeDefinition nd : entityType.getNodeDefinitions()) {
+        for (NodeType nd : entityType.getNodeTypes()) {
             final Object fv = nd.getFixedValue();
             if (fv != null) {
                 fvFound++;

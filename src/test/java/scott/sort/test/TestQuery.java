@@ -10,6 +10,11 @@ package scott.sort.test;
  * #L%
  */
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static scott.sort.api.query.JoinType.INNER;
+import static scott.sort.api.query.JoinType.LEFT_OUTER;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -18,21 +23,26 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-
-import static org.junit.Assert.*;
-
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.test.jdbc.SimpleJdbcTestUtils;
 
 import scott.sort.api.core.QueryBatcher;
 import scott.sort.api.core.entity.EntityContext;
-import static scott.sort.api.query.JoinType.*;
 import scott.sort.server.jdbc.query.QueryResult;
 
 import com.smartstream.mac.query.QUser;
-import com.smartstream.mi.model.*;
-import com.smartstream.mi.query.*;
+import com.smartstream.mi.model.CsvSyntaxModel;
+import com.smartstream.mi.model.SyntaxModel;
+import com.smartstream.mi.model.SyntaxType;
+import com.smartstream.mi.model.Template;
+import com.smartstream.mi.model.XMLSyntaxModel;
+import com.smartstream.mi.query.QCsvStructure;
+import com.smartstream.mi.query.QCsvSyntaxModel;
+import com.smartstream.mi.query.QSyntaxModel;
+import com.smartstream.mi.query.QTemplate;
+import com.smartstream.mi.query.QXMLMapping;
+import com.smartstream.mi.query.QXMLSyntaxModel;
 
 /**
  * Tests various types of queries in a server environment and a remote client environment.

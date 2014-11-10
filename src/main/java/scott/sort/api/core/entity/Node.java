@@ -15,7 +15,7 @@ import java.io.Serializable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import scott.sort.api.config.NodeDefinition;
+import scott.sort.api.config.NodeType;
 
 public abstract class Node implements Serializable {
 
@@ -48,8 +48,8 @@ public abstract class Node implements Serializable {
         }
     }
 
-    public NodeDefinition getNodeDefinition() {
-        return parent.getEntityType().getNode(name, true);
+    public NodeType getNodeType() {
+        return parent.getEntityType().getNodeType(name, true);
     }
 
     public abstract Element toXml(Document doc);

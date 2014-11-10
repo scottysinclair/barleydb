@@ -10,14 +10,19 @@ package scott.sort.test;
  * #L%
  */
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 
 import scott.sort.api.persist.PersistAnalyser;
 import scott.sort.api.persist.PersistRequest;
-import static org.junit.Assert.*;
 
 import com.smartstream.mac.model.User;
-import com.smartstream.mi.model.*;
+import com.smartstream.mi.model.SyntaxType;
+import com.smartstream.mi.model.XMLMapping;
+import com.smartstream.mi.model.XMLStructure;
+import com.smartstream.mi.model.XMLSyntaxModel;
 
 public class TestPersistAnalyser extends TestBase {
 

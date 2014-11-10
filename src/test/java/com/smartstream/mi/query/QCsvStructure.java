@@ -10,13 +10,12 @@ package com.smartstream.mi.query;
  * #L%
  */
 
+import static scott.sort.api.query.JoinType.LEFT_OUTER;
 import scott.sort.api.query.JoinType;
 import scott.sort.api.query.QProperty;
 import scott.sort.api.query.QueryObject;
 
 import com.smartstream.mi.model.CsvStructure;
-
-import static scott.sort.api.query.JoinType.*;
 
 public class QCsvStructure extends QueryObject<CsvStructure> {
 

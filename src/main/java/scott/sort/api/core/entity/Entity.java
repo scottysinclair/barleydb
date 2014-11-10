@@ -16,10 +16,10 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.List;
-import java.util.LinkedList;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -28,7 +28,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import scott.sort.api.config.EntityType;
-import scott.sort.api.config.NodeDefinition;
+import scott.sort.api.config.NodeType;
 
 public class Entity implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -184,7 +184,7 @@ public class Entity implements Serializable {
         for (Iterator<Node> i = children.values().iterator(); i.hasNext();) {
             Node existing = i.next();
             if (existing instanceof ValueNode) {
-                NodeDefinition ndNew = newEntityType.getNode(existing.getName(), true);
+                NodeType ndNew = newEntityType.getNodeType(existing.getName(), true);
                 if (ndNew.isForeignKey()) {
                     i.remove();
                     //tricky: creating a refnode with this entity and the newEntityType
@@ -250,7 +250,7 @@ public class Entity implements Serializable {
 
     public ValueNode getOptimisticLock() {
         for (Node child : children.values()) {
-            if (child.getNodeDefinition().isOptimisticLock()) {
+            if (child.getNodeType().isOptimisticLock()) {
                 return (ValueNode) child;
             }
         }
@@ -277,7 +277,7 @@ public class Entity implements Serializable {
 
     private List<Node> initNodes() {
         List<Node> newNodes = new LinkedList<Node>();
-        for (NodeDefinition nd : entityType.getNodeDefinitions()) {
+        for (NodeType nd : entityType.getNodeTypes()) {
             if (!children.containsKey(nd.getName())) {
                 Node node = newChild(nd);
                 newNodes.add(node);
@@ -293,7 +293,7 @@ public class Entity implements Serializable {
         }
     }
 
-    private Node newChild(NodeDefinition nd) {
+    private Node newChild(NodeType nd) {
         if (nd.getRelationInterfaceName() != null && nd.getColumnName() != null) {
             //1:1 relationship
             return new RefNode(this, nd.getName(), entityType.getDefinitions().getEntityTypeMatchingInterface(nd.getRelationInterfaceName(), true));

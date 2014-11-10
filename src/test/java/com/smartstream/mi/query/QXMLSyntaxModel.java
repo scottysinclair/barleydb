@@ -13,7 +13,7 @@ package com.smartstream.mi.query;
 
 import scott.sort.api.query.QueryObject;
 
-import com.smartstream.mi.model.*;
+import com.smartstream.mi.model.XMLSyntaxModel;
 
 public class QXMLSyntaxModel extends QAbstractSyntaxModel<XMLSyntaxModel, QXMLSyntaxModel> {
     private static final long serialVersionUID = 1L;

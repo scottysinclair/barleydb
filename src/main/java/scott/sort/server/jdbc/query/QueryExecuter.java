@@ -279,7 +279,7 @@ public class QueryExecuter {
         int i = 1;
         QueryPreparedStatementHelper helper = new QueryPreparedStatementHelper(entityContext.getDefinitions());
         for (QueryGenerator.Param param : params) {
-            helper.setParameter(stmt, i++, param.getNodeDefinition(), param.getValue());
+            helper.setParameter(stmt, i++, param.getNodeType(), param.getValue());
         }
     }
 

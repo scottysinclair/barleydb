@@ -10,6 +10,8 @@ package scott.sort.api.core.entity;
  * #L%
  */
 
+import static scott.sort.api.core.entity.EntityContextHelper.toParents;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -41,7 +43,7 @@ import org.w3c.dom.Element;
 
 import scott.sort.api.config.Definitions;
 import scott.sort.api.config.EntityType;
-import scott.sort.api.config.NodeDefinition;
+import scott.sort.api.config.NodeType;
 import scott.sort.api.core.Environment;
 import scott.sort.api.core.QueryBatcher;
 import scott.sort.api.core.QueryRegistry;
@@ -58,7 +60,6 @@ import scott.sort.api.query.QProperty;
 import scott.sort.api.query.QueryObject;
 import scott.sort.api.query.RuntimeProperties;
 import scott.sort.server.jdbc.query.QueryResult;
-import static scott.sort.api.core.entity.EntityContextHelper.toParents;
 
 /**
  * Contains a set of entities.<br/>
@@ -601,7 +602,7 @@ public class EntityContext implements Serializable {
             return;
         }
 
-        final NodeDefinition toManyDef = toManyNode.getNodeDefinition();
+        final NodeType toManyDef = toManyNode.getNodeType();
 
         //get the name of the node/property which we need to filter on to get the correct entities back on the many side
         final String foreignNodeName = toManyDef.getForeignNodeName();
@@ -629,10 +630,10 @@ public class EntityContext implements Serializable {
              *
              */
             if (!fetchInternal && toManyDef.getJoinProperty() != null) {
-                NodeDefinition datatypeNodeDef = toManyNode.getEntityType().getNode(toManyDef.getJoinProperty(), true);
-                EntityType datatype = definitions.getEntityTypeMatchingInterface(datatypeNodeDef.getRelationInterfaceName(), true);
+                NodeType datatypeNodeType = toManyNode.getEntityType().getNodeType(toManyDef.getJoinProperty(), true);
+                EntityType datatype = definitions.getEntityTypeMatchingInterface(datatypeNodeType.getRelationInterfaceName(), true);
                 QueryObject<Object> qdatatype = getQuery(datatype, fetchInternal);
-                qo.addLeftOuterJoin(qdatatype, datatypeNodeDef.getName());
+                qo.addLeftOuterJoin(qdatatype, datatypeNodeType.getName());
             }
 
             try {

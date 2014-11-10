@@ -11,7 +11,9 @@ package scott.sort.api.persist;
  */
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -265,7 +267,7 @@ public class PersistAnalyser implements Serializable {
                 if (refEntity.getKey().getValue() == null) {
                     analyseCreate(refEntity);
                 }
-                else if (toManyNode.getNodeDefinition().isOwns()) {
+                else if (toManyNode.getNodeType().isOwns()) {
                     analyseUpdate(refEntity);
                 }
             }
@@ -287,7 +289,7 @@ public class PersistAnalyser implements Serializable {
             /*
              * we only delete the many side if we own it.
              */
-            if (!toManyNode.getNodeDefinition().isOwns()) {
+            if (!toManyNode.getNodeType().isOwns()) {
                 //TODO: we should also check if the entities in the many side
                 //are part of the same delete request, of so we should analyze them too
                 continue;
@@ -332,7 +334,7 @@ public class PersistAnalyser implements Serializable {
             if (refEntity == null) {
                 continue;
             }
-            if (refNode.getNodeDefinition().isOwns()) {
+            if (refNode.getNodeType().isOwns()) {
                 /*
                  * If the reference is used then schedule the ref'd entity for deletion
                  */
@@ -391,7 +393,7 @@ public class PersistAnalyser implements Serializable {
                  */
                 continue;
             }
-            if (!toManyNode.getNodeDefinition().dependsOrOwns()) {
+            if (!toManyNode.getNodeType().dependsOrOwns()) {
                 /*
                  * We only need to look at ToMany references if we depend-on or own them
                  */
@@ -407,7 +409,7 @@ public class PersistAnalyser implements Serializable {
     }
 
     private Object checkForRemovedReference(RefNode refNode) {
-        return refNode.getNodeDefinition().isOwns() ? refNode.getRemovedEntityKey() : null;
+        return refNode.getNodeType().isOwns() ? refNode.getRemovedEntityKey() : null;
     }
 
     private void analyseRefNodes(Entity entity, boolean updateOwnedRefs) throws EntityMissingException {
@@ -424,14 +426,14 @@ public class PersistAnalyser implements Serializable {
                  * we are referring to an entity which is not yet created, process it first
                  */
                 analyseCreate(refEntity);
-            } else if (updateOwnedRefs && refNode.getNodeDefinition().isOwns() && refEntity.isLoaded()) {
+            } else if (updateOwnedRefs && refNode.getNodeType().isOwns() && refEntity.isLoaded()) {
                 /*
                  * the entity already exists in the database, but we own it so we are also going to perform an update.
                  * as long as it was loaded
                  */
                 analyseUpdate(refEntity);
             }
-            else if (refNode.getNodeDefinition().dependsOrOwns() && refEntity.isLoaded()) {
+            else if (refNode.getNodeType().dependsOrOwns() && refEntity.isLoaded()) {
                 /*
                  * We don't own, but logically depend on this reference to be considered valid
                  * since the entity was loaded, we need to analyze this dependency in-case the version

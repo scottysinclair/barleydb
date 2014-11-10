@@ -1,6 +1,8 @@
 package scott.sort.test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,7 +30,7 @@ import com.smartstream.mi.query.QXMLSyntaxModel;
 public class TestGarbageCollection extends TestBase {
 
 
-    @Ignore //ignoring for speed
+    @Ignore //we shouldnt expect this to reliably work.
     @Test
     public void testHoldingQueryResultPreventsGC() throws Exception {
 
@@ -51,6 +53,7 @@ public class TestGarbageCollection extends TestBase {
         waitForEntitiesToBeCollected(uuids, false);
     }
 
+    @Ignore
     @Test
     public void testLosingQueryResultCausesGC() throws Exception {
 
@@ -89,6 +92,7 @@ public class TestGarbageCollection extends TestBase {
         waitForEntitiesToBeCollected(uuids, true);
     }
 
+    @Ignore //we shouldnt expect this to reliably work.
     @Test
     public void testHoldingOnToProxyPreventsGC() throws Exception {
         serverEntityContext.setAllowGarbageCollection(true);

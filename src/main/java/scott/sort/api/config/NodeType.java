@@ -15,19 +15,22 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
-import javax.xml.bind.annotation.*;
-import javax.xml.bind.*;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlTransient;
 
 import scott.sort.api.core.types.JavaType;
 import scott.sort.api.core.types.JdbcType;
 import scott.sort.api.core.util.EnvironmentAccessor;
 
 @XmlAccessorType(XmlAccessType.FIELD)
-public class NodeDefinition implements Serializable, Cloneable {
+public class NodeType implements Serializable, Cloneable {
     private static final long serialVersionUID = 1L;
 
     public static class Builder {
-        private NodeDefinition nd = new NodeDefinition();
+        private NodeType nd = new NodeType();
 
         public Builder ref(String name, String interfaceName, String columnName, JdbcType jdbcType) {
             nd.name = name;
@@ -80,7 +83,7 @@ public class NodeDefinition implements Serializable, Cloneable {
             return this;
         }
 
-        public NodeDefinition end() {
+        public NodeType end() {
             return nd;
         }
     }
@@ -106,9 +109,9 @@ public class NodeDefinition implements Serializable, Cloneable {
 
     private Object fixedValue;
 
-    public NodeDefinition() {}
+    public NodeType() {}
 
-    public NodeDefinition(String name, String interfaceName, RelationType relationType, String columnName, JdbcType jdbcType, String foreignNodeName, String joinEntityName, Object fixedValue) {
+    public NodeType(String name, String interfaceName, RelationType relationType, String columnName, JdbcType jdbcType, String foreignNodeName, String joinEntityName, Object fixedValue) {
         this.name = name;
         this.relation = new Relation(interfaceName, RelationType.REFERS, foreignNodeName, joinEntityName);
         this.columnName = columnName;
@@ -117,9 +120,9 @@ public class NodeDefinition implements Serializable, Cloneable {
     }
 
     @Override
-    public NodeDefinition clone() {
+    public NodeType clone() {
         try {
-            return (NodeDefinition) super.clone();
+            return (NodeType) super.clone();
         } catch (CloneNotSupportedException x) {
             throw new IllegalStateException("Could not clone node definition", x);
         }
@@ -203,16 +206,16 @@ public class NodeDefinition implements Serializable, Cloneable {
         out.writeUTF(name);
     }
 
-    public static NodeDefinition read(ObjectInputStream ois) throws IOException {
+    public static NodeType read(ObjectInputStream ois) throws IOException {
         String namespace = ois.readUTF();
         String entityTypeName = ois.readUTF();
         String nodeName = ois.readUTF();
-        return EnvironmentAccessor.get().getDefinitions(namespace).getEntityTypeMatchingInterface(entityTypeName, true).getNode(nodeName, true);
+        return EnvironmentAccessor.get().getDefinitions(namespace).getEntityTypeMatchingInterface(entityTypeName, true).getNodeType(nodeName, true);
     }
 
     @Override
     public String toString() {
-        return "NodeDefinition - " + entityType.getInterfaceShortName() + "." + name
+        return "NodeType - " + entityType.getInterfaceShortName() + "." + name
                 + " [javaType=" + javaType + ", relation=" + relation
                 + ", columnName=" + columnName + ", jdbcType=" + jdbcType + "]";
     }

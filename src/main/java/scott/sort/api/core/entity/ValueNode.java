@@ -21,7 +21,7 @@ public class ValueNode extends Node {
 
     public ValueNode(Entity parent, String name) {
         super(parent, name);
-        value = parent.getEntityType().getNode(name, true).getFixedValue();
+        value = parent.getEntityType().getNodeType(name, true).getFixedValue();
     }
 
     @SuppressWarnings("unchecked")

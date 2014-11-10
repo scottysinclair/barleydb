@@ -11,7 +11,7 @@ package scott.sort.server.jdbc.query;
  */
 
 
-import scott.sort.api.config.NodeDefinition;
+import scott.sort.api.config.NodeType;
 import scott.sort.api.exception.execution.query.IllegalQueryStateException;
 import scott.sort.api.query.QJoin;
 import scott.sort.api.query.QueryObject;
@@ -25,13 +25,13 @@ class ProjectionColumn {
     private final Projection projection;
     private final QueryObject<?> queryObject;
     private final QJoin qJoin;
-    private final NodeDefinition nodeDefinition;
+    private final NodeType nodeType;
 
-    public ProjectionColumn(Projection projection, QueryObject<?> queryObject, QJoin qJoin, NodeDefinition nodeDefinition) {
+    public ProjectionColumn(Projection projection, QueryObject<?> queryObject, QJoin qJoin, NodeType nodeType) {
         this.projection = projection;
         this.queryObject = queryObject;
         this.qJoin = qJoin;
-        this.nodeDefinition = nodeDefinition;
+        this.nodeType = nodeType;
     }
 
     public QueryObject<?> getQueryObject() {
@@ -39,11 +39,11 @@ class ProjectionColumn {
     }
 
     public boolean isPrimaryKey() {
-        return nodeDefinition.isPrimaryKey();
+        return nodeType.isPrimaryKey();
     }
 
     public boolean isForeignKey() {
-        return nodeDefinition.isForeignKey();
+        return nodeType.isForeignKey();
     }
 
     public boolean isJoined() {
@@ -64,15 +64,15 @@ class ProjectionColumn {
      * @return
      */
     public String getProperty() {
-        return nodeDefinition.getName();
+        return nodeType.getName();
     }
 
     public String getColumn() {
-        return nodeDefinition.getColumnName();
+        return nodeType.getColumnName();
     }
 
-    public NodeDefinition getNodeDefinition() {
-        return nodeDefinition;
+    public NodeType getNodeType() {
+        return nodeType;
     }
 
     @Override

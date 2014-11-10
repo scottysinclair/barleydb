@@ -11,14 +11,14 @@ package scott.sort.server.jdbc.persist;
  */
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Collections;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import scott.sort.api.config.*;
+import scott.sort.api.config.EntityType;
 import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.RefNode;
 
