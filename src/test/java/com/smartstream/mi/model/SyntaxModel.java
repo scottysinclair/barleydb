@@ -17,6 +17,7 @@ import scott.sort.api.core.proxy.AbstractCustomEntityProxy;
 import scott.sort.api.core.proxy.RefNodeProxyHelper;
 
 import com.smartstream.mac.model.User;
+import com.smartstream.mi.types.SyntaxType;
 
 public abstract class SyntaxModel extends AbstractCustomEntityProxy {
     private static final long serialVersionUID = 1L;

@@ -6,7 +6,7 @@ import scott.sort.api.query.RuntimeProperties;
 import scott.sort.api.query.RuntimeProperties.Concurrency;
 import scott.sort.api.query.RuntimeProperties.ScrollType;
 
-import com.smartstream.mi.MiEntityContext;
+import com.smartstream.mi.context.MiEntityContext;
 
 /**
  * Tests based on a remote client environment

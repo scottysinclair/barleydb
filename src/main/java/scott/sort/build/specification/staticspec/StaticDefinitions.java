@@ -1,4 +1,4 @@
-package scott.sort.definitions.spec.staticdefinition;
+package scott.sort.build.specification.staticspec;
 
 import static java.util.Arrays.asList;
 
@@ -9,13 +9,13 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import scott.sort.definitions.spec.DefinitionsSpec;
-import scott.sort.definitions.spec.EntitySpec;
-import scott.sort.definitions.spec.NodeSpec;
-import scott.sort.definitions.spec.RelationSpec;
-import scott.sort.definitions.spec.constraint.ForeignKeyConstraintSpec;
-import scott.sort.definitions.spec.constraint.PrimaryKeyConstraintSpec;
-import scott.sort.definitions.spec.constraint.UniqueConstraintSpec;
+import scott.sort.api.specification.DefinitionsSpec;
+import scott.sort.api.specification.EntitySpec;
+import scott.sort.api.specification.NodeSpec;
+import scott.sort.api.specification.RelationSpec;
+import scott.sort.api.specification.constraint.ForeignKeyConstraintSpec;
+import scott.sort.api.specification.constraint.PrimaryKeyConstraintSpec;
+import scott.sort.api.specification.constraint.UniqueConstraintSpec;
 
 public abstract class StaticDefinitions {
 	

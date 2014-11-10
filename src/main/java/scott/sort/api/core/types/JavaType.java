@@ -18,6 +18,7 @@ public enum JavaType {
     UTIL_DATE,
     SQL_DATE,
     BOOLEAN,
-    ENUM
+    ENUM,
+    UUID
 
 }

@@ -21,10 +21,10 @@ import scott.sort.api.persist.PersistRequest;
 import scott.sort.server.jdbc.persist.DatabaseDataSet;
 
 import com.smartstream.mac.model.User;
-import com.smartstream.mi.model.SyntaxType;
 import com.smartstream.mi.model.XMLMapping;
 import com.smartstream.mi.model.XMLStructure;
 import com.smartstream.mi.model.XMLSyntaxModel;
+import com.smartstream.mi.types.SyntaxType;
 
 public class TestDatabaseDataSet extends TestBase {
 

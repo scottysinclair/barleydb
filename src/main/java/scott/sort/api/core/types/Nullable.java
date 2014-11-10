@@ -1,4 +1,4 @@
-package scott.sort.definitions.type;
+package scott.sort.api.core.types;
 
 public enum Nullable {
 	  NULL,

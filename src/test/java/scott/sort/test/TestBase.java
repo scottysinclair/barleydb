@@ -56,7 +56,7 @@ import com.smartstream.mac.model.MacProxyFactory;
 import com.smartstream.mac.model.User;
 import com.smartstream.mac.query.QAccessArea;
 import com.smartstream.mac.query.QUser;
-import com.smartstream.mi.MiEntityContext;
+import com.smartstream.mi.context.MiEntityContext;
 import com.smartstream.mi.model.CsvMapping;
 import com.smartstream.mi.model.CsvStructure;
 import com.smartstream.mi.model.CsvStructureField;
@@ -64,7 +64,6 @@ import com.smartstream.mi.model.CsvSyntaxModel;
 import com.smartstream.mi.model.Datatype;
 import com.smartstream.mi.model.MiProxyFactory;
 import com.smartstream.mi.model.SyntaxModel;
-import com.smartstream.mi.model.SyntaxType;
 import com.smartstream.mi.model.Template;
 import com.smartstream.mi.model.TemplateContent;
 import com.smartstream.mi.model.XMLMapping;
@@ -81,6 +80,7 @@ import com.smartstream.mi.query.QTemplateDatatype;
 import com.smartstream.mi.query.QXMLMapping;
 import com.smartstream.mi.query.QXMLStructure;
 import com.smartstream.mi.query.QXMLSyntaxModel;
+import com.smartstream.mi.types.SyntaxType;
 
 @SuppressWarnings("deprecation")
 public abstract class TestBase {

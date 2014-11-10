@@ -1,4 +1,4 @@
-package com.smartstream.mac;
+package com.smartstream.mi.context;
 
 import scott.sort.api.core.Environment;
 import scott.sort.api.core.entity.EntityContext;
@@ -8,13 +8,12 @@ import scott.sort.api.core.entity.EntityContext;
  * @author scott
  *
  */
-public class MacEntityContext extends EntityContext {
+public class MiEntityContext extends EntityContext {
 
     private static final long serialVersionUID = 1L;
 
-    public MacEntityContext(Environment env) {
-        super(env, "com.smartstream.mac");
+    public MiEntityContext(Environment env) {
+        super(env, "com.smartstream.mi");
     }
-
 
 }

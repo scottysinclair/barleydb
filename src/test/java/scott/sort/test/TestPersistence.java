@@ -43,9 +43,8 @@ import scott.sort.test.TestEntityContextServices.PersisterFactory;
 import com.smartstream.mac.model.AccessArea;
 import com.smartstream.mac.model.User;
 import com.smartstream.mac.query.QAccessArea;
-import com.smartstream.mi.MiEntityContext;
+import com.smartstream.mi.context.MiEntityContext;
 import com.smartstream.mi.model.Datatype;
-import com.smartstream.mi.model.SyntaxType;
 import com.smartstream.mi.model.Template;
 import com.smartstream.mi.model.TemplateContent;
 import com.smartstream.mi.model.XMLMapping;
@@ -53,6 +52,7 @@ import com.smartstream.mi.model.XMLStructure;
 import com.smartstream.mi.model.XMLSyntaxModel;
 import com.smartstream.mi.query.QTemplate;
 import com.smartstream.mi.query.QXMLSyntaxModel;
+import com.smartstream.mi.types.SyntaxType;
 
 @SuppressWarnings("deprecation")
 @RunWith(Parameterized.class)

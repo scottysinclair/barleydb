@@ -1,9 +1,9 @@
-package scott.sort.definitions.spec;
+package scott.sort.api.specification;
 
+import scott.sort.api.config.RelationType;
 import scott.sort.api.core.types.JavaType;
-import scott.sort.definitions.spec.constraint.UniqueConstraintSpec;
-import scott.sort.definitions.type.Nullable;
-import scott.sort.definitions.type.RelationType;
+import scott.sort.api.core.types.Nullable;
+import scott.sort.api.specification.constraint.UniqueConstraintSpec;
 
 /**
  * Provides scott.sort.definitions data type specifications required by the framework.
@@ -38,7 +38,7 @@ public class CoreSpec {
 
     public static NodeSpec optionalRefersTo(Class<?> type) {
         return relation(
-                RelationType.REFERS_TO,
+                RelationType.REFERS,
                 type,
                 null,
                 Nullable.NULL);
@@ -46,7 +46,7 @@ public class CoreSpec {
 
     public static NodeSpec mandatoryRefersTo(Class<?> type) {
         return relation(
-                RelationType.REFERS_TO,
+                RelationType.REFERS,
                 type,
                 null,
                 Nullable.NOT_NULL);
@@ -54,7 +54,7 @@ public class CoreSpec {
 
     public static NodeSpec mandatoryRefersTo(Class<?> type, String columnName) {
         return relation(
-                RelationType.REFERS_TO,
+                RelationType.REFERS,
                 type,
                 columnName,
                 Nullable.NOT_NULL);
@@ -78,7 +78,7 @@ public class CoreSpec {
 
     public static NodeSpec dependsOn(Class<?> type) {
         return relation(
-                RelationType.DEPENDS_ON,
+                RelationType.DEPENDS,
                 type,
                 null,
                 Nullable.NOT_NULL);
@@ -86,7 +86,7 @@ public class CoreSpec {
 
     public static NodeSpec dependsOn(Class<?> type, String columnName) {
         return relation(
-                RelationType.DEPENDS_ON,
+                RelationType.DEPENDS,
                 type,
                 columnName,
                 Nullable.NOT_NULL);

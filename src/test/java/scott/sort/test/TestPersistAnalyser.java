@@ -19,10 +19,10 @@ import scott.sort.api.persist.PersistAnalyser;
 import scott.sort.api.persist.PersistRequest;
 
 import com.smartstream.mac.model.User;
-import com.smartstream.mi.model.SyntaxType;
 import com.smartstream.mi.model.XMLMapping;
 import com.smartstream.mi.model.XMLStructure;
 import com.smartstream.mi.model.XMLSyntaxModel;
+import com.smartstream.mi.types.SyntaxType;
 
 public class TestPersistAnalyser extends TestBase {
 

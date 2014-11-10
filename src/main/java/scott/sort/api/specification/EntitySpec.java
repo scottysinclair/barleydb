@@ -1,4 +1,4 @@
-package scott.sort.definitions.spec;
+package scott.sort.api.specification;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -19,9 +19,9 @@ import javax.xml.bind.annotation.XmlIDREF;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-import scott.sort.definitions.spec.constraint.ForeignKeyConstraintSpec;
-import scott.sort.definitions.spec.constraint.PrimaryKeyConstraintSpec;
-import scott.sort.definitions.spec.constraint.UniqueConstraintSpec;
+import scott.sort.api.specification.constraint.ForeignKeyConstraintSpec;
+import scott.sort.api.specification.constraint.PrimaryKeyConstraintSpec;
+import scott.sort.api.specification.constraint.UniqueConstraintSpec;
 
 @XmlAccessorType(XmlAccessType.NONE)
 public class EntitySpec implements Serializable {

@@ -1,4 +1,4 @@
-package scott.sort.definitions.spec;
+package scott.sort.api.specification;
 
 import java.io.Serializable;
 
@@ -9,10 +9,9 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlID;
 import javax.xml.bind.annotation.XmlTransient;
 
-import org.apache.ibatis.type.JdbcType;
-
 import scott.sort.api.core.types.JavaType;
-import scott.sort.definitions.type.Nullable;
+import scott.sort.api.core.types.JdbcType;
+import scott.sort.api.core.types.Nullable;
 
 @XmlAccessorType(XmlAccessType.NONE)
 public class NodeSpec implements Serializable, Cloneable {

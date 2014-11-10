@@ -16,7 +16,7 @@ import scott.sort.api.query.QueryObject;
 
 import com.smartstream.mac.query.QUser;
 import com.smartstream.mi.model.SyntaxModel;
-import com.smartstream.mi.model.SyntaxType;
+import com.smartstream.mi.types.SyntaxType;
 
 /**
  * Non parameterized query for querying base class syntax model

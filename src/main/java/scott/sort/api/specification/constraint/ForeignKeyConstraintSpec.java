@@ -1,4 +1,4 @@
-package scott.sort.definitions.spec.constraint;
+package scott.sort.api.specification.constraint;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -9,8 +9,8 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlIDREF;
 
-import scott.sort.definitions.spec.EntitySpec;
-import scott.sort.definitions.spec.NodeSpec;
+import scott.sort.api.specification.EntitySpec;
+import scott.sort.api.specification.NodeSpec;
 
 @XmlAccessorType(XmlAccessType.NONE)
 public class ForeignKeyConstraintSpec implements Serializable {

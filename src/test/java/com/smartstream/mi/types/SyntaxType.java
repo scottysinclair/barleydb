@@ -1,4 +1,4 @@
-package com.smartstream.mi.model;
+package com.smartstream.mi.types;
 
 /*
  * #%L

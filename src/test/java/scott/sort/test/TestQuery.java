@@ -34,7 +34,6 @@ import scott.sort.server.jdbc.query.QueryResult;
 import com.smartstream.mac.query.QUser;
 import com.smartstream.mi.model.CsvSyntaxModel;
 import com.smartstream.mi.model.SyntaxModel;
-import com.smartstream.mi.model.SyntaxType;
 import com.smartstream.mi.model.Template;
 import com.smartstream.mi.model.XMLSyntaxModel;
 import com.smartstream.mi.query.QCsvStructure;
@@ -43,6 +42,7 @@ import com.smartstream.mi.query.QSyntaxModel;
 import com.smartstream.mi.query.QTemplate;
 import com.smartstream.mi.query.QXMLMapping;
 import com.smartstream.mi.query.QXMLSyntaxModel;
+import com.smartstream.mi.types.SyntaxType;
 
 /**
  * Tests various types of queries in a server environment and a remote client environment.

@@ -1,4 +1,4 @@
-package scott.sort.definitions.spec.staticdefinition;
+package scott.sort.build.specification.staticspec;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,6 +7,6 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface OwnedEntity {
+public @interface Entity {
   String value();
 }

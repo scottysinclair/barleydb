@@ -1,4 +1,4 @@
-package scott.sort.definitions.spec.staticdefinition.processor;
+package scott.sort.build.specification.staticspec.processor;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -9,16 +9,16 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
-import scott.sort.definitions.spec.DefinitionsSpec;
-import scott.sort.definitions.spec.EntitySpec;
-import scott.sort.definitions.spec.NodeSpec;
-import scott.sort.definitions.spec.RelationSpec;
-import scott.sort.definitions.spec.SpecRegistry;
-import scott.sort.definitions.spec.constraint.UniqueConstraintSpec;
-import scott.sort.definitions.spec.staticdefinition.AbstractEntity;
-import scott.sort.definitions.spec.staticdefinition.Entity;
-import scott.sort.definitions.spec.staticdefinition.ExtendsEntity;
-import scott.sort.definitions.spec.staticdefinition.StaticDefinitions;
+import scott.sort.api.specification.DefinitionsSpec;
+import scott.sort.api.specification.EntitySpec;
+import scott.sort.api.specification.NodeSpec;
+import scott.sort.api.specification.RelationSpec;
+import scott.sort.api.specification.SpecRegistry;
+import scott.sort.api.specification.constraint.UniqueConstraintSpec;
+import scott.sort.build.specification.staticspec.AbstractEntity;
+import scott.sort.build.specification.staticspec.Entity;
+import scott.sort.build.specification.staticspec.ExtendsEntity;
+import scott.sort.build.specification.staticspec.StaticDefinitions;
 
 public class StaticDefinitionProcessor {
 	

@@ -1,7 +1,6 @@
-package scott.sort.definitions.spec.constraint;
+package scott.sort.api.specification.constraint;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -11,11 +10,10 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlIDREF;
 
-import scott.sort.definitions.spec.EntitySpec;
-import scott.sort.definitions.spec.NodeSpec;
+import scott.sort.api.specification.NodeSpec;
 
 @XmlAccessorType(XmlAccessType.NONE)
-public class UniqueConstraintSpec implements Serializable {
+public class PrimaryKeyConstraintSpec implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
 	
@@ -25,13 +23,14 @@ public class UniqueConstraintSpec implements Serializable {
 	@XmlIDREF
 	@XmlAttribute
 	private final Collection<NodeSpec> nodes;
-	
-	public UniqueConstraintSpec() {
+
+	public PrimaryKeyConstraintSpec() {
 		this.nodes = new LinkedList<NodeSpec>();
 	}
 
-	public UniqueConstraintSpec(NodeSpec ...nodes) {
-		this.nodes = new LinkedList<NodeSpec>( Arrays.asList(nodes) );
+	public PrimaryKeyConstraintSpec(String name, Collection<NodeSpec> nodes) {
+		this.name = name;
+		this.nodes = nodes;
 	}
 	
 	public String getName() {
@@ -45,23 +44,12 @@ public class UniqueConstraintSpec implements Serializable {
 	public Collection<NodeSpec> getNodes() {
 		return Collections.unmodifiableCollection( nodes );
 	}
-	
-	public UniqueConstraintSpec newCopyFor(EntitySpec entitySpec) {
-		UniqueConstraintSpec copy = new UniqueConstraintSpec();
-		for (NodeSpec nodeSpec: nodes) {
-			NodeSpec nodeSpecForCopy = entitySpec.getNodeSpec(nodeSpec.getName());
-			if (nodeSpecForCopy == null) {
-				throw new IllegalStateException("Could not find node spec in entity when creating a copy of a unique constraint");
-			}
-			copy.nodes.add( nodeSpecForCopy );
-		}
-		return copy;
-	}
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder("Unique Constraint '" + name + "' ");
-		sb.append("[ ");
+		StringBuilder sb = new StringBuilder("Primary Key Constraint '");
+		sb.append(name);
+		sb.append("' [ ");
 		for (NodeSpec spec: nodes) {
 			sb.append(spec.getColumnName());
 			sb.append(", ");

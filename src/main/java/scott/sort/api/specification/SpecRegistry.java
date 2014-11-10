@@ -1,4 +1,4 @@
-package scott.sort.definitions.spec;
+package scott.sort.api.specification;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedList;

@@ -13,7 +13,7 @@ package scott.sort.api.config;
 import java.util.LinkedList;
 import java.util.List;
 
-public class ConfigHelper {
+public class TypeHelper {
 
     public static List<String> getInterfaces(EntityType... a) {
         List<String> result = new LinkedList<String>();
