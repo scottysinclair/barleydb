@@ -56,12 +56,13 @@ public class MiSpec extends MorpheusSpec {
                 CsvStructureField.class,
                 CsvMapping.class,
                 Template.class,
+                TemplateContent.class,
                 BusinessType.class,
                 TemplateBusinessType.class
         };
     }
 
-    @AbstractEntity("MMI_SYNTAX")
+    @AbstractEntity("SS_SYNTAX_MODEL")
     public static class Syntax implements TopLevelModel {
 
         public static final NodeSpec structureType = mandatoryEnum(StructureType.class);
@@ -73,7 +74,7 @@ public class MiSpec extends MorpheusSpec {
         public static final NodeSpec structure = mandatoryLongValue("STRUCTURE_ID");
     }
 
-    @Entity("MMI_XML_STRUCTURE")
+    @Entity("SS_XMLSTRUCTURE")
     public static class XmlStructure implements TopLevelModel {
     }
 
@@ -87,7 +88,7 @@ public class MiSpec extends MorpheusSpec {
         public static final NodeSpec mappings = ownsMany(XmlMapping.class, XmlMapping.syntax);
     }
 
-    @Entity("MMI_XML_MAPPING")
+    @Entity("SS_XML_MAPPING")
     public static class XmlMapping {
 
         public static final NodeSpec id = longPrimaryKey();
@@ -109,7 +110,7 @@ public class MiSpec extends MorpheusSpec {
         public static final NodeSpec mappings = ownsMany(CsvMapping.class, CsvMapping.syntax);
     }
 
-    @Entity("MMI_CSV_STRUCTURE")
+    @Entity("SS_CSVSTRUCTURE")
     public static class CsvStructure implements TopLevelModel {
 
         public static final NodeSpec headerBasedMapping = mandatoryBooleanValue();
@@ -117,7 +118,7 @@ public class MiSpec extends MorpheusSpec {
         public static final NodeSpec fields = ownsMany(CsvStructureField.class, CsvStructureField.structure);
     }
 
-    @Entity("MMI_CSV_STRUCTURE_FIELD")
+    @Entity("SS_CSVSTRUCTURE_FIELD")
     public static class CsvStructureField {
 
         public static final NodeSpec id = longPrimaryKey();
@@ -130,7 +131,7 @@ public class MiSpec extends MorpheusSpec {
 
     }
 
-    @Entity("MMI_CSV_MAPPING")
+    @Entity("SS_CSV_MAPPING")
     public static class CsvMapping {
 
         public static final NodeSpec id = longPrimaryKey();
@@ -140,23 +141,33 @@ public class MiSpec extends MorpheusSpec {
         public static final NodeSpec structureField = mandatoryRefersTo(CsvStructureField.class);
     }
 
-    @Entity("MMI_TEMPLATE")
+    @Entity("SS_TEMPLATE")
     public static class Template implements TopLevelModel {
 
         public static final NodeSpec businessTypes = ownsMany(TemplateBusinessType.class, TemplateBusinessType.template);
-
     }
 
-    @Entity("MMI_TEMPLATE_TEMPLATE_DATATYPE")
+    @Entity("SS_TEMPLATE_CONTENT")
+    public static class TemplateContent {
+
+        public static final NodeSpec id = longPrimaryKey();
+
+        public static final NodeSpec name = name();
+
+        public static final NodeSpec modifiedAt = optimisticLock();
+
+        public static final NodeSpec template = mandatoryRefersTo(Template.class);
+    }
+
+    @Entity("SS_TEMPLATE_DATATYPE")
     public static class TemplateBusinessType {
 
         public static final NodeSpec template = mandatoryRefersTo(Template.class);
 
         public static final NodeSpec businessType = mandatoryRefersTo(BusinessType.class);
-
     }
 
-    @Entity("MMI_TEMPLATE_DATATYPE")
+    @Entity("SS_DATATYPE")
     public static class BusinessType implements TopLevelModel {
     }
 
