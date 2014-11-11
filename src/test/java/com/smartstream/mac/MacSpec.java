@@ -25,7 +25,7 @@ public class MacSpec extends MorpheusSpec {
 
         public static NodeSpec modifiedAt = optimisticLock();
 
-        public static NodeSpec uuid = uuid();
+        //public static NodeSpec uuid = uuid();
 
         public static NodeSpec parent = optionallyRefersTo(AccessArea.class, "PARENT_ID");
 

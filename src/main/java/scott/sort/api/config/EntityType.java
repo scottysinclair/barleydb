@@ -16,7 +16,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import scott.sort.api.core.util.EnvironmentAccessor;
@@ -51,7 +51,7 @@ public class EntityType implements Serializable {
 
     private String keyNodeName;
 
-    private Map<String,NodeType> nodeTypes = new HashMap<>();
+    private Map<String,NodeType> nodeTypes = new LinkedHashMap<>();
 
     public static EntityType create(Definitions definitions, EntitySpec entityTypeSpec) {
         System.out.println("Creating entity type: " + entityTypeSpec.getClassName());

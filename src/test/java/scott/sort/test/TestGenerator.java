@@ -25,6 +25,7 @@ import com.smartstream.mi.types.SyntaxType;
 import scott.sort.api.specification.DefinitionsSpec;
 import scott.sort.api.specification.SpecRegistry;
 import scott.sort.build.specification.ddlgen.GenerateDatabaseScript;
+import scott.sort.build.specification.modelgen.GenerateModels;
 import scott.sort.build.specification.staticspec.processor.StaticDefinitionProcessor;
 
 /**
@@ -95,7 +96,6 @@ public class TestGenerator {
         fout.close();
     }
 
-
     @Test
     public void generateDDLForHsqldb() throws IOException {
         SpecRegistry registry = new SpecRegistry();
@@ -118,6 +118,19 @@ public class TestGenerator {
             out.write(gen.generateScript(miSpec));
             out.flush();
         }
+    }
+
+    @Test
+    public void generateModels() throws IOException {
+        SpecRegistry registry = new SpecRegistry();
+        StaticDefinitionProcessor processor = new StaticDefinitionProcessor();
+
+        DefinitionsSpec miSpec = processor.process(new MiSpec(), registry);
+
+        DefinitionsSpec macSpec = registry.getDefinitionsSpec("com.smartstream.mac");
+
+        GenerateModels generateModels = new GenerateModels();
+        generateModels.generateModels("src/test/java", miSpec);
     }
 
     @Test

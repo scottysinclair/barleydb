@@ -98,9 +98,14 @@ public class TestPersistence extends TestRemoteClientBase {
         return buildSyntax(theEntityContext);
     }
     public static XmlSyntaxModel buildSyntax(EntityContext theEntityContext) {
+
+        AccessArea root = theEntityContext.newModel(AccessArea.class);
+//        root.setName("root");
+
         XmlSyntaxModel syntaxModel = theEntityContext.newModel(XmlSyntaxModel.class);
         syntaxModel.setName("Scott's SyntaxModel");
         syntaxModel.setSyntaxType(SyntaxType.ROOT);
+
 
         User user = theEntityContext.newModel(User.class);
         user.setName("Jimmy");

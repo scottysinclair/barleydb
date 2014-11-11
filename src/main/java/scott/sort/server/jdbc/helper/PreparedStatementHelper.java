@@ -332,6 +332,8 @@ public abstract class PreparedStatementHelper<PREPARING_PERSIST_EX extends SortE
             return java.sql.Types.DATE;
         case DECIMAL:
             return java.sql.Types.DECIMAL;
+        case CHAR:
+            return java.sql.Types.CHAR;
         default:
             throw newPreparingPersistStatementException("Unsupported jdbctype " + type);
         }

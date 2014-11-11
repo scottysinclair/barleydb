@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Objects;
@@ -41,7 +42,8 @@ public class GenerateDatabaseScript {
          * @return
          */
         StringBuilder sb = new StringBuilder();
-        List<EntitySpec> entities = new ArrayList<>(definitionsSpec.getEntitySpecs());
+        List<EntitySpec> entities = new LinkedList<>(definitionsSpec.getEntitySpecs());
+
         /*
          * Abstract entities don't have all of the relations in them
          * remove them.

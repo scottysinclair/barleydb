@@ -8,7 +8,7 @@
 -- #L%
 ---
 
-insert into MAC_ACCESS_AREA (ID, NAME, MODIFIED_AT, UUID) values (1, 'Root', '2014-01-01 00:00:00.00000', 'UUID');
+insert into MAC_ACCESS_AREA (ID, NAME, MODIFIED_AT) values (1, 'Root', '2014-01-01 00:00:00.00000');
 
 insert into MAC_USER (ID, USER_NAME, MODIFIED_AT, ACCESS_AREA_ID, UUID) values (1, 'Scott', '2014-01-01 00:00:00.00000', 1, 'UUID');
 insert into MAC_USER (ID, USER_NAME, MODIFIED_AT, ACCESS_AREA_ID, UUID) values (2, 'Katerina', '2014-01-01 00:00:00.00000', 1, 'UUID');
