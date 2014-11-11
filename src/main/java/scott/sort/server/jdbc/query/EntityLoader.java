@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -249,6 +250,9 @@ final class EntityLoader {
                 case UTIL_DATE:
                     result = convertToUtilDate(value);
                     break;
+                case UUID:
+                    result = convertToUuid(value);
+                    break;
                 default:
                    throw new InvalidNodeTypeException(nd, "Java type " + javaType + " is not supported");
                }
@@ -329,6 +333,13 @@ final class EntityLoader {
         }
         if (value instanceof Long) {
             return new Date((Long)value);
+        }
+        return null;
+    }
+
+    private UUID convertToUuid(Object value) {
+        if (value instanceof String) {
+            UUID.fromString((String)value);
         }
         return null;
     }

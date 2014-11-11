@@ -84,7 +84,7 @@ public class EntityProxy implements InvocationHandler, Serializable {
 
         Node node = entity.getChild(nodeName, Node.class);
         if (node == null) {
-            throw new IllegalStateException("No such property " + nodeName);
+            throw new IllegalStateException("No such property '" + nodeName + "'");
         }
         else if (node instanceof ValueNode) {
             if (set) {

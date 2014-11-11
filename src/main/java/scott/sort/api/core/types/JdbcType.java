@@ -13,6 +13,7 @@ package scott.sort.api.core.types;
 public enum JdbcType {
     VARCHAR,
     NVARCHAR,
+    CHAR,
     BIGINT,
     INT,
     BLOB,

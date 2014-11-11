@@ -12,25 +12,16 @@ package scott.sort.api.config;
 
 import java.io.Serializable;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-
-@XmlAccessorType(XmlAccessType.FIELD)
 public class Relation implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @XmlAttribute
     private final String interfaceName;
 
-    @XmlAttribute
     private final RelationType relationType;
 
-    @XmlAttribute
     private final String foreignNodeName;
 
-    @XmlAttribute
     private final String joinProperty;
 
     public Relation(String interfaceName, RelationType relationType, String foreignNodeName, String joinProperty) {
@@ -38,6 +29,9 @@ public class Relation implements Serializable {
         this.relationType = relationType;
         this.foreignNodeName = foreignNodeName;
         this.joinProperty = joinProperty;
+        if (joinProperty != null) {
+            System.out.println("JPP!");
+        }
     }
 
     Relation copy(RelationType relationType) {

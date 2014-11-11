@@ -38,11 +38,19 @@ public class CoreSpec {
         return spec;
     }
 
-    public static NodeSpec optionalRefersTo(Class<?> type) {
+    public static NodeSpec optionallyRefersTo(Class<?> type) {
         return relation(
                 RelationType.REFERS,
                 type,
                 null,
+                Nullable.NULL);
+    }
+
+    public static NodeSpec optionallyRefersTo(Class<?> type, String columnName) {
+        return relation(
+                RelationType.REFERS,
+                type,
+                columnName,
                 Nullable.NULL);
     }
 

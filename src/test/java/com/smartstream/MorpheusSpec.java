@@ -172,8 +172,9 @@ public class MorpheusSpec extends StaticDefinitions {
     public static NodeSpec uuid() {
         NodeSpec spec = new NodeSpec();
         spec.setColumnName("UUID");
-        spec.setJavaType(JavaType.UUID);
-        spec.setJdbcType(JdbcType.TIMESTAMP);
+        spec.setJavaType(JavaType.STRING);
+        spec.setJdbcType(JdbcType.CHAR);
+        spec.setLength(60);
         spec.setNullable(Nullable.NOT_NULL);
         return spec;
     }

@@ -23,7 +23,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+import org.springframework.test.jdbc.SimpleJdbcTestUtils;
+
 import scott.sort.api.core.QueryBatcher;
 import scott.sort.api.core.entity.EntityContext;
 import scott.sort.server.jdbc.query.QueryResult;
@@ -73,7 +76,7 @@ public class TestQuery extends TestRemoteClientBase {
     @Override
     protected void prepareData() {
         super.prepareData();
-  //      SimpleJdbcTestUtils.executeSqlScript(new SimpleJdbcTemplate(dataSource), new ClassPathResource("/inserts.sql"), false);
+        SimpleJdbcTestUtils.executeSqlScript(new SimpleJdbcTemplate(dataSource), new ClassPathResource("/inserts.sql"), false);
     }
 
     @Override

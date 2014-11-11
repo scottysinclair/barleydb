@@ -164,6 +164,9 @@ public class Entity implements Serializable {
         if (child == null && mustExist) {
             throw new IllegalStateException("Node '" + name + "' must exist in entity " + entityType.getInterfaceName());
         }
+        if (!type.isAssignableFrom(child.getClass())) {
+            throw new IllegalStateException("Node '" + getEntityType().getInterfaceShortName() + "." + name + "' is not a " + type.getSimpleName());
+        }
         return child;
     }
 

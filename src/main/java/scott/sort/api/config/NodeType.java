@@ -46,6 +46,7 @@ public class NodeType implements Serializable, Cloneable {
         NodeType nodeType = new NodeType(entityType);
         nodeType.name = nodeSpec.getName();
         nodeType.javaType = nodeSpec.getJavaType();
+        System.out.println(nodeSpec.getEntity().getClassName()  + "." + nodeSpec.getName() + "  " + nodeSpec.getRelationSpec());
         if (nodeSpec.getRelationSpec() != null) {
             RelationSpec spec = nodeSpec.getRelationSpec();
             NodeSpec backReference = spec.getBackReference();

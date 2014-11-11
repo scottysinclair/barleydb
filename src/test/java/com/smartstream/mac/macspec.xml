@@ -11,7 +11,13 @@
                         <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
                             <id>com.smartstream.mac.model.AccessArea.name</id>
                         </NodeSpec>
-                        <NodeSpec name="parent" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
+                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" optimisticLock="true">
+                            <id>com.smartstream.mac.model.AccessArea.modifiedAt</id>
+                        </NodeSpec>
+                        <NodeSpec name="uuid" javaType="STRING" jdbcType="CHAR" columnName="UUID" nullable="NOT_NULL" length="60" optimisticLock="false">
+                            <id>com.smartstream.mac.model.AccessArea.uuid</id>
+                        </NodeSpec>
+                        <NodeSpec name="parent" jdbcType="BIGINT" columnName="PARENT_ID" nullable="NULL" optimisticLock="false">
                             <id>com.smartstream.mac.model.AccessArea.parent</id>
                             <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea"/>
                         </NodeSpec>
@@ -30,11 +36,11 @@
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
                             <id>com.smartstream.mac.model.User.id</id>
                         </NodeSpec>
-                        <NodeSpec name="accessArea" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
+                        <NodeSpec name="accessArea" jdbcType="BIGINT" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mac.model.User.accessArea</id>
                             <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea"/>
                         </NodeSpec>
-                        <NodeSpec name="uuid" javaType="UUID" jdbcType="TIMESTAMP" columnName="UUID" nullable="NOT_NULL" optimisticLock="false">
+                        <NodeSpec name="uuid" javaType="STRING" jdbcType="CHAR" columnName="UUID" nullable="NOT_NULL" length="60" optimisticLock="false">
                             <id>com.smartstream.mac.model.User.uuid</id>
                         </NodeSpec>
                         <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" optimisticLock="true">

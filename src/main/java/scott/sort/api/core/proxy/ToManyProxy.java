@@ -48,6 +48,9 @@ public class ToManyProxy<R> extends AbstractList<R> implements Serializable {
         if (joinProperty != null) {
             en = en.getChild(joinProperty, RefNode.class, true).getReference();
         }
+        /*
+         * TODO: detect if we have the correct kind of entity for the proxy
+         */
         return (R) toManyNode.getEntityContext().getProxy(en);
     }
 

@@ -60,7 +60,7 @@ public class TestPersistAnalyser extends TestBase {
         subSyntaxModel.setSyntaxType(SyntaxType.SUBSYNTAX);
         subSyntaxModel.setUser(user);
 
-        mapping.setSubSyntaxModel(subSyntaxModel); //cool, lets do it
+        mapping.setSubSyntax(subSyntaxModel); //cool, lets do it
 
         //add another mapping to the root level syntax
         mapping = serverEntityContext.newModel(XmlMapping.class);
@@ -157,7 +157,7 @@ public class TestPersistAnalyser extends TestBase {
         subSyntaxModel.setSyntaxType(SyntaxType.SUBSYNTAX);
         subSyntaxModel.setUser(user);
 
-        mapping.setSubSyntaxModel(subSyntaxModel); //cool, lets do it
+        mapping.setSubSyntax(subSyntaxModel); //cool, lets do it
 
         //add another mapping to the root level syntax
         mapping = serverEntityContext.newModel(XmlMapping.class);

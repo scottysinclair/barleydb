@@ -15,8 +15,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import scott.sort.api.core.util.EnvironmentAccessor;
 import scott.sort.api.specification.EntitySpec;
@@ -50,9 +51,10 @@ public class EntityType implements Serializable {
 
     private String keyNodeName;
 
-    private List<NodeType> nodeTypes = new LinkedList<NodeType>();
+    private Map<String,NodeType> nodeTypes = new HashMap<>();
 
     public static EntityType create(Definitions definitions, EntitySpec entityTypeSpec) {
+        System.out.println("Creating entity type: " + entityTypeSpec.getClassName());
         if (entityTypeSpec.getTableName() == null) {
             throw new IllegalArgumentException("Entity type must have a table name");
         }
@@ -80,7 +82,8 @@ public class EntityType implements Serializable {
             createNodeTypesFromEntitySpec(entityType, entityTypeSpec.getParentEntity());
         }
         for (NodeSpec nodeTypeSpec: entityTypeSpec.getNodeSpecs()) {
-            entityType.nodeTypes.add( NodeType.create(entityType, nodeTypeSpec) );
+            NodeType nt = NodeType.create(entityType, nodeTypeSpec);
+            entityType.nodeTypes.put(nt.getName(), nt);
         }
     }
 
@@ -96,7 +99,7 @@ public class EntityType implements Serializable {
      */
     public NodeType getNodeTypeWithRelationTo(String interfaceName) {
         NodeType result = null;
-        for (NodeType nd : nodeTypes) {
+        for (NodeType nd : nodeTypes.values()) {
             if (interfaceName.equals(nd.getRelationInterfaceName())) {
                 if (result != null) {
                     throw new IllegalStateException("More than one node definition relates to interface '" + interfaceName + "'");
@@ -144,12 +147,12 @@ public class EntityType implements Serializable {
         return getNodeType(keyNodeName, true).getColumnName();
     }
 
-    public List<NodeType> getNodeTypes() {
-        return nodeTypes;
+    public Collection<NodeType> getNodeTypes() {
+        return Collections.unmodifiableCollection(nodeTypes.values());
     }
 
     public boolean supportsOptimisticLocking() {
-        for (NodeType nd : nodeTypes) {
+        for (NodeType nd : nodeTypes.values()) {
             if (nd.isOptimisticLock()) {
                 return true;
             }
@@ -158,12 +161,11 @@ public class EntityType implements Serializable {
     }
 
     public NodeType getNodeType(String name, boolean mustExist) {
-        for (NodeType nd : nodeTypes) {
-            if (nd.getName().equals(name)) {
-                return nd;
-            }
+        NodeType nt  = nodeTypes.get(name);
+        if (nt == null && mustExist) {
+            throw new IllegalStateException("Node '" + name + "' must exist in entity '" + interfaceName);
         }
-        throw new IllegalStateException("Node '" + name + "' must exist in entity '" + interfaceName);
+        return nt;
     }
 
     public void write(ObjectOutputStream out) throws IOException {

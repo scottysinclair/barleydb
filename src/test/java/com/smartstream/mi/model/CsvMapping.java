@@ -14,15 +14,15 @@ public interface CsvMapping {
 
     Long getId();
 
-    void setSyntaxModel(CsvSyntaxModel syntaxModel);
+    void setSyntax(CsvSyntaxModel syntaxModel);
 
-    CsvSyntaxModel getSyntaxModel();
+    CsvSyntaxModel getSyntax();
 
-    void setColumnIndex(Integer column);
+    void setStructureField(CsvStructureField field);
 
-    Integer getColumnIndex();
+    CsvStructureField getStructureField();
 
     void setTarget(String target);
 
-    String getTarget();
+    String getTargetFieldName();
 }

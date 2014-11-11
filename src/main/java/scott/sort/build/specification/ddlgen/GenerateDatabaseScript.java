@@ -50,7 +50,9 @@ public class GenerateDatabaseScript {
         List<String> tableNames = toTableNames( entities );
         removeDuplicates(tableNames);
         for (String tableName: tableNames) {
-            sb.append("\ndelete from " + tableName);
+            sb.append("\ndelete from ");
+            sb.append(tableName);
+            sb.append(";");
         }
         return sb.toString();
     }
@@ -219,6 +221,10 @@ public class GenerateDatabaseScript {
                 break;
             case VARCHAR:
                 sb.append("VARCHAR");
+                generateLength(nodeSpec, sb);
+                break;
+            case CHAR:
+                sb.append("CHAR");
                 generateLength(nodeSpec, sb);
                 break;
             default:

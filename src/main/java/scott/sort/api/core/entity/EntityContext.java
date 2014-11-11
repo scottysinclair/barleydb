@@ -621,7 +621,7 @@ public class EntityContext implements Serializable {
              * then join from the join entity to the referenced entity.
              *
              * So if the ToManyNode joins from Template to TemplateDatatype and has joinPropertz "datatype"
-             * then we will make the QTemplateDatatype outer join to QDatatype so that QDatatype is automatically pulled in
+             * then we will make the QTemplateBusinessType outer join to QBusinessType so that QBusinessType is automatically pulled in
              *
              * Template.datatypes == the ToManyNode
              * TemplateDatatype.datatype == the RefNode on the "join entity"

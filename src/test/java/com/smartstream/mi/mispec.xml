@@ -11,7 +11,13 @@
                         <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
                             <id>com.smartstream.mac.model.AccessArea.name</id>
                         </NodeSpec>
-                        <NodeSpec name="parent" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
+                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" optimisticLock="true">
+                            <id>com.smartstream.mac.model.AccessArea.modifiedAt</id>
+                        </NodeSpec>
+                        <NodeSpec name="uuid" javaType="STRING" jdbcType="CHAR" columnName="UUID" nullable="NOT_NULL" length="60" optimisticLock="false">
+                            <id>com.smartstream.mac.model.AccessArea.uuid</id>
+                        </NodeSpec>
+                        <NodeSpec name="parent" jdbcType="BIGINT" columnName="PARENT_ID" nullable="NULL" optimisticLock="false">
                             <id>com.smartstream.mac.model.AccessArea.parent</id>
                             <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea"/>
                         </NodeSpec>
@@ -30,11 +36,11 @@
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
                             <id>com.smartstream.mac.model.User.id</id>
                         </NodeSpec>
-                        <NodeSpec name="accessArea" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
+                        <NodeSpec name="accessArea" jdbcType="BIGINT" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mac.model.User.accessArea</id>
                             <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea"/>
                         </NodeSpec>
-                        <NodeSpec name="uuid" javaType="UUID" jdbcType="TIMESTAMP" columnName="UUID" nullable="NOT_NULL" optimisticLock="false">
+                        <NodeSpec name="uuid" javaType="STRING" jdbcType="CHAR" columnName="UUID" nullable="NOT_NULL" length="60" optimisticLock="false">
                             <id>com.smartstream.mac.model.User.uuid</id>
                         </NodeSpec>
                         <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" optimisticLock="true">
@@ -60,11 +66,11 @@
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
                             <id>com.smartstream.mi.model.SyntaxModel.id</id>
                         </NodeSpec>
-                        <NodeSpec name="accessArea" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
+                        <NodeSpec name="accessArea" jdbcType="BIGINT" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.SyntaxModel.accessArea</id>
                             <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea"/>
                         </NodeSpec>
-                        <NodeSpec name="uuid" javaType="UUID" jdbcType="TIMESTAMP" columnName="UUID" nullable="NOT_NULL" optimisticLock="false">
+                        <NodeSpec name="uuid" javaType="STRING" jdbcType="CHAR" columnName="UUID" nullable="NOT_NULL" length="60" optimisticLock="false">
                             <id>com.smartstream.mi.model.SyntaxModel.uuid</id>
                         </NodeSpec>
                         <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" optimisticLock="true">
@@ -73,17 +79,17 @@
                         <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
                             <id>com.smartstream.mi.model.SyntaxModel.name</id>
                         </NodeSpec>
-                        <NodeSpec name="structureType" javaType="ENUM" enumType="com.smartstream.mi.types.StructureType" columnName="STRUCTURE_TYPE" nullable="NOT_NULL" optimisticLock="false">
+                        <NodeSpec name="structureType" javaType="ENUM" enumType="com.smartstream.mi.types.StructureType" jdbcType="INT" columnName="STRUCTURE_TYPE" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.SyntaxModel.structureType</id>
                         </NodeSpec>
-                        <NodeSpec name="syntaxType" javaType="ENUM" enumType="com.smartstream.mi.types.SyntaxType" columnName="SYNTAX_TYPE" nullable="NOT_NULL" optimisticLock="false">
+                        <NodeSpec name="syntaxType" javaType="ENUM" enumType="com.smartstream.mi.types.SyntaxType" jdbcType="INT" columnName="SYNTAX_TYPE" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.SyntaxModel.syntaxType</id>
                         </NodeSpec>
-                        <NodeSpec name="user" columnName="USER_ID" nullable="NULL" optimisticLock="false">
+                        <NodeSpec name="user" jdbcType="BIGINT" columnName="USER_ID" nullable="NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.SyntaxModel.user</id>
                             <relation type="REFERS" entitySpec="com.smartstream.mac.model.User"/>
                         </NodeSpec>
-                        <NodeSpec name="structure" javaType="LONG" jdbcType="BIGINT" columnName="STRUCTURE_ID" optimisticLock="false">
+                        <NodeSpec name="structure" javaType="LONG" jdbcType="BIGINT" columnName="STRUCTURE_ID" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.SyntaxModel.structure</id>
                         </NodeSpec>
                     </NodeSpecs>
@@ -97,11 +103,11 @@
                 <EntitySpec className="com.smartstream.mi.model.XmlSyntaxModel" tableName="SS_SYNTAX_MODEL" abstract="false">
                     <parent>com.smartstream.mi.model.SyntaxModel</parent>
                     <NodeSpecs>
-                        <NodeSpec name="structureType" javaType="ENUM" enumType="com.smartstream.mi.types.StructureType" columnName="STRUCTURE_TYPE" nullable="NOT_NULL" optimisticLock="false">
+                        <NodeSpec name="structureType" javaType="ENUM" enumType="com.smartstream.mi.types.StructureType" jdbcType="INT" columnName="STRUCTURE_TYPE" nullable="NOT_NULL" optimisticLock="false">
                             <fixedValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="structureType">XML</fixedValue>
                             <id>com.smartstream.mi.model.XmlSyntaxModel.structureType</id>
                         </NodeSpec>
-                        <NodeSpec name="structure" columnName="STRUCTURE_ID" nullable="NOT_NULL" optimisticLock="false">
+                        <NodeSpec name="structure" jdbcType="BIGINT" columnName="STRUCTURE_ID" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.XmlSyntaxModel.structure</id>
                             <relation type="DEPENDS" entitySpec="com.smartstream.mi.model.XmlStructure"/>
                         </NodeSpec>
@@ -117,11 +123,11 @@
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
                             <id>com.smartstream.mi.model.XmlStructure.id</id>
                         </NodeSpec>
-                        <NodeSpec name="accessArea" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
+                        <NodeSpec name="accessArea" jdbcType="BIGINT" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.XmlStructure.accessArea</id>
                             <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea"/>
                         </NodeSpec>
-                        <NodeSpec name="uuid" javaType="UUID" jdbcType="TIMESTAMP" columnName="UUID" nullable="NOT_NULL" optimisticLock="false">
+                        <NodeSpec name="uuid" javaType="STRING" jdbcType="CHAR" columnName="UUID" nullable="NOT_NULL" length="60" optimisticLock="false">
                             <id>com.smartstream.mi.model.XmlStructure.uuid</id>
                         </NodeSpec>
                         <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" optimisticLock="true">
@@ -142,11 +148,11 @@
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
                             <id>com.smartstream.mi.model.XmlMapping.id</id>
                         </NodeSpec>
-                        <NodeSpec name="syntax" columnName="SYNTAX_MODEL_ID" nullable="NOT_NULL" optimisticLock="false">
+                        <NodeSpec name="syntax" jdbcType="BIGINT" columnName="SYNTAX_MODEL_ID" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.XmlMapping.syntax</id>
                             <relation type="REFERS" entitySpec="com.smartstream.mi.model.XmlSyntaxModel"/>
                         </NodeSpec>
-                        <NodeSpec name="subSyntax" columnName="SUB_SYNTAX_ID" nullable="NULL" optimisticLock="false">
+                        <NodeSpec name="subSyntax" jdbcType="BIGINT" columnName="SUB_SYNTAX_ID" nullable="NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.XmlMapping.subSyntax</id>
                             <relation type="OWNS" entitySpec="com.smartstream.mi.model.XmlSyntaxModel"/>
                         </NodeSpec>
@@ -160,17 +166,17 @@
                     <Constraints>
                         <PrimaryKey name="PK_XML_MAPPING" nodes="com.smartstream.mi.model.XmlMapping.id"/>
                         <ForeignKey name="FK_XML_MAPPING_SYNTAX_MODEL" fromKey="com.smartstream.mi.model.XmlMapping.syntax" toKey="com.smartstream.mi.model.SyntaxModel.id"/>
-                        <ForeignKey name="FK_XML_MAPPING_SYNTAX_MODEL" fromKey="com.smartstream.mi.model.XmlMapping.subSyntax" toKey="com.smartstream.mi.model.SyntaxModel.id"/>
+                        <ForeignKey name="FK_XML_MAPPING_SUBSYNTAX_MODEL" fromKey="com.smartstream.mi.model.XmlMapping.subSyntax" toKey="com.smartstream.mi.model.SyntaxModel.id"/>
                     </Constraints>
                 </EntitySpec>
                 <EntitySpec className="com.smartstream.mi.model.CsvSyntaxModel" tableName="SS_SYNTAX_MODEL" abstract="false">
                     <parent>com.smartstream.mi.model.SyntaxModel</parent>
                     <NodeSpecs>
-                        <NodeSpec name="structureType" javaType="ENUM" enumType="com.smartstream.mi.types.StructureType" columnName="STRUCTURE_TYPE" nullable="NOT_NULL" optimisticLock="false">
+                        <NodeSpec name="structureType" javaType="ENUM" enumType="com.smartstream.mi.types.StructureType" jdbcType="INT" columnName="STRUCTURE_TYPE" nullable="NOT_NULL" optimisticLock="false">
                             <fixedValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="structureType">CSV</fixedValue>
                             <id>com.smartstream.mi.model.CsvSyntaxModel.structureType</id>
                         </NodeSpec>
-                        <NodeSpec name="structure" columnName="STRUCTURE_ID" nullable="NOT_NULL" optimisticLock="false">
+                        <NodeSpec name="structure" jdbcType="BIGINT" columnName="STRUCTURE_ID" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.CsvSyntaxModel.structure</id>
                             <relation type="DEPENDS" entitySpec="com.smartstream.mi.model.CsvStructure"/>
                         </NodeSpec>
@@ -186,11 +192,11 @@
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
                             <id>com.smartstream.mi.model.CsvStructure.id</id>
                         </NodeSpec>
-                        <NodeSpec name="accessArea" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
+                        <NodeSpec name="accessArea" jdbcType="BIGINT" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.CsvStructure.accessArea</id>
                             <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea"/>
                         </NodeSpec>
-                        <NodeSpec name="uuid" javaType="UUID" jdbcType="TIMESTAMP" columnName="UUID" nullable="NOT_NULL" optimisticLock="false">
+                        <NodeSpec name="uuid" javaType="STRING" jdbcType="CHAR" columnName="UUID" nullable="NOT_NULL" length="60" optimisticLock="false">
                             <id>com.smartstream.mi.model.CsvStructure.uuid</id>
                         </NodeSpec>
                         <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" optimisticLock="true">
@@ -198,6 +204,9 @@
                         </NodeSpec>
                         <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
                             <id>com.smartstream.mi.model.CsvStructure.name</id>
+                        </NodeSpec>
+                        <NodeSpec name="headerBasedMapping" javaType="BOOLEAN" jdbcType="INT" columnName="HEADER_BASED_MAPPING" nullable="NOT_NULL" optimisticLock="false">
+                            <id>com.smartstream.mi.model.CsvStructure.headerBasedMapping</id>
                         </NodeSpec>
                         <NodeSpec name="fields" optimisticLock="false">
                             <id>com.smartstream.mi.model.CsvStructure.fields</id>
@@ -218,14 +227,14 @@
                         <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NULL" length="50" optimisticLock="false">
                             <id>com.smartstream.mi.model.CsvStructureField.name</id>
                         </NodeSpec>
-                        <NodeSpec name="structure" columnName="CSVSTRUCTURE_ID" nullable="NOT_NULL" optimisticLock="false">
+                        <NodeSpec name="structure" jdbcType="BIGINT" columnName="CSVSTRUCTURE_ID" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.CsvStructureField.structure</id>
                             <relation type="REFERS" entitySpec="com.smartstream.mi.model.CsvStructure"/>
                         </NodeSpec>
-                        <NodeSpec name="columnIndex" javaType="INTEGER" jdbcType="INT" columnName="COLUMN_INDEX" optimisticLock="false">
+                        <NodeSpec name="columnIndex" javaType="INTEGER" jdbcType="INT" columnName="COLUMN_INDEX" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.CsvStructureField.columnIndex</id>
                         </NodeSpec>
-                        <NodeSpec name="optional" javaType="BOOLEAN" jdbcType="INT" columnName="OPTIONAL" optimisticLock="false">
+                        <NodeSpec name="optional" javaType="BOOLEAN" jdbcType="INT" columnName="OPTIONAL" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.CsvStructureField.optional</id>
                         </NodeSpec>
                     </NodeSpecs>
@@ -239,12 +248,13 @@
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
                             <id>com.smartstream.mi.model.CsvMapping.id</id>
                         </NodeSpec>
-                        <NodeSpec name="syntax" columnName="SYNTAX_MODEL_ID" nullable="NOT_NULL" optimisticLock="false">
+                        <NodeSpec name="syntax" jdbcType="BIGINT" columnName="SYNTAX_MODEL_ID" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.CsvMapping.syntax</id>
                             <relation type="REFERS" entitySpec="com.smartstream.mi.model.CsvSyntaxModel"/>
                         </NodeSpec>
-                        <NodeSpec name="columnIndex" javaType="INTEGER" jdbcType="INT" columnName="COLUMN_INDEX" optimisticLock="false">
-                            <id>com.smartstream.mi.model.CsvMapping.columnIndex</id>
+                        <NodeSpec name="structureField" jdbcType="BIGINT" columnName="CSVSTRUCTURE_FIELD_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>com.smartstream.mi.model.CsvMapping.structureField</id>
+                            <relation type="REFERS" entitySpec="com.smartstream.mi.model.CsvStructureField"/>
                         </NodeSpec>
                         <NodeSpec name="targetFieldName" javaType="STRING" jdbcType="VARCHAR" columnName="TARGET_FIELD_NAME" nullable="NULL" length="150" optimisticLock="false">
                             <id>com.smartstream.mi.model.CsvMapping.targetFieldName</id>
@@ -253,6 +263,7 @@
                     <Constraints>
                         <PrimaryKey name="PK_CSV_MAPPING" nodes="com.smartstream.mi.model.CsvMapping.id"/>
                         <ForeignKey name="FK_CSV_MAPPING_SYNTAX_MODEL" fromKey="com.smartstream.mi.model.CsvMapping.syntax" toKey="com.smartstream.mi.model.SyntaxModel.id"/>
+                        <ForeignKey name="FK_CSV_MAPPING_CSVSTRUCTURE_FIELD" fromKey="com.smartstream.mi.model.CsvMapping.structureField" toKey="com.smartstream.mi.model.CsvStructureField.id"/>
                     </Constraints>
                 </EntitySpec>
                 <EntitySpec className="com.smartstream.mi.model.Template" tableName="SS_TEMPLATE" abstract="false">
@@ -260,11 +271,11 @@
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
                             <id>com.smartstream.mi.model.Template.id</id>
                         </NodeSpec>
-                        <NodeSpec name="accessArea" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
+                        <NodeSpec name="accessArea" jdbcType="BIGINT" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.Template.accessArea</id>
                             <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea"/>
                         </NodeSpec>
-                        <NodeSpec name="uuid" javaType="UUID" jdbcType="TIMESTAMP" columnName="UUID" nullable="NOT_NULL" optimisticLock="false">
+                        <NodeSpec name="uuid" javaType="STRING" jdbcType="CHAR" columnName="UUID" nullable="NOT_NULL" length="60" optimisticLock="false">
                             <id>com.smartstream.mi.model.Template.uuid</id>
                         </NodeSpec>
                         <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" optimisticLock="true">
@@ -279,7 +290,7 @@
                         </NodeSpec>
                         <NodeSpec name="businessTypes" optimisticLock="false">
                             <id>com.smartstream.mi.model.Template.businessTypes</id>
-                            <relation type="OWNS" entitySpec="com.smartstream.mi.model.TemplateBusinessType" backReference="com.smartstream.mi.model.TemplateBusinessType.template"/>
+                            <relation type="OWNS" entitySpec="com.smartstream.mi.model.TemplateBusinessType" backReference="com.smartstream.mi.model.TemplateBusinessType.template" ownwardJoin="com.smartstream.mi.model.TemplateBusinessType.businessType"/>
                         </NodeSpec>
                     </NodeSpecs>
                     <Constraints>
@@ -299,13 +310,9 @@
                         <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" optimisticLock="true">
                             <id>com.smartstream.mi.model.TemplateContent.modifiedAt</id>
                         </NodeSpec>
-                        <NodeSpec name="template" columnName="TEMPLATE_ID" nullable="NOT_NULL" optimisticLock="false">
+                        <NodeSpec name="template" jdbcType="BIGINT" columnName="TEMPLATE_ID" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.TemplateContent.template</id>
                             <relation type="REFERS" entitySpec="com.smartstream.mi.model.Template"/>
-                        </NodeSpec>
-                        <NodeSpec name="businessTypes" optimisticLock="false">
-                            <id>com.smartstream.mi.model.TemplateContent.businessTypes</id>
-                            <relation type="OWNS" entitySpec="com.smartstream.mi.model.TemplateBusinessType" backReference="com.smartstream.mi.model.TemplateBusinessType.template"/>
                         </NodeSpec>
                     </NodeSpecs>
                     <Constraints>
@@ -318,11 +325,11 @@
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
                             <id>com.smartstream.mi.model.BusinessType.id</id>
                         </NodeSpec>
-                        <NodeSpec name="accessArea" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
+                        <NodeSpec name="accessArea" jdbcType="BIGINT" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.BusinessType.accessArea</id>
                             <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea"/>
                         </NodeSpec>
-                        <NodeSpec name="uuid" javaType="UUID" jdbcType="TIMESTAMP" columnName="UUID" nullable="NOT_NULL" optimisticLock="false">
+                        <NodeSpec name="uuid" javaType="STRING" jdbcType="CHAR" columnName="UUID" nullable="NOT_NULL" length="60" optimisticLock="false">
                             <id>com.smartstream.mi.model.BusinessType.uuid</id>
                         </NodeSpec>
                         <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" optimisticLock="true">
@@ -343,11 +350,11 @@
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
                             <id>com.smartstream.mi.model.TemplateBusinessType.id</id>
                         </NodeSpec>
-                        <NodeSpec name="template" columnName="TEMPLATE_ID" nullable="NOT_NULL" optimisticLock="false">
+                        <NodeSpec name="template" jdbcType="BIGINT" columnName="TEMPLATE_ID" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.TemplateBusinessType.template</id>
                             <relation type="REFERS" entitySpec="com.smartstream.mi.model.Template"/>
                         </NodeSpec>
-                        <NodeSpec name="businessType" columnName="DATATYPE_ID" nullable="NOT_NULL" optimisticLock="false">
+                        <NodeSpec name="businessType" jdbcType="BIGINT" columnName="DATATYPE_ID" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.TemplateBusinessType.businessType</id>
                             <relation type="REFERS" entitySpec="com.smartstream.mi.model.BusinessType"/>
                         </NodeSpec>

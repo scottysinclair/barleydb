@@ -30,10 +30,10 @@ public class XmlMapping extends AbstractCustomEntityProxy {
     public XmlMapping(Entity entity) {
         super(entity);
         id = entity.getChild("id", ValueNode.class, true);
-        subSyntaxModel = new RefNodeProxyHelper(entity.getChild("subSyntaxModel", RefNode.class, true));
-        target = entity.getChild("target", ValueNode.class, true);
+        subSyntaxModel = new RefNodeProxyHelper(entity.getChild("subSyntax", RefNode.class, true));
+        target = entity.getChild("targetFieldName", ValueNode.class, true);
         xpath = entity.getChild("xpath", ValueNode.class, true);
-        syntaxModel = new RefNodeProxyHelper(entity.getChild("syntaxModel", RefNode.class, true));
+        syntaxModel = new RefNodeProxyHelper(entity.getChild("syntax", RefNode.class, true));
     }
 
     public Long getId() {
@@ -44,11 +44,11 @@ public class XmlMapping extends AbstractCustomEntityProxy {
         setToRefNode(this.syntaxModel.refNode, syntaxModel);
     }
 
-    public XmlSyntaxModel getSyntaxModel() {
+    public XmlSyntaxModel getSyntax() {
         return getFromRefNode(syntaxModel.refNode);
     }
 
-    public void setSubSyntaxModel(XmlSyntaxModel syntaxModel) {
+    public void setSubSyntax(XmlSyntaxModel syntaxModel) {
         setToRefNode(this.subSyntaxModel.refNode, syntaxModel);
     }
 
@@ -68,7 +68,7 @@ public class XmlMapping extends AbstractCustomEntityProxy {
         this.target.setValue(target);
     }
 
-    public String getTarget() {
+    public String getTargetFieldName() {
         return target.getValue();
     }
 

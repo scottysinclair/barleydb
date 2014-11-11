@@ -10,7 +10,7 @@ package com.smartstream.mi.model;
  * #L%
  */
 
-public interface Datatype {
+public interface BusinessType {
     Long getId();
 
     String getName();

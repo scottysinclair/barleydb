@@ -2,7 +2,7 @@ package com.smartstream.mi;
 
 import static scott.sort.api.specification.CoreSpec.dependsOn;
 import static scott.sort.api.specification.CoreSpec.mandatoryRefersTo;
-import static scott.sort.api.specification.CoreSpec.optionalRefersTo;
+import static scott.sort.api.specification.CoreSpec.optionallyRefersTo;
 import static scott.sort.api.specification.CoreSpec.optionallyOwns;
 import static scott.sort.api.specification.CoreSpec.ownsMany;
 
@@ -68,7 +68,7 @@ public class MiSpec extends MorpheusSpec {
 
         public static final NodeSpec syntaxType = mandatoryEnum(SyntaxType.class);
 
-        public static final NodeSpec user = optionalRefersTo(User.class);
+        public static final NodeSpec user = optionallyRefersTo(User.class);
 
         public static final NodeSpec structure = mandatoryLongValue("STRUCTURE_ID");
     }
@@ -151,7 +151,7 @@ public class MiSpec extends MorpheusSpec {
 
         public static final NodeSpec contents = ownsMany(TemplateContent.class, TemplateContent.template);
 
-        public static final NodeSpec businessTypes = ownsMany(TemplateBusinessType.class, TemplateBusinessType.template);
+        public static final NodeSpec businessTypes = ownsMany(TemplateBusinessType.class, TemplateBusinessType.template, TemplateBusinessType.businessType);
     }
 
     @Entity("SS_TEMPLATE_CONTENT")
@@ -164,8 +164,6 @@ public class MiSpec extends MorpheusSpec {
         public static final NodeSpec modifiedAt = optimisticLock();
 
         public static final NodeSpec template = mandatoryRefersTo(Template.class);
-
-        public static final NodeSpec businessTypes = ownsMany(TemplateBusinessType.class, TemplateBusinessType.template, TemplateBusinessType.businessType);
     }
 
     @Entity("SS_TEMPLATE_DATATYPE")

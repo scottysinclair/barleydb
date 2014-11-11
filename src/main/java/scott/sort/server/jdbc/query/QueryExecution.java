@@ -129,7 +129,9 @@ public class QueryExecution<T> {
     }
 
     private void downcastEntity(Entity entity) throws IllegalQueryStateException  {
+        LOG.debug("Downcasting entity {}", entity);
         List<EntityType> candidateChildTypes = definitions.getEntityTypesExtending(entity.getEntityType());
+        LOG.debug("Found candidate types for downcast {}", candidateChildTypes);
         EntityType entityType = null;
         for (EntityType et : candidateChildTypes) {
             if (canDowncastEntity(entity, et)) {
@@ -160,8 +162,12 @@ public class QueryExecution<T> {
             if (fv != null) {
                 fvFound++;
                 final ValueNode node = entity.getChild(nd.getName(), ValueNode.class, false);
-                if (node != null && fv.equals(node.getValue())) {
-                    fvMatch++;
+                if (node != null) {
+                    LOG.debug("Looking for matching fixed value {} in candidate types",node.getValue());
+                    if (fv.equals(node.getValue())) {
+                        LOG.debug("Found matching fixed value for downcast {}", node.getValue());
+                        fvMatch++;
+                    }
                 }
             }
         }

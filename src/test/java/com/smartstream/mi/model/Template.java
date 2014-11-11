@@ -21,5 +21,5 @@ public interface Template {
 
     List<TemplateContent> getContents();
 
-    List<Datatype> getDatatypes();
+    List<BusinessType> getBusinessTypes();
 }

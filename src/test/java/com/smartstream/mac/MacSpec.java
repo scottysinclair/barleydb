@@ -1,6 +1,7 @@
 package com.smartstream.mac;
 
 import static scott.sort.api.specification.CoreSpec.mandatoryRefersTo;
+import static scott.sort.api.specification.CoreSpec.optionallyRefersTo;
 import static scott.sort.api.specification.CoreSpec.uniqueConstraint;
 import static scott.sort.api.specification.CoreSpec.refersToMany;
 
@@ -22,11 +23,14 @@ public class MacSpec extends MorpheusSpec {
 
         public static NodeSpec name = name();
 
-        public static NodeSpec parent = mandatoryRefersTo(AccessArea.class);
+        public static NodeSpec modifiedAt = optimisticLock();
+
+        public static NodeSpec uuid = uuid();
+
+        public static NodeSpec parent = optionallyRefersTo(AccessArea.class, "PARENT_ID");
 
         public static NodeSpec children =  refersToMany(AccessArea.class, AccessArea.parent);
 
-        public static NodeSpec uuid = uuid();
     }
 
     @Entity("MAC_USER")

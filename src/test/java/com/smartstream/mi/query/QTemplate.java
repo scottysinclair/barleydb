@@ -33,10 +33,10 @@ public class QTemplate extends QueryObject<Template> {
         return content;
     }
 
-    public QDatatype joinToDatatype() {
-        QTemplateDatatype dt = new QTemplateDatatype();
-        addLeftOuterJoin(dt, "datatypes");
-        return dt.joinToDatatype();
+    public QBusinessType joinToDatatype() {
+        QTemplateBusinessType dt = new QTemplateBusinessType();
+        addLeftOuterJoin(dt, "businessTypes");
+        return dt.joinToBusinessType();
     }
 
 }

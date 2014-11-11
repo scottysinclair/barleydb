@@ -63,7 +63,7 @@ import com.smartstream.mi.model.CsvMapping;
 import com.smartstream.mi.model.CsvStructure;
 import com.smartstream.mi.model.CsvStructureField;
 import com.smartstream.mi.model.CsvSyntaxModel;
-import com.smartstream.mi.model.Datatype;
+import com.smartstream.mi.model.BusinessType;
 import com.smartstream.mi.model.MiProxyFactory;
 import com.smartstream.mi.model.SyntaxModel;
 import com.smartstream.mi.model.Template;
@@ -75,10 +75,10 @@ import com.smartstream.mi.query.QCsvMapping;
 import com.smartstream.mi.query.QCsvStructure;
 import com.smartstream.mi.query.QCsvStructureField;
 import com.smartstream.mi.query.QCsvSyntaxModel;
-import com.smartstream.mi.query.QDatatype;
+import com.smartstream.mi.query.QBusinessType;
 import com.smartstream.mi.query.QTemplate;
 import com.smartstream.mi.query.QTemplateContent;
-import com.smartstream.mi.query.QTemplateDatatype;
+import com.smartstream.mi.query.QTemplateBusinessType;
 import com.smartstream.mi.query.QXMLMapping;
 import com.smartstream.mi.query.QXMLStructure;
 import com.smartstream.mi.query.QXMLSyntaxModel;
@@ -99,7 +99,7 @@ public abstract class TestBase {
     protected boolean autoCommitMode = false;
 
     protected void prepareData() {
-        //SimpleJdbcTestUtils.executeSqlScript(new SimpleJdbcTemplate(dataSource), new ClassPathResource("/clean.sql"), false);
+        SimpleJdbcTestUtils.executeSqlScript(new SimpleJdbcTemplate(dataSource), new ClassPathResource("/clean.sql"), false);
     }
 
     private void initDb() {
@@ -178,8 +178,8 @@ public abstract class TestBase {
                 new QCsvMapping(),
                 new QTemplate(),
                 new QTemplateContent(),
-                new QTemplateDatatype(),
-                new QDatatype());
+                new QTemplateBusinessType(),
+                new QBusinessType());
 
         env.getDefinitions("com.smartstream.mi").registerProxyFactory(new MiProxyFactory());
     }
@@ -247,8 +247,8 @@ public abstract class TestBase {
                 print(prefix + "  ", tc);
             }
         }
-        if (template.getDatatypes() != null) {
-            for (Datatype dt : template.getDatatypes()) {
+        if (template.getBusinessTypes() != null) {
+            for (BusinessType dt : template.getBusinessTypes()) {
                 print(prefix + "  ", dt);
             }
         }
@@ -310,9 +310,9 @@ public abstract class TestBase {
         System.out.println(prefix + "Content Name " + tc.getName());
     }
 
-    protected static void print(String prefix, Datatype datatype) {
-        System.out.println(prefix + "Datatype Id   " + datatype.getId());
-        System.out.println(prefix + "Datatype Name " + datatype.getName());
+    protected static void print(String prefix, BusinessType datatype) {
+        System.out.println(prefix + "BusinessType Id   " + datatype.getId());
+        System.out.println(prefix + "BusinessType Name " + datatype.getName());
     }
 
     protected static void print(String prefix, SyntaxModel syntaxModel) {
@@ -387,16 +387,16 @@ public abstract class TestBase {
 
     protected static void print(String prefix, CsvMapping mapping) {
         System.out.println(prefix + "Mapping Id      " + mapping.getId());
-        System.out.println(prefix + "Mapping Column   " + mapping.getColumnIndex());
-        System.out.println(prefix + "Mapping Target  " + mapping.getTarget());
-        System.out.println(prefix + "Mapping SyntaxModel  " + mapping.getSyntaxModel().getId());
+        System.out.println(prefix + "Mapping Column   " + mapping.getStructureField().getColumnIndex());
+        System.out.println(prefix + "Mapping Target  " + mapping.getTargetFieldName());
+        System.out.println(prefix + "Mapping SyntaxModel  " + mapping.getSyntax().getId());
     }
 
     protected static void print(String prefix, XmlMapping mapping) {
         System.out.println(prefix + "Mapping Id      " + mapping.getId());
         System.out.println(prefix + "Mapping XPath   " + mapping.getXpath());
-        System.out.println(prefix + "Mapping Target  " + mapping.getTarget());
-        System.out.println(prefix + "Mapping SyntaxModel  " + mapping.getSyntaxModel().getId());
+        System.out.println(prefix + "Mapping Target  " + mapping.getTargetFieldName());
+        System.out.println(prefix + "Mapping SyntaxModel  " + mapping.getSyntax().getId());
         if (mapping.getSubSyntaxModel() != null) {
             XmlSyntaxModel sub = mapping.getSubSyntaxModel();
             if (sub != null) {

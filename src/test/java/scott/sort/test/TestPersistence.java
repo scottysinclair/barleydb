@@ -44,7 +44,7 @@ import com.smartstream.mac.model.AccessArea;
 import com.smartstream.mac.model.User;
 import com.smartstream.mac.query.QAccessArea;
 import com.smartstream.mi.context.MiEntityContext;
-import com.smartstream.mi.model.Datatype;
+import com.smartstream.mi.model.BusinessType;
 import com.smartstream.mi.model.Template;
 import com.smartstream.mi.model.TemplateContent;
 import com.smartstream.mi.model.XmlMapping;
@@ -130,7 +130,7 @@ public class TestPersistence extends TestRemoteClientBase {
         subSyntaxModel.setSyntaxType(SyntaxType.SUBSYNTAX);
         subSyntaxModel.setUser(user);
 
-        mapping.setSubSyntaxModel(subSyntaxModel); //set the subsyntax on the mapping
+        mapping.setSubSyntax(subSyntaxModel); //set the subsyntax on the mapping
 
         //add another mapping to the root level syntax
         mapping = theEntityContext.newModel(XmlMapping.class);
@@ -645,15 +645,15 @@ public class TestPersistence extends TestRemoteClientBase {
             content.setTemplate(template);
             template.getContents().add(content);
 
-            Datatype datatype = theEntityContext.newModel(Datatype.class);
+            BusinessType datatype = theEntityContext.newModel(BusinessType.class);
             datatype.setName("test-datatype-1");
             //todo: setting not required in both directions (set + add)
-            template.getDatatypes().add(datatype);
+            template.getBusinessTypes().add(datatype);
 
-            datatype = theEntityContext.newModel(Datatype.class);
+            datatype = theEntityContext.newModel(BusinessType.class);
             datatype.setName("test-datatype-2");
             //todo: setting not required in both directions (set + add)
-            template.getDatatypes().add(datatype);
+            template.getBusinessTypes().add(datatype);
 
             theEntityContext.persist(new PersistRequest().save(template));
 
@@ -663,8 +663,8 @@ public class TestPersistence extends TestRemoteClientBase {
             System.out.println("===================  NOOP PERSIST =================");
             theEntityContext.persist(new PersistRequest()
                     .save(template)
-                    .save(template.getDatatypes().get(0))
-                    .save(template.getDatatypes().get(1)));
+                    .save(template.getBusinessTypes().get(0))
+                    .save(template.getBusinessTypes().get(1)));
             System.out.println("===================  NOOP PERSIST =================");
 
             QTemplate qtemplate = new QTemplate();
@@ -713,8 +713,8 @@ public class TestPersistence extends TestRemoteClientBase {
         System.out.println("===================  DELETE  =================");
         theEntityContext.persist(new PersistRequest()
                 .delete(template)
-                .delete(template.getDatatypes().get(0))
-                .delete(template.getDatatypes().get(1))
+                .delete(template.getBusinessTypes().get(0))
+                .delete(template.getBusinessTypes().get(1))
                 );
 
     }
@@ -733,15 +733,15 @@ public class TestPersistence extends TestRemoteClientBase {
         System.out.println("===================  LOAD DATA FOR USER 2 =================");
         EntityContext ctx2 = new MiEntityContext(env);
         Template template2 = ctx2.performQuery(qtemplate).getSingleResult();
-        template2.getDatatypes().get(0).setName("updated-name");
-        ctx2.persist(new PersistRequest().save(template2.getDatatypes().get(0)));
+        template2.getBusinessTypes().get(0).setName("updated-name");
+        ctx2.persist(new PersistRequest().save(template2.getBusinessTypes().get(0)));
 
         System.out.println("===================  SAVE WHICH FAILS  =================");
         try {
             template.setName(template.getName() + "-updated");
             theEntityContext.persist(new PersistRequest().save(template));
         } catch (OptimisticLockMismatchException x) {
-            assertEquals(template.getDatatypes().get(0).getId(), x.getEntity().getKey().getValue());
+            assertEquals(template.getBusinessTypes().get(0).getId(), x.getEntity().getKey().getValue());
         }
 
     }
