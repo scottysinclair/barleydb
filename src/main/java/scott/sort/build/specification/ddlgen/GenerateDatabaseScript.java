@@ -1,6 +1,14 @@
 package scott.sort.build.specification.ddlgen;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.Objects;
+import java.util.Set;
 
 import scott.sort.api.specification.DefinitionsSpec;
 import scott.sort.api.specification.EntitySpec;
@@ -24,6 +32,52 @@ public class GenerateDatabaseScript {
         }
         return sb.toString();
     }
+
+    public String generateCleanScript(DefinitionsSpec definitionsSpec) {
+        /*
+         * TODO: we should build a proper dependency tree.
+         *
+         * @param definitionsSpec
+         * @return
+         */
+        StringBuilder sb = new StringBuilder();
+        List<EntitySpec> entities = new ArrayList<>(definitionsSpec.getEntitySpecs());
+        /*
+         * Abstract entities don't have all of the relations in them
+         * remove them.
+         */
+        Collections.sort(entities, new DependencyComparator());
+        List<String> tableNames = toTableNames( entities );
+        removeDuplicates(tableNames);
+        for (String tableName: tableNames) {
+            sb.append("\ndelete from " + tableName);
+        }
+        return sb.toString();
+    }
+
+    private List<String> toTableNames(List<EntitySpec> entitySpecs) {
+        List<String> tableNames = new ArrayList<>(entitySpecs.size());
+        for (EntitySpec es: entitySpecs) {
+            tableNames.add( es.getTableName() );
+        }
+        return tableNames;
+
+    }
+
+    private void removeDuplicates(List<String> tableNames) {
+        Set<String> namesSet = new HashSet<>();
+        List<String> namesList = new ArrayList<String>();
+        for (ListIterator<String> i = tableNames.listIterator(tableNames.size()); i.hasPrevious();) {
+            String name = i.previous();
+            if (namesSet.add( name )) {
+                namesList.add(name);
+            }
+        }
+        Collections.reverse(namesList);
+        tableNames.clear();
+        tableNames.addAll(namesList);
+    }
+
 
     private void generateCreateTable(EntitySpec entitySpec, StringBuilder sb) {
         if (entitySpec.getParentEntity() != null) {
@@ -58,6 +112,42 @@ public class GenerateDatabaseScript {
             sb.append(" primary key (");
             sb.append(pkSpec.getNodes().iterator().next().getColumnName());
             sb.append(");");
+        }
+    }
+
+    private static class DependencyComparator implements Comparator<EntitySpec> {
+        @Override
+        public int compare(EntitySpec o1, EntitySpec o2) {
+            if (dependsOn(o1, o2)) {
+                return -1;
+            }
+            else if (dependsOn(o2, o1)) {
+                return 1;
+            }
+            return 0;
+        }
+
+        private boolean dependsOn(EntitySpec e1, EntitySpec e2) {
+            for (EntitySpec dep: getDependentEntitySpecs(e1)) {
+                if (dep == e2) {
+                    return true;
+                }
+                if (dependsOn(dep, e2)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        private Collection<EntitySpec> getDependentEntitySpecs(EntitySpec spec) {
+            Collection<EntitySpec> result = new HashSet<EntitySpec>();
+            for (NodeSpec nodeSpec: spec.getNodeSpecs()) {
+                if (nodeSpec.getRelationSpec() != null && nodeSpec.getRelationSpec().isForeignKeyRelation()) {
+                    if (nodeSpec.getRelationSpec().getEntitySpec() != spec) {
+                        result.add( nodeSpec.getRelationSpec().getEntitySpec() );
+                    }
+                }
+            }
+            return result;
         }
     }
 
