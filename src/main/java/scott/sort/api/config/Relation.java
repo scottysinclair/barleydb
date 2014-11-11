@@ -62,7 +62,7 @@ public class Relation implements Serializable {
 
     @Override
     public String toString() {
-        return "Relation [interfaceName=" + interfaceName + ", relationType="
+        return "StaticRelation [interfaceName=" + interfaceName + ", relationType="
                 + relationType + ", foreignNodeName=" + foreignNodeName
                 + ", joinProperty=" + joinProperty + "]";
     }

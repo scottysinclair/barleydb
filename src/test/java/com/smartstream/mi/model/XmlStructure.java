@@ -10,6 +10,6 @@ package com.smartstream.mi.model;
  * #L%
  */
 
-public interface XMLStructure extends Structure {
+public interface XmlStructure extends Structure {
 
 }

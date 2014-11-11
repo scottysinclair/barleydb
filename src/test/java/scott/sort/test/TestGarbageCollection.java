@@ -19,7 +19,7 @@ import scott.sort.api.exception.execution.persist.SortPersistException;
 import scott.sort.api.persist.PersistRequest;
 import scott.sort.server.jdbc.query.QueryResult;
 
-import com.smartstream.mi.model.XMLSyntaxModel;
+import com.smartstream.mi.model.XmlSyntaxModel;
 import com.smartstream.mi.query.QXMLSyntaxModel;
 
 /**
@@ -40,9 +40,9 @@ public class TestGarbageCollection extends TestBase {
 
         serverEntityContext.clear();
 
-        QueryResult<XMLSyntaxModel> result = serverEntityContext.performQuery(new QXMLSyntaxModel());
+        QueryResult<XmlSyntaxModel> result = serverEntityContext.performQuery(new QXMLSyntaxModel());
         Collection<UUID> uuids = new LinkedList<>();
-        for (XMLSyntaxModel syn: result.getList()) {
+        for (XmlSyntaxModel syn: result.getList()) {
             uuids.add(syn.getEntity().getUuid());
         }
 
@@ -63,7 +63,7 @@ public class TestGarbageCollection extends TestBase {
 
         serverEntityContext.clear();
 
-        QueryResult<XMLSyntaxModel> result = serverEntityContext.performQuery(new QXMLSyntaxModel());
+        QueryResult<XmlSyntaxModel> result = serverEntityContext.performQuery(new QXMLSyntaxModel());
         Collection<UUID> uuids = new LinkedList<>();
 
         /*
@@ -75,7 +75,7 @@ public class TestGarbageCollection extends TestBase {
          * method so that it executes within the same frame, then it GCs fine even with foreach.
          *
          */
-        Iterator<XMLSyntaxModel> i = result.getList().iterator();
+        Iterator<XmlSyntaxModel> i = result.getList().iterator();
         while(i.hasNext()) {
             uuids.add(i.next().getEntity().getUuid());
         }
@@ -101,14 +101,14 @@ public class TestGarbageCollection extends TestBase {
 
         serverEntityContext.clear();
 
-        QueryResult<XMLSyntaxModel> result = serverEntityContext.performQuery(new QXMLSyntaxModel());
+        QueryResult<XmlSyntaxModel> result = serverEntityContext.performQuery(new QXMLSyntaxModel());
         Collection<UUID> uuids = new LinkedList<>();
 
         /*
          * We put the models into a normal list and hold it
          */
-        List<XMLSyntaxModel> models = new ArrayList<>(result.getList());
-        Iterator<XMLSyntaxModel> i = models.iterator();
+        List<XmlSyntaxModel> models = new ArrayList<>(result.getList());
+        Iterator<XmlSyntaxModel> i = models.iterator();
         while(i.hasNext()) {
             uuids.add(i.next().getEntity().getUuid());
         }
@@ -153,7 +153,7 @@ public class TestGarbageCollection extends TestBase {
         PersistRequest request = new PersistRequest();
         long start = System.currentTimeMillis();
         for (int i=1; i<=100; i++) {
-            XMLSyntaxModel syntax = TestPersistence.buildSyntax(serverEntityContext);
+            XmlSyntaxModel syntax = TestPersistence.buildSyntax(serverEntityContext);
             request.save(syntax);
             if (i %  100 == 0) {
                 serverEntityContext.persist(request);

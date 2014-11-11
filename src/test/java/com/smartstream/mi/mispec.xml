@@ -1,293 +1,364 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Namespace namespace="com.smartstream.messaging">
-    <import>com.smartstream.mac</import>
-    <EntitySpecs>
-        <EntitySpec className="com.smartstream.messaging.model.Syntax" tableName="SS_SYNTAX_MODEL">
-            <NodeSpecs>
-                <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" pk="true">
-                    <id>com.smartstream.messaging.model.Syntax.id</id>
-                </NodeSpec>
-                <NodeSpec name="accessArea" columnName="ACCESS_AREA_ID" nullable="NOT_NULL">
-                    <id>com.smartstream.messaging.model.Syntax.accessArea</id>
-                    <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea"/>
-                </NodeSpec>
-                <NodeSpec name="uuid" javaType="UUID" jdbcType="TIMESTAMP" columnName="UUID" nullable="NOT_NULL">
-                    <id>com.smartstream.messaging.model.Syntax.uuid</id>
-                </NodeSpec>
-                <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL">
-                    <id>com.smartstream.messaging.model.Syntax.modifiedAt</id>
-                </NodeSpec>
-                <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50">
-                    <id>com.smartstream.messaging.model.Syntax.name</id>
-                </NodeSpec>
-                <NodeSpec name="structureType" javaType="ENUM" enumType="com.smartstream.mi.types.StructureType" columnName="STRUCTURE_TYPE" nullable="NOT_NULL">
-                    <id>com.smartstream.messaging.model.Syntax.structureType</id>
-                </NodeSpec>
-                <NodeSpec name="syntaxType" javaType="ENUM" enumType="com.smartstream.mi.types.SyntaxType" columnName="SYNTAX_TYPE" nullable="NOT_NULL">
-                    <id>com.smartstream.messaging.model.Syntax.syntaxType</id>
-                </NodeSpec>
-                <NodeSpec name="user" columnName="USER_ID" nullable="NULL">
-                    <id>com.smartstream.messaging.model.Syntax.user</id>
-                    <relation type="REFERS" entitySpec="com.smartstream.mac.model.User"/>
-                </NodeSpec>
-                <NodeSpec name="structure" javaType="LONG" jdbcType="BIGINT" columnName="STRUCTURE_ID">
-                    <id>com.smartstream.messaging.model.Syntax.structure</id>
-                </NodeSpec>
-            </NodeSpecs>
-            <Constraints>
-                <PrimaryKey name="PK_SYNTAX_MODEL" nodes="com.smartstream.messaging.model.Syntax.id"/>
-                <ForeignKey name="FK_SYNTAX_MODEL_ACCESS_AREA" fromKey="com.smartstream.messaging.model.Syntax.accessArea" toKey="com.smartstream.mac.model.AccessArea.id"/>
-                <ForeignKey name="FK_SYNTAX_MODEL_USER" fromKey="com.smartstream.messaging.model.Syntax.user" toKey="com.smartstream.mac.model.User.id"/>
-                <UniqueConstraint name="UC_SYNTAX_MODEL_1" nodes="com.smartstream.messaging.model.Syntax.name com.smartstream.messaging.model.Syntax.accessArea"/>
-            </Constraints>
-        </EntitySpec>
-        <EntitySpec className="com.smartstream.messaging.model.XmlSyntax" tableName="SS_SYNTAX_MODEL">
-            <parent>com.smartstream.messaging.model.Syntax</parent>
-            <NodeSpecs>
-                <NodeSpec name="structureType" javaType="ENUM" enumType="com.smartstream.mi.types.StructureType" columnName="STRUCTURE_TYPE" nullable="NOT_NULL">
-                    <fixedValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="structureType">XML</fixedValue>
-                    <id>com.smartstream.messaging.model.XmlSyntax.structureType</id>
-                </NodeSpec>
-                <NodeSpec name="structure" columnName="STRUCTURE_ID" nullable="NOT_NULL">
-                    <id>com.smartstream.messaging.model.XmlSyntax.structure</id>
-                    <relation type="DEPENDS" entitySpec="com.smartstream.messaging.model.XmlStructure"/>
-                </NodeSpec>
-                <NodeSpec name="mappings">
-                    <id>com.smartstream.messaging.model.XmlSyntax.mappings</id>
-                    <relation type="OWNS" entitySpec="com.smartstream.messaging.model.XmlMapping" backReference="com.smartstream.messaging.model.XmlMapping.syntax"/>
-                </NodeSpec>
-            </NodeSpecs>
-            <Constraints/>
-        </EntitySpec>
-        <EntitySpec className="com.smartstream.messaging.model.XmlStructure" tableName="SS_XMLSTRUCTURE">
-            <NodeSpecs>
-                <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" pk="true">
-                    <id>com.smartstream.messaging.model.XmlStructure.id</id>
-                </NodeSpec>
-                <NodeSpec name="accessArea" columnName="ACCESS_AREA_ID" nullable="NOT_NULL">
-                    <id>com.smartstream.messaging.model.XmlStructure.accessArea</id>
-                    <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea"/>
-                </NodeSpec>
-                <NodeSpec name="uuid" javaType="UUID" jdbcType="TIMESTAMP" columnName="UUID" nullable="NOT_NULL">
-                    <id>com.smartstream.messaging.model.XmlStructure.uuid</id>
-                </NodeSpec>
-                <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL">
-                    <id>com.smartstream.messaging.model.XmlStructure.modifiedAt</id>
-                </NodeSpec>
-                <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50">
-                    <id>com.smartstream.messaging.model.XmlStructure.name</id>
-                </NodeSpec>
-            </NodeSpecs>
-            <Constraints>
-                <PrimaryKey name="PK_XMLSTRUCTURE" nodes="com.smartstream.messaging.model.XmlStructure.id"/>
-                <ForeignKey name="FK_XMLSTRUCTURE_ACCESS_AREA" fromKey="com.smartstream.messaging.model.XmlStructure.accessArea" toKey="com.smartstream.mac.model.AccessArea.id"/>
-                <UniqueConstraint name="UC_XMLSTRUCTURE_1" nodes="com.smartstream.messaging.model.XmlStructure.name com.smartstream.messaging.model.XmlStructure.accessArea"/>
-            </Constraints>
-        </EntitySpec>
-        <EntitySpec className="com.smartstream.messaging.model.XmlMapping" tableName="SS_XML_MAPPING">
-            <NodeSpecs>
-                <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" pk="true">
-                    <id>com.smartstream.messaging.model.XmlMapping.id</id>
-                </NodeSpec>
-                <NodeSpec name="syntax" columnName="SYNTAX_MODEL_ID" nullable="NOT_NULL">
-                    <id>com.smartstream.messaging.model.XmlMapping.syntax</id>
-                    <relation type="REFERS" entitySpec="com.smartstream.messaging.model.XmlSyntax"/>
-                </NodeSpec>
-                <NodeSpec name="subSyntax" columnName="SUB_SYNTAX_ID" nullable="NULL">
-                    <id>com.smartstream.messaging.model.XmlMapping.subSyntax</id>
-                    <relation type="OWNS" entitySpec="com.smartstream.messaging.model.XmlSyntax"/>
-                </NodeSpec>
-                <NodeSpec name="xpath" javaType="STRING" jdbcType="VARCHAR" columnName="XPATH" nullable="NOT_NULL" length="50">
-                    <id>com.smartstream.messaging.model.XmlMapping.xpath</id>
-                </NodeSpec>
-            </NodeSpecs>
-            <Constraints>
-                <PrimaryKey name="PK_XML_MAPPING" nodes="com.smartstream.messaging.model.XmlMapping.id"/>
-                <ForeignKey name="FK_XML_MAPPING_SYNTAX_MODEL" fromKey="com.smartstream.messaging.model.XmlMapping.syntax" toKey="com.smartstream.messaging.model.Syntax.id"/>
-                <ForeignKey name="FK_XML_MAPPING_SYNTAX_MODEL" fromKey="com.smartstream.messaging.model.XmlMapping.subSyntax" toKey="com.smartstream.messaging.model.Syntax.id"/>
-            </Constraints>
-        </EntitySpec>
-        <EntitySpec className="com.smartstream.messaging.model.CsvSyntax" tableName="SS_SYNTAX_MODEL">
-            <parent>com.smartstream.messaging.model.Syntax</parent>
-            <NodeSpecs>
-                <NodeSpec name="structureType" javaType="ENUM" enumType="com.smartstream.mi.types.StructureType" columnName="STRUCTURE_TYPE" nullable="NOT_NULL">
-                    <fixedValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="structureType">CSV</fixedValue>
-                    <id>com.smartstream.messaging.model.CsvSyntax.structureType</id>
-                </NodeSpec>
-                <NodeSpec name="structure" columnName="STRUCTURE_ID" nullable="NOT_NULL">
-                    <id>com.smartstream.messaging.model.CsvSyntax.structure</id>
-                    <relation type="DEPENDS" entitySpec="com.smartstream.messaging.model.CsvStructure"/>
-                </NodeSpec>
-                <NodeSpec name="mappings">
-                    <id>com.smartstream.messaging.model.CsvSyntax.mappings</id>
-                    <relation type="OWNS" entitySpec="com.smartstream.messaging.model.CsvMapping" backReference="com.smartstream.messaging.model.CsvMapping.syntax"/>
-                </NodeSpec>
-            </NodeSpecs>
-            <Constraints/>
-        </EntitySpec>
-        <EntitySpec className="com.smartstream.messaging.model.CsvStructure" tableName="SS_CSVSTRUCTURE">
-            <NodeSpecs>
-                <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" pk="true">
-                    <id>com.smartstream.messaging.model.CsvStructure.id</id>
-                </NodeSpec>
-                <NodeSpec name="accessArea" columnName="ACCESS_AREA_ID" nullable="NOT_NULL">
-                    <id>com.smartstream.messaging.model.CsvStructure.accessArea</id>
-                    <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea"/>
-                </NodeSpec>
-                <NodeSpec name="uuid" javaType="UUID" jdbcType="TIMESTAMP" columnName="UUID" nullable="NOT_NULL">
-                    <id>com.smartstream.messaging.model.CsvStructure.uuid</id>
-                </NodeSpec>
-                <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL">
-                    <id>com.smartstream.messaging.model.CsvStructure.modifiedAt</id>
-                </NodeSpec>
-                <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50">
-                    <id>com.smartstream.messaging.model.CsvStructure.name</id>
-                </NodeSpec>
-                <NodeSpec name="headerBasedMapping" javaType="BOOLEAN" jdbcType="INT" columnName="HEADER_BASED_MAPPING">
-                    <id>com.smartstream.messaging.model.CsvStructure.headerBasedMapping</id>
-                </NodeSpec>
-                <NodeSpec name="fields">
-                    <id>com.smartstream.messaging.model.CsvStructure.fields</id>
-                    <relation type="OWNS" entitySpec="com.smartstream.messaging.model.CsvStructureField" backReference="com.smartstream.messaging.model.CsvStructureField.structure"/>
-                </NodeSpec>
-            </NodeSpecs>
-            <Constraints>
-                <PrimaryKey name="PK_CSVSTRUCTURE" nodes="com.smartstream.messaging.model.CsvStructure.id"/>
-                <ForeignKey name="FK_CSVSTRUCTURE_ACCESS_AREA" fromKey="com.smartstream.messaging.model.CsvStructure.accessArea" toKey="com.smartstream.mac.model.AccessArea.id"/>
-                <UniqueConstraint name="UC_CSVSTRUCTURE_1" nodes="com.smartstream.messaging.model.CsvStructure.name com.smartstream.messaging.model.CsvStructure.accessArea"/>
-            </Constraints>
-        </EntitySpec>
-        <EntitySpec className="com.smartstream.messaging.model.CsvStructureField" tableName="SS_CSVSTRUCTURE_FIELD">
-            <NodeSpecs>
-                <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" pk="true">
-                    <id>com.smartstream.messaging.model.CsvStructureField.id</id>
-                </NodeSpec>
-                <NodeSpec name="structure" columnName="CSVSTRUCTURE_ID" nullable="NOT_NULL">
-                    <id>com.smartstream.messaging.model.CsvStructureField.structure</id>
-                    <relation type="REFERS" entitySpec="com.smartstream.messaging.model.CsvStructure"/>
-                </NodeSpec>
-                <NodeSpec name="columnIndex" javaType="INTEGER" jdbcType="INT" columnName="COLUMN_INDEX">
-                    <id>com.smartstream.messaging.model.CsvStructureField.columnIndex</id>
-                </NodeSpec>
-                <NodeSpec name="optional" javaType="BOOLEAN" jdbcType="INT" columnName="OPTIONAL">
-                    <id>com.smartstream.messaging.model.CsvStructureField.optional</id>
-                </NodeSpec>
-            </NodeSpecs>
-            <Constraints>
-                <PrimaryKey name="PK_CSVSTRUCTURE_FIELD" nodes="com.smartstream.messaging.model.CsvStructureField.id"/>
-                <ForeignKey name="FK_CSVSTRUCTURE_FIELD_CSVSTRUCTURE" fromKey="com.smartstream.messaging.model.CsvStructureField.structure" toKey="com.smartstream.messaging.model.CsvStructure.id"/>
-            </Constraints>
-        </EntitySpec>
-        <EntitySpec className="com.smartstream.messaging.model.CsvMapping" tableName="SS_CSV_MAPPING">
-            <NodeSpecs>
-                <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" pk="true">
-                    <id>com.smartstream.messaging.model.CsvMapping.id</id>
-                </NodeSpec>
-                <NodeSpec name="syntax" columnName="SYNTAX_MODEL_ID" nullable="NOT_NULL">
-                    <id>com.smartstream.messaging.model.CsvMapping.syntax</id>
-                    <relation type="REFERS" entitySpec="com.smartstream.messaging.model.CsvSyntax"/>
-                </NodeSpec>
-                <NodeSpec name="structureField" columnName="CSVSTRUCTURE_FIELD_ID" nullable="NOT_NULL">
-                    <id>com.smartstream.messaging.model.CsvMapping.structureField</id>
-                    <relation type="REFERS" entitySpec="com.smartstream.messaging.model.CsvStructureField"/>
-                </NodeSpec>
-            </NodeSpecs>
-            <Constraints>
-                <PrimaryKey name="PK_CSV_MAPPING" nodes="com.smartstream.messaging.model.CsvMapping.id"/>
-                <ForeignKey name="FK_CSV_MAPPING_SYNTAX_MODEL" fromKey="com.smartstream.messaging.model.CsvMapping.syntax" toKey="com.smartstream.messaging.model.Syntax.id"/>
-                <ForeignKey name="FK_CSV_MAPPING_CSVSTRUCTURE_FIELD" fromKey="com.smartstream.messaging.model.CsvMapping.structureField" toKey="com.smartstream.messaging.model.CsvStructureField.id"/>
-            </Constraints>
-        </EntitySpec>
-        <EntitySpec className="com.smartstream.messaging.model.Template" tableName="SS_TEMPLATE">
-            <NodeSpecs>
-                <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" pk="true">
-                    <id>com.smartstream.messaging.model.Template.id</id>
-                </NodeSpec>
-                <NodeSpec name="accessArea" columnName="ACCESS_AREA_ID" nullable="NOT_NULL">
-                    <id>com.smartstream.messaging.model.Template.accessArea</id>
-                    <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea"/>
-                </NodeSpec>
-                <NodeSpec name="uuid" javaType="UUID" jdbcType="TIMESTAMP" columnName="UUID" nullable="NOT_NULL">
-                    <id>com.smartstream.messaging.model.Template.uuid</id>
-                </NodeSpec>
-                <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL">
-                    <id>com.smartstream.messaging.model.Template.modifiedAt</id>
-                </NodeSpec>
-                <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50">
-                    <id>com.smartstream.messaging.model.Template.name</id>
-                </NodeSpec>
-                <NodeSpec name="businessTypes">
-                    <id>com.smartstream.messaging.model.Template.businessTypes</id>
-                    <relation type="OWNS" entitySpec="com.smartstream.messaging.model.TemplateBusinessType" backReference="com.smartstream.messaging.model.TemplateBusinessType.template"/>
-                </NodeSpec>
-            </NodeSpecs>
-            <Constraints>
-                <PrimaryKey name="PK_TEMPLATE" nodes="com.smartstream.messaging.model.Template.id"/>
-                <ForeignKey name="FK_TEMPLATE_ACCESS_AREA" fromKey="com.smartstream.messaging.model.Template.accessArea" toKey="com.smartstream.mac.model.AccessArea.id"/>
-                <UniqueConstraint name="UC_TEMPLATE_1" nodes="com.smartstream.messaging.model.Template.name com.smartstream.messaging.model.Template.accessArea"/>
-            </Constraints>
-        </EntitySpec>
-        <EntitySpec className="com.smartstream.messaging.model.TemplateContent" tableName="SS_TEMPLATE_CONTENT">
-            <NodeSpecs>
-                <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" pk="true">
-                    <id>com.smartstream.messaging.model.TemplateContent.id</id>
-                </NodeSpec>
-                <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50">
-                    <id>com.smartstream.messaging.model.TemplateContent.name</id>
-                </NodeSpec>
-                <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL">
-                    <id>com.smartstream.messaging.model.TemplateContent.modifiedAt</id>
-                </NodeSpec>
-                <NodeSpec name="template" columnName="TEMPLATE_ID" nullable="NOT_NULL">
-                    <id>com.smartstream.messaging.model.TemplateContent.template</id>
-                    <relation type="REFERS" entitySpec="com.smartstream.messaging.model.Template"/>
-                </NodeSpec>
-            </NodeSpecs>
-            <Constraints>
-                <PrimaryKey name="PK_TEMPLATE_CONTENT" nodes="com.smartstream.messaging.model.TemplateContent.id"/>
-                <ForeignKey name="FK_TEMPLATE_CONTENT_TEMPLATE" fromKey="com.smartstream.messaging.model.TemplateContent.template" toKey="com.smartstream.messaging.model.Template.id"/>
-            </Constraints>
-        </EntitySpec>
-        <EntitySpec className="com.smartstream.messaging.model.BusinessType" tableName="SS_DATATYPE">
-            <NodeSpecs>
-                <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" pk="true">
-                    <id>com.smartstream.messaging.model.BusinessType.id</id>
-                </NodeSpec>
-                <NodeSpec name="accessArea" columnName="ACCESS_AREA_ID" nullable="NOT_NULL">
-                    <id>com.smartstream.messaging.model.BusinessType.accessArea</id>
-                    <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea"/>
-                </NodeSpec>
-                <NodeSpec name="uuid" javaType="UUID" jdbcType="TIMESTAMP" columnName="UUID" nullable="NOT_NULL">
-                    <id>com.smartstream.messaging.model.BusinessType.uuid</id>
-                </NodeSpec>
-                <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL">
-                    <id>com.smartstream.messaging.model.BusinessType.modifiedAt</id>
-                </NodeSpec>
-                <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50">
-                    <id>com.smartstream.messaging.model.BusinessType.name</id>
-                </NodeSpec>
-            </NodeSpecs>
-            <Constraints>
-                <PrimaryKey name="PK_DATATYPE" nodes="com.smartstream.messaging.model.BusinessType.id"/>
-                <ForeignKey name="FK_DATATYPE_ACCESS_AREA" fromKey="com.smartstream.messaging.model.BusinessType.accessArea" toKey="com.smartstream.mac.model.AccessArea.id"/>
-                <UniqueConstraint name="UC_DATATYPE_1" nodes="com.smartstream.messaging.model.BusinessType.name com.smartstream.messaging.model.BusinessType.accessArea"/>
-            </Constraints>
-        </EntitySpec>
-        <EntitySpec className="com.smartstream.messaging.model.TemplateBusinessType" tableName="SS_TEMPLATE_DATATYPE">
-            <NodeSpecs>
-                <NodeSpec name="template" columnName="TEMPLATE_ID" nullable="NOT_NULL">
-                    <id>com.smartstream.messaging.model.TemplateBusinessType.template</id>
-                    <relation type="REFERS" entitySpec="com.smartstream.messaging.model.Template"/>
-                </NodeSpec>
-                <NodeSpec name="businessType" columnName="DATATYPE_ID" nullable="NOT_NULL">
-                    <id>com.smartstream.messaging.model.TemplateBusinessType.businessType</id>
-                    <relation type="REFERS" entitySpec="com.smartstream.messaging.model.BusinessType"/>
-                </NodeSpec>
-            </NodeSpecs>
-            <Constraints>
-                <ForeignKey name="FK_TEMPLATE_DATATYPE_TEMPLATE" fromKey="com.smartstream.messaging.model.TemplateBusinessType.template" toKey="com.smartstream.messaging.model.Template.id"/>
-                <ForeignKey name="FK_TEMPLATE_DATATYPE_DATATYPE" fromKey="com.smartstream.messaging.model.TemplateBusinessType.businessType" toKey="com.smartstream.messaging.model.BusinessType.id"/>
-            </Constraints>
-        </EntitySpec>
-    </EntitySpecs>
-</Namespace>
+<SpecRegistry>
+    <contents>
+        <Definitions namespace="com.smartstream.mac">
+            <EntitySpecs>
+                <EntitySpec className="com.smartstream.mac.model.AccessArea" tableName="MAC_ACCESS_AREA" abstract="false">
+                    <NodeSpecs>
+                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                            <id>com.smartstream.mac.model.AccessArea.id</id>
+                        </NodeSpec>
+                        <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
+                            <id>com.smartstream.mac.model.AccessArea.name</id>
+                        </NodeSpec>
+                        <NodeSpec name="parent" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>com.smartstream.mac.model.AccessArea.parent</id>
+                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea"/>
+                        </NodeSpec>
+                        <NodeSpec name="children" optimisticLock="false">
+                            <id>com.smartstream.mac.model.AccessArea.children</id>
+                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea" backReference="com.smartstream.mac.model.AccessArea.parent"/>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints>
+                        <PrimaryKey name="PK_ACCESS_AREA" nodes="com.smartstream.mac.model.AccessArea.id"/>
+                        <ForeignKey name="FK_ACCESS_AREA_ACCESS_AREA" fromKey="com.smartstream.mac.model.AccessArea.parent" toKey="com.smartstream.mac.model.AccessArea.id"/>
+                    </Constraints>
+                </EntitySpec>
+                <EntitySpec className="com.smartstream.mac.model.User" tableName="MAC_USER" abstract="false">
+                    <NodeSpecs>
+                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                            <id>com.smartstream.mac.model.User.id</id>
+                        </NodeSpec>
+                        <NodeSpec name="accessArea" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>com.smartstream.mac.model.User.accessArea</id>
+                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea"/>
+                        </NodeSpec>
+                        <NodeSpec name="uuid" javaType="UUID" jdbcType="TIMESTAMP" columnName="UUID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>com.smartstream.mac.model.User.uuid</id>
+                        </NodeSpec>
+                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" optimisticLock="true">
+                            <id>com.smartstream.mac.model.User.modifiedAt</id>
+                        </NodeSpec>
+                        <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="USER_NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
+                            <id>com.smartstream.mac.model.User.name</id>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints>
+                        <PrimaryKey name="PK_USER" nodes="com.smartstream.mac.model.User.id"/>
+                        <ForeignKey name="FK_USER_ACCESS_AREA" fromKey="com.smartstream.mac.model.User.accessArea" toKey="com.smartstream.mac.model.AccessArea.id"/>
+                        <UniqueConstraint name="UC_USER_1" nodes="com.smartstream.mac.model.User.name com.smartstream.mac.model.User.accessArea"/>
+                    </Constraints>
+                </EntitySpec>
+            </EntitySpecs>
+        </Definitions>
+        <Definitions namespace="com.smartstream.mi">
+            <import>com.smartstream.mac</import>
+            <EntitySpecs>
+                <EntitySpec className="com.smartstream.mi.model.SyntaxModel" tableName="SS_SYNTAX_MODEL" abstract="true">
+                    <NodeSpecs>
+                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                            <id>com.smartstream.mi.model.SyntaxModel.id</id>
+                        </NodeSpec>
+                        <NodeSpec name="accessArea" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>com.smartstream.mi.model.SyntaxModel.accessArea</id>
+                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea"/>
+                        </NodeSpec>
+                        <NodeSpec name="uuid" javaType="UUID" jdbcType="TIMESTAMP" columnName="UUID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>com.smartstream.mi.model.SyntaxModel.uuid</id>
+                        </NodeSpec>
+                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" optimisticLock="true">
+                            <id>com.smartstream.mi.model.SyntaxModel.modifiedAt</id>
+                        </NodeSpec>
+                        <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
+                            <id>com.smartstream.mi.model.SyntaxModel.name</id>
+                        </NodeSpec>
+                        <NodeSpec name="structureType" javaType="ENUM" enumType="com.smartstream.mi.types.StructureType" columnName="STRUCTURE_TYPE" nullable="NOT_NULL" optimisticLock="false">
+                            <id>com.smartstream.mi.model.SyntaxModel.structureType</id>
+                        </NodeSpec>
+                        <NodeSpec name="syntaxType" javaType="ENUM" enumType="com.smartstream.mi.types.SyntaxType" columnName="SYNTAX_TYPE" nullable="NOT_NULL" optimisticLock="false">
+                            <id>com.smartstream.mi.model.SyntaxModel.syntaxType</id>
+                        </NodeSpec>
+                        <NodeSpec name="user" columnName="USER_ID" nullable="NULL" optimisticLock="false">
+                            <id>com.smartstream.mi.model.SyntaxModel.user</id>
+                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.User"/>
+                        </NodeSpec>
+                        <NodeSpec name="structure" javaType="LONG" jdbcType="BIGINT" columnName="STRUCTURE_ID" optimisticLock="false">
+                            <id>com.smartstream.mi.model.SyntaxModel.structure</id>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints>
+                        <PrimaryKey name="PK_SYNTAX_MODEL" nodes="com.smartstream.mi.model.SyntaxModel.id"/>
+                        <ForeignKey name="FK_SYNTAX_MODEL_ACCESS_AREA" fromKey="com.smartstream.mi.model.SyntaxModel.accessArea" toKey="com.smartstream.mac.model.AccessArea.id"/>
+                        <ForeignKey name="FK_SYNTAX_MODEL_USER" fromKey="com.smartstream.mi.model.SyntaxModel.user" toKey="com.smartstream.mac.model.User.id"/>
+                        <UniqueConstraint name="UC_SYNTAX_MODEL_1" nodes="com.smartstream.mi.model.SyntaxModel.name com.smartstream.mi.model.SyntaxModel.accessArea"/>
+                    </Constraints>
+                </EntitySpec>
+                <EntitySpec className="com.smartstream.mi.model.XmlSyntaxModel" tableName="SS_SYNTAX_MODEL" abstract="false">
+                    <parent>com.smartstream.mi.model.SyntaxModel</parent>
+                    <NodeSpecs>
+                        <NodeSpec name="structureType" javaType="ENUM" enumType="com.smartstream.mi.types.StructureType" columnName="STRUCTURE_TYPE" nullable="NOT_NULL" optimisticLock="false">
+                            <fixedValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="structureType">XML</fixedValue>
+                            <id>com.smartstream.mi.model.XmlSyntaxModel.structureType</id>
+                        </NodeSpec>
+                        <NodeSpec name="structure" columnName="STRUCTURE_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>com.smartstream.mi.model.XmlSyntaxModel.structure</id>
+                            <relation type="DEPENDS" entitySpec="com.smartstream.mi.model.XmlStructure"/>
+                        </NodeSpec>
+                        <NodeSpec name="mappings" optimisticLock="false">
+                            <id>com.smartstream.mi.model.XmlSyntaxModel.mappings</id>
+                            <relation type="OWNS" entitySpec="com.smartstream.mi.model.XmlMapping" backReference="com.smartstream.mi.model.XmlMapping.syntax"/>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints/>
+                </EntitySpec>
+                <EntitySpec className="com.smartstream.mi.model.XmlStructure" tableName="SS_XMLSTRUCTURE" abstract="false">
+                    <NodeSpecs>
+                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                            <id>com.smartstream.mi.model.XmlStructure.id</id>
+                        </NodeSpec>
+                        <NodeSpec name="accessArea" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>com.smartstream.mi.model.XmlStructure.accessArea</id>
+                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea"/>
+                        </NodeSpec>
+                        <NodeSpec name="uuid" javaType="UUID" jdbcType="TIMESTAMP" columnName="UUID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>com.smartstream.mi.model.XmlStructure.uuid</id>
+                        </NodeSpec>
+                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" optimisticLock="true">
+                            <id>com.smartstream.mi.model.XmlStructure.modifiedAt</id>
+                        </NodeSpec>
+                        <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
+                            <id>com.smartstream.mi.model.XmlStructure.name</id>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints>
+                        <PrimaryKey name="PK_XMLSTRUCTURE" nodes="com.smartstream.mi.model.XmlStructure.id"/>
+                        <ForeignKey name="FK_XMLSTRUCTURE_ACCESS_AREA" fromKey="com.smartstream.mi.model.XmlStructure.accessArea" toKey="com.smartstream.mac.model.AccessArea.id"/>
+                        <UniqueConstraint name="UC_XMLSTRUCTURE_1" nodes="com.smartstream.mi.model.XmlStructure.name com.smartstream.mi.model.XmlStructure.accessArea"/>
+                    </Constraints>
+                </EntitySpec>
+                <EntitySpec className="com.smartstream.mi.model.XmlMapping" tableName="SS_XML_MAPPING" abstract="false">
+                    <NodeSpecs>
+                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                            <id>com.smartstream.mi.model.XmlMapping.id</id>
+                        </NodeSpec>
+                        <NodeSpec name="syntax" columnName="SYNTAX_MODEL_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>com.smartstream.mi.model.XmlMapping.syntax</id>
+                            <relation type="REFERS" entitySpec="com.smartstream.mi.model.XmlSyntaxModel"/>
+                        </NodeSpec>
+                        <NodeSpec name="subSyntax" columnName="SUB_SYNTAX_ID" nullable="NULL" optimisticLock="false">
+                            <id>com.smartstream.mi.model.XmlMapping.subSyntax</id>
+                            <relation type="OWNS" entitySpec="com.smartstream.mi.model.XmlSyntaxModel"/>
+                        </NodeSpec>
+                        <NodeSpec name="xpath" javaType="STRING" jdbcType="VARCHAR" columnName="XPATH" nullable="NULL" length="150" optimisticLock="false">
+                            <id>com.smartstream.mi.model.XmlMapping.xpath</id>
+                        </NodeSpec>
+                        <NodeSpec name="targetFieldName" javaType="STRING" jdbcType="VARCHAR" columnName="TARGET_FIELD_NAME" nullable="NULL" length="150" optimisticLock="false">
+                            <id>com.smartstream.mi.model.XmlMapping.targetFieldName</id>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints>
+                        <PrimaryKey name="PK_XML_MAPPING" nodes="com.smartstream.mi.model.XmlMapping.id"/>
+                        <ForeignKey name="FK_XML_MAPPING_SYNTAX_MODEL" fromKey="com.smartstream.mi.model.XmlMapping.syntax" toKey="com.smartstream.mi.model.SyntaxModel.id"/>
+                        <ForeignKey name="FK_XML_MAPPING_SYNTAX_MODEL" fromKey="com.smartstream.mi.model.XmlMapping.subSyntax" toKey="com.smartstream.mi.model.SyntaxModel.id"/>
+                    </Constraints>
+                </EntitySpec>
+                <EntitySpec className="com.smartstream.mi.model.CsvSyntaxModel" tableName="SS_SYNTAX_MODEL" abstract="false">
+                    <parent>com.smartstream.mi.model.SyntaxModel</parent>
+                    <NodeSpecs>
+                        <NodeSpec name="structureType" javaType="ENUM" enumType="com.smartstream.mi.types.StructureType" columnName="STRUCTURE_TYPE" nullable="NOT_NULL" optimisticLock="false">
+                            <fixedValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="structureType">CSV</fixedValue>
+                            <id>com.smartstream.mi.model.CsvSyntaxModel.structureType</id>
+                        </NodeSpec>
+                        <NodeSpec name="structure" columnName="STRUCTURE_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>com.smartstream.mi.model.CsvSyntaxModel.structure</id>
+                            <relation type="DEPENDS" entitySpec="com.smartstream.mi.model.CsvStructure"/>
+                        </NodeSpec>
+                        <NodeSpec name="mappings" optimisticLock="false">
+                            <id>com.smartstream.mi.model.CsvSyntaxModel.mappings</id>
+                            <relation type="OWNS" entitySpec="com.smartstream.mi.model.CsvMapping" backReference="com.smartstream.mi.model.CsvMapping.syntax"/>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints/>
+                </EntitySpec>
+                <EntitySpec className="com.smartstream.mi.model.CsvStructure" tableName="SS_CSVSTRUCTURE" abstract="false">
+                    <NodeSpecs>
+                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                            <id>com.smartstream.mi.model.CsvStructure.id</id>
+                        </NodeSpec>
+                        <NodeSpec name="accessArea" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>com.smartstream.mi.model.CsvStructure.accessArea</id>
+                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea"/>
+                        </NodeSpec>
+                        <NodeSpec name="uuid" javaType="UUID" jdbcType="TIMESTAMP" columnName="UUID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>com.smartstream.mi.model.CsvStructure.uuid</id>
+                        </NodeSpec>
+                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" optimisticLock="true">
+                            <id>com.smartstream.mi.model.CsvStructure.modifiedAt</id>
+                        </NodeSpec>
+                        <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
+                            <id>com.smartstream.mi.model.CsvStructure.name</id>
+                        </NodeSpec>
+                        <NodeSpec name="fields" optimisticLock="false">
+                            <id>com.smartstream.mi.model.CsvStructure.fields</id>
+                            <relation type="OWNS" entitySpec="com.smartstream.mi.model.CsvStructureField" backReference="com.smartstream.mi.model.CsvStructureField.structure"/>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints>
+                        <PrimaryKey name="PK_CSVSTRUCTURE" nodes="com.smartstream.mi.model.CsvStructure.id"/>
+                        <ForeignKey name="FK_CSVSTRUCTURE_ACCESS_AREA" fromKey="com.smartstream.mi.model.CsvStructure.accessArea" toKey="com.smartstream.mac.model.AccessArea.id"/>
+                        <UniqueConstraint name="UC_CSVSTRUCTURE_1" nodes="com.smartstream.mi.model.CsvStructure.name com.smartstream.mi.model.CsvStructure.accessArea"/>
+                    </Constraints>
+                </EntitySpec>
+                <EntitySpec className="com.smartstream.mi.model.CsvStructureField" tableName="SS_CSVSTRUCTURE_FIELD" abstract="false">
+                    <NodeSpecs>
+                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                            <id>com.smartstream.mi.model.CsvStructureField.id</id>
+                        </NodeSpec>
+                        <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NULL" length="50" optimisticLock="false">
+                            <id>com.smartstream.mi.model.CsvStructureField.name</id>
+                        </NodeSpec>
+                        <NodeSpec name="structure" columnName="CSVSTRUCTURE_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>com.smartstream.mi.model.CsvStructureField.structure</id>
+                            <relation type="REFERS" entitySpec="com.smartstream.mi.model.CsvStructure"/>
+                        </NodeSpec>
+                        <NodeSpec name="columnIndex" javaType="INTEGER" jdbcType="INT" columnName="COLUMN_INDEX" optimisticLock="false">
+                            <id>com.smartstream.mi.model.CsvStructureField.columnIndex</id>
+                        </NodeSpec>
+                        <NodeSpec name="optional" javaType="BOOLEAN" jdbcType="INT" columnName="OPTIONAL" optimisticLock="false">
+                            <id>com.smartstream.mi.model.CsvStructureField.optional</id>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints>
+                        <PrimaryKey name="PK_CSVSTRUCTURE_FIELD" nodes="com.smartstream.mi.model.CsvStructureField.id"/>
+                        <ForeignKey name="FK_CSVSTRUCTURE_FIELD_CSVSTRUCTURE" fromKey="com.smartstream.mi.model.CsvStructureField.structure" toKey="com.smartstream.mi.model.CsvStructure.id"/>
+                    </Constraints>
+                </EntitySpec>
+                <EntitySpec className="com.smartstream.mi.model.CsvMapping" tableName="SS_CSV_MAPPING" abstract="false">
+                    <NodeSpecs>
+                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                            <id>com.smartstream.mi.model.CsvMapping.id</id>
+                        </NodeSpec>
+                        <NodeSpec name="syntax" columnName="SYNTAX_MODEL_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>com.smartstream.mi.model.CsvMapping.syntax</id>
+                            <relation type="REFERS" entitySpec="com.smartstream.mi.model.CsvSyntaxModel"/>
+                        </NodeSpec>
+                        <NodeSpec name="columnIndex" javaType="INTEGER" jdbcType="INT" columnName="COLUMN_INDEX" optimisticLock="false">
+                            <id>com.smartstream.mi.model.CsvMapping.columnIndex</id>
+                        </NodeSpec>
+                        <NodeSpec name="targetFieldName" javaType="STRING" jdbcType="VARCHAR" columnName="TARGET_FIELD_NAME" nullable="NULL" length="150" optimisticLock="false">
+                            <id>com.smartstream.mi.model.CsvMapping.targetFieldName</id>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints>
+                        <PrimaryKey name="PK_CSV_MAPPING" nodes="com.smartstream.mi.model.CsvMapping.id"/>
+                        <ForeignKey name="FK_CSV_MAPPING_SYNTAX_MODEL" fromKey="com.smartstream.mi.model.CsvMapping.syntax" toKey="com.smartstream.mi.model.SyntaxModel.id"/>
+                    </Constraints>
+                </EntitySpec>
+                <EntitySpec className="com.smartstream.mi.model.Template" tableName="SS_TEMPLATE" abstract="false">
+                    <NodeSpecs>
+                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                            <id>com.smartstream.mi.model.Template.id</id>
+                        </NodeSpec>
+                        <NodeSpec name="accessArea" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>com.smartstream.mi.model.Template.accessArea</id>
+                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea"/>
+                        </NodeSpec>
+                        <NodeSpec name="uuid" javaType="UUID" jdbcType="TIMESTAMP" columnName="UUID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>com.smartstream.mi.model.Template.uuid</id>
+                        </NodeSpec>
+                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" optimisticLock="true">
+                            <id>com.smartstream.mi.model.Template.modifiedAt</id>
+                        </NodeSpec>
+                        <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
+                            <id>com.smartstream.mi.model.Template.name</id>
+                        </NodeSpec>
+                        <NodeSpec name="contents" optimisticLock="false">
+                            <id>com.smartstream.mi.model.Template.contents</id>
+                            <relation type="OWNS" entitySpec="com.smartstream.mi.model.TemplateContent" backReference="com.smartstream.mi.model.TemplateContent.template"/>
+                        </NodeSpec>
+                        <NodeSpec name="businessTypes" optimisticLock="false">
+                            <id>com.smartstream.mi.model.Template.businessTypes</id>
+                            <relation type="OWNS" entitySpec="com.smartstream.mi.model.TemplateBusinessType" backReference="com.smartstream.mi.model.TemplateBusinessType.template"/>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints>
+                        <PrimaryKey name="PK_TEMPLATE" nodes="com.smartstream.mi.model.Template.id"/>
+                        <ForeignKey name="FK_TEMPLATE_ACCESS_AREA" fromKey="com.smartstream.mi.model.Template.accessArea" toKey="com.smartstream.mac.model.AccessArea.id"/>
+                        <UniqueConstraint name="UC_TEMPLATE_1" nodes="com.smartstream.mi.model.Template.name com.smartstream.mi.model.Template.accessArea"/>
+                    </Constraints>
+                </EntitySpec>
+                <EntitySpec className="com.smartstream.mi.model.TemplateContent" tableName="SS_TEMPLATE_CONTENT" abstract="false">
+                    <NodeSpecs>
+                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                            <id>com.smartstream.mi.model.TemplateContent.id</id>
+                        </NodeSpec>
+                        <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
+                            <id>com.smartstream.mi.model.TemplateContent.name</id>
+                        </NodeSpec>
+                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" optimisticLock="true">
+                            <id>com.smartstream.mi.model.TemplateContent.modifiedAt</id>
+                        </NodeSpec>
+                        <NodeSpec name="template" columnName="TEMPLATE_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>com.smartstream.mi.model.TemplateContent.template</id>
+                            <relation type="REFERS" entitySpec="com.smartstream.mi.model.Template"/>
+                        </NodeSpec>
+                        <NodeSpec name="businessTypes" optimisticLock="false">
+                            <id>com.smartstream.mi.model.TemplateContent.businessTypes</id>
+                            <relation type="OWNS" entitySpec="com.smartstream.mi.model.TemplateBusinessType" backReference="com.smartstream.mi.model.TemplateBusinessType.template"/>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints>
+                        <PrimaryKey name="PK_TEMPLATE_CONTENT" nodes="com.smartstream.mi.model.TemplateContent.id"/>
+                        <ForeignKey name="FK_TEMPLATE_CONTENT_TEMPLATE" fromKey="com.smartstream.mi.model.TemplateContent.template" toKey="com.smartstream.mi.model.Template.id"/>
+                    </Constraints>
+                </EntitySpec>
+                <EntitySpec className="com.smartstream.mi.model.BusinessType" tableName="SS_DATATYPE" abstract="false">
+                    <NodeSpecs>
+                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                            <id>com.smartstream.mi.model.BusinessType.id</id>
+                        </NodeSpec>
+                        <NodeSpec name="accessArea" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>com.smartstream.mi.model.BusinessType.accessArea</id>
+                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea"/>
+                        </NodeSpec>
+                        <NodeSpec name="uuid" javaType="UUID" jdbcType="TIMESTAMP" columnName="UUID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>com.smartstream.mi.model.BusinessType.uuid</id>
+                        </NodeSpec>
+                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" optimisticLock="true">
+                            <id>com.smartstream.mi.model.BusinessType.modifiedAt</id>
+                        </NodeSpec>
+                        <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
+                            <id>com.smartstream.mi.model.BusinessType.name</id>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints>
+                        <PrimaryKey name="PK_DATATYPE" nodes="com.smartstream.mi.model.BusinessType.id"/>
+                        <ForeignKey name="FK_DATATYPE_ACCESS_AREA" fromKey="com.smartstream.mi.model.BusinessType.accessArea" toKey="com.smartstream.mac.model.AccessArea.id"/>
+                        <UniqueConstraint name="UC_DATATYPE_1" nodes="com.smartstream.mi.model.BusinessType.name com.smartstream.mi.model.BusinessType.accessArea"/>
+                    </Constraints>
+                </EntitySpec>
+                <EntitySpec className="com.smartstream.mi.model.TemplateBusinessType" tableName="SS_TEMPLATE_DATATYPE" abstract="false">
+                    <NodeSpecs>
+                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                            <id>com.smartstream.mi.model.TemplateBusinessType.id</id>
+                        </NodeSpec>
+                        <NodeSpec name="template" columnName="TEMPLATE_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>com.smartstream.mi.model.TemplateBusinessType.template</id>
+                            <relation type="REFERS" entitySpec="com.smartstream.mi.model.Template"/>
+                        </NodeSpec>
+                        <NodeSpec name="businessType" columnName="DATATYPE_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>com.smartstream.mi.model.TemplateBusinessType.businessType</id>
+                            <relation type="REFERS" entitySpec="com.smartstream.mi.model.BusinessType"/>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints>
+                        <PrimaryKey name="PK_TEMPLATE_DATATYPE" nodes="com.smartstream.mi.model.TemplateBusinessType.id"/>
+                        <ForeignKey name="FK_TEMPLATE_DATATYPE_TEMPLATE" fromKey="com.smartstream.mi.model.TemplateBusinessType.template" toKey="com.smartstream.mi.model.Template.id"/>
+                        <ForeignKey name="FK_TEMPLATE_DATATYPE_DATATYPE" fromKey="com.smartstream.mi.model.TemplateBusinessType.businessType" toKey="com.smartstream.mi.model.BusinessType.id"/>
+                    </Constraints>
+                </EntitySpec>
+            </EntitySpecs>
+        </Definitions>
+    </contents>
+</SpecRegistry>

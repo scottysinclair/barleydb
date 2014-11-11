@@ -2,6 +2,7 @@ package com.smartstream.mac;
 
 import static scott.sort.api.specification.CoreSpec.mandatoryRefersTo;
 import static scott.sort.api.specification.CoreSpec.uniqueConstraint;
+import static scott.sort.api.specification.CoreSpec.refersToMany;
 
 import com.smartstream.MorpheusSpec;
 
@@ -21,11 +22,17 @@ public class MacSpec extends MorpheusSpec {
 
         public static NodeSpec name = name();
 
+        public static NodeSpec parent = mandatoryRefersTo(AccessArea.class);
+
+        public static NodeSpec children =  refersToMany(AccessArea.class, AccessArea.parent);
+
         public static NodeSpec uuid = uuid();
     }
 
     @Entity("MAC_USER")
     public static class User implements TopLevelModel {
+
+        public static NodeSpec name = name("USER_NAME");
     }
 
     public interface TopLevelModel {

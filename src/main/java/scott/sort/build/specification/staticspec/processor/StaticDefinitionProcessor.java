@@ -118,13 +118,26 @@ public class StaticDefinitionProcessor {
                         }
                         relationSpec.setEntitySpec(es);
                         relationSpec.setEntitySpecIdentifier(null);
+                        /*
+                         * If the FK jdbc type is null then take the
+                         * JDBC type of the FK from the entity primary key.
+                         *
+                         */
+                        if (relationSpec.isForeignKeyRelation() && nodeSpec.getJdbcType() == null) {
+                            Collection<NodeSpec> key = es.getPrimaryKeyNodes(true);
+                            if (key.size() != 1) {
+                                throw new IllegalStateException("Invalid key " + key + " for entity: " + es);
+                            }
+                            nodeSpec.setJdbcType( key.iterator().next().getJdbcType() );
+                        }
+
                         if (nodeSpec.getColumnName() == null) {
                             /*
                              * We try and set any column names
                              * which are still null.
                              *
                              * The relation info which we now have
-                             * is usually relevent for the column name
+                             * is usually relevant for the column name
                              *
                              */
                             nodeSpec.setColumnName( staticDefs.createColumnName(nodeSpec) );
@@ -133,6 +146,7 @@ public class StaticDefinitionProcessor {
                 }
             }
         }
+
 
         /**
          * Processes an entity definition returning a full EntitySpec
@@ -157,6 +171,8 @@ public class StaticDefinitionProcessor {
                     spec.setParentEntitySpec(superSpec);
                 }
 
+
+                spec.setAbstractEntity( staticDefs.isAstract( entityDefinitionClass ) );
                 spec.setClassName( staticDefs.createFullyQualifiedClassName(entityDefinitionClass) );
                 spec.setTableName( staticDefs.getTableName(entityDefinitionClass) );
                 /*

@@ -47,9 +47,9 @@ import com.smartstream.mi.context.MiEntityContext;
 import com.smartstream.mi.model.Datatype;
 import com.smartstream.mi.model.Template;
 import com.smartstream.mi.model.TemplateContent;
-import com.smartstream.mi.model.XMLMapping;
-import com.smartstream.mi.model.XMLStructure;
-import com.smartstream.mi.model.XMLSyntaxModel;
+import com.smartstream.mi.model.XmlMapping;
+import com.smartstream.mi.model.XmlStructure;
+import com.smartstream.mi.model.XmlSyntaxModel;
 import com.smartstream.mi.query.QTemplate;
 import com.smartstream.mi.query.QXMLSyntaxModel;
 import com.smartstream.mi.types.SyntaxType;
@@ -94,12 +94,12 @@ public class TestPersistence extends TestRemoteClientBase {
      * 1 structure
      * @return
      */
-    public XMLSyntaxModel buildSyntax() {
+    public XmlSyntaxModel buildSyntax() {
         return buildSyntax(theEntityContext);
     }
-    public static XMLSyntaxModel buildSyntax(EntityContext theEntityContext) {
-        XMLSyntaxModel syntaxModel = theEntityContext.newModel(XMLSyntaxModel.class);
-        syntaxModel.setName("Scott's Syntax");
+    public static XmlSyntaxModel buildSyntax(EntityContext theEntityContext) {
+        XmlSyntaxModel syntaxModel = theEntityContext.newModel(XmlSyntaxModel.class);
+        syntaxModel.setName("Scott's SyntaxModel");
         syntaxModel.setSyntaxType(SyntaxType.ROOT);
 
         User user = theEntityContext.newModel(User.class);
@@ -107,24 +107,24 @@ public class TestPersistence extends TestRemoteClientBase {
 
         syntaxModel.setUser(user);
 
-        XMLStructure structure = theEntityContext.newModel(XMLStructure.class);
+        XmlStructure structure = theEntityContext.newModel(XmlStructure.class);
         structure.setName("scott's structure");
         syntaxModel.setStructure(structure);
 
-        XMLMapping mapping = theEntityContext.newModel(XMLMapping.class);
+        XmlMapping mapping = theEntityContext.newModel(XmlMapping.class);
         mapping.setSyntaxModel(syntaxModel);
         mapping.setXpath("/root1");
         mapping.setTarget("target1");
         syntaxModel.getMappings().add(mapping);
 
-        mapping = theEntityContext.newModel(XMLMapping.class);
+        mapping = theEntityContext.newModel(XmlMapping.class);
         mapping.setSyntaxModel(syntaxModel);
         mapping.setXpath("/root2");
         mapping.setTarget("target2");
         syntaxModel.getMappings().add(mapping);
 
         //create the sub syntax
-        XMLSyntaxModel subSyntaxModel = theEntityContext.newModel(XMLSyntaxModel.class);
+        XmlSyntaxModel subSyntaxModel = theEntityContext.newModel(XmlSyntaxModel.class);
         subSyntaxModel.setName("SubSyntaxModel - ooooh");
         subSyntaxModel.setStructure(structure);
         subSyntaxModel.setSyntaxType(SyntaxType.SUBSYNTAX);
@@ -133,20 +133,20 @@ public class TestPersistence extends TestRemoteClientBase {
         mapping.setSubSyntaxModel(subSyntaxModel); //set the subsyntax on the mapping
 
         //add another mapping to the root level syntax
-        mapping = theEntityContext.newModel(XMLMapping.class);
+        mapping = theEntityContext.newModel(XmlMapping.class);
         mapping.setSyntaxModel(syntaxModel);
         mapping.setXpath("/root3");
         mapping.setTarget("target3");
         syntaxModel.getMappings().add(mapping);
 
         //do the sub-syntax mappings
-        mapping = theEntityContext.newModel(XMLMapping.class);
+        mapping = theEntityContext.newModel(XmlMapping.class);
         mapping.setSyntaxModel(subSyntaxModel);
         mapping.setXpath("sub1");
         mapping.setTarget("subtarget1");
         subSyntaxModel.getMappings().add(mapping);
 
-        mapping = theEntityContext.newModel(XMLMapping.class);
+        mapping = theEntityContext.newModel(XmlMapping.class);
         mapping.setSyntaxModel(subSyntaxModel);
         mapping.setXpath("sub2");
         mapping.setTarget("subtarget2");
@@ -172,7 +172,7 @@ public class TestPersistence extends TestRemoteClientBase {
     public void testPersistNewXMLSyntax() throws Exception {
         try {
             System.out.println("STARTING TEST testPersistNewXMLSyntax");
-            XMLSyntaxModel syntaxModel = buildSyntax();
+            XmlSyntaxModel syntaxModel = buildSyntax();
             print("", syntaxModel);
             PersistRequest request = new PersistRequest();
             request.save(syntaxModel);
@@ -220,7 +220,7 @@ public class TestPersistence extends TestRemoteClientBase {
         /*
          * insert a new full model
          */
-        XMLSyntaxModel syntaxModel = buildSyntax();
+        XmlSyntaxModel syntaxModel = buildSyntax();
         theEntityContext.persist(new PersistRequest().save(syntaxModel));
 
         /*
@@ -232,10 +232,10 @@ public class TestPersistence extends TestRemoteClientBase {
         qsubSyntax.joinToUser();
         qsubSyntax.joinToMappings();
         qsyntax.joinToStructure();
-        qsyntax.where(qsyntax.syntaxName().equal("Scott's Syntax"));
+        qsyntax.where(qsyntax.syntaxName().equal("Scott's SyntaxModel"));
 
         theEntityContext.clear();
-        XMLSyntaxModel syntax = theEntityContext.performQuery(qsyntax).getList().get(0);
+        XmlSyntaxModel syntax = theEntityContext.performQuery(qsyntax).getList().get(0);
         System.out.println(theEntityContext.printXml());
         print("", syntax);
         System.out.println(theEntityContext.printXml());
@@ -247,7 +247,7 @@ public class TestPersistence extends TestRemoteClientBase {
         System.out.println("-------------- Updating syntax name and mapping and subsyntax name and mapping ------------------");
         syntax.setName(syntax.getName() + " - updated");
         syntax.getMappings().get(0).setXpath("/updated-mapping");
-        XMLSyntaxModel subSyntax = syntax.getMappings().get(1).getSubSyntaxModel();
+        XmlSyntaxModel subSyntax = syntax.getMappings().get(1).getSubSyntaxModel();
         subSyntax.setName(subSyntax.getName() + " - updated");
         subSyntax.getMappings().get(0).setXpath("updated-submapping");
 
@@ -256,7 +256,7 @@ public class TestPersistence extends TestRemoteClientBase {
 
         System.out.println("-------------- RELOADING FROM SCRATCH TO OUTPUT THE REAL DATABASE DATA ------------------");
         theEntityContext.clear();
-        qsyntax.where(qsyntax.syntaxName().equal("Scott's Syntax - updated"));
+        qsyntax.where(qsyntax.syntaxName().equal("Scott's SyntaxModel - updated"));
         syntax = theEntityContext.performQuery(qsyntax).getList().get(0);
         print("", syntax);
     }
@@ -266,7 +266,7 @@ public class TestPersistence extends TestRemoteClientBase {
         /*
          * insert a new full model
          */
-        XMLSyntaxModel syntaxModel = buildSyntax();
+        XmlSyntaxModel syntaxModel = buildSyntax();
         theEntityContext.persist(new PersistRequest().save(syntaxModel));
 
         System.out.println("------------------- AFTER FIRST PERSIST\n" + theEntityContext.printXml() + "\n");
@@ -281,11 +281,11 @@ public class TestPersistence extends TestRemoteClientBase {
         qsubSyntax.joinToUser();
         qsubSyntax.joinToMappings();
         qsyntax.joinToStructure();
-        qsyntax.where(qsyntax.syntaxName().equal("Scott's Syntax"));
+        qsyntax.where(qsyntax.syntaxName().equal("Scott's SyntaxModel"));
 
         System.out.println("-------------- OTHER USER SAVING SYNTAX ------------------");
         EntityContext otherUser = new MiEntityContext(env);
-        XMLSyntaxModel otherSyntax = otherUser.performQuery(qsyntax).getList().get(0);
+        XmlSyntaxModel otherSyntax = otherUser.performQuery(qsyntax).getList().get(0);
         print("", otherSyntax);
 
         otherSyntax.getMappings().get(1).getSubSyntaxModel().getMappings().get(0).setXpath("/updated");
@@ -318,7 +318,7 @@ public class TestPersistence extends TestRemoteClientBase {
         /*
          * insert a new full model
          */
-        XMLSyntaxModel syntaxModel = buildSyntax();
+        XmlSyntaxModel syntaxModel = buildSyntax();
         theEntityContext.persist(new PersistRequest().save(syntaxModel));
 
         /*
@@ -330,20 +330,20 @@ public class TestPersistence extends TestRemoteClientBase {
         qsubSyntax.joinToUser();
         qsubSyntax.joinToMappings();
         qsyntax.joinToStructure();
-        qsyntax.where(qsyntax.syntaxName().equal("Scott's Syntax"));
+        qsyntax.where(qsyntax.syntaxName().equal("Scott's SyntaxModel"));
 
         /*
          * We use another node context to get and update the structure, simulating a concurrent user modification
          */
         EntityContext otherUser = new MiEntityContext(env);
-        XMLSyntaxModel otherSyntax = otherUser.performQuery(qsyntax).getList().get(0);
+        XmlSyntaxModel otherSyntax = otherUser.performQuery(qsyntax).getList().get(0);
         otherSyntax.getStructure().setName("updated-structure-name");
         otherUser.persist(new PersistRequest().save(otherSyntax.getStructure()));
 
         /*
         * modify the syntax in various ways
         */
-        XMLSyntaxModel subSyntax = syntaxModel.getMappings().get(1).getSubSyntaxModel();
+        XmlSyntaxModel subSyntax = syntaxModel.getMappings().get(1).getSubSyntaxModel();
         subSyntax.getMappings().get(0).setXpath("/updated-submapping");
 
         /*
@@ -367,7 +367,7 @@ public class TestPersistence extends TestRemoteClientBase {
         /*
          * insert a new full model
          */
-        XMLSyntaxModel syntaxModel = buildSyntax();
+        XmlSyntaxModel syntaxModel = buildSyntax();
         theEntityContext.persist(new PersistRequest().save(syntaxModel));
 
         /*
@@ -379,19 +379,19 @@ public class TestPersistence extends TestRemoteClientBase {
         qsubSyntax.joinToUser();
         qsubSyntax.joinToMappings();
         qsyntax.joinToStructure();
-        qsyntax.where(qsyntax.syntaxName().equal("Scott's Syntax"));
+        qsyntax.where(qsyntax.syntaxName().equal("Scott's SyntaxModel"));
 
         /*
          * We use another node context to get and update the structure, simulating a concurrent user modification
          */
         EntityContext otherUser = new MiEntityContext(env);
-        XMLSyntaxModel otherSyntax = otherUser.performQuery(qsyntax).getList().get(0);
+        XmlSyntaxModel otherSyntax = otherUser.performQuery(qsyntax).getList().get(0);
         otherUser.persist(new PersistRequest().delete(otherSyntax));
 
         /*
         * modify the syntax in various ways
         */
-        XMLSyntaxModel subSyntax = syntaxModel.getMappings().get(1).getSubSyntaxModel();
+        XmlSyntaxModel subSyntax = syntaxModel.getMappings().get(1).getSubSyntaxModel();
         subSyntax.getMappings().get(0).setXpath("/updated-submapping");
 
         /*
@@ -431,14 +431,14 @@ public class TestPersistence extends TestRemoteClientBase {
                 try {
 
                     QXMLSyntaxModel qsyntax = new QXMLSyntaxModel();
-                    qsyntax.where(qsyntax.syntaxName().equal("Scott's Syntax"));
+                    qsyntax.where(qsyntax.syntaxName().equal("Scott's SyntaxModel"));
 
                     /*
                      * We use another node context to get and update the structure, simulating a concurrent user modification
                      */
                     EntityContext otherUser = new MiEntityContext(env);
                     otherUser.setAutocommit(false);
-                    XMLSyntaxModel otherSyntax = otherUser.performQuery(qsyntax).getList().get(0);
+                    XmlSyntaxModel otherSyntax = otherUser.performQuery(qsyntax).getList().get(0);
                     entityContextServices.setPersisterFactory(null);
                     otherUser.persist( new PersistRequest().delete(otherSyntax) );
                 }
@@ -449,7 +449,7 @@ public class TestPersistence extends TestRemoteClientBase {
         /*
          * insert a new full model
          */
-        XMLSyntaxModel syntaxModel = buildSyntax();
+        XmlSyntaxModel syntaxModel = buildSyntax();
         theEntityContext.persist(new PersistRequest().save(syntaxModel));
 
         entityContextServices.setPersisterFactory(new PersisterFactory() {
@@ -462,7 +462,7 @@ public class TestPersistence extends TestRemoteClientBase {
         /*
         * modify the syntax in various ways
         */
-        XMLSyntaxModel subSyntax = syntaxModel.getMappings().get(1).getSubSyntaxModel();
+        XmlSyntaxModel subSyntax = syntaxModel.getMappings().get(1).getSubSyntaxModel();
         subSyntax.getMappings().get(0).setXpath("/updated-submapping");
 
         /*
@@ -507,11 +507,11 @@ public class TestPersistence extends TestRemoteClientBase {
                      */
                     QXMLSyntaxModel qsyntax = new QXMLSyntaxModel();
                     qsyntax.joinToStructure();
-                    qsyntax.where(qsyntax.syntaxName().equal("Scott's Syntax"));
+                    qsyntax.where(qsyntax.syntaxName().equal("Scott's SyntaxModel"));
                     EntityContext otherUser = new MiEntityContext(env);
                     otherUser.setAutocommit(false);
-                    XMLSyntaxModel otherSyntaxCopy = otherUser.performQuery(qsyntax).getList().get(0);
-                    otherSyntaxCopy.setName("Scott's Syntax updated-hook");
+                    XmlSyntaxModel otherSyntaxCopy = otherUser.performQuery(qsyntax).getList().get(0);
+                    otherSyntaxCopy.setName("Scott's SyntaxModel updated-hook");
 
                     entityContextServices.setPersisterFactory(null);
                     otherUser.persist( new PersistRequest().save(otherSyntaxCopy) );
@@ -523,7 +523,7 @@ public class TestPersistence extends TestRemoteClientBase {
         /*
          * insert a new full model
          */
-        XMLSyntaxModel syntaxModel = buildSyntax();
+        XmlSyntaxModel syntaxModel = buildSyntax();
         theEntityContext.persist(new PersistRequest().save(syntaxModel));
 
         entityContextServices.setPersisterFactory(new PersisterFactory() {
@@ -533,7 +533,7 @@ public class TestPersistence extends TestRemoteClientBase {
             }
         });
 
-        syntaxModel.setName("Scott's Syntax updated");
+        syntaxModel.setName("Scott's SyntaxModel updated");
         try {
             theEntityContext.persist(new PersistRequest().save(syntaxModel));
             Assert.fail("Expected OptimisticLockMismatchException");
@@ -554,7 +554,7 @@ public class TestPersistence extends TestRemoteClientBase {
         /*
          * insert a new full model
          */
-        XMLSyntaxModel syntaxModel = buildSyntax();
+        XmlSyntaxModel syntaxModel = buildSyntax();
         theEntityContext.persist(new PersistRequest().save(syntaxModel));
 
         Long syntaxOl = getOptimisticLock(syntaxModel);
@@ -570,8 +570,8 @@ public class TestPersistence extends TestRemoteClientBase {
          * reload the syntax from the db
          */
         QXMLSyntaxModel qsyntax = new QXMLSyntaxModel();
-        qsyntax.where(qsyntax.syntaxName().equal("Scott's Syntax"));
-        XMLSyntaxModel updatedSyntaxModel = theEntityContext.performQuery(qsyntax).getList().get(0);
+        qsyntax.where(qsyntax.syntaxName().equal("Scott's SyntaxModel"));
+        XmlSyntaxModel updatedSyntaxModel = theEntityContext.performQuery(qsyntax).getList().get(0);
 
         //the optimistic lock of the original syntax is the same as before
         Long updatedSyntaxOl = getOptimisticLock(updatedSyntaxModel);
@@ -587,7 +587,7 @@ public class TestPersistence extends TestRemoteClientBase {
         /*
          * insert a new full model
          */
-        XMLSyntaxModel syntaxModel = buildSyntax();
+        XmlSyntaxModel syntaxModel = buildSyntax();
         theEntityContext.persist(new PersistRequest().save(syntaxModel));
 
         Long expectedOptimisticLock = getOptimisticLock(syntaxModel);
@@ -607,7 +607,7 @@ public class TestPersistence extends TestRemoteClientBase {
         /*
          * insert a new full model
          */
-        XMLSyntaxModel syntaxModel = buildSyntax();
+        XmlSyntaxModel syntaxModel = buildSyntax();
         theEntityContext.persist(new PersistRequest().save(syntaxModel));
 
         /*
@@ -622,9 +622,9 @@ public class TestPersistence extends TestRemoteClientBase {
          */
         assertTrue(theEntityContext.performQuery(new QXMLSyntaxModel()).getList().isEmpty());
         assertEquals(9, theEntityContext.size());
-        assertEquals(2, EntityContextHelper.countNotLoaded( theEntityContext.getEntitiesByType(XMLSyntaxModel.class) ) );
-        assertEquals(5, EntityContextHelper.countNotLoaded( theEntityContext.getEntitiesByType(XMLMapping.class) ) );
-        assertEquals(1, EntityContextHelper.countLoaded( theEntityContext.getEntitiesByType(XMLStructure.class) ) );
+        assertEquals(2, EntityContextHelper.countNotLoaded( theEntityContext.getEntitiesByType(XmlSyntaxModel.class) ) );
+        assertEquals(5, EntityContextHelper.countNotLoaded( theEntityContext.getEntitiesByType(XmlMapping.class) ) );
+        assertEquals(1, EntityContextHelper.countLoaded( theEntityContext.getEntitiesByType(XmlStructure.class) ) );
         assertEquals(1, EntityContextHelper.countLoaded( theEntityContext.getEntitiesByType(User.class) ) );
     }
 

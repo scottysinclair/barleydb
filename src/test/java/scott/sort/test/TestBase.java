@@ -11,12 +11,13 @@ package scott.sort.test;
  */
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 
 import javax.sql.DataSource;
 import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
@@ -39,12 +40,12 @@ import scott.sort.api.core.Environment;
 import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.core.entity.ProxyController;
-import scott.sort.api.core.types.JavaType;
-import scott.sort.api.core.types.JdbcType;
 import scott.sort.api.persist.PersistAnalyser;
 import scott.sort.api.query.RuntimeProperties;
 import scott.sort.api.query.RuntimeProperties.Concurrency;
 import scott.sort.api.query.RuntimeProperties.ScrollType;
+import scott.sort.api.specification.DefinitionsSpec;
+import scott.sort.api.specification.SpecRegistry;
 import scott.sort.server.jdbc.persist.SequenceGenerator;
 import scott.sort.server.jdbc.query.QueryPreProcessor;
 import scott.sort.server.jdbc.vendor.HsqlDatabase;
@@ -56,6 +57,7 @@ import com.smartstream.mac.model.MacProxyFactory;
 import com.smartstream.mac.model.User;
 import com.smartstream.mac.query.QAccessArea;
 import com.smartstream.mac.query.QUser;
+import com.smartstream.mi.MiSpec;
 import com.smartstream.mi.context.MiEntityContext;
 import com.smartstream.mi.model.CsvMapping;
 import com.smartstream.mi.model.CsvStructure;
@@ -66,9 +68,9 @@ import com.smartstream.mi.model.MiProxyFactory;
 import com.smartstream.mi.model.SyntaxModel;
 import com.smartstream.mi.model.Template;
 import com.smartstream.mi.model.TemplateContent;
-import com.smartstream.mi.model.XMLMapping;
-import com.smartstream.mi.model.XMLStructure;
-import com.smartstream.mi.model.XMLSyntaxModel;
+import com.smartstream.mi.model.XmlMapping;
+import com.smartstream.mi.model.XmlStructure;
+import com.smartstream.mi.model.XmlSyntaxModel;
 import com.smartstream.mi.query.QCsvMapping;
 import com.smartstream.mi.query.QCsvStructure;
 import com.smartstream.mi.query.QCsvStructureField;
@@ -80,6 +82,7 @@ import com.smartstream.mi.query.QTemplateDatatype;
 import com.smartstream.mi.query.QXMLMapping;
 import com.smartstream.mi.query.QXMLStructure;
 import com.smartstream.mi.query.QXMLSyntaxModel;
+import com.smartstream.mi.types.StructureType;
 import com.smartstream.mi.types.SyntaxType;
 
 @SuppressWarnings("deprecation")
@@ -96,7 +99,7 @@ public abstract class TestBase {
     protected boolean autoCommitMode = false;
 
     protected void prepareData() {
-        SimpleJdbcTestUtils.executeSqlScript(new SimpleJdbcTemplate(dataSource), new ClassPathResource("/clean.sql"), false);
+        //SimpleJdbcTestUtils.executeSqlScript(new SimpleJdbcTemplate(dataSource), new ClassPathResource("/clean.sql"), false);
     }
 
     private void initDb() {
@@ -156,98 +159,8 @@ public abstract class TestBase {
         ;
         entityContextServices.setSequenceGenerator(new TestSequenceGenerator());
 
-        /*
-         * generate an entity configuration using the dsl
-         */
-        env.addDefinitions(Definitions.start("com.smartstream.mac")
-                .newEntity(User.class, "MAC_USER")
-                    .withKey("id", JavaType.LONG, "ID", JdbcType.BIGINT)
-                    .withValue("name", JavaType.STRING, "USER_NAME", JdbcType.VARCHAR)
-                    .withOptimisticLock("modifiedAt", JavaType.LONG, "MODIFIED_AT", JdbcType.TIMESTAMP)
-
-                .newEntity(AccessArea.class, "MAC_ACCESS_AREA")
-                    .withKey("id", JavaType.LONG, "ID", JdbcType.BIGINT)
-                    .withValue("name", JavaType.STRING, "NAME", JdbcType.VARCHAR)
-                    .withOne("parent", AccessArea.class, "PARENT_ID", JdbcType.BIGINT)
-                    .withMany("children", AccessArea.class, "parent")
-                    .complete());
-
-        env.addDefinitions(Definitions.start(namespace)
-                .references("com.smartstream.mac")
-                .newEntity(XMLStructure.class, "SS_XMLSTRUCTURE")
-                    .withKey("id", JavaType.LONG, "ID", JdbcType.BIGINT)
-                    .withValue("name", JavaType.STRING, "NAME", JdbcType.VARCHAR)
-                    .withOptimisticLock("modifiedAt", JavaType.LONG, "MODIFIED_AT", JdbcType.TIMESTAMP)
-
-                .newEntity(CsvStructure.class, "SS_CSVSTRUCTURE")
-                    .withKey("id", JavaType.LONG, "ID", JdbcType.BIGINT)
-                    .withValue("name", JavaType.STRING, "NAME", JdbcType.VARCHAR)
-                    .ownsMany("fields", com.smartstream.mi.model.CsvStructureField.class, "structure")
-                    .withOptimisticLock("modifiedAt", JavaType.LONG, "MODIFIED_AT", JdbcType.TIMESTAMP)
-
-                .newEntity(CsvStructureField.class, "SS_CSVSTRUCTURE_FIELD")
-                    .withKey("id", JavaType.LONG, "ID", JdbcType.BIGINT)
-                    .withValue("name", JavaType.STRING, "NAME", JdbcType.VARCHAR)
-                    .withValue("columnIndex", JavaType.INTEGER, "COL_INDEX", JdbcType.INT)
-                    .withValue("optional", JavaType.BOOLEAN, "OPTIONAL", JdbcType.INT)
-                    .withOne("structure", com.smartstream.mi.model.CsvStructure.class, "STRUCTURE_ID", JdbcType.BIGINT)
-
-                .newAbstractEntity(SyntaxModel.class, "SS_SYNTAX_MODEL")
-                    .withKey("id", JavaType.LONG, "ID", JdbcType.BIGINT)
-                    .withValue("name", JavaType.STRING, "NAME", JdbcType.VARCHAR)
-                    .withEnum("syntaxType", SyntaxType.class, "SYNTAX_TYPE", JdbcType.INT)
-                    .withValue("structureType", JavaType.INTEGER, "STRUCTURE_TYPE", JdbcType.INT)
-                    //in the abstract syntax structure is just a value node
-                    .withValue("structure", JavaType.LONG, "STRUCTURE_ID", JdbcType.BIGINT)
-                    .withOne("user", com.smartstream.mac.model.User.class, "USER_ID", JdbcType.BIGINT)
-                    .withOptimisticLock("modifiedAt", JavaType.LONG, "MODIFIED_AT", JdbcType.TIMESTAMP)
-
-                .newChildEntity(XMLSyntaxModel.class, SyntaxModel.class)
-                    .withFixedValue("structureType", JavaType.INTEGER, "STRUCTURE_TYPE", JdbcType.INT, 1)
-                    .dependsOnOne("structure", com.smartstream.mi.model.XMLStructure.class, "STRUCTURE_ID", JdbcType.BIGINT)
-                    .ownsMany("mappings", com.smartstream.mi.model.XMLMapping.class, "syntaxModel")
-
-                .newEntity(XMLMapping.class, "SS_XML_MAPPING")
-                    .withKey("id", JavaType.LONG, "ID", JdbcType.BIGINT)
-                    .withValue("xpath", JavaType.STRING, "XPATH", JdbcType.VARCHAR)
-                    .withValue("target", JavaType.STRING, "TARGET_FIELD_NAME", JdbcType.VARCHAR)
-                    .withOne("syntaxModel", com.smartstream.mi.model.XMLSyntaxModel.class, "SYNTAX_MODEL_ID", JdbcType.BIGINT)
-                    .ownsOne("subSyntaxModel", com.smartstream.mi.model.XMLSyntaxModel.class, "SUB_SYNTAX_MODEL_ID", JdbcType.BIGINT)
-
-                .newChildEntity(CsvSyntaxModel.class, SyntaxModel.class)
-                    .withFixedValue("structureType", JavaType.INTEGER, "STRUCTURE_TYPE", JdbcType.INT, 2)
-                    .dependsOnOne("structure", com.smartstream.mi.model.CsvStructure.class, "STRUCTURE_ID", JdbcType.BIGINT)
-                    .ownsMany("mappings", com.smartstream.mi.model.CsvMapping.class, "syntaxModel")
-
-                .newEntity(CsvMapping.class, "SS_CSV_MAPPING")
-                    .withKey("id", JavaType.LONG, "ID", JdbcType.BIGINT)
-                    .withValue("columnIndex", JavaType.INTEGER, "COL_INDEX", JdbcType.INT)
-                    .withValue("target", JavaType.STRING, "TARGET_FIELD_NAME", JdbcType.VARCHAR)
-                    .withOne("syntaxModel", com.smartstream.mi.model.CsvSyntaxModel.class, "SYNTAX_MODEL_ID", JdbcType.BIGINT)
-
-                .newEntity(Template.class, "SS_TEMPLATE")
-                    .withKey("id", JavaType.LONG, "ID", JdbcType.BIGINT)
-                    .withValue("name", JavaType.STRING, "NAME", JdbcType.VARCHAR)
-                    .ownsMany("contents", com.smartstream.mi.model.TemplateContent.class, "template")
-                    .ownsMany("datatypes", "com.smartstream.mi.TemplateDatatype", "template", "datatype")
-                    .withOptimisticLock("modifiedAt", JavaType.LONG, "MODIFIED_AT", JdbcType.TIMESTAMP)
-
-                .newEntity(TemplateContent.class, "SS_TEMPLATE_CONTENT")
-                    .withKey("id", JavaType.LONG, "ID", JdbcType.BIGINT)
-                    .withValue("name", JavaType.STRING, "NAME", JdbcType.VARCHAR)
-                    .withOne("template", Template.class, "TEMPLATE_ID", JdbcType.BIGINT)
-                    .withOptimisticLock("modifiedAt", JavaType.LONG, "MODIFIED_AT", JdbcType.TIMESTAMP)
-
-                .newEntity(Datatype.class, "SS_DATATYPE")
-                    .withKey("id", JavaType.LONG, "ID", JdbcType.BIGINT)
-                    .withValue("name", JavaType.STRING, "NAME", JdbcType.VARCHAR)
-                    .withOptimisticLock("modifiedAt", JavaType.LONG, "MODIFIED_AT", JdbcType.TIMESTAMP)
-
-                .newEntity("com.smartstream.mi.TemplateDatatype", "SS_TEMPLATE_DATATYPE")
-                    .withKey("id", JavaType.LONG, "ID", JdbcType.BIGINT)
-                    .withOne("template", Template.class, "TEMPLATE_ID", JdbcType.BIGINT)
-                    .dependsOnOne("datatype", Datatype.class, "DATATYPE_ID", JdbcType.BIGINT)
-                    .complete());
+        env.addDefinitions( Definitions.create( loadDefinitions("src/test/java/com/smartstream/mac/macspec.xml", "com.smartstream.mac") ) );
+        env.addDefinitions( Definitions.create( loadDefinitions("src/test/java/com/smartstream/mi/mispec.xml", "com.smartstream.mi") ) );
 
         env.getDefinitions("com.smartstream.mac").registerQueries(
                 new QUser(),
@@ -269,29 +182,6 @@ public abstract class TestBase {
                 new QDatatype());
 
         env.getDefinitions("com.smartstream.mi").registerProxyFactory(new MiProxyFactory());
-
-        /*
-         * Convert to XML and print out, just for fun.
-         */
-        JAXBContext jc = JAXBContext.newInstance(Definitions.class);
-        Marshaller marshaller = jc.createMarshaller();
-        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-        marshaller.marshal(env.getDefinitions("com.smartstream.mac"), System.out);
-
-        marshaller.marshal(env.getDefinitions(namespace), System.out);
-
-        transformXml = "<?xml version=\"1.0\"?>" +
-                "<xsl:stylesheet version=\"1.0\" " +
-                "xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">" +
-                "<xsl:strip-space elements=\"*\" />" +
-                "<xsl:output method=\"xml\" indent=\"yes\" />" +
-                "" +
-                "<xsl:template match=\"node() | @*\">" +
-                "<xsl:copy>" +
-                "<xsl:apply-templates select=\"node() | @*\" />" +
-                "</xsl:copy>" +
-                "</xsl:template>" +
-                "</xsl:stylesheet>";
     }
 
     @Before
@@ -312,6 +202,17 @@ public abstract class TestBase {
         if (!serverEntityContext.getAutocommit()) {
             serverEntityContext.rollback();
         }
+    }
+
+    private static DefinitionsSpec loadDefinitions(String path, String namespace) throws Exception {
+        JAXBContext jc = JAXBContext.newInstance(SpecRegistry.class, StructureType.class, SyntaxType.class, MiSpec.class);
+        Unmarshaller unmarshaller = jc.createUnmarshaller();
+        SpecRegistry registry = (SpecRegistry)unmarshaller.unmarshal(new File(path));
+        DefinitionsSpec spec = registry.getDefinitionsSpec(namespace);
+        if (spec == null) {
+            throw new IllegalStateException("Could not load definitions " + namespace);
+        }
+        return spec;
     }
 
     protected Entity toEntity(Object object) {
@@ -415,15 +316,15 @@ public abstract class TestBase {
     }
 
     protected static void print(String prefix, SyntaxModel syntaxModel) {
-        if (syntaxModel instanceof XMLSyntaxModel) {
-            print(prefix, (XMLSyntaxModel) syntaxModel);
+        if (syntaxModel instanceof XmlSyntaxModel) {
+            print(prefix, (XmlSyntaxModel) syntaxModel);
         }
         else if (syntaxModel instanceof CsvSyntaxModel) {
             print(prefix, (CsvSyntaxModel) syntaxModel);
         }
     }
 
-    protected static void print(String prefix, XMLSyntaxModel syntaxModel) {
+    protected static void print(String prefix, XmlSyntaxModel syntaxModel) {
         System.out.println(prefix + "XMLSyntax Id   " + syntaxModel.getId());
         System.out.println(prefix + "XMLSyntax Name " + syntaxModel.getName());
         System.out.println(prefix + "XMLSyntax JoinType " + syntaxModel.getSyntaxType());
@@ -434,7 +335,7 @@ public abstract class TestBase {
             print(prefix + "  ", syntaxModel.getStructure());
         }
         if (syntaxModel.getMappings() != null) {
-            for (XMLMapping mapping : syntaxModel.getMappings()) {
+            for (XmlMapping mapping : syntaxModel.getMappings()) {
                 print(prefix + "  ", mapping);
             }
         }
@@ -462,7 +363,7 @@ public abstract class TestBase {
         System.out.println(prefix + "User Name " + user.getName());
     }
 
-    protected static void print(String prefix, XMLStructure structure) {
+    protected static void print(String prefix, XmlStructure structure) {
         System.out.println(prefix + "Structure Id   " + structure.getId());
         System.out.println(prefix + "Structure Name " + structure.getName());
     }
@@ -488,16 +389,16 @@ public abstract class TestBase {
         System.out.println(prefix + "Mapping Id      " + mapping.getId());
         System.out.println(prefix + "Mapping Column   " + mapping.getColumnIndex());
         System.out.println(prefix + "Mapping Target  " + mapping.getTarget());
-        System.out.println(prefix + "Mapping Syntax  " + mapping.getSyntaxModel().getId());
+        System.out.println(prefix + "Mapping SyntaxModel  " + mapping.getSyntaxModel().getId());
     }
 
-    protected static void print(String prefix, XMLMapping mapping) {
+    protected static void print(String prefix, XmlMapping mapping) {
         System.out.println(prefix + "Mapping Id      " + mapping.getId());
         System.out.println(prefix + "Mapping XPath   " + mapping.getXpath());
         System.out.println(prefix + "Mapping Target  " + mapping.getTarget());
-        System.out.println(prefix + "Mapping Syntax  " + mapping.getSyntaxModel().getId());
+        System.out.println(prefix + "Mapping SyntaxModel  " + mapping.getSyntaxModel().getId());
         if (mapping.getSubSyntaxModel() != null) {
-            XMLSyntaxModel sub = mapping.getSubSyntaxModel();
+            XmlSyntaxModel sub = mapping.getSubSyntaxModel();
             if (sub != null) {
                 print(prefix + "  ", sub);
             }

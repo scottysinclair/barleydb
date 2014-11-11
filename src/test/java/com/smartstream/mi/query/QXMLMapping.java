@@ -14,18 +14,18 @@ package com.smartstream.mi.query;
 import scott.sort.api.query.QProperty;
 import scott.sort.api.query.QueryObject;
 
-import com.smartstream.mi.model.XMLMapping;
+import com.smartstream.mi.model.XmlMapping;
 
-public class QXMLMapping extends QueryObject<XMLMapping> {
+public class QXMLMapping extends QueryObject<XmlMapping> {
 
     private static final long serialVersionUID = 1L;
 
     public QXMLMapping() {
-        super(XMLMapping.class);
+        super(XmlMapping.class);
     }
 
     public QXMLMapping(QueryObject<?> parent) {
-        super(XMLMapping.class, parent);
+        super(XmlMapping.class, parent);
     }
 
     public QXMLSyntaxModel joinToSubSyntax() {

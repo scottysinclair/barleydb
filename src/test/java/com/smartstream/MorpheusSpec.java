@@ -1,12 +1,16 @@
 package com.smartstream;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import scott.sort.api.core.types.JavaType;
 import scott.sort.api.core.types.JdbcType;
 import scott.sort.api.core.types.Nullable;
+import scott.sort.api.specification.CoreSpec;
 import scott.sort.api.specification.DefinitionsSpec;
 import scott.sort.api.specification.EntitySpec;
 import scott.sort.api.specification.NodeSpec;
@@ -22,20 +26,36 @@ import scott.sort.build.specification.staticspec.StaticDefinitions;
  */
 public class MorpheusSpec extends StaticDefinitions {
 
-    protected class Relation {
-        private final Class<?> from;
-        private final Class<?> to;
-        public Relation(Class<?> from, Class<?> to) {
-            this.from = from;
-            this.to = to;
+    protected class StaticRelation {
+        private final NodeSpec fromNode;
+        public StaticRelation(NodeSpec fromNode) {
+            this.fromNode = fromNode;
+            if (this.fromNode.getRelationSpec() == null) {
+                throw new IllegalStateException("Node has no relation: " + fromNode);
+            }
         }
 
-        public boolean matches(EntitySpec from, EntitySpec to) {
-            return MorpheusSpec.this.matches(this.from, from) && MorpheusSpec.this.matches(this.to, to);
+        /**
+         * The NodeSpec that we hold must have the proper EntitySpec set on it for the
+         * matching to work.
+         * @param from
+         * @param to
+         * @return
+         */
+        public boolean matches(NodeSpec from, EntitySpec to) {
+            if (!Objects.equals(this.fromNode, from)) {
+                return false;
+            }
+            if (!Objects.equals(this.fromNode.getRelationSpec().getEntitySpec(), to)) {
+                return false;
+            }
+            return true;
         }
     }
 
-    private final List<Relation> excludedForeignKeyConstraints = new LinkedList<>();
+    private final List<StaticRelation> excludedForeignKeyConstraints = new LinkedList<>();
+
+    private final Map<StaticRelation,String> renamedForeignKeyConstraints = new HashMap<>();
 
     public MorpheusSpec(String namespace) {
         super(namespace);
@@ -45,11 +65,6 @@ public class MorpheusSpec extends StaticDefinitions {
     public void postProcess(DefinitionsSpec definitionsSpec) {
         super.postProcess(definitionsSpec);
         setAllNamesToUpperCase(definitionsSpec);
-    }
-
-    private boolean matches(Class<?> entityDefinition, EntitySpec entitySpec) {
-        String fqn = createFullyQualifiedClassName(entityDefinition);
-        return entitySpec.getClassName().equals(fqn);
     }
 
     /**
@@ -78,6 +93,7 @@ public class MorpheusSpec extends StaticDefinitions {
         spec.setColumnName(columnName);
         spec.setJavaType(JavaType.LONG);
         spec.setJdbcType(JdbcType.BIGINT);
+        spec.setNullable(Nullable.NOT_NULL);
         return spec;
     }
 
@@ -85,6 +101,7 @@ public class MorpheusSpec extends StaticDefinitions {
         NodeSpec spec = new NodeSpec();
         spec.setJavaType(JavaType.BOOLEAN);
         spec.setJdbcType(JdbcType.INT);
+        spec.setNullable(Nullable.NOT_NULL);
         return spec;
     }
 
@@ -92,16 +109,43 @@ public class MorpheusSpec extends StaticDefinitions {
         NodeSpec spec = new NodeSpec();
         spec.setJavaType(JavaType.INTEGER);
         spec.setJdbcType(JdbcType.INT);
+        spec.setNullable(Nullable.NOT_NULL);
         return spec;
     }
 
     public static NodeSpec mandatoryVarchar50() {
-        return varchar(50, Nullable.NOT_NULL);
+        return varchar(null, 50, Nullable.NOT_NULL);
     }
 
+    public static NodeSpec optionalVarchar50() {
+        return varchar(null, 50, Nullable.NULL);
+    }
+
+    public static NodeSpec mandatoryVarchar150() {
+        return varchar(null, 150, Nullable.NULL);
+    }
+
+    public static NodeSpec mandatoryVarchar50(String columnName) {
+        return varchar(columnName, 50, Nullable.NOT_NULL);
+    }
+
+    public static <E extends Enum<E>> NodeSpec mandatoryEnum(Class<E> type) {
+        return CoreSpec.mandatoryEnum(type, JdbcType.INT);
+    }
+
+    public static <E extends Enum<E>> NodeSpec mandatoryFixedEnum(E value) {
+        return CoreSpec.mandatoryFixedEnum(value, JdbcType.INT);
+    }
+
+
     public static NodeSpec varchar(int length, Nullable nullable) {
+        return varchar(null, length, nullable);
+    }
+
+    public static NodeSpec varchar(String columnName, int length, Nullable nullable) {
         NodeSpec spec = new NodeSpec();
         spec.setJavaType(JavaType.STRING);
+        spec.setColumnName( columnName );
         spec.setJdbcType(JdbcType.VARCHAR);
         spec.setLength(length);
         spec.setNullable(nullable);
@@ -112,11 +156,16 @@ public class MorpheusSpec extends StaticDefinitions {
         return mandatoryVarchar50();
     }
 
+    public static NodeSpec name(String columnName) {
+        return mandatoryVarchar50(columnName);
+    }
+
     public static NodeSpec optimisticLock() {
         NodeSpec spec = new NodeSpec();
         spec.setJavaType(JavaType.LONG);
         spec.setJdbcType(JdbcType.TIMESTAMP);
         spec.setNullable(Nullable.NOT_NULL);
+        spec.setOptimisticLock(true);
         return spec;
     }
 
@@ -130,17 +179,21 @@ public class MorpheusSpec extends StaticDefinitions {
     }
 
     @Override
-    protected boolean foreignConstraintDesired(EntitySpec entitySpec, NodeSpec nodeSpec, RelationSpec relationSpec) {
-        for (Relation relation: excludedForeignKeyConstraints) {
-            if (relation.matches(entitySpec, relationSpec.getEntitySpec())) {
+    protected boolean foreignConstraintDesired(NodeSpec nodeSpec, RelationSpec relationSpec) {
+        for (StaticRelation relation: excludedForeignKeyConstraints) {
+            if (relation.matches(nodeSpec, relationSpec.getEntitySpec())) {
                 return false;
             }
         }
-        return super.foreignConstraintDesired(entitySpec, nodeSpec, relationSpec);
+        return super.foreignConstraintDesired(nodeSpec, relationSpec);
     }
 
-    protected void excludeForeignKeyConstraint(Relation realtion) {
+    protected void excludeForeignKeyConstraint(StaticRelation realtion) {
         excludedForeignKeyConstraints.add(realtion);
+    }
+
+    protected void renameForeignKeyConstraint(StaticRelation relation, String newName) {
+        renamedForeignKeyConstraints.put(relation, newName);
     }
 
     @Override
@@ -172,6 +225,14 @@ public class MorpheusSpec extends StaticDefinitions {
      */
     @Override
     protected String createForeignKeyConstraintName(EntitySpec entitySpec, NodeSpec nodeSpec, RelationSpec relationSpec) {
+        /*
+         * Check if there is an explicit renaming.
+         */
+        for (StaticRelation staticRel: renamedForeignKeyConstraints.keySet()) {
+            if (staticRel.matches(nodeSpec, relationSpec.getEntitySpec())) {
+                return renamedForeignKeyConstraints.get(staticRel);
+            }
+        }
         return "fk_" + removePrefix(entitySpec.getTableName()) + "_" + removePrefix(relationSpec.getEntitySpec().getTableName());
     }
 

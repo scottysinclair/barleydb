@@ -185,6 +185,9 @@ public class QueryExecuter {
         List<Param> params = new LinkedList<Param>();
         String sql = queryExecution.getSql(params);
 
+        LOG.debug("============================================");
+        LOG.debug("Executing individual query:\n" + sql);
+
         if (!params.isEmpty()) {
             try (PreparedStatement stmt = prepareStatement(sql, runtimeProperties)) {
 
@@ -192,8 +195,6 @@ public class QueryExecuter {
 
                 setParameters(stmt, params);
 
-                LOG.debug("============================================");
-                LOG.debug("Executing individual query:\n" + sql);
                 try (ResultSet resultSet = stmt.executeQuery()) {
                     queryExecution.processResultSet(resultSet);
                 }
@@ -210,8 +211,6 @@ public class QueryExecuter {
 
                 setFetch(stmt, runtimeProperties);
 
-                LOG.debug("============================================");
-                LOG.debug("Executing individual query:\n" + sql);
                 try (ResultSet resultSet = stmt.executeQuery(sql)) {
                     queryExecution.processResultSet(resultSet);
                 }

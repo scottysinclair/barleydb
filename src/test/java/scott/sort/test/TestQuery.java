@@ -23,10 +23,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
-import org.springframework.test.jdbc.SimpleJdbcTestUtils;
-
 import scott.sort.api.core.QueryBatcher;
 import scott.sort.api.core.entity.EntityContext;
 import scott.sort.server.jdbc.query.QueryResult;
@@ -35,7 +32,7 @@ import com.smartstream.mac.query.QUser;
 import com.smartstream.mi.model.CsvSyntaxModel;
 import com.smartstream.mi.model.SyntaxModel;
 import com.smartstream.mi.model.Template;
-import com.smartstream.mi.model.XMLSyntaxModel;
+import com.smartstream.mi.model.XmlSyntaxModel;
 import com.smartstream.mi.query.QCsvStructure;
 import com.smartstream.mi.query.QCsvSyntaxModel;
 import com.smartstream.mi.query.QSyntaxModel;
@@ -52,7 +49,7 @@ import com.smartstream.mi.types.SyntaxType;
  * @author scott
  *
  */
-@SuppressWarnings("deprecation")
+@SuppressWarnings({ "deprecation", "unused" })
 @RunWith(Parameterized.class)
 public class TestQuery extends TestRemoteClientBase {
 
@@ -76,7 +73,7 @@ public class TestQuery extends TestRemoteClientBase {
     @Override
     protected void prepareData() {
         super.prepareData();
-        SimpleJdbcTestUtils.executeSqlScript(new SimpleJdbcTemplate(dataSource), new ClassPathResource("/inserts.sql"), false);
+  //      SimpleJdbcTestUtils.executeSqlScript(new SimpleJdbcTemplate(dataSource), new ClassPathResource("/inserts.sql"), false);
     }
 
     @Override
@@ -131,7 +128,7 @@ public class TestQuery extends TestRemoteClientBase {
         /*
          * get a copy of the syntax query
          */
-        QXMLSyntaxModel syntax = (QXMLSyntaxModel) theEntityContext.getQuery(XMLSyntaxModel.class);
+        QXMLSyntaxModel syntax = (QXMLSyntaxModel) theEntityContext.getQuery(XmlSyntaxModel.class);
 
         /*
          * add a where clause
@@ -151,7 +148,7 @@ public class TestQuery extends TestRemoteClientBase {
         /*
          * Execute the query and process the result
          */
-        QueryResult<XMLSyntaxModel> result = theEntityContext.performQuery(syntax);
+        QueryResult<XmlSyntaxModel> result = theEntityContext.performQuery(syntax);
 
         //result.getList().get(0).getMappings();
 
@@ -160,12 +157,12 @@ public class TestQuery extends TestRemoteClientBase {
         System.out.println();
         System.out.println();
         System.out.println("printing syntax models (" + result.getList().size() + ") => ");
-        for (XMLSyntaxModel syntaxModel : result.getList()) {
+        for (XmlSyntaxModel syntaxModel : result.getList()) {
             print("", syntaxModel);
         }
 
         System.out.println("printing again no fetching this time) => ");
-        for (XMLSyntaxModel syntaxModel : result.getList()) {
+        for (XmlSyntaxModel syntaxModel : result.getList()) {
             print("", syntaxModel);
         }
         /*
@@ -221,9 +218,9 @@ public class TestQuery extends TestRemoteClientBase {
         /*
          * get a copy of the syntax query
          */
-        List<XMLSyntaxModel> list = theEntityContext.performQuery(qxsm).getList();
+        List<XmlSyntaxModel> list = theEntityContext.performQuery(qxsm).getList();
         System.out.println(theEntityContext.printXml());
-        for (XMLSyntaxModel syntaxModel : list) {
+        for (XmlSyntaxModel syntaxModel : list) {
             print("", syntaxModel);
         }
         /*
@@ -274,7 +271,7 @@ public class TestQuery extends TestRemoteClientBase {
         /*
          * Build a syntax model query
          */
-        QXMLSyntaxModel syntax = (QXMLSyntaxModel) theEntityContext.getDefinitions().getQuery(XMLSyntaxModel.class);
+        QXMLSyntaxModel syntax = (QXMLSyntaxModel) theEntityContext.getDefinitions().getQuery(XmlSyntaxModel.class);
         QXMLMapping aMapping = syntax.existsMapping();
         QUser aUser = syntax.existsUser();
         syntax.where(syntax.syntaxName().equal("syntax-xml-1"))
@@ -294,9 +291,9 @@ public class TestQuery extends TestRemoteClientBase {
 
         System.out.println();
         System.out.println();
-        System.out.println("Printing Syntax models");
+        System.out.println("Printing SyntaxModel models");
 
-        for (XMLSyntaxModel syntaxModel : qBatch.getResult(0, XMLSyntaxModel.class).getList()) {
+        for (XmlSyntaxModel syntaxModel : qBatch.getResult(0, XmlSyntaxModel.class).getList()) {
             print("", syntaxModel);
         }
 

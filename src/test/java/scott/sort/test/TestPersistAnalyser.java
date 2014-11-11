@@ -19,17 +19,17 @@ import scott.sort.api.persist.PersistAnalyser;
 import scott.sort.api.persist.PersistRequest;
 
 import com.smartstream.mac.model.User;
-import com.smartstream.mi.model.XMLMapping;
-import com.smartstream.mi.model.XMLStructure;
-import com.smartstream.mi.model.XMLSyntaxModel;
+import com.smartstream.mi.model.XmlMapping;
+import com.smartstream.mi.model.XmlStructure;
+import com.smartstream.mi.model.XmlSyntaxModel;
 import com.smartstream.mi.types.SyntaxType;
 
 public class TestPersistAnalyser extends TestBase {
 
     @Test
     public void testXMLSyntax() throws Exception {
-        XMLSyntaxModel syntaxModel = serverEntityContext.newModel(XMLSyntaxModel.class);
-        syntaxModel.setName("Scott's Syntax");
+        XmlSyntaxModel syntaxModel = serverEntityContext.newModel(XmlSyntaxModel.class);
+        syntaxModel.setName("Scott's SyntaxModel");
         syntaxModel.setSyntaxType(SyntaxType.ROOT);
 
         User user = serverEntityContext.newModel(User.class);
@@ -37,24 +37,24 @@ public class TestPersistAnalyser extends TestBase {
 
         syntaxModel.setUser(user);
 
-        XMLStructure structure = serverEntityContext.newModel(XMLStructure.class);
+        XmlStructure structure = serverEntityContext.newModel(XmlStructure.class);
         structure.setName("scott's structure");
         syntaxModel.setStructure(structure);
 
-        XMLMapping mapping = serverEntityContext.newModel(XMLMapping.class);
+        XmlMapping mapping = serverEntityContext.newModel(XmlMapping.class);
         mapping.setSyntaxModel(syntaxModel);
         mapping.setXpath("/root1");
         mapping.setTarget("target1");
         syntaxModel.getMappings().add(mapping);
 
-        mapping = serverEntityContext.newModel(XMLMapping.class);
+        mapping = serverEntityContext.newModel(XmlMapping.class);
         mapping.setSyntaxModel(syntaxModel);
         mapping.setXpath("/root2");
         mapping.setTarget("target2");
         syntaxModel.getMappings().add(mapping);
 
         //create the sub syntax
-        XMLSyntaxModel subSyntaxModel = serverEntityContext.newModel(XMLSyntaxModel.class);
+        XmlSyntaxModel subSyntaxModel = serverEntityContext.newModel(XmlSyntaxModel.class);
         subSyntaxModel.setName("SubSyntaxModel - ooooh");
         subSyntaxModel.setStructure(structure);
         subSyntaxModel.setSyntaxType(SyntaxType.SUBSYNTAX);
@@ -63,20 +63,20 @@ public class TestPersistAnalyser extends TestBase {
         mapping.setSubSyntaxModel(subSyntaxModel); //cool, lets do it
 
         //add another mapping to the root level syntax
-        mapping = serverEntityContext.newModel(XMLMapping.class);
+        mapping = serverEntityContext.newModel(XmlMapping.class);
         mapping.setSyntaxModel(syntaxModel);
         mapping.setXpath("/root3");
         mapping.setTarget("target3");
         syntaxModel.getMappings().add(mapping);
 
         //do the sub-syntax mappings
-        mapping = serverEntityContext.newModel(XMLMapping.class);
+        mapping = serverEntityContext.newModel(XmlMapping.class);
         mapping.setSyntaxModel(subSyntaxModel);
         mapping.setXpath("sub1");
         mapping.setTarget("subtarget1");
         subSyntaxModel.getMappings().add(mapping);
 
-        mapping = serverEntityContext.newModel(XMLMapping.class);
+        mapping = serverEntityContext.newModel(XmlMapping.class);
         mapping.setSyntaxModel(subSyntaxModel);
         mapping.setXpath("sub2");
         mapping.setTarget("subtarget2");
@@ -125,8 +125,8 @@ public class TestPersistAnalyser extends TestBase {
 
     @Test
     public void testOptimizeXMLSyntaxUpdateOperations() throws Exception {
-        XMLSyntaxModel syntaxModel = serverEntityContext.newModel(XMLSyntaxModel.class);
-        syntaxModel.setName("Scott's Syntax");
+        XmlSyntaxModel syntaxModel = serverEntityContext.newModel(XmlSyntaxModel.class);
+        syntaxModel.setName("Scott's SyntaxModel");
         syntaxModel.setSyntaxType(SyntaxType.ROOT);
 
         User user = serverEntityContext.newModel(User.class);
@@ -134,24 +134,24 @@ public class TestPersistAnalyser extends TestBase {
 
         syntaxModel.setUser(user);
 
-        XMLStructure structure = serverEntityContext.newModel(XMLStructure.class);
+        XmlStructure structure = serverEntityContext.newModel(XmlStructure.class);
         structure.setName("scott's structure");
         syntaxModel.setStructure(structure);
 
-        XMLMapping mapping = serverEntityContext.newModel(XMLMapping.class);
+        XmlMapping mapping = serverEntityContext.newModel(XmlMapping.class);
         mapping.setSyntaxModel(syntaxModel);
         mapping.setXpath("/root1");
         mapping.setTarget("target1");
         syntaxModel.getMappings().add(mapping);
 
-        mapping = serverEntityContext.newModel(XMLMapping.class);
+        mapping = serverEntityContext.newModel(XmlMapping.class);
         mapping.setSyntaxModel(syntaxModel);
         mapping.setXpath("/root2");
         mapping.setTarget("target2");
         syntaxModel.getMappings().add(mapping);
 
         //create the sub syntax
-        XMLSyntaxModel subSyntaxModel = serverEntityContext.newModel(XMLSyntaxModel.class);
+        XmlSyntaxModel subSyntaxModel = serverEntityContext.newModel(XmlSyntaxModel.class);
         subSyntaxModel.setName("SubSyntaxModel - ooooh");
         subSyntaxModel.setStructure(structure);
         subSyntaxModel.setSyntaxType(SyntaxType.SUBSYNTAX);
@@ -160,20 +160,20 @@ public class TestPersistAnalyser extends TestBase {
         mapping.setSubSyntaxModel(subSyntaxModel); //cool, lets do it
 
         //add another mapping to the root level syntax
-        mapping = serverEntityContext.newModel(XMLMapping.class);
+        mapping = serverEntityContext.newModel(XmlMapping.class);
         mapping.setSyntaxModel(syntaxModel);
         mapping.setXpath("/root3");
         mapping.setTarget("target3");
         syntaxModel.getMappings().add(mapping);
 
         //do the sub-syntax mappings
-        mapping = serverEntityContext.newModel(XMLMapping.class);
+        mapping = serverEntityContext.newModel(XmlMapping.class);
         mapping.setSyntaxModel(subSyntaxModel);
         mapping.setXpath("sub1");
         mapping.setTarget("subtarget1");
         subSyntaxModel.getMappings().add(mapping);
 
-        mapping = serverEntityContext.newModel(XMLMapping.class);
+        mapping = serverEntityContext.newModel(XmlMapping.class);
         mapping.setSyntaxModel(subSyntaxModel);
         mapping.setXpath("sub2");
         mapping.setTarget("subtarget2");

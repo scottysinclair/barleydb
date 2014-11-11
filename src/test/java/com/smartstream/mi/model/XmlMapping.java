@@ -17,7 +17,7 @@ import scott.sort.api.core.entity.ValueNode;
 import scott.sort.api.core.proxy.AbstractCustomEntityProxy;
 import scott.sort.api.core.proxy.RefNodeProxyHelper;
 
-public class XMLMapping extends AbstractCustomEntityProxy {
+public class XmlMapping extends AbstractCustomEntityProxy {
 
     private static final long serialVersionUID = 1L;
 
@@ -27,7 +27,7 @@ public class XMLMapping extends AbstractCustomEntityProxy {
     private final ValueNode xpath;
     private final RefNodeProxyHelper syntaxModel;
 
-    public XMLMapping(Entity entity) {
+    public XmlMapping(Entity entity) {
         super(entity);
         id = entity.getChild("id", ValueNode.class, true);
         subSyntaxModel = new RefNodeProxyHelper(entity.getChild("subSyntaxModel", RefNode.class, true));
@@ -40,19 +40,19 @@ public class XMLMapping extends AbstractCustomEntityProxy {
         return id.getValue();
     }
 
-    public void setSyntaxModel(XMLSyntaxModel syntaxModel) {
+    public void setSyntaxModel(XmlSyntaxModel syntaxModel) {
         setToRefNode(this.syntaxModel.refNode, syntaxModel);
     }
 
-    public XMLSyntaxModel getSyntaxModel() {
+    public XmlSyntaxModel getSyntaxModel() {
         return getFromRefNode(syntaxModel.refNode);
     }
 
-    public void setSubSyntaxModel(XMLSyntaxModel syntaxModel) {
+    public void setSubSyntaxModel(XmlSyntaxModel syntaxModel) {
         setToRefNode(this.subSyntaxModel.refNode, syntaxModel);
     }
 
-    public XMLSyntaxModel getSubSyntaxModel() {
+    public XmlSyntaxModel getSubSyntaxModel() {
         return getFromRefNode(subSyntaxModel.refNode);
     }
 

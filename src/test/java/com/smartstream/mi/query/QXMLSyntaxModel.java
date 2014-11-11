@@ -13,9 +13,9 @@ package com.smartstream.mi.query;
 
 import scott.sort.api.query.QueryObject;
 
-import com.smartstream.mi.model.XMLSyntaxModel;
+import com.smartstream.mi.model.XmlSyntaxModel;
 
-public class QXMLSyntaxModel extends QAbstractSyntaxModel<XMLSyntaxModel, QXMLSyntaxModel> {
+public class QXMLSyntaxModel extends QAbstractSyntaxModel<XmlSyntaxModel, QXMLSyntaxModel> {
     private static final long serialVersionUID = 1L;
 
     public QXMLSyntaxModel() {
@@ -23,7 +23,7 @@ public class QXMLSyntaxModel extends QAbstractSyntaxModel<XMLSyntaxModel, QXMLSy
     }
 
     public QXMLSyntaxModel(QueryObject<?> parent) {
-        super(XMLSyntaxModel.class, parent);
+        super(XmlSyntaxModel.class, parent);
     }
 
     public QXMLMapping joinToMappings() {

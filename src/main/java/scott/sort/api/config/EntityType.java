@@ -14,17 +14,13 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlTransient;
-
 import scott.sort.api.core.util.EnvironmentAccessor;
+import scott.sort.api.specification.EntitySpec;
+import scott.sort.api.specification.NodeSpec;
 
 /**
  * The static configuration information about an entity.
@@ -38,62 +34,58 @@ import scott.sort.api.core.util.EnvironmentAccessor;
  * @author scott
  *
  */
-@XmlAccessorType(XmlAccessType.FIELD)
 public class EntityType implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @XmlTransient
-    private Definitions definitions;
+    private final Definitions definitions;
 
-    @XmlAttribute(name = "interface")
     private String interfaceName;
 
     private String tableName;
 
-    @XmlAttribute(name = "abstract")
     private boolean abstractEntity;
 
-    @XmlAttribute(name = "parentType")
     private String parentTypeName;
 
-    @XmlAttribute(name = "key")
     private String keyNodeName;
 
-    @XmlElement(name = "node")
     private List<NodeType> nodeTypes = new LinkedList<NodeType>();
-/*
-    public static EntityType create(Definitions definitions, EntitySpec entityTypeSpec) {
-        EntityType entityType = new EntityType(definitions);
-        for (NodeSpec nodeTypeSpec: entityTypeSpec.getNodeSpecs()) {
-          entityType.nodeTypes.add( NodeType.create(entityType, nodeTypeSpec) );
-        }
-        return entityType;
-      }
-*/
-    public EntityType() {}
 
-    public EntityType(Definitions definitions, String interfaceName, boolean abstractEntity, String parentTypeName, String tableName, String keyNodeName, List<NodeType> nodeTypes) {
-        if (tableName == null) {
+    public static EntityType create(Definitions definitions, EntitySpec entityTypeSpec) {
+        if (entityTypeSpec.getTableName() == null) {
             throw new IllegalArgumentException("Entity type must have a table name");
         }
-        if (keyNodeName == null) {
+        Collection<NodeSpec> keyNodes = entityTypeSpec.getPrimaryKeyNodes(true);
+        if (keyNodes == null || keyNodes.isEmpty()) {
             throw new IllegalArgumentException("Entity type must have a key node");
         }
-        this.definitions = definitions;
-        this.interfaceName = interfaceName;
-        this.parentTypeName = parentTypeName;
-        this.abstractEntity = abstractEntity;
-        this.tableName = tableName;
-        this.keyNodeName = keyNodeName;
-        this.nodeTypes = nodeTypes;
-        for (NodeType nd : nodeTypes) {
-            nd.setEntityType(this);
+        if (keyNodes.size() > 1) {
+            throw new IllegalArgumentException("Entity type must currently must have a single key node");
+        }
+        EntityType entityType = new EntityType(definitions);
+        entityType.interfaceName = entityTypeSpec.getClassName();
+        entityType.tableName = entityTypeSpec.getTableName();
+        entityType.abstractEntity = entityTypeSpec.isAbstractEntity();
+        if (entityTypeSpec.getParentEntity() != null) {
+            entityType.parentTypeName = entityTypeSpec.getParentEntity().getClassName();
+        }
+        entityType.keyNodeName = keyNodes.iterator().next().getName();
+        createNodeTypesFromEntitySpec(entityType, entityTypeSpec);
+        return entityType;
+      }
+
+    private static void createNodeTypesFromEntitySpec(EntityType entityType, EntitySpec entityTypeSpec) {
+        if (entityTypeSpec.getParentEntity() != null) {
+            createNodeTypesFromEntitySpec(entityType, entityTypeSpec.getParentEntity());
+        }
+        for (NodeSpec nodeTypeSpec: entityTypeSpec.getNodeSpecs()) {
+            entityType.nodeTypes.add( NodeType.create(entityType, nodeTypeSpec) );
         }
     }
 
-    public void afterUnmarshal(Unmarshaller unmarshall, Object parent) {
-        this.definitions = (Definitions) parent;
+    private EntityType(Definitions definitions) {
+        this.definitions = definitions;
     }
 
     /**

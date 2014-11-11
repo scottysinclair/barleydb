@@ -15,86 +15,19 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
-import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlTransient;
-
 import scott.sort.api.core.types.JavaType;
 import scott.sort.api.core.types.JdbcType;
 import scott.sort.api.core.util.EnvironmentAccessor;
+import scott.sort.api.specification.NodeSpec;
+import scott.sort.api.specification.RelationSpec;
 
-@XmlAccessorType(XmlAccessType.FIELD)
 public class NodeType implements Serializable, Cloneable {
     private static final long serialVersionUID = 1L;
 
-    public static class Builder {
-        private NodeType nd = new NodeType();
+    private final EntityType entityType;
 
-        public Builder ref(String name, String interfaceName, String columnName, JdbcType jdbcType) {
-            nd.name = name;
-            nd.relation = new Relation(interfaceName, RelationType.REFERS, null, null);
-            nd.columnName = columnName;
-            nd.jdbcType = jdbcType;
-            return this;
-        }
-
-        public Builder many(String name, String interfaceName, String foreignNodeName, String joinProperty) {
-            nd.name = name;
-            nd.relation = new Relation(interfaceName, RelationType.REFERS, foreignNodeName, joinProperty);
-            return this;
-        }
-
-        public Builder value(String name, JavaType javaType, String columnName, JdbcType jdbcType) {
-            nd.name = name;
-            nd.javaType = javaType;
-            nd.columnName = columnName;
-            nd.jdbcType = jdbcType;
-            return this;
-        }
-
-        public Builder enumm(String name, Class<? extends Enum<?>> enumType, String columnName, JdbcType jdbcType) {
-            nd.name = name;
-            nd.enumType = enumType;
-            nd.javaType = JavaType.ENUM;
-            nd.columnName = columnName;
-            nd.jdbcType = jdbcType;
-            return this;
-        }
-
-        public Builder owns() {
-            nd.relation = nd.relation.copy(RelationType.OWNS);
-            return this;
-        }
-
-        public Builder dependsOn() {
-            nd.relation = nd.relation.copy(RelationType.DEPENDS);
-            return this;
-        }
-
-        public Builder optimisticLock() {
-            nd.optimisticLock = true;
-            return this;
-        }
-
-        public Builder fixedValue(Object value) {
-            nd.fixedValue = value;
-            return this;
-        }
-
-        public NodeType end() {
-            return nd;
-        }
-    }
-
-    @XmlTransient
-    private EntityType entityType;
-
-    @XmlAttribute
     private String name;
 
-    @XmlAttribute
     private JavaType javaType;
 
     private Relation relation;
@@ -109,14 +42,29 @@ public class NodeType implements Serializable, Cloneable {
 
     private Object fixedValue;
 
-    public NodeType() {}
+    public static NodeType create(EntityType entityType, NodeSpec nodeSpec) {
+        NodeType nodeType = new NodeType(entityType);
+        nodeType.name = nodeSpec.getName();
+        nodeType.javaType = nodeSpec.getJavaType();
+        if (nodeSpec.getRelationSpec() != null) {
+            RelationSpec spec = nodeSpec.getRelationSpec();
+            NodeSpec backReference = spec.getBackReference();
+            NodeSpec onwardJoin = spec.getOwnwardJoin();
+            nodeType.relation = new Relation(spec.getEntitySpec().getClassName(),
+                    spec.getType(),
+                    backReference != null ? backReference.getName() : null,
+                    onwardJoin != null ? onwardJoin.getName() : null);
+        }
+        nodeType.columnName = nodeSpec.getColumnName();
+        nodeType.jdbcType = nodeSpec.getJdbcType();
+        nodeType.optimisticLock = nodeSpec.isOptimisticLock();
+        nodeType.enumType = nodeSpec.getEnumType();
+        nodeType.fixedValue = nodeSpec.getFixedValue();
+        return nodeType;
+    }
 
-    public NodeType(String name, String interfaceName, RelationType relationType, String columnName, JdbcType jdbcType, String foreignNodeName, String joinEntityName, Object fixedValue) {
-        this.name = name;
-        this.relation = new Relation(interfaceName, RelationType.REFERS, foreignNodeName, joinEntityName);
-        this.columnName = columnName;
-        this.jdbcType = jdbcType;
-        this.fixedValue = fixedValue;
+    private NodeType(EntityType entityType) {
+        this.entityType = entityType;
     }
 
     @Override
@@ -126,14 +74,6 @@ public class NodeType implements Serializable, Cloneable {
         } catch (CloneNotSupportedException x) {
             throw new IllegalStateException("Could not clone node definition", x);
         }
-    }
-
-    void setEntityType(EntityType entityType) {
-        this.entityType = entityType;
-    }
-
-    public void afterUnmarshal(Unmarshaller unmarshall, Object parent) {
-        this.entityType = (EntityType) parent;
     }
 
     public boolean isPrimaryKey() {

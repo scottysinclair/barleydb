@@ -42,13 +42,23 @@ public class RelationSpec implements Serializable, Cloneable {
     @XmlAttribute
     private NodeSpec backReference;
 
+    /**
+     * For reference to a join table
+     * we can specify the onwards join out past the join table
+     * ie onwards to datatype from template_datatype join table.
+     */
+    @XmlIDREF
+    @XmlAttribute
+    private NodeSpec ownwardJoin;
+
     public RelationSpec() {
     }
 
-    public RelationSpec(RelationType type, Object entitySpecIdentifier, NodeSpec backReference) {
+    public RelationSpec(RelationType type, Object entitySpecIdentifier, NodeSpec backReference, NodeSpec onwardJoin) {
         this.type = type;
         this.entitySpecIdentifier = entitySpecIdentifier;
         this.backReference = backReference;
+        this.ownwardJoin = onwardJoin;
     }
 
     public boolean isForeignKeyRelation() {
@@ -85,6 +95,14 @@ public class RelationSpec implements Serializable, Cloneable {
 
     public void setBackReference(NodeSpec backReference) {
         this.backReference = backReference;
+    }
+
+    public NodeSpec getOwnwardJoin() {
+        return ownwardJoin;
+    }
+
+    public void setOwnwardJoin(NodeSpec ownwardJoin) {
+        this.ownwardJoin = ownwardJoin;
     }
 
     @Override

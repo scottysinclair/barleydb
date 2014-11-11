@@ -34,7 +34,7 @@
         <groupId>org.springframework</groupId>
       </exclusion>
       <exclusion>
-        <artifactId>spring-core</artifactId>
+        <artifactId>spring-scott.sort.definitions</artifactId>
         <groupId>org.springframework</groupId>
       </exclusion>
       <exclusion>
@@ -48,6 +48,19 @@
        -->
     </exclusions>
   </dependency>
+  <dependency>
+     <groupId>org.springframework</groupId>
+     <artifactId>spring-core</artifactId>
+     <version>3.1.1.RELEASE</version>
+     <scope>compile</scope>
+  </dependency>
+  <dependency>
+     <groupId>org.springframework</groupId>
+     <artifactId>spring-orm</artifactId>
+     <version>3.1.1.RELEASE</version>
+     <scope>compile</scope>
+  </dependency>
+
   <!--
   <dependency>
     <groupId>org.apache.servicemix.bundles</groupId>
@@ -56,18 +69,11 @@
     <scope>test</scope>
   </dependency>
    -->
-  <dependency>
-     <groupId>org.springframework</groupId>
-     <artifactId>spring-orm</artifactId>
-     <version>3.1.1.RELEASE</version>
-     <scope>provided</scope>
-  </dependency>
 
   <dependency>
      <groupId>org.springframework</groupId>
      <artifactId>spring-test</artifactId>
      <version>3.1.1.RELEASE</version>
-     <scope>provided</scope>
   </dependency>
 
   <dependency>

@@ -17,8 +17,10 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
+import scott.sort.api.specification.constraint.ForeignKeyConstraintSpec;
 
-@XmlRootElement(name = "Namespace")
+
+@XmlRootElement(name = "Definitions")
 @XmlAccessorType(XmlAccessType.NONE)
 public class DefinitionsSpec implements Serializable {
 
@@ -61,6 +63,19 @@ public class DefinitionsSpec implements Serializable {
     public void verify() {
         for (EntitySpec entitySpec: entitySpecs.values()) {
             entitySpec.verify();
+        }
+        Set<String> constraintNames = new HashSet<String>();
+        for (EntitySpec entitySpec: entitySpecs.values()) {
+            if (entitySpec.getPrimaryKeyConstraint() != null) {
+                if (!constraintNames.add(entitySpec.getPrimaryKeyConstraint().getName())) {
+                    throw new IllegalStateException("Constraint already exists: " + entitySpec.getPrimaryKeyConstraint());
+                }
+            }
+            for (ForeignKeyConstraintSpec spec: entitySpec.getForeignKeyConstraints()) {
+                if (!constraintNames.add(spec.getName())) {
+                    throw new IllegalStateException("Constraint already exists: " + spec);
+                }
+            }
         }
     }
 

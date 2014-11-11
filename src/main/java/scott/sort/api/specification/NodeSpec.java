@@ -52,6 +52,8 @@ public class NodeSpec implements Serializable, Cloneable {
     @XmlAttribute
     private Integer length;
 
+    @XmlAttribute
+    private boolean optimisticLock;
 
 
     @XmlAttribute(name="pk")
@@ -157,6 +159,14 @@ public class NodeSpec implements Serializable, Cloneable {
 
     public void setLength(Integer length) {
         this.length = length;
+    }
+
+    public boolean isOptimisticLock() {
+        return optimisticLock;
+    }
+
+    public void setOptimisticLock(boolean optimisticLock) {
+        this.optimisticLock = optimisticLock;
     }
 
     @Override

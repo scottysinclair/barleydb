@@ -1,8 +1,6 @@
 package com.smartstream.mi;
 
 import static scott.sort.api.specification.CoreSpec.dependsOn;
-import static scott.sort.api.specification.CoreSpec.mandatoryEnum;
-import static scott.sort.api.specification.CoreSpec.mandatoryFixedEnum;
 import static scott.sort.api.specification.CoreSpec.mandatoryRefersTo;
 import static scott.sort.api.specification.CoreSpec.optionalRefersTo;
 import static scott.sort.api.specification.CoreSpec.optionallyOwns;
@@ -37,21 +35,22 @@ import scott.sort.build.specification.staticspec.ExtendsEntity;
 public class MiSpec extends MorpheusSpec {
 
     public MiSpec() {
-        super("com.smartstream.messaging");
+        super("com.smartstream.mi");
         add(new MacSpec());
-        excludeForeignKeyConstraint(new Relation(XmlSyntax.class, XmlStructure.class));
-        excludeForeignKeyConstraint(new Relation(CsvSyntax.class, CsvStructure.class));
+        excludeForeignKeyConstraint(new StaticRelation(XmlSyntaxModel.structure));
+        excludeForeignKeyConstraint(new StaticRelation(CsvSyntaxModel.structure));
+        renameForeignKeyConstraint(new StaticRelation(XmlMapping.subSyntax), "FK_XML_MAPPING_SUBSYNTAX_MODEL");
     }
 
 
     @Override
     public Class<?>[] getOrder() {
         return new Class[]{
-                Syntax.class,
-                XmlSyntax.class,
+                SyntaxModel.class,
+                XmlSyntaxModel.class,
                 XmlStructure.class,
                 XmlMapping.class,
-                CsvSyntax.class,
+                CsvSyntaxModel.class,
                 CsvStructure.class,
                 CsvStructureField.class,
                 CsvMapping.class,
@@ -63,7 +62,7 @@ public class MiSpec extends MorpheusSpec {
     }
 
     @AbstractEntity("SS_SYNTAX_MODEL")
-    public static class Syntax implements TopLevelModel {
+    public static class SyntaxModel implements TopLevelModel {
 
         public static final NodeSpec structureType = mandatoryEnum(StructureType.class);
 
@@ -79,7 +78,7 @@ public class MiSpec extends MorpheusSpec {
     }
 
     @ExtendsEntity
-    public static class XmlSyntax extends Syntax {
+    public static class XmlSyntaxModel extends SyntaxModel {
 
         public static final NodeSpec structureType = mandatoryFixedEnum(StructureType.XML);
 
@@ -93,15 +92,17 @@ public class MiSpec extends MorpheusSpec {
 
         public static final NodeSpec id = longPrimaryKey();
 
-        public static final NodeSpec syntax = mandatoryRefersTo(XmlSyntax.class);
+        public static final NodeSpec syntax = mandatoryRefersTo(XmlSyntaxModel.class);
 
-        public static final NodeSpec subSyntax = optionallyOwns(XmlSyntax.class, "SUB_SYNTAX_ID");
+        public static final NodeSpec subSyntax = optionallyOwns(XmlSyntaxModel.class, "SUB_SYNTAX_ID");
 
-        public static final NodeSpec xpath = mandatoryVarchar50();
+        public static final NodeSpec xpath = mandatoryVarchar150();
+
+        public static final NodeSpec targetFieldName = mandatoryVarchar150();
     }
 
     @ExtendsEntity
-    public static class CsvSyntax extends Syntax {
+    public static class CsvSyntaxModel extends SyntaxModel {
 
         public static final NodeSpec structureType = mandatoryFixedEnum(StructureType.CSV);
 
@@ -123,6 +124,8 @@ public class MiSpec extends MorpheusSpec {
 
         public static final NodeSpec id = longPrimaryKey();
 
+        public static final NodeSpec name = optionalVarchar50();
+
         public static final NodeSpec structure = mandatoryRefersTo(CsvStructure.class);
 
         public static final NodeSpec columnIndex = mandatoryIntegerValue();
@@ -136,13 +139,17 @@ public class MiSpec extends MorpheusSpec {
 
         public static final NodeSpec id = longPrimaryKey();
 
-        public static final NodeSpec syntax = mandatoryRefersTo(CsvSyntax.class);
+        public static final NodeSpec syntax = mandatoryRefersTo(CsvSyntaxModel.class);
 
         public static final NodeSpec structureField = mandatoryRefersTo(CsvStructureField.class);
+
+        public static final NodeSpec targetFieldName = mandatoryVarchar150();
     }
 
     @Entity("SS_TEMPLATE")
     public static class Template implements TopLevelModel {
+
+        public static final NodeSpec contents = ownsMany(TemplateContent.class, TemplateContent.template);
 
         public static final NodeSpec businessTypes = ownsMany(TemplateBusinessType.class, TemplateBusinessType.template);
     }
@@ -157,10 +164,14 @@ public class MiSpec extends MorpheusSpec {
         public static final NodeSpec modifiedAt = optimisticLock();
 
         public static final NodeSpec template = mandatoryRefersTo(Template.class);
+
+        public static final NodeSpec businessTypes = ownsMany(TemplateBusinessType.class, TemplateBusinessType.template, TemplateBusinessType.businessType);
     }
 
     @Entity("SS_TEMPLATE_DATATYPE")
     public static class TemplateBusinessType {
+
+        public static final NodeSpec id = longPrimaryKey();
 
         public static final NodeSpec template = mandatoryRefersTo(Template.class);
 
