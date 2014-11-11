@@ -1,10 +1,14 @@
 package com.smartstream.mi.model;
 
+import java.util.List;
+
 import scott.sort.api.core.entity.Entity;
-import scott.sort.api.core.entity.RefNode;
 import scott.sort.api.core.entity.ValueNode;
+import scott.sort.api.core.entity.RefNode;
+import scott.sort.api.core.entity.ToManyNode;
 import scott.sort.api.core.proxy.AbstractCustomEntityProxy;
 import scott.sort.api.core.proxy.RefNodeProxyHelper;
+import scott.sort.api.core.proxy.ToManyNodeProxyHelper;
 
 
 
@@ -12,8 +16,8 @@ import scott.sort.api.core.proxy.RefNodeProxyHelper;
 public class TemplateBusinessType extends AbstractCustomEntityProxy {
 
   private final ValueNode id;
-  private final RefNode template;
-  private final RefNode businessType;
+  private final RefNodeProxyHelper template;
+  private final RefNodeProxyHelper businessType;
 
 
   public TemplateBusinessType(Entity entity) {

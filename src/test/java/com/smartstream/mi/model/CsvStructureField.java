@@ -1,33 +1,73 @@
 package com.smartstream.mi.model;
 
-/*
- * #%L
- * Simple Object Relational Framework
- * %%
- * Copyright (C) 2014 Scott Sinclair <scottysinclair@gmail.com>
- * %%
- * All rights reserved.
- * #L%
- */
+import java.util.List;
 
-public interface CsvStructureField {
+import scott.sort.api.core.entity.Entity;
+import scott.sort.api.core.entity.ValueNode;
+import scott.sort.api.core.entity.RefNode;
+import scott.sort.api.core.entity.ToManyNode;
+import scott.sort.api.core.proxy.AbstractCustomEntityProxy;
+import scott.sort.api.core.proxy.RefNodeProxyHelper;
+import scott.sort.api.core.proxy.ToManyNodeProxyHelper;
 
-    Long getId();
 
-    String getName();
 
-    void setName(String name);
 
-    Integer getColumnIndex();
+public class CsvStructureField extends AbstractCustomEntityProxy {
 
-    void setColumnIndex(Integer columnIndex);
+  private final ValueNode id;
+  private final ValueNode name;
+  private final RefNodeProxyHelper structure;
+  private final ValueNode columnIndex;
+  private final ValueNode optional;
 
-    Boolean getOptional();
 
-    void setOptional(Boolean optional);
+  public CsvStructureField(Entity entity) {
+    super(entity);
+    id = entity.getChild("id", ValueNode.class, true);
+    name = entity.getChild("name", ValueNode.class, true);
+    structure = new RefNodeProxyHelper(entity.getChild("structure", RefNode.class, true));
+    columnIndex = entity.getChild("columnIndex", ValueNode.class, true);
+    optional = entity.getChild("optional", ValueNode.class, true);
+  }
 
-    CsvStructure getStructure();
+  public Long getId() {
+    return id.getValue();
+  }
 
-    void setStructure(CsvStructure structure);
+  public void setId(Long id) {
+    this.id.setValue(id);
+  }
 
+  public String getName() {
+    return name.getValue();
+  }
+
+  public void setName(String name) {
+    this.name.setValue(name);
+  }
+
+  public CsvStructure getStructure() {
+    return super.getFromRefNode(structure.refNode);
+  }
+
+  public void setStructure(CsvStructure structure) {
+    setToRefNode(this.structure.refNode, structure);
+  }
+
+  public Integer getColumnIndex() {
+    return columnIndex.getValue();
+  }
+
+  public void setColumnIndex(Integer columnIndex) {
+    this.columnIndex.setValue(columnIndex);
+  }
+
+  public Boolean getOptional() {
+    return optional.getValue();
+  }
+
+  public void setOptional(Boolean optional) {
+    this.optional.setValue(optional);
+  }
 }

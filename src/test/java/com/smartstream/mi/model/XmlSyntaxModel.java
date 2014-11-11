@@ -1,44 +1,50 @@
 package com.smartstream.mi.model;
 
-/*
- * #%L
- * Simple Object Relational Framework
- * %%
- * Copyright (C) 2014 Scott Sinclair <scottysinclair@gmail.com>
- * %%
- * All rights reserved.
- * #L%
- */
-
-
 import java.util.List;
 
 import scott.sort.api.core.entity.Entity;
+import scott.sort.api.core.entity.ValueNode;
 import scott.sort.api.core.entity.RefNode;
 import scott.sort.api.core.entity.ToManyNode;
+import scott.sort.api.core.proxy.AbstractCustomEntityProxy;
+import scott.sort.api.core.proxy.RefNodeProxyHelper;
 import scott.sort.api.core.proxy.ToManyNodeProxyHelper;
 
+import com.smartstream.mi.types.StructureType;
+
+
+
 public class XmlSyntaxModel extends SyntaxModel {
-    private static final long serialVersionUID = 1L;
-    private final RefNode structure;
-    private final ToManyNodeProxyHelper mappings;
 
-    public XmlSyntaxModel(Entity entity) {
-        super(entity);
-        structure = entity.getChild("structure", RefNode.class, true);
-        mappings = new ToManyNodeProxyHelper(entity.getChild("mappings", ToManyNode.class, true));
-    }
+  private final ValueNode structureType;
+  private final RefNodeProxyHelper structure;
+  private final ToManyNodeProxyHelper mappings;
 
-    public List<XmlMapping> getMappings() {
-        return super.getListProxy(mappings.toManyNode);
-    }
 
-    @Override
-    public XmlStructure getStructure() {
-        return super.getFromRefNode(structure);
-    }
+  public XmlSyntaxModel(Entity entity) {
+    super(entity);
+    structureType = entity.getChild("structureType", ValueNode.class, true);
+    structure = new RefNodeProxyHelper(entity.getChild("structure", RefNode.class, true));
+    mappings = new ToManyNodeProxyHelper(entity.getChild("mappings", ToManyNode.class, true));
+  }
 
-    public void setStructure(XmlStructure xmlStructure) {
-        setToRefNode(this.structure, xmlStructure);
-    }
+  public StructureType getStructureType() {
+    return structureType.getValue();
+  }
+
+  public void setStructureType(StructureType structureType) {
+    this.structureType.setValue(structureType);
+  }
+
+  public XmlStructure getStructure() {
+    return super.getFromRefNode(structure.refNode);
+  }
+
+  public void setStructure(XmlStructure structure) {
+    setToRefNode(this.structure.refNode, structure);
+  }
+
+  public List<XmlMapping> getMappings() {
+    return super.getListProxy(mappings.toManyNode);
+  }
 }

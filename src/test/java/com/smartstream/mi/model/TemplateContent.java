@@ -1,23 +1,63 @@
 package com.smartstream.mi.model;
 
-/*
- * #%L
- * Simple Object Relational Framework
- * %%
- * Copyright (C) 2014 Scott Sinclair <scottysinclair@gmail.com>
- * %%
- * All rights reserved.
- * #L%
- */
+import java.util.List;
 
-public interface TemplateContent {
-    Long getId();
+import scott.sort.api.core.entity.Entity;
+import scott.sort.api.core.entity.ValueNode;
+import scott.sort.api.core.entity.RefNode;
+import scott.sort.api.core.entity.ToManyNode;
+import scott.sort.api.core.proxy.AbstractCustomEntityProxy;
+import scott.sort.api.core.proxy.RefNodeProxyHelper;
+import scott.sort.api.core.proxy.ToManyNodeProxyHelper;
 
-    String getName();
 
-    void setName(String name);
 
-    Template getTemplate();
 
-    void setTemplate(Template template);
+public class TemplateContent extends AbstractCustomEntityProxy {
+
+  private final ValueNode id;
+  private final ValueNode name;
+  private final ValueNode modifiedAt;
+  private final RefNodeProxyHelper template;
+
+
+  public TemplateContent(Entity entity) {
+    super(entity);
+    id = entity.getChild("id", ValueNode.class, true);
+    name = entity.getChild("name", ValueNode.class, true);
+    modifiedAt = entity.getChild("modifiedAt", ValueNode.class, true);
+    template = new RefNodeProxyHelper(entity.getChild("template", RefNode.class, true));
+  }
+
+  public Long getId() {
+    return id.getValue();
+  }
+
+  public void setId(Long id) {
+    this.id.setValue(id);
+  }
+
+  public String getName() {
+    return name.getValue();
+  }
+
+  public void setName(String name) {
+    this.name.setValue(name);
+  }
+
+  public Long getModifiedAt() {
+    return modifiedAt.getValue();
+  }
+
+  public void setModifiedAt(Long modifiedAt) {
+    this.modifiedAt.setValue(modifiedAt);
+  }
+
+  public Template getTemplate() {
+    return super.getFromRefNode(template.refNode);
+  }
+
+  public void setTemplate(Template template) {
+    setToRefNode(this.template.refNode, template);
+  }
 }

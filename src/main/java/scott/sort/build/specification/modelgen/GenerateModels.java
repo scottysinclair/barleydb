@@ -32,11 +32,15 @@ public class GenerateModels {
             out.write(getPackageName(entitySpec));
             out.write(";\n");
             out.write("\n");
+            out.write("import java.util.List;\n");
+            out.write("\n");
             out.write("import scott.sort.api.core.entity.Entity;\n");
-            out.write("import scott.sort.api.core.entity.RefNode;\n");
             out.write("import scott.sort.api.core.entity.ValueNode;\n");
+            out.write("import scott.sort.api.core.entity.RefNode;\n");
+            out.write("import scott.sort.api.core.entity.ToManyNode;\n");
             out.write("import scott.sort.api.core.proxy.AbstractCustomEntityProxy;\n");
             out.write("import scott.sort.api.core.proxy.RefNodeProxyHelper;\n");
+            out.write("import scott.sort.api.core.proxy.ToManyNodeProxyHelper;\n");
             out.write("\n");
             writeModelImports(definitions, entitySpec, out);
             out.write("\n");
@@ -287,6 +291,11 @@ public class GenerateModels {
                     out.write(relationSpec.getEntitySpec().getClassName());
                     out.write(";\n");
                 }
+            }
+            if (nodeSpec.getEnumType() != null) {
+                out.write("import ");
+                out.write(nodeSpec.getEnumType().getName());
+                out.write(";\n");
             }
         }
         if (entitySpec.getParentEntity() != null) {
