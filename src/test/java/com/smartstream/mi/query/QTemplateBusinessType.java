@@ -1,35 +1,52 @@
 package com.smartstream.mi.query;
 
-/*
- * #%L
- * Simple Object Relational Framework
- * %%
- * Copyright (C) 2014 Scott Sinclair <scottysinclair@gmail.com>
- * %%
- * All rights reserved.
- * #L%
- */
-
+import scott.sort.api.query.QProperty;
 import scott.sort.api.query.QueryObject;
+import com.smartstream.mi.model.TemplateBusinessType;
+import com.smartstream.mi.query.QTemplate;
+import com.smartstream.mi.query.QBusinessType;
 
-import com.smartstream.mi.model.Template;
+/**
+ * Generated from Entity Specification on Wed Nov 12 16:58:49 CET 2014
+ *
+ * @author scott
+ */
+public class QTemplateBusinessType extends QueryObject<TemplateBusinessType> {
+  private static final long serialVersionUID = 1L;
+  public QTemplateBusinessType() {
+    super(TemplateBusinessType.class);
+  }
 
-public class QTemplateBusinessType extends QueryObject<Template> {
+  public QTemplateBusinessType(QueryObject<?> parent) {
+    super(TemplateBusinessType.class, parent);
+  }
 
-    private static final long serialVersionUID = 1L;
 
-    public QTemplateBusinessType(QueryObject<?> parent) {
-        super(null, "com.smartstream.mi.model.TemplateBusinessType", parent);
+  public QProperty<Long> id() {
+    return new QProperty<Long>(this, "id");
+  }
 
-    }
+  public QTemplate joinToTemplate() {
+    QTemplate template = new QTemplate();
+    addLeftOuterJoin(template, "template");
+    return template;
+  }
 
-    public QTemplateBusinessType() {
-        super(null, "com.smartstream.mi.model.TemplateBusinessType", null);
-    }
+  public QTemplate existsTemplate() {
+    QTemplate template = new QTemplate();
+    addExists(template, "template");
+    return template;
+  }
 
-    public QBusinessType joinToBusinessType() {
-        QBusinessType businessType = new QBusinessType();
-        addLeftOuterJoin(businessType, "businessType");
-        return businessType;
-    }
+  public QBusinessType joinToBusinessType() {
+    QBusinessType businessType = new QBusinessType();
+    addLeftOuterJoin(businessType, "businessType");
+    return businessType;
+  }
+
+  public QBusinessType existsBusinessType() {
+    QBusinessType businessType = new QBusinessType();
+    addExists(businessType, "businessType");
+    return businessType;
+  }
 }

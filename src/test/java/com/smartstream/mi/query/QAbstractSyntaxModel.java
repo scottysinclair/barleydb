@@ -13,15 +13,13 @@ import com.smartstream.mac.query.QUser;
  *
  * @author scott
  */
-public class QSyntaxModel extends QueryObject<SyntaxModel> {
+class QAbstractSyntaxModel<T extends SyntaxModel, CHILD extends QAbstractSyntaxModel<T, CHILD>> extends QueryObject<T>{
   private static final long serialVersionUID = 1L;
-  public QSyntaxModel() {
-    super(SyntaxModel.class);
-  }
+  protected QAbstractSyntaxModel(Class<T> modelClass) {
+    super(modelClass);  }
 
-  public QSyntaxModel(QueryObject<?> parent) {
-    super(SyntaxModel.class, parent);
-  }
+  protected QAbstractSyntaxModel(Class<T> modelClass, QueryObject<?> parent) {
+    super(modelClass, parent);  }
 
 
   public QProperty<Long> id() {

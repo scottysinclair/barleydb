@@ -2,10 +2,10 @@ package com.smartstream.mi.query;
 
 import scott.sort.api.query.QProperty;
 import scott.sort.api.query.QueryObject;
-import com.smartstream.mi.model.CsvSyntaxModel;
+import com.smartstream.mi.model.XmlSyntaxModel;
 import com.smartstream.mi.types.StructureType;
-import com.smartstream.mi.query.QCsvStructure;
-import com.smartstream.mi.query.QCsvMapping;
+import com.smartstream.mi.query.QXmlStructure;
+import com.smartstream.mi.query.QXmlMapping;
 import com.smartstream.mi.model.SyntaxModel;
 
 /**
@@ -13,14 +13,14 @@ import com.smartstream.mi.model.SyntaxModel;
  *
  * @author scott
  */
-public class QCsvSyntaxModel extends QAbstractSyntaxModel<CsvSyntaxModel, QCsvSyntaxModel> {
+public class QXmlSyntaxModel extends QAbstractSyntaxModel<XmlSyntaxModel, QXmlSyntaxModel> {
   private static final long serialVersionUID = 1L;
-  public QCsvSyntaxModel() {
-    super(CsvSyntaxModel.class);
+  public QXmlSyntaxModel() {
+    super(XmlSyntaxModel.class);
   }
 
-  public QCsvSyntaxModel(QueryObject<?> parent) {
-    super(CsvSyntaxModel.class, parent);
+  public QXmlSyntaxModel(QueryObject<?> parent) {
+    super(XmlSyntaxModel.class, parent);
   }
 
 
@@ -28,26 +28,26 @@ public class QCsvSyntaxModel extends QAbstractSyntaxModel<CsvSyntaxModel, QCsvSy
     return new QProperty<StructureType>(this, "structureType");
   }
 
-  public QCsvStructure joinToStructure() {
-    QCsvStructure structure = new QCsvStructure();
+  public QXmlStructure joinToStructure() {
+    QXmlStructure structure = new QXmlStructure();
     addLeftOuterJoin(structure, "structure");
     return structure;
   }
 
-  public QCsvStructure existsStructure() {
-    QCsvStructure structure = new QCsvStructure();
+  public QXmlStructure existsStructure() {
+    QXmlStructure structure = new QXmlStructure();
     addExists(structure, "structure");
     return structure;
   }
 
-  public QCsvMapping joinToMappings() {
-    QCsvMapping mappings = new QCsvMapping();
+  public QXmlMapping joinToMappings() {
+    QXmlMapping mappings = new QXmlMapping();
     addLeftOuterJoin(mappings, "mappings");
     return mappings;
   }
 
-  public QCsvMapping existsMappings() {
-    QCsvMapping mappings = new QCsvMapping();
+  public QXmlMapping existsMappings() {
+    QXmlMapping mappings = new QXmlMapping();
     addExists(mappings, "mappings");
     return mappings;
   }

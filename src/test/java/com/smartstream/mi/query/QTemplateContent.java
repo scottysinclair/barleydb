@@ -1,36 +1,47 @@
 package com.smartstream.mi.query;
 
-/*
- * #%L
- * Simple Object Relational Framework
- * %%
- * Copyright (C) 2014 Scott Sinclair <scottysinclair@gmail.com>
- * %%
- * All rights reserved.
- * #L%
- */
-
 import scott.sort.api.query.QProperty;
 import scott.sort.api.query.QueryObject;
-
 import com.smartstream.mi.model.TemplateContent;
+import com.smartstream.mi.query.QTemplate;
 
+/**
+ * Generated from Entity Specification on Wed Nov 12 16:58:49 CET 2014
+ *
+ * @author scott
+ */
 public class QTemplateContent extends QueryObject<TemplateContent> {
+  private static final long serialVersionUID = 1L;
+  public QTemplateContent() {
+    super(TemplateContent.class);
+  }
 
-    private static final long serialVersionUID = 1L;
+  public QTemplateContent(QueryObject<?> parent) {
+    super(TemplateContent.class, parent);
+  }
 
-    public QTemplateContent() {
-        super(TemplateContent.class);
-    }
 
-    public QProperty<String> name() {
-        return new QProperty<String>(this, "name");
-    }
+  public QProperty<Long> id() {
+    return new QProperty<Long>(this, "id");
+  }
 
-    public QTemplate joinToTemplate() {
-        QTemplate template = new QTemplate();
-        addLeftOuterJoin(template, "template");
-        return template;
-    }
+  public QProperty<String> name() {
+    return new QProperty<String>(this, "name");
+  }
 
+  public QProperty<Long> modifiedAt() {
+    return new QProperty<Long>(this, "modifiedAt");
+  }
+
+  public QTemplate joinToTemplate() {
+    QTemplate template = new QTemplate();
+    addLeftOuterJoin(template, "template");
+    return template;
+  }
+
+  public QTemplate existsTemplate() {
+    QTemplate template = new QTemplate();
+    addExists(template, "template");
+    return template;
+  }
 }

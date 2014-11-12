@@ -12,7 +12,7 @@ import com.smartstream.mi.types.SyntaxType;
 import com.smartstream.mac.model.User;
 
 /**
- * Generated from Entity Specification on Wed Nov 12 13:10:30 CET 2014
+ * Generated from Entity Specification on Wed Nov 12 16:58:49 CET 2014
  *
  * @author scott
  */

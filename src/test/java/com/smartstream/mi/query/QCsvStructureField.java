@@ -1,33 +1,51 @@
 package com.smartstream.mi.query;
 
-/*
- * #%L
- * Simple Object Relational Framework
- * %%
- * Copyright (C) 2014 Scott Sinclair <scottysinclair@gmail.com>
- * %%
- * All rights reserved.
- * #L%
- */
-
 import scott.sort.api.query.QProperty;
 import scott.sort.api.query.QueryObject;
-
 import com.smartstream.mi.model.CsvStructureField;
+import com.smartstream.mi.query.QCsvStructure;
 
+/**
+ * Generated from Entity Specification on Wed Nov 12 16:58:49 CET 2014
+ *
+ * @author scott
+ */
 public class QCsvStructureField extends QueryObject<CsvStructureField> {
+  private static final long serialVersionUID = 1L;
+  public QCsvStructureField() {
+    super(CsvStructureField.class);
+  }
 
-    private static final long serialVersionUID = 1L;
+  public QCsvStructureField(QueryObject<?> parent) {
+    super(CsvStructureField.class, parent);
+  }
 
-    public QCsvStructureField() {
-        super(CsvStructureField.class);
-    }
 
-    public QCsvStructureField(QueryObject<?> parent) {
-        super(CsvStructureField.class, parent);
-    }
+  public QProperty<Long> id() {
+    return new QProperty<Long>(this, "id");
+  }
 
-    public QProperty<String> name() {
-        return new QProperty<String>(this, "name");
-    }
+  public QProperty<String> name() {
+    return new QProperty<String>(this, "name");
+  }
+
+  public QCsvStructure joinToStructure() {
+    QCsvStructure structure = new QCsvStructure();
+    addLeftOuterJoin(structure, "structure");
+    return structure;
+  }
+
+  public QCsvStructure existsStructure() {
+    QCsvStructure structure = new QCsvStructure();
+    addExists(structure, "structure");
+    return structure;
+  }
+
+  public QProperty<Integer> columnIndex() {
+    return new QProperty<Integer>(this, "columnIndex");
+  }
+
+  public QProperty<Boolean> optional() {
+    return new QProperty<Boolean>(this, "optional");
+  }
 }

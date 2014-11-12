@@ -11,7 +11,7 @@ import scott.sort.api.core.entity.ToManyNode;
 import scott.sort.api.core.proxy.ToManyNodeProxyHelper;
 
 /**
- * Generated from Entity Specification on Wed Nov 12 08:57:27 CET 2014
+ * Generated from Entity Specification on Wed Nov 12 16:58:48 CET 2014
  *
  * @author scott
  */
