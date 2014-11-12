@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -119,27 +121,72 @@ public class GenerateDatabaseScript {
         }
     }
 
+    private static class DepKey {
+        private final EntitySpec from;
+        private final EntitySpec to;
+        public DepKey(EntitySpec from, EntitySpec to) {
+            this.from = from;
+            this.to = to;
+        }
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((from == null) ? 0 : from.hashCode());
+            result = prime * result + ((to == null) ? 0 : to.hashCode());
+            return result;
+        }
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (obj == null) return false;
+            if (getClass() != obj.getClass()) return false;
+            DepKey other = (DepKey) obj;
+            if (from == null) {
+                if (other.from != null) return false;
+            } else if (!from.equals(other.from)) return false;
+            if (to == null) {
+                if (other.to != null) return false;
+            } else if (!to.equals(other.to)) return false;
+            return true;
+        }
+    }
+
     private static class DependencyComparator implements Comparator<EntitySpec> {
+
+        private Map<DepKey,Boolean> cache = new HashMap<>();
+
         @Override
         public int compare(EntitySpec o1, EntitySpec o2) {
+            if (o1 == o2) {
+                return 0;
+            }
             if (dependsOn(o1, o2)) {
                 return -1;
             }
             else if (dependsOn(o2, o1)) {
                 return 1;
             }
-            return 0;
+            //if there is no dependency when we put o1 first
+            //returning 0 is supposed to mean that the o1 and o2 are identitcal
+            return -1;
         }
 
         private boolean dependsOn(EntitySpec e1, EntitySpec e2) {
+            Boolean value = cache.get(new DepKey(e1, e2));
+            if (value != null) {
+                return value;
+            }
             for (EntitySpec dep: getDependentEntitySpecs(e1)) {
                 if (dep == e2) {
+                    cache.put(new DepKey(e1, e2), true);
                     return true;
                 }
                 if (dependsOn(dep, e2)) {
                     return true;
                 }
             }
+            cache.put(new DepKey(e1, e2), false);
             return false;
         }
         private Collection<EntitySpec> getDependentEntitySpecs(EntitySpec spec) {

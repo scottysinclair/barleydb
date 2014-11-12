@@ -10,6 +10,10 @@ import javax.xml.bind.annotation.XmlIDREF;
 import scott.sort.api.config.RelationType;
 
 
+/**
+ * @author scott
+ *
+ */
 @XmlAccessorType(XmlAccessType.NONE)
 public class RelationSpec implements Serializable, Cloneable {
 
@@ -51,6 +55,9 @@ public class RelationSpec implements Serializable, Cloneable {
     @XmlAttribute
     private NodeSpec ownwardJoin;
 
+    @XmlAttribute
+    private JoinTypeSpec joinType;
+
     public RelationSpec() {
     }
 
@@ -63,6 +70,14 @@ public class RelationSpec implements Serializable, Cloneable {
 
     public boolean isForeignKeyRelation() {
         return backReference == null;
+    }
+
+    public JoinTypeSpec getJoinType() {
+        return joinType;
+    }
+
+    public void setJoinType(JoinTypeSpec joinType) {
+        this.joinType = joinType;
     }
 
     public RelationType getType() {

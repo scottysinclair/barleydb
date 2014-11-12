@@ -43,7 +43,6 @@ public class MiSpec extends MorpheusSpec {
         renameForeignKeyConstraint(new StaticRelation(XmlMapping.subSyntax), "FK_XML_MAPPING_SUBSYNTAX_MODEL");
     }
 
-
     @Override
     public Class<?>[] getOrder() {
         return new Class[]{

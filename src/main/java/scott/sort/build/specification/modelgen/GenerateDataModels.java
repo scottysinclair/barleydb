@@ -15,9 +15,9 @@ import scott.sort.api.specification.NodeSpec;
 import scott.sort.api.specification.RelationSpec;
 import scott.sort.api.specification.SuppressionSpec;
 
-public class GenerateModels {
+public class GenerateDataModels extends GenerateModelsHelper {
 
-    public void generateModels(String path, DefinitionsSpec definitions) throws IOException {
+    public void generateDataModels(String path, DefinitionsSpec definitions) throws IOException {
         for (EntitySpec entitySpec: definitions.getEntitySpecs()) {
             generateModel(path, definitions, entitySpec);
         }
@@ -64,16 +64,9 @@ public class GenerateModels {
                 }
                 out.write("\n");
             }
-            out.write("  public ");
-            out.write(getSimpleClassName(entitySpec));
-            out.write("(Entity entity) {\n");
-            out.write("    super(entity);\n");
-            for (NodeSpec nodeSpec: entitySpec.getNodeSpecs()) {
-                if (!isCompletelySuppressed(nodeSpec)) {
-                    writeNodeFieldAssignment(out, nodeSpec);
-                }
-            }
-            out.write("  }\n");
+
+            writeConstructor(out, entitySpec);
+
             for (NodeSpec nodeSpec: entitySpec.getNodeSpecs()) {
                 if (!isCompletelySuppressed(nodeSpec)) {
                     writeNodeGetterAndSetter(out, nodeSpec);
@@ -83,29 +76,6 @@ public class GenerateModels {
             out.flush();
         }
     }
-
-
-    /**
-     * checks if the NodeSpec is completely suppressed from code generation.
-     * @param nodeSpec
-     * @return
-     */
-    private boolean isCompletelySuppressed(NodeSpec nodeSpec) {
-        if (nodeSpec.getSuppression() == null) {
-            return false;
-        }
-        switch (nodeSpec.getSuppression()) {
-            case ENTITY_CONFIGURATION:
-                return true;
-            case GENERATED_CODE:
-                return true;
-            case GENERATED_CODE_SETTER:
-                return false;
-            default:
-                throw new IllegalStateException("Missing case for SuppressionSpec " + nodeSpec.getSuppression());
-        }
-    }
-
 
     private void writeClassJavaDoc(Writer out, EntitySpec entitySpec) throws IOException {
         out.write("/**\n");
@@ -118,6 +88,20 @@ public class GenerateModels {
         out.write("\n");
         out.write(" */\n");
     }
+
+    private void writeConstructor(Writer out, EntitySpec entitySpec) throws IOException {
+        out.write("  public ");
+        out.write(getModelSimpleClassName(entitySpec));
+        out.write("(Entity entity) {\n");
+        out.write("    super(entity);\n");
+        for (NodeSpec nodeSpec: entitySpec.getNodeSpecs()) {
+            if (!isCompletelySuppressed(nodeSpec)) {
+                writeNodeFieldAssignment(out, nodeSpec);
+            }
+        }
+        out.write("  }\n");
+    }
+
     private String calcNodeType(NodeSpec nodeSpec) {
         RelationSpec relationSpec = nodeSpec.getRelationSpec();
         if (relationSpec != null) {
@@ -267,53 +251,15 @@ public class GenerateModels {
 
     private void writeClassDeclaration(Writer out, EntitySpec entitySpec) throws IOException {
         out.write("public class ");
-        out.write(getSimpleClassName(entitySpec));
+        out.write(getModelSimpleClassName(entitySpec));
         out.write(" ");
         if (entitySpec.getParentEntity() != null) {
             out.write("extends ");
-            out.write(getSimpleClassName(entitySpec.getParentEntity()));
+            out.write(getModelSimpleClassName(entitySpec.getParentEntity()));
             out.write(" ");
         }
         else {
             out.write("extends AbstractCustomEntityProxy ");
-        }
-    }
-
-    private void writeModelImports(DefinitionsSpec definitions, EntitySpec entitySpec, Writer out) throws IOException {
-        boolean writtenFirstNewLine = false;
-        for (NodeSpec nodeSpec: entitySpec.getNodeSpecs()) {
-            if (nodeSpec.getRelationSpec() != null) {
-                RelationSpec relationSpec = nodeSpec.getRelationSpec();
-                if (hasDifferentPackage(entitySpec, relationSpec.getEntitySpec())) {
-                    if (!writtenFirstNewLine) {
-                        out.write("\n");
-                        writtenFirstNewLine = true;
-                    }
-                    out.write("import ");
-                    out.write(relationSpec.getEntitySpec().getClassName());
-                    out.write(";\n");
-                }
-            }
-            if (nodeSpec.getEnumType() != null) {
-                if (!writtenFirstNewLine) {
-                    out.write("\n");
-                    writtenFirstNewLine = true;
-                }
-                out.write("import ");
-                out.write(nodeSpec.getEnumType().getName());
-                out.write(";\n");
-            }
-        }
-        if (entitySpec.getParentEntity() != null) {
-            if (hasDifferentPackage(entitySpec, entitySpec.getParentEntity())) {
-                if (!writtenFirstNewLine) {
-                    out.write("\n");
-                    writtenFirstNewLine = true;
-                }
-                out.write("import ");
-                out.write(entitySpec.getParentEntity().getClassName());
-                out.write(";\n");
-            }
         }
     }
 
@@ -323,26 +269,6 @@ public class GenerateModels {
         out.write(" ");
         out.write(nodeSpec.getName());
         out.write(";\n");
-    }
-
-    private void writeJavaType(Writer out, NodeSpec nodeSpec) throws IOException {
-        RelationSpec relationSpec = nodeSpec.getRelationSpec();
-        if (relationSpec != null) {
-            if (relationSpec.isForeignKeyRelation()) {
-                out.write(getSimpleClassName(relationSpec.getEntitySpec()));
-            }
-            else {
-                out.write("List<");
-                out.write(getSimpleClassName(relationSpec.getEntitySpec()));
-                out.write(">");
-            }
-        }
-        else if (nodeSpec.getEnumType() != null) {
-            out.write(nodeSpec.getEnumType().getSimpleName());
-        }
-        else {
-            out.write(nodeSpec.getJavaType().getJavaTypeClass().getSimpleName());
-        }
     }
 
     private String toGetterName(NodeSpec nodeSpec) {
@@ -355,19 +281,6 @@ public class GenerateModels {
         String name = nodeSpec.getName();
         char fc = Character.toUpperCase( name.charAt(0) );
         return "set" + fc + name.substring(1, name.length());
-    }
-
-    private boolean hasDifferentPackage(EntitySpec entitySpecA, EntitySpec entitySpecB) {
-        return !getPackageName(entitySpecA).equals( getPackageName(entitySpecB));
-    }
-
-    private String getPackageName(EntitySpec entitySpec) {
-        int iA = entitySpec.getClassName().lastIndexOf('.');
-        return entitySpec.getClassName().substring(0,  iA);
-    }
-
-    private String getJavaPath(String className) {
-        return className.replace('.', '/');
     }
 
     private boolean hasToManyReference(EntitySpec entitySpec) {
@@ -386,11 +299,6 @@ public class GenerateModels {
             }
         }
         return false;
-    }
-
-    private String getSimpleClassName(EntitySpec entitySpec) {
-        int i = entitySpec.getClassName().lastIndexOf('.');
-        return entitySpec.getClassName().substring(i+1);
     }
 
     private File toFile(String path, EntitySpec entitySpec) {

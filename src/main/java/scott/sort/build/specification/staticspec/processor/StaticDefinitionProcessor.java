@@ -121,6 +121,7 @@ public class StaticDefinitionProcessor {
                         }
                         relationSpec.setEntitySpec(es);
                         relationSpec.setEntitySpecIdentifier(null);
+                        relationSpec.setJoinType( staticDefs.getJoinType(entitySpec, relationSpec));
                         /*
                          * If the FK jdbc type is null then take the
                          * JDBC type of the FK from the entity primary key.
@@ -176,7 +177,8 @@ public class StaticDefinitionProcessor {
 
 
                 spec.setAbstractEntity( staticDefs.isAstract( entityDefinitionClass ) );
-                spec.setClassName( staticDefs.createFullyQualifiedClassName(entityDefinitionClass) );
+                spec.setClassName( staticDefs.createFullyQualifiedModelClassName(entityDefinitionClass) );
+                spec.setQueryClassName( staticDefs.createFullyQualifiedQueryClassName(entityDefinitionClass) );
                 spec.setTableName( staticDefs.getTableName(entityDefinitionClass) );
                 /*
                  * Already store the entitySpec to key relation

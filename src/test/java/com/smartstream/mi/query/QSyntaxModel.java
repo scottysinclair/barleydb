@@ -26,11 +26,11 @@ public class QSyntaxModel extends QAbstractSyntaxModel<SyntaxModel, QSyntaxModel
     private static final long serialVersionUID = 1L;
 
     public QSyntaxModel() {
-        super();
+        super(SyntaxModel.class);
     }
 
     public QSyntaxModel(QueryObject<?> parent) {
-        super(parent);
+        super(SyntaxModel.class, parent);
     }
 }
 
@@ -44,13 +44,8 @@ public class QSyntaxModel extends QAbstractSyntaxModel<SyntaxModel, QSyntaxModel
 class QAbstractSyntaxModel<T extends SyntaxModel, CHILD extends QAbstractSyntaxModel<T, CHILD>> extends QueryObject<T> {
     private static final long serialVersionUID = 1L;
 
-    public QAbstractSyntaxModel() {
-        this(null);
-    }
-
-    @SuppressWarnings("unchecked")
-    public QAbstractSyntaxModel(QueryObject<?> parent) {
-        super((Class<T>) SyntaxModel.class, parent);
+    protected QAbstractSyntaxModel(Class<T> modelClasss) {
+        super(modelClasss);
     }
 
     protected QAbstractSyntaxModel(Class<T> modelClasss, QueryObject<?> parent) {

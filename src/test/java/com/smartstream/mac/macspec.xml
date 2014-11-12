@@ -4,8 +4,10 @@
         <Definitions namespace="com.smartstream.mac">
             <EntitySpecs>
                 <EntitySpec className="com.smartstream.mac.model.AccessArea" tableName="MAC_ACCESS_AREA" abstract="false">
+                    <queryClass>com.smartstream.mac.query.QAccessArea</queryClass>
                     <NodeSpecs>
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                            <suppression>GENERATED_CODE_SETTER</suppression>
                             <id>com.smartstream.mac.model.AccessArea.id</id>
                         </NodeSpec>
                         <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
@@ -16,11 +18,11 @@
                         </NodeSpec>
                         <NodeSpec name="parent" jdbcType="BIGINT" columnName="PARENT_ID" nullable="NULL" optimisticLock="false">
                             <id>com.smartstream.mac.model.AccessArea.parent</id>
-                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea"/>
+                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea" joinType="LEFT_OUTER_JOIN"/>
                         </NodeSpec>
                         <NodeSpec name="children" optimisticLock="false">
                             <id>com.smartstream.mac.model.AccessArea.children</id>
-                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea" backReference="com.smartstream.mac.model.AccessArea.parent"/>
+                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea" backReference="com.smartstream.mac.model.AccessArea.parent" joinType="LEFT_OUTER_JOIN"/>
                         </NodeSpec>
                     </NodeSpecs>
                     <Constraints>
@@ -29,13 +31,15 @@
                     </Constraints>
                 </EntitySpec>
                 <EntitySpec className="com.smartstream.mac.model.User" tableName="MAC_USER" abstract="false">
+                    <queryClass>com.smartstream.mac.query.QUser</queryClass>
                     <NodeSpecs>
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                            <suppression>GENERATED_CODE_SETTER</suppression>
                             <id>com.smartstream.mac.model.User.id</id>
                         </NodeSpec>
                         <NodeSpec name="accessArea" jdbcType="BIGINT" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mac.model.User.accessArea</id>
-                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea"/>
+                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea" joinType="LEFT_OUTER_JOIN"/>
                         </NodeSpec>
                         <NodeSpec name="uuid" javaType="STRING" jdbcType="CHAR" columnName="UUID" nullable="NOT_NULL" length="60" optimisticLock="false">
                             <id>com.smartstream.mac.model.User.uuid</id>

@@ -22,7 +22,7 @@ public class QCsvSyntaxModel extends QAbstractSyntaxModel<CsvSyntaxModel, QCsvSy
     private static final long serialVersionUID = 1L;
 
     public QCsvSyntaxModel() {
-        this(null);
+        super(CsvSyntaxModel.class);
     }
 
     public QCsvSyntaxModel(QueryObject<?> parent) {

@@ -19,7 +19,7 @@ public class QXMLSyntaxModel extends QAbstractSyntaxModel<XmlSyntaxModel, QXMLSy
     private static final long serialVersionUID = 1L;
 
     public QXMLSyntaxModel() {
-        this(null);
+        super(XmlSyntaxModel.class);
     }
 
     public QXMLSyntaxModel(QueryObject<?> parent) {
@@ -46,9 +46,9 @@ public class QXMLSyntaxModel extends QAbstractSyntaxModel<XmlSyntaxModel, QXMLSy
 
     /*
     public QXMLMapping existsParentMapping() {
-    	QXMLMapping mapping = new QXMLMapping(this);
-    	addExists(mapping, "mappings");
-    	return mapping;
+        QXMLMapping mapping = new QXMLMapping(this);
+        addExists(mapping, "mappings");
+        return mapping;
     }
     */
     public QXMLStructure existsStructure() {

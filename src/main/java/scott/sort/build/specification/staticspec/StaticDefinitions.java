@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 
 import scott.sort.api.specification.DefinitionsSpec;
 import scott.sort.api.specification.EntitySpec;
+import scott.sort.api.specification.JoinTypeSpec;
 import scott.sort.api.specification.NodeSpec;
 import scott.sort.api.specification.RelationSpec;
 import scott.sort.api.specification.constraint.ForeignKeyConstraintSpec;
@@ -82,7 +83,9 @@ public abstract class StaticDefinitions {
      * @param entityDefinition the class defining the entity.
      * @return
      */
-    public abstract String createFullyQualifiedClassName(Class<?> entityDefinition);
+    public abstract String createFullyQualifiedModelClassName(Class<?> entityDefinition);
+
+    public abstract String createFullyQualifiedQueryClassName(Class<?> entityDefinition);
 
     /**
      * Creates a DB column name for the given NodeSpec.
@@ -312,5 +315,6 @@ public abstract class StaticDefinitions {
         dependentStaticDefinitions.put(spec.getNamespace(), spec);
     }
 
+    public abstract JoinTypeSpec getJoinType(EntitySpec entitySpec, RelationSpec relationSpec);
 
 }

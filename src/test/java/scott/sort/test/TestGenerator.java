@@ -25,7 +25,8 @@ import com.smartstream.mi.types.SyntaxType;
 import scott.sort.api.specification.DefinitionsSpec;
 import scott.sort.api.specification.SpecRegistry;
 import scott.sort.build.specification.ddlgen.GenerateDatabaseScript;
-import scott.sort.build.specification.modelgen.GenerateModels;
+import scott.sort.build.specification.modelgen.GenerateDataModels;
+import scott.sort.build.specification.modelgen.GenerateQueryModels;
 import scott.sort.build.specification.staticspec.processor.StaticDefinitionProcessor;
 
 /**
@@ -127,8 +128,8 @@ public class TestGenerator {
 
         DefinitionsSpec macSpec = processor.process(new MacSpec(), registry);
 
-        GenerateModels generateModels = new GenerateModels();
-        generateModels.generateModels("src/test/java", macSpec);
+        GenerateDataModels generateModels = new GenerateDataModels();
+        generateModels.generateDataModels("src/test/java", macSpec);
     }
 
     @Test
@@ -138,11 +139,12 @@ public class TestGenerator {
 
         DefinitionsSpec miSpec = processor.process(new MiSpec(), registry);
 
-        DefinitionsSpec macSpec = registry.getDefinitionsSpec("com.smartstream.mac");
+        GenerateDataModels generateDataModels = new GenerateDataModels();
+        generateDataModels.generateDataModels("src/test/java", miSpec);
 
-        GenerateModels generateModels = new GenerateModels();
-        generateModels.generateModels("src/test/java", miSpec);
-    }
+        GenerateQueryModels generateQueryModels = new GenerateQueryModels();
+        generateQueryModels.generateQueryModels("src/test/java", miSpec);
+}
 
     @Test
     public void generateCleanScript() throws IOException {

@@ -13,6 +13,7 @@ import scott.sort.api.core.types.Nullable;
 import scott.sort.api.specification.CoreSpec;
 import scott.sort.api.specification.DefinitionsSpec;
 import scott.sort.api.specification.EntitySpec;
+import scott.sort.api.specification.JoinTypeSpec;
 import scott.sort.api.specification.NodeSpec;
 import scott.sort.api.specification.RelationSpec;
 import scott.sort.api.specification.SuppressionSpec;
@@ -26,33 +27,6 @@ import scott.sort.build.specification.staticspec.StaticDefinitions;
  *
  */
 public class MorpheusSpec extends StaticDefinitions {
-
-    protected class StaticRelation {
-        private final NodeSpec fromNode;
-        public StaticRelation(NodeSpec fromNode) {
-            this.fromNode = fromNode;
-            if (this.fromNode.getRelationSpec() == null) {
-                throw new IllegalStateException("Node has no relation: " + fromNode);
-            }
-        }
-
-        /**
-         * The NodeSpec that we hold must have the proper EntitySpec set on it for the
-         * matching to work.
-         * @param from
-         * @param to
-         * @return
-         */
-        public boolean matches(NodeSpec from, EntitySpec to) {
-            if (!Objects.equals(this.fromNode, from)) {
-                return false;
-            }
-            if (!Objects.equals(this.fromNode.getRelationSpec().getEntitySpec(), to)) {
-                return false;
-            }
-            return true;
-        }
-    }
 
     private final List<StaticRelation> excludedForeignKeyConstraints = new LinkedList<>();
 
@@ -73,8 +47,18 @@ public class MorpheusSpec extends StaticDefinitions {
      * @param entityDefinition
      * @return
      */
-    public String createFullyQualifiedClassName(Class<?> entityDefinition) {
+    public String createFullyQualifiedModelClassName(Class<?> entityDefinition) {
         return namespace + ".model." + entityDefinition.getSimpleName();
+    }
+
+    @Override
+    public String createFullyQualifiedQueryClassName(Class<?> entityDefinition) {
+        return namespace + ".query.Q" + entityDefinition.getSimpleName();
+    }
+
+    @Override
+    public JoinTypeSpec getJoinType(EntitySpec entitySpec, RelationSpec relationSpec) {
+        return JoinTypeSpec.LEFT_OUTER_JOIN;
     }
 
     public static NodeSpec longPrimaryKey() {
@@ -138,7 +122,6 @@ public class MorpheusSpec extends StaticDefinitions {
     public static <E extends Enum<E>> NodeSpec mandatoryFixedEnum(E value) {
         return CoreSpec.mandatoryFixedEnum(value, JdbcType.INT);
     }
-
 
     public static NodeSpec varchar(int length, Nullable nullable) {
         return varchar(null, length, nullable);
@@ -252,6 +235,33 @@ public class MorpheusSpec extends StaticDefinitions {
     private String removePrefix(String value) {
         int i = value.indexOf('_');
         return value.substring(i+1);
+    }
+
+    protected class StaticRelation {
+        private final NodeSpec fromNode;
+        public StaticRelation(NodeSpec fromNode) {
+            this.fromNode = fromNode;
+            if (this.fromNode.getRelationSpec() == null) {
+                throw new IllegalStateException("Node has no relation: " + fromNode);
+            }
+        }
+
+        /**
+         * The NodeSpec that we hold must have the proper EntitySpec set on it for the
+         * matching to work.
+         * @param from
+         * @param to
+         * @return
+         */
+        public boolean matches(NodeSpec from, EntitySpec to) {
+            if (!Objects.equals(this.fromNode, from)) {
+                return false;
+            }
+            if (!Objects.equals(this.fromNode.getRelationSpec().getEntitySpec(), to)) {
+                return false;
+            }
+            return true;
+        }
     }
 
 }

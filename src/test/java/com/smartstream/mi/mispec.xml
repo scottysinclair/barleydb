@@ -4,6 +4,7 @@
         <Definitions namespace="com.smartstream.mac">
             <EntitySpecs>
                 <EntitySpec className="com.smartstream.mac.model.AccessArea" tableName="MAC_ACCESS_AREA" abstract="false">
+                    <queryClass>com.smartstream.mac.query.QAccessArea</queryClass>
                     <NodeSpecs>
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
                             <suppression>GENERATED_CODE_SETTER</suppression>
@@ -17,11 +18,11 @@
                         </NodeSpec>
                         <NodeSpec name="parent" jdbcType="BIGINT" columnName="PARENT_ID" nullable="NULL" optimisticLock="false">
                             <id>com.smartstream.mac.model.AccessArea.parent</id>
-                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea"/>
+                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea" joinType="LEFT_OUTER_JOIN"/>
                         </NodeSpec>
                         <NodeSpec name="children" optimisticLock="false">
                             <id>com.smartstream.mac.model.AccessArea.children</id>
-                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea" backReference="com.smartstream.mac.model.AccessArea.parent"/>
+                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea" backReference="com.smartstream.mac.model.AccessArea.parent" joinType="LEFT_OUTER_JOIN"/>
                         </NodeSpec>
                     </NodeSpecs>
                     <Constraints>
@@ -30,6 +31,7 @@
                     </Constraints>
                 </EntitySpec>
                 <EntitySpec className="com.smartstream.mac.model.User" tableName="MAC_USER" abstract="false">
+                    <queryClass>com.smartstream.mac.query.QUser</queryClass>
                     <NodeSpecs>
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
                             <suppression>GENERATED_CODE_SETTER</suppression>
@@ -37,7 +39,7 @@
                         </NodeSpec>
                         <NodeSpec name="accessArea" jdbcType="BIGINT" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mac.model.User.accessArea</id>
-                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea"/>
+                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea" joinType="LEFT_OUTER_JOIN"/>
                         </NodeSpec>
                         <NodeSpec name="uuid" javaType="STRING" jdbcType="CHAR" columnName="UUID" nullable="NOT_NULL" length="60" optimisticLock="false">
                             <id>com.smartstream.mac.model.User.uuid</id>
@@ -61,6 +63,7 @@
             <import>com.smartstream.mac</import>
             <EntitySpecs>
                 <EntitySpec className="com.smartstream.mi.model.SyntaxModel" tableName="SS_SYNTAX_MODEL" abstract="true">
+                    <queryClass>com.smartstream.mi.query.QSyntaxModel</queryClass>
                     <NodeSpecs>
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
                             <suppression>GENERATED_CODE_SETTER</suppression>
@@ -68,7 +71,7 @@
                         </NodeSpec>
                         <NodeSpec name="accessArea" jdbcType="BIGINT" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.SyntaxModel.accessArea</id>
-                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea"/>
+                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea" joinType="LEFT_OUTER_JOIN"/>
                         </NodeSpec>
                         <NodeSpec name="uuid" javaType="STRING" jdbcType="CHAR" columnName="UUID" nullable="NOT_NULL" length="60" optimisticLock="false">
                             <id>com.smartstream.mi.model.SyntaxModel.uuid</id>
@@ -87,7 +90,7 @@
                         </NodeSpec>
                         <NodeSpec name="user" jdbcType="BIGINT" columnName="USER_ID" nullable="NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.SyntaxModel.user</id>
-                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.User"/>
+                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.User" joinType="LEFT_OUTER_JOIN"/>
                         </NodeSpec>
                         <NodeSpec name="structure" javaType="LONG" jdbcType="BIGINT" columnName="STRUCTURE_ID" nullable="NOT_NULL" optimisticLock="false">
                             <suppression>GENERATED_CODE</suppression>
@@ -102,6 +105,7 @@
                     </Constraints>
                 </EntitySpec>
                 <EntitySpec className="com.smartstream.mi.model.XmlSyntaxModel" tableName="SS_SYNTAX_MODEL" abstract="false">
+                    <queryClass>com.smartstream.mi.query.QXmlSyntaxModel</queryClass>
                     <parent>com.smartstream.mi.model.SyntaxModel</parent>
                     <NodeSpecs>
                         <NodeSpec name="structureType" javaType="ENUM" enumType="com.smartstream.mi.types.StructureType" jdbcType="INT" columnName="STRUCTURE_TYPE" nullable="NOT_NULL" optimisticLock="false">
@@ -110,16 +114,17 @@
                         </NodeSpec>
                         <NodeSpec name="structure" jdbcType="BIGINT" columnName="STRUCTURE_ID" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.XmlSyntaxModel.structure</id>
-                            <relation type="DEPENDS" entitySpec="com.smartstream.mi.model.XmlStructure"/>
+                            <relation type="DEPENDS" entitySpec="com.smartstream.mi.model.XmlStructure" joinType="LEFT_OUTER_JOIN"/>
                         </NodeSpec>
                         <NodeSpec name="mappings" optimisticLock="false">
                             <id>com.smartstream.mi.model.XmlSyntaxModel.mappings</id>
-                            <relation type="OWNS" entitySpec="com.smartstream.mi.model.XmlMapping" backReference="com.smartstream.mi.model.XmlMapping.syntax"/>
+                            <relation type="OWNS" entitySpec="com.smartstream.mi.model.XmlMapping" backReference="com.smartstream.mi.model.XmlMapping.syntax" joinType="LEFT_OUTER_JOIN"/>
                         </NodeSpec>
                     </NodeSpecs>
                     <Constraints/>
                 </EntitySpec>
                 <EntitySpec className="com.smartstream.mi.model.XmlStructure" tableName="SS_XMLSTRUCTURE" abstract="false">
+                    <queryClass>com.smartstream.mi.query.QXmlStructure</queryClass>
                     <NodeSpecs>
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
                             <suppression>GENERATED_CODE_SETTER</suppression>
@@ -127,7 +132,7 @@
                         </NodeSpec>
                         <NodeSpec name="accessArea" jdbcType="BIGINT" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.XmlStructure.accessArea</id>
-                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea"/>
+                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea" joinType="LEFT_OUTER_JOIN"/>
                         </NodeSpec>
                         <NodeSpec name="uuid" javaType="STRING" jdbcType="CHAR" columnName="UUID" nullable="NOT_NULL" length="60" optimisticLock="false">
                             <id>com.smartstream.mi.model.XmlStructure.uuid</id>
@@ -146,6 +151,7 @@
                     </Constraints>
                 </EntitySpec>
                 <EntitySpec className="com.smartstream.mi.model.XmlMapping" tableName="SS_XML_MAPPING" abstract="false">
+                    <queryClass>com.smartstream.mi.query.QXmlMapping</queryClass>
                     <NodeSpecs>
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
                             <suppression>GENERATED_CODE_SETTER</suppression>
@@ -153,11 +159,11 @@
                         </NodeSpec>
                         <NodeSpec name="syntax" jdbcType="BIGINT" columnName="SYNTAX_MODEL_ID" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.XmlMapping.syntax</id>
-                            <relation type="REFERS" entitySpec="com.smartstream.mi.model.XmlSyntaxModel"/>
+                            <relation type="REFERS" entitySpec="com.smartstream.mi.model.XmlSyntaxModel" joinType="LEFT_OUTER_JOIN"/>
                         </NodeSpec>
                         <NodeSpec name="subSyntax" jdbcType="BIGINT" columnName="SUB_SYNTAX_ID" nullable="NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.XmlMapping.subSyntax</id>
-                            <relation type="OWNS" entitySpec="com.smartstream.mi.model.XmlSyntaxModel"/>
+                            <relation type="OWNS" entitySpec="com.smartstream.mi.model.XmlSyntaxModel" joinType="LEFT_OUTER_JOIN"/>
                         </NodeSpec>
                         <NodeSpec name="xpath" javaType="STRING" jdbcType="VARCHAR" columnName="XPATH" nullable="NULL" length="150" optimisticLock="false">
                             <id>com.smartstream.mi.model.XmlMapping.xpath</id>
@@ -173,6 +179,7 @@
                     </Constraints>
                 </EntitySpec>
                 <EntitySpec className="com.smartstream.mi.model.CsvSyntaxModel" tableName="SS_SYNTAX_MODEL" abstract="false">
+                    <queryClass>com.smartstream.mi.query.QCsvSyntaxModel</queryClass>
                     <parent>com.smartstream.mi.model.SyntaxModel</parent>
                     <NodeSpecs>
                         <NodeSpec name="structureType" javaType="ENUM" enumType="com.smartstream.mi.types.StructureType" jdbcType="INT" columnName="STRUCTURE_TYPE" nullable="NOT_NULL" optimisticLock="false">
@@ -181,16 +188,17 @@
                         </NodeSpec>
                         <NodeSpec name="structure" jdbcType="BIGINT" columnName="STRUCTURE_ID" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.CsvSyntaxModel.structure</id>
-                            <relation type="DEPENDS" entitySpec="com.smartstream.mi.model.CsvStructure"/>
+                            <relation type="DEPENDS" entitySpec="com.smartstream.mi.model.CsvStructure" joinType="LEFT_OUTER_JOIN"/>
                         </NodeSpec>
                         <NodeSpec name="mappings" optimisticLock="false">
                             <id>com.smartstream.mi.model.CsvSyntaxModel.mappings</id>
-                            <relation type="OWNS" entitySpec="com.smartstream.mi.model.CsvMapping" backReference="com.smartstream.mi.model.CsvMapping.syntax"/>
+                            <relation type="OWNS" entitySpec="com.smartstream.mi.model.CsvMapping" backReference="com.smartstream.mi.model.CsvMapping.syntax" joinType="LEFT_OUTER_JOIN"/>
                         </NodeSpec>
                     </NodeSpecs>
                     <Constraints/>
                 </EntitySpec>
                 <EntitySpec className="com.smartstream.mi.model.CsvStructure" tableName="SS_CSVSTRUCTURE" abstract="false">
+                    <queryClass>com.smartstream.mi.query.QCsvStructure</queryClass>
                     <NodeSpecs>
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
                             <suppression>GENERATED_CODE_SETTER</suppression>
@@ -198,7 +206,7 @@
                         </NodeSpec>
                         <NodeSpec name="accessArea" jdbcType="BIGINT" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.CsvStructure.accessArea</id>
-                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea"/>
+                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea" joinType="LEFT_OUTER_JOIN"/>
                         </NodeSpec>
                         <NodeSpec name="uuid" javaType="STRING" jdbcType="CHAR" columnName="UUID" nullable="NOT_NULL" length="60" optimisticLock="false">
                             <id>com.smartstream.mi.model.CsvStructure.uuid</id>
@@ -214,7 +222,7 @@
                         </NodeSpec>
                         <NodeSpec name="fields" optimisticLock="false">
                             <id>com.smartstream.mi.model.CsvStructure.fields</id>
-                            <relation type="OWNS" entitySpec="com.smartstream.mi.model.CsvStructureField" backReference="com.smartstream.mi.model.CsvStructureField.structure"/>
+                            <relation type="OWNS" entitySpec="com.smartstream.mi.model.CsvStructureField" backReference="com.smartstream.mi.model.CsvStructureField.structure" joinType="LEFT_OUTER_JOIN"/>
                         </NodeSpec>
                     </NodeSpecs>
                     <Constraints>
@@ -224,6 +232,7 @@
                     </Constraints>
                 </EntitySpec>
                 <EntitySpec className="com.smartstream.mi.model.CsvStructureField" tableName="SS_CSVSTRUCTURE_FIELD" abstract="false">
+                    <queryClass>com.smartstream.mi.query.QCsvStructureField</queryClass>
                     <NodeSpecs>
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
                             <suppression>GENERATED_CODE_SETTER</suppression>
@@ -234,7 +243,7 @@
                         </NodeSpec>
                         <NodeSpec name="structure" jdbcType="BIGINT" columnName="CSVSTRUCTURE_ID" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.CsvStructureField.structure</id>
-                            <relation type="REFERS" entitySpec="com.smartstream.mi.model.CsvStructure"/>
+                            <relation type="REFERS" entitySpec="com.smartstream.mi.model.CsvStructure" joinType="LEFT_OUTER_JOIN"/>
                         </NodeSpec>
                         <NodeSpec name="columnIndex" javaType="INTEGER" jdbcType="INT" columnName="COLUMN_INDEX" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.CsvStructureField.columnIndex</id>
@@ -249,6 +258,7 @@
                     </Constraints>
                 </EntitySpec>
                 <EntitySpec className="com.smartstream.mi.model.CsvMapping" tableName="SS_CSV_MAPPING" abstract="false">
+                    <queryClass>com.smartstream.mi.query.QCsvMapping</queryClass>
                     <NodeSpecs>
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
                             <suppression>GENERATED_CODE_SETTER</suppression>
@@ -256,11 +266,11 @@
                         </NodeSpec>
                         <NodeSpec name="syntax" jdbcType="BIGINT" columnName="SYNTAX_MODEL_ID" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.CsvMapping.syntax</id>
-                            <relation type="REFERS" entitySpec="com.smartstream.mi.model.CsvSyntaxModel"/>
+                            <relation type="REFERS" entitySpec="com.smartstream.mi.model.CsvSyntaxModel" joinType="LEFT_OUTER_JOIN"/>
                         </NodeSpec>
                         <NodeSpec name="structureField" jdbcType="BIGINT" columnName="CSVSTRUCTURE_FIELD_ID" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.CsvMapping.structureField</id>
-                            <relation type="REFERS" entitySpec="com.smartstream.mi.model.CsvStructureField"/>
+                            <relation type="REFERS" entitySpec="com.smartstream.mi.model.CsvStructureField" joinType="LEFT_OUTER_JOIN"/>
                         </NodeSpec>
                         <NodeSpec name="targetFieldName" javaType="STRING" jdbcType="VARCHAR" columnName="TARGET_FIELD_NAME" nullable="NULL" length="150" optimisticLock="false">
                             <id>com.smartstream.mi.model.CsvMapping.targetFieldName</id>
@@ -273,6 +283,7 @@
                     </Constraints>
                 </EntitySpec>
                 <EntitySpec className="com.smartstream.mi.model.Template" tableName="SS_TEMPLATE" abstract="false">
+                    <queryClass>com.smartstream.mi.query.QTemplate</queryClass>
                     <NodeSpecs>
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
                             <suppression>GENERATED_CODE_SETTER</suppression>
@@ -280,7 +291,7 @@
                         </NodeSpec>
                         <NodeSpec name="accessArea" jdbcType="BIGINT" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.Template.accessArea</id>
-                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea"/>
+                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea" joinType="LEFT_OUTER_JOIN"/>
                         </NodeSpec>
                         <NodeSpec name="uuid" javaType="STRING" jdbcType="CHAR" columnName="UUID" nullable="NOT_NULL" length="60" optimisticLock="false">
                             <id>com.smartstream.mi.model.Template.uuid</id>
@@ -293,11 +304,11 @@
                         </NodeSpec>
                         <NodeSpec name="contents" optimisticLock="false">
                             <id>com.smartstream.mi.model.Template.contents</id>
-                            <relation type="OWNS" entitySpec="com.smartstream.mi.model.TemplateContent" backReference="com.smartstream.mi.model.TemplateContent.template"/>
+                            <relation type="OWNS" entitySpec="com.smartstream.mi.model.TemplateContent" backReference="com.smartstream.mi.model.TemplateContent.template" joinType="LEFT_OUTER_JOIN"/>
                         </NodeSpec>
                         <NodeSpec name="businessTypes" optimisticLock="false">
                             <id>com.smartstream.mi.model.Template.businessTypes</id>
-                            <relation type="OWNS" entitySpec="com.smartstream.mi.model.TemplateBusinessType" backReference="com.smartstream.mi.model.TemplateBusinessType.template" ownwardJoin="com.smartstream.mi.model.TemplateBusinessType.businessType"/>
+                            <relation type="OWNS" entitySpec="com.smartstream.mi.model.TemplateBusinessType" backReference="com.smartstream.mi.model.TemplateBusinessType.template" ownwardJoin="com.smartstream.mi.model.TemplateBusinessType.businessType" joinType="LEFT_OUTER_JOIN"/>
                         </NodeSpec>
                     </NodeSpecs>
                     <Constraints>
@@ -307,6 +318,7 @@
                     </Constraints>
                 </EntitySpec>
                 <EntitySpec className="com.smartstream.mi.model.TemplateContent" tableName="SS_TEMPLATE_CONTENT" abstract="false">
+                    <queryClass>com.smartstream.mi.query.QTemplateContent</queryClass>
                     <NodeSpecs>
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
                             <suppression>GENERATED_CODE_SETTER</suppression>
@@ -320,7 +332,7 @@
                         </NodeSpec>
                         <NodeSpec name="template" jdbcType="BIGINT" columnName="TEMPLATE_ID" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.TemplateContent.template</id>
-                            <relation type="REFERS" entitySpec="com.smartstream.mi.model.Template"/>
+                            <relation type="REFERS" entitySpec="com.smartstream.mi.model.Template" joinType="LEFT_OUTER_JOIN"/>
                         </NodeSpec>
                     </NodeSpecs>
                     <Constraints>
@@ -329,6 +341,7 @@
                     </Constraints>
                 </EntitySpec>
                 <EntitySpec className="com.smartstream.mi.model.BusinessType" tableName="SS_DATATYPE" abstract="false">
+                    <queryClass>com.smartstream.mi.query.QBusinessType</queryClass>
                     <NodeSpecs>
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
                             <suppression>GENERATED_CODE_SETTER</suppression>
@@ -336,7 +349,7 @@
                         </NodeSpec>
                         <NodeSpec name="accessArea" jdbcType="BIGINT" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.BusinessType.accessArea</id>
-                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea"/>
+                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea" joinType="LEFT_OUTER_JOIN"/>
                         </NodeSpec>
                         <NodeSpec name="uuid" javaType="STRING" jdbcType="CHAR" columnName="UUID" nullable="NOT_NULL" length="60" optimisticLock="false">
                             <id>com.smartstream.mi.model.BusinessType.uuid</id>
@@ -355,6 +368,7 @@
                     </Constraints>
                 </EntitySpec>
                 <EntitySpec className="com.smartstream.mi.model.TemplateBusinessType" tableName="SS_TEMPLATE_DATATYPE" abstract="false">
+                    <queryClass>com.smartstream.mi.query.QTemplateBusinessType</queryClass>
                     <NodeSpecs>
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
                             <suppression>GENERATED_CODE_SETTER</suppression>
@@ -362,11 +376,11 @@
                         </NodeSpec>
                         <NodeSpec name="template" jdbcType="BIGINT" columnName="TEMPLATE_ID" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.TemplateBusinessType.template</id>
-                            <relation type="REFERS" entitySpec="com.smartstream.mi.model.Template"/>
+                            <relation type="REFERS" entitySpec="com.smartstream.mi.model.Template" joinType="LEFT_OUTER_JOIN"/>
                         </NodeSpec>
                         <NodeSpec name="businessType" jdbcType="BIGINT" columnName="DATATYPE_ID" nullable="NOT_NULL" optimisticLock="false">
                             <id>com.smartstream.mi.model.TemplateBusinessType.businessType</id>
-                            <relation type="REFERS" entitySpec="com.smartstream.mi.model.BusinessType"/>
+                            <relation type="REFERS" entitySpec="com.smartstream.mi.model.BusinessType" joinType="LEFT_OUTER_JOIN"/>
                         </NodeSpec>
                     </NodeSpecs>
                     <Constraints>
