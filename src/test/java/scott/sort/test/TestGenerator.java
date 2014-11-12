@@ -122,6 +122,13 @@ public class TestGenerator {
     }
 
     @Test
+    public void generateModels() throws IOException {
+        generateMacModels();
+        generateMiModels();
+    }
+
+
+    @Test
     public void generateMacModels() throws IOException {
         SpecRegistry registry = new SpecRegistry();
         StaticDefinitionProcessor processor = new StaticDefinitionProcessor();
@@ -130,7 +137,10 @@ public class TestGenerator {
 
         GenerateDataModels generateModels = new GenerateDataModels();
         generateModels.generateDataModels("src/test/java", macSpec);
-    }
+
+        GenerateQueryModels generateQueryModels = new GenerateQueryModels();
+        generateQueryModels.generateQueryModels("src/test/java", macSpec);
+}
 
     @Test
     public void generateMiModels() throws IOException {

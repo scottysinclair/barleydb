@@ -29,7 +29,7 @@ public class GenerateDataModels extends GenerateModelsHelper {
         classFile.getParentFile().mkdirs();
         try (Writer out = new FileWriter(classFile); ) {
             out.write("package ");
-            out.write(getPackageName(entitySpec));
+            out.write(getModelPackageName(entitySpec));
             out.write(";\n");
             out.write("\n");
             if (hasToManyReference(entitySpec)) {
@@ -117,6 +117,44 @@ public class GenerateDataModels extends GenerateModelsHelper {
         }
         else {
             return ValueNode.class.getSimpleName();
+        }
+    }
+
+    private void writeModelImports(DefinitionsSpec definitions, EntitySpec entitySpec, Writer out) throws IOException {
+        boolean writtenFirstNewLine = false;
+        for (NodeSpec nodeSpec: entitySpec.getNodeSpecs()) {
+            if (nodeSpec.getRelationSpec() != null) {
+                RelationSpec relationSpec = nodeSpec.getRelationSpec();
+                if (hasDifferentModelPackage(entitySpec, relationSpec.getEntitySpec())) {
+                    if (!writtenFirstNewLine) {
+                        out.write("\n");
+                        writtenFirstNewLine = true;
+                    }
+                    out.write("import ");
+                    out.write(relationSpec.getEntitySpec().getClassName());
+                    out.write(";\n");
+                }
+            }
+            if (nodeSpec.getEnumType() != null) {
+                if (!writtenFirstNewLine) {
+                    out.write("\n");
+                    writtenFirstNewLine = true;
+                }
+                out.write("import ");
+                out.write(nodeSpec.getEnumType().getName());
+                out.write(";\n");
+            }
+        }
+        if (entitySpec.getParentEntity() != null) {
+            if (hasDifferentModelPackage(entitySpec, entitySpec.getParentEntity())) {
+                if (!writtenFirstNewLine) {
+                    out.write("\n");
+                    writtenFirstNewLine = true;
+                }
+                out.write("import ");
+                out.write(entitySpec.getParentEntity().getClassName());
+                out.write(";\n");
+            }
         }
     }
 

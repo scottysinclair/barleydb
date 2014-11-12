@@ -5,6 +5,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 import scott.sort.api.specification.DefinitionsSpec;
 import scott.sort.api.specification.EntitySpec;
@@ -15,34 +17,39 @@ import scott.sort.api.specification.RelationSpec;
 public class GenerateQueryModels extends GenerateModelsHelper {
 
     public void generateQueryModels(String path, DefinitionsSpec definitions) throws IOException {
+        Set<EntitySpec> parentSpecs = new HashSet<>();
+        for (EntitySpec entitySpec: definitions.getEntitySpecs()) {
+            if (entitySpec.getParentEntity() != null) {
+                parentSpecs.add( entitySpec.getParentEntity() );
+            }
+        }
+        for (EntitySpec parentSpec: parentSpecs) {
+            generateAsbtractQueryModel(path, definitions, parentSpec);
+        }
         for (EntitySpec entitySpec: definitions.getEntitySpecs()) {
             generateQueryModel(path, definitions, entitySpec);
         }
     }
 
-    private void generateQueryModel(String path, DefinitionsSpec definitions, EntitySpec entitySpec) throws IOException {
+    private void generateAsbtractQueryModel(String path, DefinitionsSpec definitions, EntitySpec entitySpec) throws IOException {
         System.out.println("Generating model class " + entitySpec.getClassName());
-        File classFile = toFile(path, entitySpec);
+        File classFile = toAbstractQueryFile(path, entitySpec);
         classFile.getParentFile().mkdirs();
         try (Writer out = new FileWriter(classFile); ) {
             out.write("package ");
-            out.write(getPackageName(entitySpec));
+            out.write(getQueryPackageName(entitySpec));
             out.write(";\n");
             out.write("\n");
             out.write("import scott.sort.api.query.QProperty;\n");
             out.write("import scott.sort.api.query.QueryObject;\n");
-
-
-            out.write("import scott.sort.api.core.entity.Entity;\n");
-            out.write("import scott.sort.api.core.entity.ValueNode;\n");
             writeModelImports(definitions, entitySpec, out);
             out.write("\n");
             writeClassJavaDoc(out, entitySpec);
-            writeClassDeclaration(out, entitySpec);
+            writeAbstractQueryClassDeclaration(out, entitySpec);
             out.write("{\n");
             out.write("  private static final long serialVersionUID = 1L;\n");
 
-            writeConstructors(out, entitySpec);
+            writeConstructors(out, "QAbstract" + getModelSimpleClassName(entitySpec), entitySpec);
             out.write("\n");
             for (NodeSpec nodeSpec: entitySpec.getNodeSpecs()) {
                 if (!isCompletelySuppressed(nodeSpec)) {
@@ -51,6 +58,60 @@ public class GenerateQueryModels extends GenerateModelsHelper {
             }
             out.write("}");
          }
+    }
+
+    private void generateQueryModel(String path, DefinitionsSpec definitions, EntitySpec entitySpec) throws IOException {
+        System.out.println("Generating model class " + entitySpec.getClassName());
+        File classFile = toFile(path, entitySpec);
+        classFile.getParentFile().mkdirs();
+        try (Writer out = new FileWriter(classFile); ) {
+            out.write("package ");
+            out.write(getQueryPackageName(entitySpec));
+            out.write(";\n");
+            out.write("\n");
+            out.write("import scott.sort.api.query.QProperty;\n");
+            out.write("import scott.sort.api.query.QueryObject;\n");
+            writeModelImports(definitions, entitySpec, out);
+            out.write("\n");
+            writeClassJavaDoc(out, entitySpec);
+            writeClassDeclaration(out, entitySpec);
+            out.write("{\n");
+            out.write("  private static final long serialVersionUID = 1L;\n");
+
+            writeConstructors(out, getQuerySimpleClassName(entitySpec), entitySpec);
+            out.write("\n");
+            for (NodeSpec nodeSpec: entitySpec.getNodeSpecs()) {
+                if (!isCompletelySuppressed(nodeSpec)) {
+                    writeNodeMethods(out, nodeSpec);
+                }
+            }
+            out.write("}");
+         }
+    }
+
+    private void writeModelImports(DefinitionsSpec definitions, EntitySpec entitySpec, Writer out) throws IOException {
+        out.write("import ");
+        out.write(entitySpec.getClassName());
+        out.write(";\n");
+
+        for (NodeSpec nodeSpec: entitySpec.getNodeSpecs()) {
+            if (nodeSpec.getRelationSpec() != null) {
+                RelationSpec relationSpec = nodeSpec.getRelationSpec();
+                out.write("import ");
+                out.write(relationSpec.getEntitySpec().getQueryClassName());
+                out.write(";\n");
+            }
+            if (nodeSpec.getEnumType() != null) {
+                out.write("import ");
+                out.write(nodeSpec.getEnumType().getName());
+                out.write(";\n");
+            }
+        }
+        if (entitySpec.getParentEntity() != null) {
+            out.write("import ");
+            out.write(entitySpec.getParentEntity().getClassName());
+            out.write(";\n");
+        }
     }
 
     private void writeClassJavaDoc(Writer out, EntitySpec entitySpec) throws IOException {
@@ -63,6 +124,27 @@ public class GenerateQueryModels extends GenerateModelsHelper {
         out.write(System.getProperty("user.name"));
         out.write("\n");
         out.write(" */\n");
+    }
+
+
+    private void writeAbstractQueryClassDeclaration(Writer out, EntitySpec entitySpec) throws IOException {
+        out.write("public class QAbstract");
+        out.write(getModelSimpleClassName(entitySpec));
+        out.write(" ");
+        if (entitySpec.getParentEntity() != null) {
+            out.write("extends QAbstract");
+            out.write(getModelSimpleClassName(entitySpec.getParentEntity()));
+            out.write("<");
+            out.write(getModelSimpleClassName(entitySpec));
+            out.write(", ");
+            out.write(getQuerySimpleClassName(entitySpec));
+            out.write("> ");
+        }
+        else {
+            out.write("extends QueryObject<");
+            out.write(getModelSimpleClassName(entitySpec));
+            out.write("> ");
+        }
     }
 
     private void writeClassDeclaration(Writer out, EntitySpec entitySpec) throws IOException {
@@ -85,14 +167,14 @@ public class GenerateQueryModels extends GenerateModelsHelper {
         }
     }
 
-    private void writeConstructors(Writer out, EntitySpec entitySpec) throws IOException {
-        writeDefaultConstructor(out, entitySpec);
+    private void writeConstructors(Writer out, String simpleClassName, EntitySpec entitySpec) throws IOException {
+        writeDefaultConstructor(out, simpleClassName, entitySpec);
         out.write("\n");
-        writeSubQueryConstructor(out, entitySpec);
+        writeSubQueryConstructor(out, simpleClassName, entitySpec);
     }
-    private void writeDefaultConstructor(Writer out, EntitySpec entitySpec) throws IOException {
+    private void writeDefaultConstructor(Writer out, String simpleClassName, EntitySpec entitySpec) throws IOException {
         out.write("  public ");
-        out.write(getQuerySimpleClassName(entitySpec));
+        out.write(simpleClassName);
         out.write("() {\n");
         out.write("    super(");
         out.write(getModelSimpleClassName(entitySpec));
@@ -100,9 +182,9 @@ public class GenerateQueryModels extends GenerateModelsHelper {
         out.write("  }\n");
     }
 
-    private void writeSubQueryConstructor(Writer out, EntitySpec entitySpec) throws IOException {
+    private void writeSubQueryConstructor(Writer out, String simpleClassName,EntitySpec entitySpec) throws IOException {
         out.write("  public ");
-        out.write(getQuerySimpleClassName(entitySpec));
+        out.write(simpleClassName);
         out.write("(QueryObject<?> parent) {\n");
         out.write("    super(");
         out.write(getModelSimpleClassName(entitySpec));
@@ -181,7 +263,9 @@ public class GenerateQueryModels extends GenerateModelsHelper {
         out.write("> ");
         out.write(nodeSpec.getName());
         out.write("() {\n");
-        out.write("    return new QProperty<String>(this, \"");
+        out.write("    return new QProperty<");
+        writeJavaType(out, nodeSpec);
+        out.write(">(this, \"");
         out.write(nodeSpec.getName());
         out.write("\");\n");
         out.write("  }\n");
@@ -211,6 +295,15 @@ public class GenerateQueryModels extends GenerateModelsHelper {
         String name = nodeSpec.getName();
         char fc = Character.toUpperCase( name.charAt(0) );
         return "exists" + fc + name.substring(1, name.length());
+    }
+
+    private File toAbstractQueryFile(String path, EntitySpec entitySpec) {
+        if (!path.endsWith("/")) {
+            path += "/";
+        }
+        File file = new File(path + getJavaPath(entitySpec.getQueryClassName()));
+        File dir = file.getParentFile();
+        return new File(dir, "QAbstract" + getModelSimpleClassName(entitySpec) + ".java");
     }
 
     private File toFile(String path, EntitySpec entitySpec) {

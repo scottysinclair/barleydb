@@ -10,44 +10,6 @@ import scott.sort.api.specification.RelationSpec;
 
 public class GenerateModelsHelper {
 
-    protected void writeModelImports(DefinitionsSpec definitions, EntitySpec entitySpec, Writer out) throws IOException {
-        boolean writtenFirstNewLine = false;
-        for (NodeSpec nodeSpec: entitySpec.getNodeSpecs()) {
-            if (nodeSpec.getRelationSpec() != null) {
-                RelationSpec relationSpec = nodeSpec.getRelationSpec();
-                if (hasDifferentModelPackage(entitySpec, relationSpec.getEntitySpec())) {
-                    if (!writtenFirstNewLine) {
-                        out.write("\n");
-                        writtenFirstNewLine = true;
-                    }
-                    out.write("import ");
-                    out.write(relationSpec.getEntitySpec().getClassName());
-                    out.write(";\n");
-                }
-            }
-            if (nodeSpec.getEnumType() != null) {
-                if (!writtenFirstNewLine) {
-                    out.write("\n");
-                    writtenFirstNewLine = true;
-                }
-                out.write("import ");
-                out.write(nodeSpec.getEnumType().getName());
-                out.write(";\n");
-            }
-        }
-        if (entitySpec.getParentEntity() != null) {
-            if (hasDifferentModelPackage(entitySpec, entitySpec.getParentEntity())) {
-                if (!writtenFirstNewLine) {
-                    out.write("\n");
-                    writtenFirstNewLine = true;
-                }
-                out.write("import ");
-                out.write(entitySpec.getParentEntity().getClassName());
-                out.write(";\n");
-            }
-        }
-    }
-
     protected void writeJavaType(Writer out, NodeSpec nodeSpec) throws IOException {
         RelationSpec relationSpec = nodeSpec.getRelationSpec();
         if (relationSpec != null) {
@@ -95,12 +57,17 @@ public class GenerateModelsHelper {
     }
 
     protected boolean hasDifferentModelPackage(EntitySpec entitySpecA, EntitySpec entitySpecB) {
-        return !getPackageName(entitySpecA).equals( getPackageName(entitySpecB));
+        return !getModelPackageName(entitySpecA).equals( getModelPackageName(entitySpecB));
     }
 
-    protected String getPackageName(EntitySpec entitySpec) {
+    protected String getModelPackageName(EntitySpec entitySpec) {
         int iA = entitySpec.getClassName().lastIndexOf('.');
         return entitySpec.getClassName().substring(0,  iA);
+    }
+
+    protected String getQueryPackageName(EntitySpec entitySpec) {
+        int iA = entitySpec.getQueryClassName().lastIndexOf('.');
+        return entitySpec.getQueryClassName().substring(0,  iA);
     }
 
     protected String getModelSimpleClassName(EntitySpec entitySpec) {
