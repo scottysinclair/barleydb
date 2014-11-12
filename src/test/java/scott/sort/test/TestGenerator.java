@@ -121,7 +121,18 @@ public class TestGenerator {
     }
 
     @Test
-    public void generateModels() throws IOException {
+    public void generateMacModels() throws IOException {
+        SpecRegistry registry = new SpecRegistry();
+        StaticDefinitionProcessor processor = new StaticDefinitionProcessor();
+
+        DefinitionsSpec macSpec = processor.process(new MacSpec(), registry);
+
+        GenerateModels generateModels = new GenerateModels();
+        generateModels.generateModels("src/test/java", macSpec);
+    }
+
+    @Test
+    public void generateMiModels() throws IOException {
         SpecRegistry registry = new SpecRegistry();
         StaticDefinitionProcessor processor = new StaticDefinitionProcessor();
 

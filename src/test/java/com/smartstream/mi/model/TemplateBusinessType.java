@@ -1,24 +1,22 @@
 package com.smartstream.mi.model;
 
-import java.util.List;
-
 import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.ValueNode;
-import scott.sort.api.core.entity.RefNode;
-import scott.sort.api.core.entity.ToManyNode;
 import scott.sort.api.core.proxy.AbstractCustomEntityProxy;
+import scott.sort.api.core.entity.RefNode;
 import scott.sort.api.core.proxy.RefNodeProxyHelper;
-import scott.sort.api.core.proxy.ToManyNodeProxyHelper;
 
-
-
-
+/**
+ * Generated from Entity Specification on Wed Nov 12 08:56:03 CET 2014
+ *
+ * @author scott
+ */
 public class TemplateBusinessType extends AbstractCustomEntityProxy {
+  private static final long serialVersionUID = 1L;
 
   private final ValueNode id;
   private final RefNodeProxyHelper template;
   private final RefNodeProxyHelper businessType;
-
 
   public TemplateBusinessType(Entity entity) {
     super(entity);
@@ -29,10 +27,6 @@ public class TemplateBusinessType extends AbstractCustomEntityProxy {
 
   public Long getId() {
     return id.getValue();
-  }
-
-  public void setId(Long id) {
-    this.id.setValue(id);
   }
 
   public Template getTemplate() {

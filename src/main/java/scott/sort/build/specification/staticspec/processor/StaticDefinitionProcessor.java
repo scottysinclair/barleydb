@@ -14,11 +14,14 @@ import scott.sort.api.specification.EntitySpec;
 import scott.sort.api.specification.NodeSpec;
 import scott.sort.api.specification.RelationSpec;
 import scott.sort.api.specification.SpecRegistry;
+import scott.sort.api.specification.SuppressionSpec;
 import scott.sort.api.specification.constraint.UniqueConstraintSpec;
 import scott.sort.build.specification.staticspec.AbstractEntity;
 import scott.sort.build.specification.staticspec.Entity;
 import scott.sort.build.specification.staticspec.ExtendsEntity;
 import scott.sort.build.specification.staticspec.StaticDefinitions;
+import scott.sort.build.specification.staticspec.SuppressFromGeneratedCode;
+import scott.sort.build.specification.staticspec.SuppressSetter;
 
 public class StaticDefinitionProcessor {
 
@@ -315,6 +318,12 @@ public class StaticDefinitionProcessor {
     private void processNodeSpecAndAddToEntity(StaticDefinitions staticDefs, EntitySpec entitySpec, NodeSpec nodeSpec, Field field) {
         if (nodeSpec.getName() == null) {
             nodeSpec.setName( field.getName() );
+        }
+        if (field.getAnnotation(SuppressFromGeneratedCode.class) != null) {
+            nodeSpec.setSuppression(SuppressionSpec.GENERATED_CODE);
+        }
+        if (field.getAnnotation(SuppressSetter.class) != null) {
+            nodeSpec.setSuppression(SuppressionSpec.GENERATED_CODE_SETTER);
         }
         if (nodeSpec.getColumnName() == null) {
             /*

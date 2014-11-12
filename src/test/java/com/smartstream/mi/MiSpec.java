@@ -17,6 +17,7 @@ import scott.sort.api.specification.NodeSpec;
 import scott.sort.build.specification.staticspec.AbstractEntity;
 import scott.sort.build.specification.staticspec.Entity;
 import scott.sort.build.specification.staticspec.ExtendsEntity;
+import scott.sort.build.specification.staticspec.SuppressFromGeneratedCode;
 
 /**
  * interfaces define common groupings of NodeSpecs
@@ -70,6 +71,7 @@ public class MiSpec extends MorpheusSpec {
 
         public static final NodeSpec user = optionallyRefersTo(User.class);
 
+        @SuppressFromGeneratedCode
         public static final NodeSpec structure = mandatoryLongValue("STRUCTURE_ID");
     }
 

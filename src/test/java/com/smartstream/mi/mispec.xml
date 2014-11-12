@@ -6,6 +6,7 @@
                 <EntitySpec className="com.smartstream.mac.model.AccessArea" tableName="MAC_ACCESS_AREA" abstract="false">
                     <NodeSpecs>
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                            <suppression>GENERATED_CODE_SETTER</suppression>
                             <id>com.smartstream.mac.model.AccessArea.id</id>
                         </NodeSpec>
                         <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
@@ -31,6 +32,7 @@
                 <EntitySpec className="com.smartstream.mac.model.User" tableName="MAC_USER" abstract="false">
                     <NodeSpecs>
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                            <suppression>GENERATED_CODE_SETTER</suppression>
                             <id>com.smartstream.mac.model.User.id</id>
                         </NodeSpec>
                         <NodeSpec name="accessArea" jdbcType="BIGINT" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
@@ -61,6 +63,7 @@
                 <EntitySpec className="com.smartstream.mi.model.SyntaxModel" tableName="SS_SYNTAX_MODEL" abstract="true">
                     <NodeSpecs>
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                            <suppression>GENERATED_CODE_SETTER</suppression>
                             <id>com.smartstream.mi.model.SyntaxModel.id</id>
                         </NodeSpec>
                         <NodeSpec name="accessArea" jdbcType="BIGINT" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
@@ -87,6 +90,7 @@
                             <relation type="REFERS" entitySpec="com.smartstream.mac.model.User"/>
                         </NodeSpec>
                         <NodeSpec name="structure" javaType="LONG" jdbcType="BIGINT" columnName="STRUCTURE_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <suppression>GENERATED_CODE</suppression>
                             <id>com.smartstream.mi.model.SyntaxModel.structure</id>
                         </NodeSpec>
                     </NodeSpecs>
@@ -118,6 +122,7 @@
                 <EntitySpec className="com.smartstream.mi.model.XmlStructure" tableName="SS_XMLSTRUCTURE" abstract="false">
                     <NodeSpecs>
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                            <suppression>GENERATED_CODE_SETTER</suppression>
                             <id>com.smartstream.mi.model.XmlStructure.id</id>
                         </NodeSpec>
                         <NodeSpec name="accessArea" jdbcType="BIGINT" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
@@ -143,6 +148,7 @@
                 <EntitySpec className="com.smartstream.mi.model.XmlMapping" tableName="SS_XML_MAPPING" abstract="false">
                     <NodeSpecs>
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                            <suppression>GENERATED_CODE_SETTER</suppression>
                             <id>com.smartstream.mi.model.XmlMapping.id</id>
                         </NodeSpec>
                         <NodeSpec name="syntax" jdbcType="BIGINT" columnName="SYNTAX_MODEL_ID" nullable="NOT_NULL" optimisticLock="false">
@@ -187,6 +193,7 @@
                 <EntitySpec className="com.smartstream.mi.model.CsvStructure" tableName="SS_CSVSTRUCTURE" abstract="false">
                     <NodeSpecs>
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                            <suppression>GENERATED_CODE_SETTER</suppression>
                             <id>com.smartstream.mi.model.CsvStructure.id</id>
                         </NodeSpec>
                         <NodeSpec name="accessArea" jdbcType="BIGINT" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
@@ -219,6 +226,7 @@
                 <EntitySpec className="com.smartstream.mi.model.CsvStructureField" tableName="SS_CSVSTRUCTURE_FIELD" abstract="false">
                     <NodeSpecs>
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                            <suppression>GENERATED_CODE_SETTER</suppression>
                             <id>com.smartstream.mi.model.CsvStructureField.id</id>
                         </NodeSpec>
                         <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NULL" length="50" optimisticLock="false">
@@ -243,6 +251,7 @@
                 <EntitySpec className="com.smartstream.mi.model.CsvMapping" tableName="SS_CSV_MAPPING" abstract="false">
                     <NodeSpecs>
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                            <suppression>GENERATED_CODE_SETTER</suppression>
                             <id>com.smartstream.mi.model.CsvMapping.id</id>
                         </NodeSpec>
                         <NodeSpec name="syntax" jdbcType="BIGINT" columnName="SYNTAX_MODEL_ID" nullable="NOT_NULL" optimisticLock="false">
@@ -266,6 +275,7 @@
                 <EntitySpec className="com.smartstream.mi.model.Template" tableName="SS_TEMPLATE" abstract="false">
                     <NodeSpecs>
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                            <suppression>GENERATED_CODE_SETTER</suppression>
                             <id>com.smartstream.mi.model.Template.id</id>
                         </NodeSpec>
                         <NodeSpec name="accessArea" jdbcType="BIGINT" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
@@ -299,6 +309,7 @@
                 <EntitySpec className="com.smartstream.mi.model.TemplateContent" tableName="SS_TEMPLATE_CONTENT" abstract="false">
                     <NodeSpecs>
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                            <suppression>GENERATED_CODE_SETTER</suppression>
                             <id>com.smartstream.mi.model.TemplateContent.id</id>
                         </NodeSpec>
                         <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
@@ -320,6 +331,7 @@
                 <EntitySpec className="com.smartstream.mi.model.BusinessType" tableName="SS_DATATYPE" abstract="false">
                     <NodeSpecs>
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                            <suppression>GENERATED_CODE_SETTER</suppression>
                             <id>com.smartstream.mi.model.BusinessType.id</id>
                         </NodeSpec>
                         <NodeSpec name="accessArea" jdbcType="BIGINT" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
@@ -345,6 +357,7 @@
                 <EntitySpec className="com.smartstream.mi.model.TemplateBusinessType" tableName="SS_TEMPLATE_DATATYPE" abstract="false">
                     <NodeSpecs>
                         <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                            <suppression>GENERATED_CODE_SETTER</suppression>
                             <id>com.smartstream.mi.model.TemplateBusinessType.id</id>
                         </NodeSpec>
                         <NodeSpec name="template" jdbcType="BIGINT" columnName="TEMPLATE_ID" nullable="NOT_NULL" optimisticLock="false">

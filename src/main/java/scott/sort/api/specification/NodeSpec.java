@@ -55,6 +55,9 @@ public class NodeSpec implements Serializable, Cloneable {
     @XmlAttribute
     private boolean optimisticLock;
 
+    @XmlElement
+    private SuppressionSpec suppression;
+
 
     @XmlAttribute(name="pk")
     private Boolean getPrimaryKeyForJaxb() {
@@ -167,6 +170,14 @@ public class NodeSpec implements Serializable, Cloneable {
 
     public void setOptimisticLock(boolean optimisticLock) {
         this.optimisticLock = optimisticLock;
+    }
+
+    public SuppressionSpec getSuppression() {
+        return suppression;
+    }
+
+    public void setSuppression(SuppressionSpec suppression) {
+        this.suppression = suppression;
     }
 
     @Override

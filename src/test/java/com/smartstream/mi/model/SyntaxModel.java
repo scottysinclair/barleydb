@@ -1,23 +1,23 @@
 package com.smartstream.mi.model;
 
-import java.util.List;
-
 import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.ValueNode;
-import scott.sort.api.core.entity.RefNode;
-import scott.sort.api.core.entity.ToManyNode;
 import scott.sort.api.core.proxy.AbstractCustomEntityProxy;
+import scott.sort.api.core.entity.RefNode;
 import scott.sort.api.core.proxy.RefNodeProxyHelper;
-import scott.sort.api.core.proxy.ToManyNodeProxyHelper;
 
 import com.smartstream.mac.model.AccessArea;
 import com.smartstream.mi.types.StructureType;
 import com.smartstream.mi.types.SyntaxType;
 import com.smartstream.mac.model.User;
 
-
-
+/**
+ * Generated from Entity Specification on Wed Nov 12 08:56:03 CET 2014
+ *
+ * @author scott
+ */
 public class SyntaxModel extends AbstractCustomEntityProxy {
+  private static final long serialVersionUID = 1L;
 
   private final ValueNode id;
   private final RefNodeProxyHelper accessArea;
@@ -27,8 +27,6 @@ public class SyntaxModel extends AbstractCustomEntityProxy {
   private final ValueNode structureType;
   private final ValueNode syntaxType;
   private final RefNodeProxyHelper user;
-  private final ValueNode structure;
-
 
   public SyntaxModel(Entity entity) {
     super(entity);
@@ -40,15 +38,10 @@ public class SyntaxModel extends AbstractCustomEntityProxy {
     structureType = entity.getChild("structureType", ValueNode.class, true);
     syntaxType = entity.getChild("syntaxType", ValueNode.class, true);
     user = new RefNodeProxyHelper(entity.getChild("user", RefNode.class, true));
-    structure = entity.getChild("structure", ValueNode.class, true);
   }
 
   public Long getId() {
     return id.getValue();
-  }
-
-  public void setId(Long id) {
-    this.id.setValue(id);
   }
 
   public AccessArea getAccessArea() {
@@ -105,13 +98,5 @@ public class SyntaxModel extends AbstractCustomEntityProxy {
 
   public void setUser(User user) {
     setToRefNode(this.user.refNode, user);
-  }
-
-  public Long getStructure() {
-    return structure.getValue();
-  }
-
-  public void setStructure(Long structure) {
-    this.structure.setValue(structure);
   }
 }

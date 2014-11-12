@@ -15,6 +15,7 @@ import scott.sort.api.specification.DefinitionsSpec;
 import scott.sort.api.specification.EntitySpec;
 import scott.sort.api.specification.NodeSpec;
 import scott.sort.api.specification.RelationSpec;
+import scott.sort.api.specification.SuppressionSpec;
 import scott.sort.api.specification.constraint.UniqueConstraintSpec;
 import scott.sort.build.specification.staticspec.StaticDefinitions;
 
@@ -81,6 +82,7 @@ public class MorpheusSpec extends StaticDefinitions {
         spec.setColumnName("ID");
         spec.setPrimaryKey(true);
         spec.setNullable(Nullable.NOT_NULL);
+        spec.setSuppression(SuppressionSpec.GENERATED_CODE_SETTER);
         return spec;
     }
 

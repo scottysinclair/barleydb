@@ -4,17 +4,21 @@ import java.util.List;
 
 import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.ValueNode;
-import scott.sort.api.core.entity.RefNode;
-import scott.sort.api.core.entity.ToManyNode;
 import scott.sort.api.core.proxy.AbstractCustomEntityProxy;
+import scott.sort.api.core.entity.RefNode;
 import scott.sort.api.core.proxy.RefNodeProxyHelper;
+import scott.sort.api.core.entity.ToManyNode;
 import scott.sort.api.core.proxy.ToManyNodeProxyHelper;
 
 import com.smartstream.mac.model.AccessArea;
 
-
-
+/**
+ * Generated from Entity Specification on Wed Nov 12 08:56:03 CET 2014
+ *
+ * @author scott
+ */
 public class Template extends AbstractCustomEntityProxy {
+  private static final long serialVersionUID = 1L;
 
   private final ValueNode id;
   private final RefNodeProxyHelper accessArea;
@@ -23,7 +27,6 @@ public class Template extends AbstractCustomEntityProxy {
   private final ValueNode name;
   private final ToManyNodeProxyHelper contents;
   private final ToManyNodeProxyHelper businessTypes;
-
 
   public Template(Entity entity) {
     super(entity);
@@ -38,10 +41,6 @@ public class Template extends AbstractCustomEntityProxy {
 
   public Long getId() {
     return id.getValue();
-  }
-
-  public void setId(Long id) {
-    this.id.setValue(id);
   }
 
   public AccessArea getAccessArea() {

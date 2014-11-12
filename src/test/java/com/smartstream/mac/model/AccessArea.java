@@ -1,27 +1,67 @@
 package com.smartstream.mac.model;
 
-/*
- * #%L
- * Simple Object Relational Framework
- * %%
- * Copyright (C) 2014 Scott Sinclair <scottysinclair@gmail.com>
- * %%
- * All rights reserved.
- * #L%
- */
-
 import java.util.List;
 
-public interface AccessArea {
-    Long getId();
+import scott.sort.api.core.entity.Entity;
+import scott.sort.api.core.entity.ValueNode;
+import scott.sort.api.core.proxy.AbstractCustomEntityProxy;
+import scott.sort.api.core.entity.RefNode;
+import scott.sort.api.core.proxy.RefNodeProxyHelper;
+import scott.sort.api.core.entity.ToManyNode;
+import scott.sort.api.core.proxy.ToManyNodeProxyHelper;
 
-    void setName(String name);
+/**
+ * Generated from Entity Specification on Wed Nov 12 08:57:27 CET 2014
+ *
+ * @author scott
+ */
+public class AccessArea extends AbstractCustomEntityProxy {
+  private static final long serialVersionUID = 1L;
 
-    String getName();
+  private final ValueNode id;
+  private final ValueNode name;
+  private final ValueNode modifiedAt;
+  private final RefNodeProxyHelper parent;
+  private final ToManyNodeProxyHelper children;
 
-    AccessArea getParent();
+  public AccessArea(Entity entity) {
+    super(entity);
+    id = entity.getChild("id", ValueNode.class, true);
+    name = entity.getChild("name", ValueNode.class, true);
+    modifiedAt = entity.getChild("modifiedAt", ValueNode.class, true);
+    parent = new RefNodeProxyHelper(entity.getChild("parent", RefNode.class, true));
+    children = new ToManyNodeProxyHelper(entity.getChild("children", ToManyNode.class, true));
+  }
 
-    void setParent(AccessArea parent);
+  public Long getId() {
+    return id.getValue();
+  }
 
-    List<AccessArea> getChildren();
+  public String getName() {
+    return name.getValue();
+  }
+
+  public void setName(String name) {
+    this.name.setValue(name);
+  }
+
+  public Long getModifiedAt() {
+    return modifiedAt.getValue();
+  }
+
+  public void setModifiedAt(Long modifiedAt) {
+    this.modifiedAt.setValue(modifiedAt);
+  }
+
+  public AccessArea getParent() {
+    return super.getFromRefNode(parent.refNode);
+  }
+
+  public void setParent(AccessArea parent) {
+    setToRefNode(this.parent.refNode, parent);
+  }
+
+  public List<AccessArea> getChildren() {
+    return super.getListProxy(children.toManyNode);
+  }
 }
