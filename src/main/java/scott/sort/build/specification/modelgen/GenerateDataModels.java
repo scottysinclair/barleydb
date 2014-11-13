@@ -36,7 +36,6 @@ public class GenerateDataModels extends GenerateModelsHelper {
             out.write(";\n");
 
             out.write("import scott.sort.api.core.entity.Entity;\n");
-            out.write("import scott.sort.api.core.proxy.EntityProxy;\n");
             out.write("import scott.sort.api.core.proxy.ProxyFactory;\n");
             out.write("import scott.sort.api.exception.model.ProxyCreationException;\n");
 
@@ -56,14 +55,18 @@ public class GenerateDataModels extends GenerateModelsHelper {
                 out.write("(entity);\n");
                 out.write("    }\n");
             }
+            /*
             out.write("    try {\n");
             out.write("      return EntityProxy.generateProxy(getClass().getClassLoader(), entity);\n");
             out.write("    }\n");
             out.write("    catch (ClassNotFoundException x) {\n");
             out.write("      throw new ProxyCreationException(\"Could not generate dynamic proxy\", x);\n");
             out.write("    }\n");
+            */
+            out.write("    return null;\n");
             out.write("  }\n");
             out.write("}\n");
+
         }
 
 

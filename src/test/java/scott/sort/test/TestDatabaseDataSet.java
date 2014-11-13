@@ -20,6 +20,7 @@ import scott.sort.api.persist.PersistAnalyser;
 import scott.sort.api.persist.PersistRequest;
 import scott.sort.server.jdbc.persist.DatabaseDataSet;
 
+import com.smartstream.mac.model.AccessArea;
 import com.smartstream.mac.model.User;
 import com.smartstream.mi.model.XmlMapping;
 import com.smartstream.mi.model.XmlStructure;
@@ -30,17 +31,25 @@ public class TestDatabaseDataSet extends TestBase {
 
     @Test
     public void testDatabaseDataSet() throws Exception {
+        AccessArea root = serverEntityContext.newModel(AccessArea.class);
+        root.setName("root");
         XmlSyntaxModel syntaxModel = serverEntityContext.newModel(XmlSyntaxModel.class);
         syntaxModel.setName("Scott's SyntaxModel");
+        syntaxModel.setAccessArea(root);
+        syntaxModel.setUuid("");
         syntaxModel.setSyntaxType(SyntaxType.ROOT);
 
         User user = serverEntityContext.newModel(User.class);
         user.setName("Jimmy");
+        user.setAccessArea(root);
+        user.setUuid("");
 
         syntaxModel.setUser(user);
 
         XmlStructure structure = serverEntityContext.newModel(XmlStructure.class);
         structure.setName("scott's structure");
+        structure.setAccessArea(root);
+        structure.setUuid("");
         syntaxModel.setStructure(structure);
 
         XmlMapping mapping = serverEntityContext.newModel(XmlMapping.class);
@@ -58,6 +67,8 @@ public class TestDatabaseDataSet extends TestBase {
         //create the sub syntax
         XmlSyntaxModel subSyntaxModel = serverEntityContext.newModel(XmlSyntaxModel.class);
         subSyntaxModel.setName("SubSyntaxModel - ooooh");
+        subSyntaxModel.setAccessArea(root);
+        subSyntaxModel.setUuid("");
         subSyntaxModel.setStructure(structure);
         subSyntaxModel.setSyntaxType(SyntaxType.SUBSYNTAX);
         subSyntaxModel.setUser(user);

@@ -271,6 +271,14 @@ public abstract class PreparedStatementHelper<PREPARING_PERSIST_EX extends SortE
                 throw newSetValueError("String", x);
             }
             break;
+        case CHAR:
+            try {
+                ps.setString(index, value);
+            }
+            catch (SQLException x) {
+                throw newSetValueError("String", x);
+            }
+            break;
         default:
             fail(value, jdbcType);
         }

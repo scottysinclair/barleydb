@@ -29,9 +29,6 @@ public class Relation implements Serializable {
         this.relationType = relationType;
         this.foreignNodeName = foreignNodeName;
         this.joinProperty = joinProperty;
-        if (joinProperty != null) {
-            System.out.println("JPP!");
-        }
     }
 
     Relation copy(RelationType relationType) {

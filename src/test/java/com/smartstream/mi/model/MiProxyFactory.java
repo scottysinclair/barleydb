@@ -1,6 +1,5 @@
 package com.smartstream.mi.model;
 import scott.sort.api.core.entity.Entity;
-import scott.sort.api.core.proxy.EntityProxy;
 import scott.sort.api.core.proxy.ProxyFactory;
 import scott.sort.api.exception.model.ProxyCreationException;
 
@@ -46,11 +45,6 @@ public class MiProxyFactory implements ProxyFactory {
     if (entity.getEntityType().getInterfaceName().equals(TemplateBusinessType.class.getName())) {
       return (T) new TemplateBusinessType(entity);
     }
-    try {
-      return EntityProxy.generateProxy(getClass().getClassLoader(), entity);
-    }
-    catch (ClassNotFoundException x) {
-      throw new ProxyCreationException("Could not generate dynamic proxy", x);
-    }
+    return null;
   }
 }

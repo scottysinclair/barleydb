@@ -4,7 +4,7 @@ import scott.sort.api.query.QueryObject;
 import com.smartstream.mi.model.SyntaxModel;
 
 /**
- * Generated from Entity Specification on Thu Nov 13 07:18:16 CET 2014
+ * Generated from Entity Specification on Thu Nov 13 07:55:41 CET 2014
  *
  * @author scott
  */

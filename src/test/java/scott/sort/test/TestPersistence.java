@@ -100,20 +100,26 @@ public class TestPersistence extends TestRemoteClientBase {
     public static XmlSyntaxModel buildSyntax(EntityContext theEntityContext) {
 
         AccessArea root = theEntityContext.newModel(AccessArea.class);
-//        root.setName("root");
+        root.setName("root");
 
         XmlSyntaxModel syntaxModel = theEntityContext.newModel(XmlSyntaxModel.class);
         syntaxModel.setName("Scott's SyntaxModel");
         syntaxModel.setSyntaxType(SyntaxType.ROOT);
+        syntaxModel.setAccessArea(root);
+        syntaxModel.setUuid("");
 
 
         User user = theEntityContext.newModel(User.class);
         user.setName("Jimmy");
+        user.setAccessArea(root);
+        user.setUuid("");
 
         syntaxModel.setUser(user);
 
         XmlStructure structure = theEntityContext.newModel(XmlStructure.class);
         structure.setName("scott's structure");
+        structure.setAccessArea(root);
+        structure.setUuid("");
         syntaxModel.setStructure(structure);
 
         XmlMapping mapping = theEntityContext.newModel(XmlMapping.class);
@@ -131,9 +137,11 @@ public class TestPersistence extends TestRemoteClientBase {
         //create the sub syntax
         XmlSyntaxModel subSyntaxModel = theEntityContext.newModel(XmlSyntaxModel.class);
         subSyntaxModel.setName("SubSyntaxModel - ooooh");
+        subSyntaxModel.setAccessArea(root);
         subSyntaxModel.setStructure(structure);
         subSyntaxModel.setSyntaxType(SyntaxType.SUBSYNTAX);
         subSyntaxModel.setUser(user);
+        subSyntaxModel.setUuid("");
 
         mapping.setSubSyntax(subSyntaxModel); //set the subsyntax on the mapping
 
@@ -626,7 +634,8 @@ public class TestPersistence extends TestRemoteClientBase {
          * verify that the syntax was removed
          */
         assertTrue(theEntityContext.performQuery(new QXmlSyntaxModel()).getList().isEmpty());
-        assertEquals(9, theEntityContext.size());
+        assertEquals(10, theEntityContext.size());
+        assertEquals(1, EntityContextHelper.countLoaded( theEntityContext.getEntitiesByType(AccessArea.class) ) );
         assertEquals(2, EntityContextHelper.countNotLoaded( theEntityContext.getEntitiesByType(XmlSyntaxModel.class) ) );
         assertEquals(5, EntityContextHelper.countNotLoaded( theEntityContext.getEntitiesByType(XmlMapping.class) ) );
         assertEquals(1, EntityContextHelper.countLoaded( theEntityContext.getEntitiesByType(XmlStructure.class) ) );
@@ -636,8 +645,12 @@ public class TestPersistence extends TestRemoteClientBase {
     @Test
     public void testSaveTemplateWithContentAndDatatypes() throws Exception {
         try {
+            AccessArea root = theEntityContext.newModel(AccessArea.class);
+            root.setName("root");
             Template template = theEntityContext.newModel(Template.class);
             template.setName("test-template");
+            template.setAccessArea(root);
+            template.setUuid("");
 
             TemplateContent content = theEntityContext.newModel(TemplateContent.class);
             content.setName("test-template-content-1");
@@ -652,11 +665,16 @@ public class TestPersistence extends TestRemoteClientBase {
 
             BusinessType datatype = theEntityContext.newModel(BusinessType.class);
             datatype.setName("test-datatype-1");
+            datatype.setAccessArea(root);
+            datatype.setUuid("");
+
             //todo: setting not required in both directions (set + add)
             template.getBusinessTypes().add(datatype);
 
             datatype = theEntityContext.newModel(BusinessType.class);
             datatype.setName("test-datatype-2");
+            datatype.setAccessArea(root);
+            datatype.setUuid("");
             //todo: setting not required in both directions (set + add)
             template.getBusinessTypes().add(datatype);
 
@@ -697,7 +715,9 @@ public class TestPersistence extends TestRemoteClientBase {
         /*
          * only the template is in the context
          */
-        assertEquals(1, theEntityContext.size());
+        assertEquals(2, theEntityContext.size());
+        assertEquals(1, EntityContextHelper.countLoaded( theEntityContext.getEntitiesByType(Template.class) ) );
+        assertEquals(1, EntityContextHelper.countNotLoaded( theEntityContext.getEntitiesByType(AccessArea.class) ) );
 
         System.out.println("===================  DELETE  =================");
         theEntityContext.persist(new PersistRequest()

@@ -245,7 +245,7 @@ final class EntityLoader {
                     result = convertToSqlDate(value);
                     break;
                 case STRING:
-                    result =  convertToString(value);
+                    result =  convertToString(nd.getJdbcType(), value);
                     break;
                 case UTIL_DATE:
                     result = convertToUtilDate(value);
@@ -320,9 +320,13 @@ final class EntityLoader {
         return null;
     }
 
-    private String convertToString(Object value) {
+    private String convertToString(JdbcType jdbcType, Object value) {
         if (value instanceof String) {
-            return (String)value;
+            String str = (String)value;
+            if (jdbcType == JdbcType.CHAR) {
+                str = str.trim();
+            }
+            return str;
         }
         return null;
     }
