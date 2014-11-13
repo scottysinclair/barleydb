@@ -20,7 +20,7 @@ import scott.sort.api.persist.PersistRequest;
 import scott.sort.server.jdbc.query.QueryResult;
 
 import com.smartstream.mi.model.XmlSyntaxModel;
-import com.smartstream.mi.query.QXMLSyntaxModel;
+import com.smartstream.mi.query.QXmlSyntaxModel;
 
 /**
  * Tests that entities get garbage collected when not used
@@ -40,7 +40,7 @@ public class TestGarbageCollection extends TestBase {
 
         serverEntityContext.clear();
 
-        QueryResult<XmlSyntaxModel> result = serverEntityContext.performQuery(new QXMLSyntaxModel());
+        QueryResult<XmlSyntaxModel> result = serverEntityContext.performQuery(new QXmlSyntaxModel());
         Collection<UUID> uuids = new LinkedList<>();
         for (XmlSyntaxModel syn: result.getList()) {
             uuids.add(syn.getEntity().getUuid());
@@ -63,7 +63,7 @@ public class TestGarbageCollection extends TestBase {
 
         serverEntityContext.clear();
 
-        QueryResult<XmlSyntaxModel> result = serverEntityContext.performQuery(new QXMLSyntaxModel());
+        QueryResult<XmlSyntaxModel> result = serverEntityContext.performQuery(new QXmlSyntaxModel());
         Collection<UUID> uuids = new LinkedList<>();
 
         /*
@@ -101,7 +101,7 @@ public class TestGarbageCollection extends TestBase {
 
         serverEntityContext.clear();
 
-        QueryResult<XmlSyntaxModel> result = serverEntityContext.performQuery(new QXMLSyntaxModel());
+        QueryResult<XmlSyntaxModel> result = serverEntityContext.performQuery(new QXmlSyntaxModel());
         Collection<UUID> uuids = new LinkedList<>();
 
         /*

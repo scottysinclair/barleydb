@@ -1,5 +1,6 @@
 package com.smartstream.mi.query;
 
+import scott.sort.api.query.JoinType;
 import scott.sort.api.query.QProperty;
 import scott.sort.api.query.QueryObject;
 import com.smartstream.mi.model.XmlSyntaxModel;
@@ -8,7 +9,7 @@ import com.smartstream.mi.query.QXmlStructure;
 import com.smartstream.mi.query.QXmlMapping;
 
 /**
- * Generated from Entity Specification on Thu Nov 13 06:32:22 CET 2014
+ * Generated from Entity Specification on Thu Nov 13 07:18:16 CET 2014
  *
  * @author scott
  */
@@ -33,6 +34,12 @@ public class QXmlSyntaxModel extends QAbstractSyntaxModel<XmlSyntaxModel, QXmlSy
     return structure;
   }
 
+  public QXmlStructure joinToStructure(JoinType joinType) {
+    QXmlStructure structure = new QXmlStructure();
+    addJoin(structure, "structure", joinType);
+    return structure;
+  }
+
   public QXmlStructure existsStructure() {
     QXmlStructure structure = new QXmlStructure();
     addExists(structure, "structure");
@@ -42,6 +49,12 @@ public class QXmlSyntaxModel extends QAbstractSyntaxModel<XmlSyntaxModel, QXmlSy
   public QXmlMapping joinToMappings() {
     QXmlMapping mappings = new QXmlMapping();
     addLeftOuterJoin(mappings, "mappings");
+    return mappings;
+  }
+
+  public QXmlMapping joinToMappings(JoinType joinType) {
+    QXmlMapping mappings = new QXmlMapping();
+    addJoin(mappings, "mappings", joinType);
     return mappings;
   }
 

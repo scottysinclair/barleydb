@@ -42,15 +42,15 @@ public class TestPersistAnalyser extends TestBase {
         syntaxModel.setStructure(structure);
 
         XmlMapping mapping = serverEntityContext.newModel(XmlMapping.class);
-        mapping.setSyntaxModel(syntaxModel);
+        mapping.setSyntax(syntaxModel);
         mapping.setXpath("/root1");
-        mapping.setTarget("target1");
+        mapping.setTargetFieldName("target1");
         syntaxModel.getMappings().add(mapping);
 
         mapping = serverEntityContext.newModel(XmlMapping.class);
-        mapping.setSyntaxModel(syntaxModel);
+        mapping.setSyntax(syntaxModel);
         mapping.setXpath("/root2");
-        mapping.setTarget("target2");
+        mapping.setTargetFieldName("target2");
         syntaxModel.getMappings().add(mapping);
 
         //create the sub syntax
@@ -64,22 +64,22 @@ public class TestPersistAnalyser extends TestBase {
 
         //add another mapping to the root level syntax
         mapping = serverEntityContext.newModel(XmlMapping.class);
-        mapping.setSyntaxModel(syntaxModel);
+        mapping.setSyntax(syntaxModel);
         mapping.setXpath("/root3");
-        mapping.setTarget("target3");
+        mapping.setTargetFieldName("target3");
         syntaxModel.getMappings().add(mapping);
 
         //do the sub-syntax mappings
         mapping = serverEntityContext.newModel(XmlMapping.class);
-        mapping.setSyntaxModel(subSyntaxModel);
+        mapping.setSyntax(subSyntaxModel);
         mapping.setXpath("sub1");
-        mapping.setTarget("subtarget1");
+        mapping.setTargetFieldName("subtarget1");
         subSyntaxModel.getMappings().add(mapping);
 
         mapping = serverEntityContext.newModel(XmlMapping.class);
-        mapping.setSyntaxModel(subSyntaxModel);
+        mapping.setSyntax(subSyntaxModel);
         mapping.setXpath("sub2");
-        mapping.setTarget("subtarget2");
+        mapping.setTargetFieldName("subtarget2");
         subSyntaxModel.getMappings().add(mapping);
 
         PersistRequest request = new PersistRequest();
@@ -139,15 +139,15 @@ public class TestPersistAnalyser extends TestBase {
         syntaxModel.setStructure(structure);
 
         XmlMapping mapping = serverEntityContext.newModel(XmlMapping.class);
-        mapping.setSyntaxModel(syntaxModel);
+        mapping.setSyntax(syntaxModel);
         mapping.setXpath("/root1");
-        mapping.setTarget("target1");
+        mapping.setTargetFieldName("target1");
         syntaxModel.getMappings().add(mapping);
 
         mapping = serverEntityContext.newModel(XmlMapping.class);
-        mapping.setSyntaxModel(syntaxModel);
+        mapping.setSyntax(syntaxModel);
         mapping.setXpath("/root2");
-        mapping.setTarget("target2");
+        mapping.setTargetFieldName("target2");
         syntaxModel.getMappings().add(mapping);
 
         //create the sub syntax
@@ -161,22 +161,22 @@ public class TestPersistAnalyser extends TestBase {
 
         //add another mapping to the root level syntax
         mapping = serverEntityContext.newModel(XmlMapping.class);
-        mapping.setSyntaxModel(syntaxModel);
+        mapping.setSyntax(syntaxModel);
         mapping.setXpath("/root3");
-        mapping.setTarget("target3");
+        mapping.setTargetFieldName("target3");
         syntaxModel.getMappings().add(mapping);
 
         //do the sub-syntax mappings
         mapping = serverEntityContext.newModel(XmlMapping.class);
-        mapping.setSyntaxModel(subSyntaxModel);
+        mapping.setSyntax(subSyntaxModel);
         mapping.setXpath("sub1");
-        mapping.setTarget("subtarget1");
+        mapping.setTargetFieldName("subtarget1");
         subSyntaxModel.getMappings().add(mapping);
 
         mapping = serverEntityContext.newModel(XmlMapping.class);
-        mapping.setSyntaxModel(subSyntaxModel);
+        mapping.setSyntax(subSyntaxModel);
         mapping.setXpath("sub2");
-        mapping.setTarget("subtarget2");
+        mapping.setTargetFieldName("subtarget2");
         subSyntaxModel.getMappings().add(mapping);
 
         PersistRequest request = new PersistRequest();

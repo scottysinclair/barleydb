@@ -1,5 +1,6 @@
 package com.smartstream.mi.query;
 
+import scott.sort.api.query.JoinType;
 import scott.sort.api.query.QProperty;
 import scott.sort.api.query.QueryObject;
 import com.smartstream.mi.model.TemplateBusinessType;
@@ -7,7 +8,7 @@ import com.smartstream.mi.query.QTemplate;
 import com.smartstream.mi.query.QBusinessType;
 
 /**
- * Generated from Entity Specification on Thu Nov 13 06:32:22 CET 2014
+ * Generated from Entity Specification on Thu Nov 13 07:18:16 CET 2014
  *
  * @author scott
  */
@@ -32,6 +33,12 @@ public class QTemplateBusinessType extends QueryObject<TemplateBusinessType> {
     return template;
   }
 
+  public QTemplate joinToTemplate(JoinType joinType) {
+    QTemplate template = new QTemplate();
+    addJoin(template, "template", joinType);
+    return template;
+  }
+
   public QTemplate existsTemplate() {
     QTemplate template = new QTemplate();
     addExists(template, "template");
@@ -41,6 +48,12 @@ public class QTemplateBusinessType extends QueryObject<TemplateBusinessType> {
   public QBusinessType joinToBusinessType() {
     QBusinessType businessType = new QBusinessType();
     addLeftOuterJoin(businessType, "businessType");
+    return businessType;
+  }
+
+  public QBusinessType joinToBusinessType(JoinType joinType) {
+    QBusinessType businessType = new QBusinessType();
+    addJoin(businessType, "businessType", joinType);
     return businessType;
   }
 

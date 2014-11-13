@@ -51,7 +51,7 @@ import com.smartstream.mi.model.XmlMapping;
 import com.smartstream.mi.model.XmlStructure;
 import com.smartstream.mi.model.XmlSyntaxModel;
 import com.smartstream.mi.query.QTemplate;
-import com.smartstream.mi.query.QXMLSyntaxModel;
+import com.smartstream.mi.query.QXmlSyntaxModel;
 import com.smartstream.mi.types.SyntaxType;
 
 @SuppressWarnings("deprecation")
@@ -117,15 +117,15 @@ public class TestPersistence extends TestRemoteClientBase {
         syntaxModel.setStructure(structure);
 
         XmlMapping mapping = theEntityContext.newModel(XmlMapping.class);
-        mapping.setSyntaxModel(syntaxModel);
+        mapping.setSyntax(syntaxModel);
         mapping.setXpath("/root1");
-        mapping.setTarget("target1");
+        mapping.setTargetFieldName("target1");
         syntaxModel.getMappings().add(mapping);
 
         mapping = theEntityContext.newModel(XmlMapping.class);
-        mapping.setSyntaxModel(syntaxModel);
+        mapping.setSyntax(syntaxModel);
         mapping.setXpath("/root2");
-        mapping.setTarget("target2");
+        mapping.setTargetFieldName("target2");
         syntaxModel.getMappings().add(mapping);
 
         //create the sub syntax
@@ -139,22 +139,22 @@ public class TestPersistence extends TestRemoteClientBase {
 
         //add another mapping to the root level syntax
         mapping = theEntityContext.newModel(XmlMapping.class);
-        mapping.setSyntaxModel(syntaxModel);
+        mapping.setSyntax(syntaxModel);
         mapping.setXpath("/root3");
-        mapping.setTarget("target3");
+        mapping.setTargetFieldName("target3");
         syntaxModel.getMappings().add(mapping);
 
         //do the sub-syntax mappings
         mapping = theEntityContext.newModel(XmlMapping.class);
-        mapping.setSyntaxModel(subSyntaxModel);
+        mapping.setSyntax(subSyntaxModel);
         mapping.setXpath("sub1");
-        mapping.setTarget("subtarget1");
+        mapping.setTargetFieldName("subtarget1");
         subSyntaxModel.getMappings().add(mapping);
 
         mapping = theEntityContext.newModel(XmlMapping.class);
-        mapping.setSyntaxModel(subSyntaxModel);
+        mapping.setSyntax(subSyntaxModel);
         mapping.setXpath("sub2");
-        mapping.setTarget("subtarget2");
+        mapping.setTargetFieldName("subtarget2");
         subSyntaxModel.getMappings().add(mapping);
         return syntaxModel;
     }
@@ -231,13 +231,13 @@ public class TestPersistence extends TestRemoteClientBase {
         /*
         * reload the full model, for testing purposes, not actually necessary for updating
         */
-        QXMLSyntaxModel qsyntax = new QXMLSyntaxModel();
+        QXmlSyntaxModel qsyntax = new QXmlSyntaxModel();
         qsyntax.joinToUser();
-        QXMLSyntaxModel qsubSyntax = qsyntax.joinToMappings().joinToSubSyntax();
+        QXmlSyntaxModel qsubSyntax = qsyntax.joinToMappings().joinToSubSyntax();
         qsubSyntax.joinToUser();
         qsubSyntax.joinToMappings();
         qsyntax.joinToStructure();
-        qsyntax.where(qsyntax.syntaxName().equal("Scott's SyntaxModel"));
+        qsyntax.where(qsyntax.name().equal("Scott's SyntaxModel"));
 
         theEntityContext.clear();
         XmlSyntaxModel syntax = theEntityContext.performQuery(qsyntax).getList().get(0);
@@ -252,7 +252,7 @@ public class TestPersistence extends TestRemoteClientBase {
         System.out.println("-------------- Updating syntax name and mapping and subsyntax name and mapping ------------------");
         syntax.setName(syntax.getName() + " - updated");
         syntax.getMappings().get(0).setXpath("/updated-mapping");
-        XmlSyntaxModel subSyntax = syntax.getMappings().get(1).getSubSyntaxModel();
+        XmlSyntaxModel subSyntax = syntax.getMappings().get(1).getSubSyntax();
         subSyntax.setName(subSyntax.getName() + " - updated");
         subSyntax.getMappings().get(0).setXpath("updated-submapping");
 
@@ -261,7 +261,7 @@ public class TestPersistence extends TestRemoteClientBase {
 
         System.out.println("-------------- RELOADING FROM SCRATCH TO OUTPUT THE REAL DATABASE DATA ------------------");
         theEntityContext.clear();
-        qsyntax.where(qsyntax.syntaxName().equal("Scott's SyntaxModel - updated"));
+        qsyntax.where(qsyntax.name().equal("Scott's SyntaxModel - updated"));
         syntax = theEntityContext.performQuery(qsyntax).getList().get(0);
         print("", syntax);
     }
@@ -280,24 +280,24 @@ public class TestPersistence extends TestRemoteClientBase {
         * reload the full model for fun, not necessary for updating
         * We use another node context to get and update the syntax, simulating a concurrent user
         */
-        QXMLSyntaxModel qsyntax = new QXMLSyntaxModel();
+        QXmlSyntaxModel qsyntax = new QXmlSyntaxModel();
         qsyntax.joinToUser();
-        QXMLSyntaxModel qsubSyntax = qsyntax.joinToMappings().joinToSubSyntax();
+        QXmlSyntaxModel qsubSyntax = qsyntax.joinToMappings().joinToSubSyntax();
         qsubSyntax.joinToUser();
         qsubSyntax.joinToMappings();
         qsyntax.joinToStructure();
-        qsyntax.where(qsyntax.syntaxName().equal("Scott's SyntaxModel"));
+        qsyntax.where(qsyntax.name().equal("Scott's SyntaxModel"));
 
         System.out.println("-------------- OTHER USER SAVING SYNTAX ------------------");
         EntityContext otherUser = new MiEntityContext(env);
         XmlSyntaxModel otherSyntax = otherUser.performQuery(qsyntax).getList().get(0);
         print("", otherSyntax);
 
-        otherSyntax.getMappings().get(1).getSubSyntaxModel().getMappings().get(0).setXpath("/updated");
+        otherSyntax.getMappings().get(1).getSubSyntax().getMappings().get(0).setXpath("/updated");
         //we save a mapping in the subsyntax
         //this will cause OL violation because subsyntax owned-by mapping owned-by syntax
 
-        otherUser.persist(new PersistRequest().save(otherSyntax.getMappings().get(1).getSubSyntaxModel()));
+        otherUser.persist(new PersistRequest().save(otherSyntax.getMappings().get(1).getSubSyntax()));
 
         /*
          * Now saving the top level syntax model will fail because the subsyntax has been modified by another user
@@ -329,13 +329,13 @@ public class TestPersistence extends TestRemoteClientBase {
         /*
         * reload the full model for fun, not necessary for updating
         */
-        QXMLSyntaxModel qsyntax = new QXMLSyntaxModel();
+        QXmlSyntaxModel qsyntax = new QXmlSyntaxModel();
         qsyntax.joinToUser();
-        QXMLSyntaxModel qsubSyntax = qsyntax.joinToMappings().joinToSubSyntax();
+        QXmlSyntaxModel qsubSyntax = qsyntax.joinToMappings().joinToSubSyntax();
         qsubSyntax.joinToUser();
         qsubSyntax.joinToMappings();
         qsyntax.joinToStructure();
-        qsyntax.where(qsyntax.syntaxName().equal("Scott's SyntaxModel"));
+        qsyntax.where(qsyntax.name().equal("Scott's SyntaxModel"));
 
         /*
          * We use another node context to get and update the structure, simulating a concurrent user modification
@@ -348,7 +348,7 @@ public class TestPersistence extends TestRemoteClientBase {
         /*
         * modify the syntax in various ways
         */
-        XmlSyntaxModel subSyntax = syntaxModel.getMappings().get(1).getSubSyntaxModel();
+        XmlSyntaxModel subSyntax = syntaxModel.getMappings().get(1).getSubSyntax();
         subSyntax.getMappings().get(0).setXpath("/updated-submapping");
 
         /*
@@ -378,13 +378,13 @@ public class TestPersistence extends TestRemoteClientBase {
         /*
         * reload the full model for fun, not necessary for updating
         */
-        QXMLSyntaxModel qsyntax = new QXMLSyntaxModel();
+        QXmlSyntaxModel qsyntax = new QXmlSyntaxModel();
         qsyntax.joinToUser();
-        QXMLSyntaxModel qsubSyntax = qsyntax.joinToMappings().joinToSubSyntax();
+        QXmlSyntaxModel qsubSyntax = qsyntax.joinToMappings().joinToSubSyntax();
         qsubSyntax.joinToUser();
         qsubSyntax.joinToMappings();
         qsyntax.joinToStructure();
-        qsyntax.where(qsyntax.syntaxName().equal("Scott's SyntaxModel"));
+        qsyntax.where(qsyntax.name().equal("Scott's SyntaxModel"));
 
         /*
          * We use another node context to get and update the structure, simulating a concurrent user modification
@@ -396,7 +396,7 @@ public class TestPersistence extends TestRemoteClientBase {
         /*
         * modify the syntax in various ways
         */
-        XmlSyntaxModel subSyntax = syntaxModel.getMappings().get(1).getSubSyntaxModel();
+        XmlSyntaxModel subSyntax = syntaxModel.getMappings().get(1).getSubSyntax();
         subSyntax.getMappings().get(0).setXpath("/updated-submapping");
 
         /*
@@ -435,8 +435,8 @@ public class TestPersistence extends TestRemoteClientBase {
             protected void preJdbcWorkHook() {
                 try {
 
-                    QXMLSyntaxModel qsyntax = new QXMLSyntaxModel();
-                    qsyntax.where(qsyntax.syntaxName().equal("Scott's SyntaxModel"));
+                    QXmlSyntaxModel qsyntax = new QXmlSyntaxModel();
+                    qsyntax.where(qsyntax.name().equal("Scott's SyntaxModel"));
 
                     /*
                      * We use another node context to get and update the structure, simulating a concurrent user modification
@@ -467,7 +467,7 @@ public class TestPersistence extends TestRemoteClientBase {
         /*
         * modify the syntax in various ways
         */
-        XmlSyntaxModel subSyntax = syntaxModel.getMappings().get(1).getSubSyntaxModel();
+        XmlSyntaxModel subSyntax = syntaxModel.getMappings().get(1).getSubSyntax();
         subSyntax.getMappings().get(0).setXpath("/updated-submapping");
 
         /*
@@ -510,9 +510,9 @@ public class TestPersistence extends TestRemoteClientBase {
                     /*
                      * We use another node context to get and update the structure, simulating a concurrent user modification
                      */
-                    QXMLSyntaxModel qsyntax = new QXMLSyntaxModel();
+                    QXmlSyntaxModel qsyntax = new QXmlSyntaxModel();
                     qsyntax.joinToStructure();
-                    qsyntax.where(qsyntax.syntaxName().equal("Scott's SyntaxModel"));
+                    qsyntax.where(qsyntax.name().equal("Scott's SyntaxModel"));
                     EntityContext otherUser = new MiEntityContext(env);
                     otherUser.setAutocommit(false);
                     XmlSyntaxModel otherSyntaxCopy = otherUser.performQuery(qsyntax).getList().get(0);
@@ -563,26 +563,26 @@ public class TestPersistence extends TestRemoteClientBase {
         theEntityContext.persist(new PersistRequest().save(syntaxModel));
 
         Long syntaxOl = getOptimisticLock(syntaxModel);
-        Long subSyntaxOl = getOptimisticLock(syntaxModel.getMappings().get(1).getSubSyntaxModel());
+        Long subSyntaxOl = getOptimisticLock(syntaxModel.getMappings().get(1).getSubSyntax());
         Assert.assertEquals(syntaxOl, subSyntaxOl);
 
         //save the sub-syntax with an updated mapping
         //we expect the sub-syntax ol to be touched but the syntax ol not.
-        syntaxModel.getMappings().get(1).getSubSyntaxModel().getMappings().get(0).setXpath("/updated");
-        theEntityContext.persist(new PersistRequest().save(syntaxModel.getMappings().get(1).getSubSyntaxModel()));
+        syntaxModel.getMappings().get(1).getSubSyntax().getMappings().get(0).setXpath("/updated");
+        theEntityContext.persist(new PersistRequest().save(syntaxModel.getMappings().get(1).getSubSyntax()));
 
         /*
          * reload the syntax from the db
          */
-        QXMLSyntaxModel qsyntax = new QXMLSyntaxModel();
-        qsyntax.where(qsyntax.syntaxName().equal("Scott's SyntaxModel"));
+        QXmlSyntaxModel qsyntax = new QXmlSyntaxModel();
+        qsyntax.where(qsyntax.name().equal("Scott's SyntaxModel"));
         XmlSyntaxModel updatedSyntaxModel = theEntityContext.performQuery(qsyntax).getList().get(0);
 
         //the optimistic lock of the original syntax is the same as before
         Long updatedSyntaxOl = getOptimisticLock(updatedSyntaxModel);
         Assert.assertEquals(syntaxOl, updatedSyntaxOl);
 
-        Long updatedSubSyntaxOl = getOptimisticLock(updatedSyntaxModel.getMappings().get(1).getSubSyntaxModel());
+        Long updatedSubSyntaxOl = getOptimisticLock(updatedSyntaxModel.getMappings().get(1).getSubSyntax());
         //the optimistic lock of the subsyntax is newer than before
         Assert.assertTrue(syntaxOl < updatedSubSyntaxOl);
     }
@@ -625,7 +625,7 @@ public class TestPersistence extends TestRemoteClientBase {
         /*
          * verify that the syntax was removed
          */
-        assertTrue(theEntityContext.performQuery(new QXMLSyntaxModel()).getList().isEmpty());
+        assertTrue(theEntityContext.performQuery(new QXmlSyntaxModel()).getList().isEmpty());
         assertEquals(9, theEntityContext.size());
         assertEquals(2, EntityContextHelper.countNotLoaded( theEntityContext.getEntitiesByType(XmlSyntaxModel.class) ) );
         assertEquals(5, EntityContextHelper.countNotLoaded( theEntityContext.getEntitiesByType(XmlMapping.class) ) );
@@ -673,8 +673,8 @@ public class TestPersistence extends TestRemoteClientBase {
             System.out.println("===================  NOOP PERSIST =================");
 
             QTemplate qtemplate = new QTemplate();
-            qtemplate.joinToContent();
-            qtemplate.joinToDatatype();
+            qtemplate.joinToContents();
+            qtemplate.joinToBusinessType();
             qtemplate.where(qtemplate.name().equal("test-template"));
             template = theEntityContext.performQuery(qtemplate).getSingleResult();
             print("", template);
@@ -731,7 +731,7 @@ public class TestPersistence extends TestRemoteClientBase {
 
         System.out.println("===================  LOAD DATA FOR USER 1 =================");
         QTemplate qtemplate = new QTemplate();
-        qtemplate.joinToDatatype();
+        qtemplate.joinToBusinessType();
         qtemplate.where(qtemplate.name().equal("test-template"));
         Template template = theEntityContext.performQuery(qtemplate).getSingleResult();
 

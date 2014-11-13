@@ -21,6 +21,60 @@ public class GenerateDataModels extends GenerateModelsHelper {
         for (EntitySpec entitySpec: definitions.getEntitySpecs()) {
             generateModel(path, definitions, entitySpec);
         }
+        generateProxyFactory(path, definitions);
+    }
+
+    private void generateProxyFactory(String path, DefinitionsSpec definitions) throws IOException {
+        String proxyFactoryName = getProxyFactoryName(definitions);
+
+        String packageName = getModelPackageName(definitions.getEntitySpecs().iterator().next());
+
+        File classFile = toFile(path, packageName + "." + proxyFactoryName);
+        try (Writer out = new FileWriter(classFile); ) {
+            out.write("package ");
+            out.write(packageName);
+            out.write(";\n");
+
+            out.write("import scott.sort.api.core.entity.Entity;\n");
+            out.write("import scott.sort.api.core.proxy.EntityProxy;\n");
+            out.write("import scott.sort.api.core.proxy.ProxyFactory;\n");
+            out.write("import scott.sort.api.exception.model.ProxyCreationException;\n");
+
+            out.write("\n");
+            out.write("public class ");
+            out.write(proxyFactoryName);
+            out.write(" implements ProxyFactory {\n\n");
+            out.write("  private static final long serialVersionUID = 1L;\n\n");
+            out.write("  @SuppressWarnings(\"unchecked\")\n");
+            out.write("  public <T> T newProxy(Entity entity) throws ProxyCreationException {\n");
+            for (EntitySpec entitySpec: definitions.getEntitySpecs()) {
+                out.write("    if (entity.getEntityType().getInterfaceName().equals(");
+                out.write(getModelSimpleClassName(entitySpec));
+                out.write(".class.getName())) {\n");
+                out.write("      return (T) new ");
+                out.write(getModelSimpleClassName(entitySpec));
+                out.write("(entity);\n");
+                out.write("    }\n");
+            }
+            out.write("    try {\n");
+            out.write("      return EntityProxy.generateProxy(getClass().getClassLoader(), entity);\n");
+            out.write("    }\n");
+            out.write("    catch (ClassNotFoundException x) {\n");
+            out.write("      throw new ProxyCreationException(\"Could not generate dynamic proxy\", x);\n");
+            out.write("    }\n");
+            out.write("  }\n");
+            out.write("}\n");
+        }
+
+
+
+    }
+
+    private String getProxyFactoryName(DefinitionsSpec definitions) {
+        String name = definitions.getNamespace();
+        name = name.substring(name.lastIndexOf('.')+1, name.length());
+        name = Character.toUpperCase(name.charAt(0)) + name.substring(1);
+        return name + "ProxyFactory";
     }
 
     private void generateModel(String path, DefinitionsSpec definitions, EntitySpec entitySpec) throws IOException {
@@ -340,10 +394,13 @@ public class GenerateDataModels extends GenerateModelsHelper {
     }
 
     private File toFile(String path, EntitySpec entitySpec) {
+        return toFile(path, entitySpec.getClassName());
+    }
+    private File toFile(String path, String className) {
         if (!path.endsWith("/")) {
             path += "/";
         }
-        return new File(path + getJavaPath(entitySpec.getClassName()) + ".java");
+        return new File(path + getJavaPath(className) + ".java");
     }
 
 }

@@ -1,5 +1,6 @@
 package com.smartstream.mi.query;
 
+import scott.sort.api.query.JoinType;
 import scott.sort.api.query.QProperty;
 import scott.sort.api.query.QueryObject;
 import com.smartstream.mi.model.CsvSyntaxModel;
@@ -8,7 +9,7 @@ import com.smartstream.mi.query.QCsvStructure;
 import com.smartstream.mi.query.QCsvMapping;
 
 /**
- * Generated from Entity Specification on Thu Nov 13 06:32:22 CET 2014
+ * Generated from Entity Specification on Thu Nov 13 07:18:16 CET 2014
  *
  * @author scott
  */
@@ -33,6 +34,12 @@ public class QCsvSyntaxModel extends QAbstractSyntaxModel<CsvSyntaxModel, QCsvSy
     return structure;
   }
 
+  public QCsvStructure joinToStructure(JoinType joinType) {
+    QCsvStructure structure = new QCsvStructure();
+    addJoin(structure, "structure", joinType);
+    return structure;
+  }
+
   public QCsvStructure existsStructure() {
     QCsvStructure structure = new QCsvStructure();
     addExists(structure, "structure");
@@ -42,6 +49,12 @@ public class QCsvSyntaxModel extends QAbstractSyntaxModel<CsvSyntaxModel, QCsvSy
   public QCsvMapping joinToMappings() {
     QCsvMapping mappings = new QCsvMapping();
     addLeftOuterJoin(mappings, "mappings");
+    return mappings;
+  }
+
+  public QCsvMapping joinToMappings(JoinType joinType) {
+    QCsvMapping mappings = new QCsvMapping();
+    addJoin(mappings, "mappings", joinType);
     return mappings;
   }
 

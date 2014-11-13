@@ -1,12 +1,13 @@
 package com.smartstream.mi.query;
 
+import scott.sort.api.query.JoinType;
 import scott.sort.api.query.QProperty;
 import scott.sort.api.query.QueryObject;
 import com.smartstream.mi.model.BusinessType;
 import com.smartstream.mac.query.QAccessArea;
 
 /**
- * Generated from Entity Specification on Thu Nov 13 06:32:22 CET 2014
+ * Generated from Entity Specification on Thu Nov 13 07:18:16 CET 2014
  *
  * @author scott
  */
@@ -28,6 +29,12 @@ public class QBusinessType extends QueryObject<BusinessType> {
   public QAccessArea joinToAccessArea() {
     QAccessArea accessArea = new QAccessArea();
     addLeftOuterJoin(accessArea, "accessArea");
+    return accessArea;
+  }
+
+  public QAccessArea joinToAccessArea(JoinType joinType) {
+    QAccessArea accessArea = new QAccessArea();
+    addJoin(accessArea, "accessArea", joinType);
     return accessArea;
   }
 

@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import scott.sort.api.query.JoinType;
 import scott.sort.api.specification.DefinitionsSpec;
 import scott.sort.api.specification.EntitySpec;
 import scott.sort.api.specification.JoinTypeSpec;
@@ -45,6 +46,7 @@ public class GenerateQueryModels extends GenerateModelsHelper {
             out.write(getQueryPackageName(entitySpec));
             out.write(";\n");
             out.write("\n");
+            out.write("import scott.sort.api.query.JoinType;\n");
             out.write("import scott.sort.api.query.QProperty;\n");
             out.write("import scott.sort.api.query.QueryObject;\n");
             writeModelImports(definitions, entitySpec, false, out);
@@ -75,6 +77,7 @@ public class GenerateQueryModels extends GenerateModelsHelper {
             out.write(";\n");
             out.write("\n");
             if (!ownMethodsDefinedOnSuperQueryType) {
+                out.write("import scott.sort.api.query.JoinType;\n");
                 out.write("import scott.sort.api.query.QProperty;\n");
             }
             out.write("import scott.sort.api.query.QueryObject;\n");
@@ -281,6 +284,29 @@ public class GenerateQueryModels extends GenerateModelsHelper {
             out.write(nodeSpec.getName());
             out.write(";\n");
             out.write("  }\n");
+
+            out.write("\n  public ");
+            out.write(getQuerySimpleClassName(relationSpec.getEntitySpec()));
+            out.write(" ");
+            out.write(getJoinToMethodName(nodeSpec));
+            out.write("(JoinType joinType) {\n");
+            out.write("    ");
+            out.write(getQuerySimpleClassName(relationSpec.getEntitySpec()));
+            out.write(" ");
+            out.write(nodeSpec.getName());
+            out.write(" = new ");
+            out.write(getQuerySimpleClassName(relationSpec.getEntitySpec()));
+            out.write("();\n");
+            out.write("    addJoin");
+            out.write("(");
+            out.write(nodeSpec.getName());
+            out.write(", \"");
+            out.write(nodeSpec.getName());
+            out.write("\", joinType);\n");
+            out.write("    return ");
+            out.write(nodeSpec.getName());
+            out.write(";\n");
+            out.write("  }\n");
         }
         else {
             /*
@@ -314,6 +340,32 @@ public class GenerateQueryModels extends GenerateModelsHelper {
             out.write(getJoinToMethodName(ownwardJoin));
             out.write("();\n");
             out.write("  }\n");
+
+            out.write("\n  public ");
+            out.write(getQuerySimpleClassName(targetEntity));
+            out.write(" ");
+            out.write(getJoinToMethodName(ownwardJoin));
+            out.write("(JoinType joinType) {\n");
+            out.write("    ");
+            out.write(getQuerySimpleClassName(relationSpec.getEntitySpec()));
+            out.write(" ");
+            out.write(nodeSpec.getName());
+            out.write(" = new ");
+            out.write(getQuerySimpleClassName(relationSpec.getEntitySpec()));
+            out.write("();\n");
+            out.write("    addJoin(");
+            out.write(nodeSpec.getName());
+            out.write(", \"");
+            out.write(nodeSpec.getName());
+            out.write("\", joinType);\n");
+            out.write("    return ");
+            out.write(nodeSpec.getName());
+            out.write(".");
+            out.write(getJoinToMethodName(ownwardJoin));
+            out.write("(joinType);\n");
+            out.write("  }\n");
+
+
         }
     }
 

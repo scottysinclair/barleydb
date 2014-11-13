@@ -40,8 +40,8 @@ import com.smartstream.mi.query.QCsvStructure;
 import com.smartstream.mi.query.QCsvSyntaxModel;
 import com.smartstream.mi.query.QSyntaxModel;
 import com.smartstream.mi.query.QTemplate;
-import com.smartstream.mi.query.QXMLMapping;
-import com.smartstream.mi.query.QXMLSyntaxModel;
+import com.smartstream.mi.query.QXmlMapping;
+import com.smartstream.mi.query.QXmlSyntaxModel;
 import com.smartstream.mi.types.SyntaxType;
 
 /**
@@ -92,7 +92,7 @@ public class TestQuery extends TestRemoteClientBase {
         qcsm.joinToStructure(INNER).joinToFields(LEFT_OUTER);
 
         QCsvStructure aStructure = qcsm.existsStructure();
-        qcsm.where(qcsm.syntaxName().equal("John"));
+        qcsm.where(qcsm.name().equal("John"));
         qcsm.orExists(aStructure.where(aStructure.name().equal("csv-str-1")));
         qcsm.or(qcsm.syntaxType().equal(SyntaxType.ROOT));
         qcsm.or(qcsm.syntaxType().equal(SyntaxType.SUBSYNTAX));
@@ -120,7 +120,7 @@ public class TestQuery extends TestRemoteClientBase {
         /*
          * create and registery all fetch queries
          */
-        QXMLSyntaxModel qxsm = new QXMLSyntaxModel();
+        QXmlSyntaxModel qxsm = new QXmlSyntaxModel();
         qxsm.joinToUser();
         qxsm.joinToMappings()
                 .joinToSubSyntax()
@@ -131,17 +131,17 @@ public class TestQuery extends TestRemoteClientBase {
         /*
          * get a copy of the syntax query
          */
-        QXMLSyntaxModel syntax = (QXMLSyntaxModel) theEntityContext.getQuery(XmlSyntaxModel.class);
+        QXmlSyntaxModel syntax = (QXmlSyntaxModel) theEntityContext.getQuery(XmlSyntaxModel.class);
 
         /*
          * add a where clause
          */
-        QXMLMapping aMapping = syntax.existsMapping();
+        QXmlMapping aMapping = syntax.existsMappings();
         QUser aUser = syntax.existsUser();
-        //QXMLStructure aStructure = syntax.existsStructure();
-        syntax.where(syntax.syntaxName().equal("syntax-xml-1"))
+        //QXmlStructure aStructure = syntax.existsStructure();
+        syntax.where(syntax.name().equal("syntax-xml-1"))
                 .andExists(aMapping.where(aMapping.xpath().equal("sfn11").or(aMapping.xpath().equal("sfn12"))))
-                .andExists(aUser.where(aUser.userName().equal("Scott")));
+                .andExists(aUser.where(aUser.name().equal("Scott")));
 
         System.out.println();
         System.out.println();
@@ -188,8 +188,9 @@ public class TestQuery extends TestRemoteClientBase {
 
         List<SyntaxModel> syntaxModels = theEntityContext.performQuery(qsyntax).getList();
         for (SyntaxModel syntaxModel : syntaxModels) {
-            syntaxModel.getStructure().getName();
-            System.out.println(syntaxModel.getName() + " -- " + syntaxModel.getUser().getName() + " -- " + syntaxModel.getStructure().getName());
+            //TODO: add syntaxModel.getStructure().getName(); back in
+            //syntaxModel.getStructure().getName();
+//            System.out.println(syntaxModel.getName() + " -- " + syntaxModel.getUser().getName() + " -- " + syntaxModel.getStructure().getName());
         }
         for (SyntaxModel syntaxModel : syntaxModels) {
             print("", syntaxModel);
@@ -205,17 +206,17 @@ public class TestQuery extends TestRemoteClientBase {
         /*
          * create and registery all fetch queries
          */
-        QXMLSyntaxModel qxsm = new QXMLSyntaxModel();
+        QXmlSyntaxModel qxsm = new QXmlSyntaxModel();
         qxsm.joinToStructure();
         QUser quser = qxsm.joinToUser();
-        QXMLSyntaxModel sub = qxsm.joinToMappings().joinToSubSyntax();
+        QXmlSyntaxModel sub = qxsm.joinToMappings().joinToSubSyntax();
         sub.joinToStructure();
         sub.joinToUser();
         sub.joinToMappings();
 
         qxsm.select(qxsm.syntaxType());
-        quser.select(quser.userName());
-        sub.select(sub.syntaxName(), sub.syntaxType());
+        quser.select(quser.name());
+        sub.select(sub.name(), sub.syntaxType());
 
 
         /*
@@ -238,8 +239,8 @@ public class TestQuery extends TestRemoteClientBase {
          * fetching over a join table
          */
         QTemplate templatesQuery = new QTemplate();
-        templatesQuery.joinToContent();
-        templatesQuery.joinToDatatype();
+        templatesQuery.joinToContents();
+        templatesQuery.joinToBusinessType();
 
         QueryResult<Template> result2 = theEntityContext.performQuery(templatesQuery);
         for (Template t : result2.getList()) {
@@ -274,18 +275,18 @@ public class TestQuery extends TestRemoteClientBase {
         /*
          * Build a syntax model query
          */
-        QXMLSyntaxModel syntax = (QXMLSyntaxModel) theEntityContext.getDefinitions().getQuery(XmlSyntaxModel.class);
-        QXMLMapping aMapping = syntax.existsMapping();
+        QXmlSyntaxModel syntax = (QXmlSyntaxModel) theEntityContext.getDefinitions().getQuery(XmlSyntaxModel.class);
+        QXmlMapping aMapping = syntax.existsMappings();
         QUser aUser = syntax.existsUser();
-        syntax.where(syntax.syntaxName().equal("syntax-xml-1"))
+        syntax.where(syntax.name().equal("syntax-xml-1"))
                 .andExists(aMapping.where(aMapping.xpath().equal("sfn11").or(aMapping.xpath().equal("sfn12"))))
-                .andExists(aUser.where(aUser.userName().equal("Scott")));
+                .andExists(aUser.where(aUser.name().equal("Scott")));
 
         /*
          * Build a template query
          */
         QTemplate templatesQuery = new QTemplate();
-        templatesQuery.joinToDatatype();
+        templatesQuery.joinToBusinessType();
 
         QueryBatcher qBatch = new QueryBatcher();
         qBatch.addQuery(syntax, templatesQuery);

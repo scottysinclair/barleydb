@@ -13,7 +13,7 @@ import scott.sort.api.core.proxy.ToManyNodeProxyHelper;
 import com.smartstream.mac.model.AccessArea;
 
 /**
- * Generated from Entity Specification on Thu Nov 13 06:32:22 CET 2014
+ * Generated from Entity Specification on Thu Nov 13 07:18:16 CET 2014
  *
  * @author scott
  */
@@ -79,7 +79,7 @@ public class Template extends AbstractCustomEntityProxy {
     return super.getListProxy(contents.toManyNode);
   }
 
-  public List<TemplateBusinessType> getBusinessTypes() {
+  public List<BusinessType> getBusinessTypes() {
     return super.getListProxy(businessTypes.toManyNode);
   }
 }

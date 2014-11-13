@@ -1,5 +1,6 @@
 package com.smartstream.mi.query;
 
+import scott.sort.api.query.JoinType;
 import scott.sort.api.query.QProperty;
 import scott.sort.api.query.QueryObject;
 import com.smartstream.mi.model.Template;
@@ -8,7 +9,7 @@ import com.smartstream.mi.query.QTemplateContent;
 import com.smartstream.mi.query.QTemplateBusinessType;
 
 /**
- * Generated from Entity Specification on Thu Nov 13 06:32:22 CET 2014
+ * Generated from Entity Specification on Thu Nov 13 07:18:16 CET 2014
  *
  * @author scott
  */
@@ -30,6 +31,12 @@ public class QTemplate extends QueryObject<Template> {
   public QAccessArea joinToAccessArea() {
     QAccessArea accessArea = new QAccessArea();
     addLeftOuterJoin(accessArea, "accessArea");
+    return accessArea;
+  }
+
+  public QAccessArea joinToAccessArea(JoinType joinType) {
+    QAccessArea accessArea = new QAccessArea();
+    addJoin(accessArea, "accessArea", joinType);
     return accessArea;
   }
 
@@ -57,6 +64,12 @@ public class QTemplate extends QueryObject<Template> {
     return contents;
   }
 
+  public QTemplateContent joinToContents(JoinType joinType) {
+    QTemplateContent contents = new QTemplateContent();
+    addJoin(contents, "contents", joinType);
+    return contents;
+  }
+
   public QTemplateContent existsContents() {
     QTemplateContent contents = new QTemplateContent();
     addExists(contents, "contents");
@@ -67,5 +80,11 @@ public class QTemplate extends QueryObject<Template> {
     QTemplateBusinessType businessTypes = new QTemplateBusinessType();
     addLeftOuterJoin(businessTypes, "businessTypes");
     return businessTypes.joinToBusinessType();
+  }
+
+  public QBusinessType joinToBusinessType(JoinType joinType) {
+    QTemplateBusinessType businessTypes = new QTemplateBusinessType();
+    addJoin(businessTypes, "businessTypes", joinType);
+    return businessTypes.joinToBusinessType(joinType);
   }
 }

@@ -3,7 +3,6 @@ package scott.sort.build.specification.modelgen;
 import java.io.IOException;
 import java.io.Writer;
 
-import scott.sort.api.specification.DefinitionsSpec;
 import scott.sort.api.specification.EntitySpec;
 import scott.sort.api.specification.NodeSpec;
 import scott.sort.api.specification.RelationSpec;
@@ -13,12 +12,23 @@ public class GenerateModelsHelper {
     protected void writeJavaType(Writer out, NodeSpec nodeSpec) throws IOException {
         RelationSpec relationSpec = nodeSpec.getRelationSpec();
         if (relationSpec != null) {
+            NodeSpec ownwardJoin = nodeSpec.getRelationSpec().getOwnwardJoin();
             if (relationSpec.isForeignKeyRelation()) {
-                out.write(getModelSimpleClassName(relationSpec.getEntitySpec()));
+                if (ownwardJoin != null) {
+                    out.write(getModelSimpleClassName(ownwardJoin.getEntity()));
+                }
+                else {
+                    out.write(getModelSimpleClassName(relationSpec.getEntitySpec()));
+                }
             }
             else {
                 out.write("List<");
-                out.write(getModelSimpleClassName(relationSpec.getEntitySpec()));
+                if (ownwardJoin != null) {
+                    out.write(getModelSimpleClassName(ownwardJoin.getRelationSpec().getEntitySpec()));
+                }
+                else {
+                    out.write(getModelSimpleClassName(relationSpec.getEntitySpec()));
+                }
                 out.write(">");
             }
         }

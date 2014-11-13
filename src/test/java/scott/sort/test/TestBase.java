@@ -79,9 +79,9 @@ import com.smartstream.mi.query.QBusinessType;
 import com.smartstream.mi.query.QTemplate;
 import com.smartstream.mi.query.QTemplateContent;
 import com.smartstream.mi.query.QTemplateBusinessType;
-import com.smartstream.mi.query.QXMLMapping;
-import com.smartstream.mi.query.QXMLStructure;
-import com.smartstream.mi.query.QXMLSyntaxModel;
+import com.smartstream.mi.query.QXmlMapping;
+import com.smartstream.mi.query.QXmlStructure;
+import com.smartstream.mi.query.QXmlSyntaxModel;
 import com.smartstream.mi.types.StructureType;
 import com.smartstream.mi.types.SyntaxType;
 
@@ -169,9 +169,9 @@ public abstract class TestBase {
         env.getDefinitions("com.smartstream.mac").registerProxyFactory(new MacProxyFactory());
 
         env.getDefinitions("com.smartstream.mi").registerQueries(
-                new QXMLSyntaxModel(),
-                new QXMLStructure(),
-                new QXMLMapping(),
+                new QXmlSyntaxModel(),
+                new QXmlStructure(),
+                new QXmlMapping(),
                 new QCsvSyntaxModel(),
                 new QCsvStructure(),
                 new QCsvStructureField(),
@@ -397,8 +397,8 @@ public abstract class TestBase {
         System.out.println(prefix + "Mapping XPath   " + mapping.getXpath());
         System.out.println(prefix + "Mapping Target  " + mapping.getTargetFieldName());
         System.out.println(prefix + "Mapping SyntaxModel  " + mapping.getSyntax().getId());
-        if (mapping.getSubSyntaxModel() != null) {
-            XmlSyntaxModel sub = mapping.getSubSyntaxModel();
+        if (mapping.getSubSyntax() != null) {
+            XmlSyntaxModel sub = mapping.getSubSyntax();
             if (sub != null) {
                 print(prefix + "  ", sub);
             }

@@ -1,12 +1,13 @@
 package com.smartstream.mac.query;
 
+import scott.sort.api.query.JoinType;
 import scott.sort.api.query.QProperty;
 import scott.sort.api.query.QueryObject;
 import com.smartstream.mac.model.AccessArea;
 import com.smartstream.mac.query.QAccessArea;
 
 /**
- * Generated from Entity Specification on Thu Nov 13 06:32:22 CET 2014
+ * Generated from Entity Specification on Thu Nov 13 07:18:16 CET 2014
  *
  * @author scott
  */
@@ -39,6 +40,12 @@ public class QAccessArea extends QueryObject<AccessArea> {
     return parent;
   }
 
+  public QAccessArea joinToParent(JoinType joinType) {
+    QAccessArea parent = new QAccessArea();
+    addJoin(parent, "parent", joinType);
+    return parent;
+  }
+
   public QAccessArea existsParent() {
     QAccessArea parent = new QAccessArea();
     addExists(parent, "parent");
@@ -48,6 +55,12 @@ public class QAccessArea extends QueryObject<AccessArea> {
   public QAccessArea joinToChildren() {
     QAccessArea children = new QAccessArea();
     addLeftOuterJoin(children, "children");
+    return children;
+  }
+
+  public QAccessArea joinToChildren(JoinType joinType) {
+    QAccessArea children = new QAccessArea();
+    addJoin(children, "children", joinType);
     return children;
   }
 
