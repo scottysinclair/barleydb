@@ -4,10 +4,9 @@ import scott.sort.api.query.QProperty;
 import scott.sort.api.query.QueryObject;
 import com.smartstream.mi.model.XmlMapping;
 import com.smartstream.mi.query.QXmlSyntaxModel;
-import com.smartstream.mi.query.QXmlSyntaxModel;
 
 /**
- * Generated from Entity Specification on Wed Nov 12 16:58:49 CET 2014
+ * Generated from Entity Specification on Thu Nov 13 06:32:22 CET 2014
  *
  * @author scott
  */

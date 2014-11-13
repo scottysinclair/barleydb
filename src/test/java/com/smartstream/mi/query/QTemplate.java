@@ -8,7 +8,7 @@ import com.smartstream.mi.query.QTemplateContent;
 import com.smartstream.mi.query.QTemplateBusinessType;
 
 /**
- * Generated from Entity Specification on Wed Nov 12 16:58:49 CET 2014
+ * Generated from Entity Specification on Thu Nov 13 06:32:22 CET 2014
  *
  * @author scott
  */
@@ -63,15 +63,9 @@ public class QTemplate extends QueryObject<Template> {
     return contents;
   }
 
-  public QTemplateBusinessType joinToBusinessTypes() {
+  public QBusinessType joinToBusinessType() {
     QTemplateBusinessType businessTypes = new QTemplateBusinessType();
     addLeftOuterJoin(businessTypes, "businessTypes");
-    return businessTypes;
-  }
-
-  public QTemplateBusinessType existsBusinessTypes() {
-    QTemplateBusinessType businessTypes = new QTemplateBusinessType();
-    addExists(businessTypes, "businessTypes");
-    return businessTypes;
+    return businessTypes.joinToBusinessType();
   }
 }

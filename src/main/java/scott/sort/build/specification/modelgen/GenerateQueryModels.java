@@ -246,35 +246,75 @@ public class GenerateQueryModels extends GenerateModelsHelper {
         }
         else {
             writeJoinMethod(out, nodeSpec);
-            writeExistsMethod(out, nodeSpec);
+            /*
+             * No time to add exists methods for exists across join tables.
+             */
+            if (nodeSpec.getRelationSpec().getOwnwardJoin() == null) {
+                writeExistsMethod(out, nodeSpec);
+            }
         }
     }
 
     private void writeJoinMethod(Writer out, NodeSpec nodeSpec) throws IOException {
         RelationSpec relationSpec = nodeSpec.getRelationSpec();
-        out.write("\n  public ");
-        out.write(getQuerySimpleClassName(relationSpec.getEntitySpec()));
-        out.write(" ");
-        out.write(getJoinToMethodName(nodeSpec));
-        out.write("() {\n");
-        out.write("    ");
-        out.write(getQuerySimpleClassName(relationSpec.getEntitySpec()));
-        out.write(" ");
-        out.write(nodeSpec.getName());
-        out.write(" = new ");
-        out.write(getQuerySimpleClassName(relationSpec.getEntitySpec()));
-        out.write("();\n");
-        out.write("    ");
-        writeAddJoinMethodName(out, nodeSpec);
-        out.write("(");
-        out.write(nodeSpec.getName());
-        out.write(", \"");
-        out.write(nodeSpec.getName());
-        out.write("\");\n");
-        out.write("    return ");
-        out.write(nodeSpec.getName());
-        out.write(";\n");
-        out.write("  }\n");
+        if (nodeSpec.getRelationSpec().getOwnwardJoin() == null) {
+            out.write("\n  public ");
+            out.write(getQuerySimpleClassName(relationSpec.getEntitySpec()));
+            out.write(" ");
+            out.write(getJoinToMethodName(nodeSpec));
+            out.write("() {\n");
+            out.write("    ");
+            out.write(getQuerySimpleClassName(relationSpec.getEntitySpec()));
+            out.write(" ");
+            out.write(nodeSpec.getName());
+            out.write(" = new ");
+            out.write(getQuerySimpleClassName(relationSpec.getEntitySpec()));
+            out.write("();\n");
+            out.write("    ");
+            writeAddJoinMethodName(out, nodeSpec);
+            out.write("(");
+            out.write(nodeSpec.getName());
+            out.write(", \"");
+            out.write(nodeSpec.getName());
+            out.write("\");\n");
+            out.write("    return ");
+            out.write(nodeSpec.getName());
+            out.write(";\n");
+            out.write("  }\n");
+        }
+        else {
+            /*
+             * We are writing the query method which joins again across the join table.
+             */
+            NodeSpec ownwardJoin = nodeSpec.getRelationSpec().getOwnwardJoin();
+            EntitySpec targetEntity = ownwardJoin.getRelationSpec().getEntitySpec();
+
+            out.write("\n  public ");
+            out.write(getQuerySimpleClassName(targetEntity));
+            out.write(" ");
+            out.write(getJoinToMethodName(ownwardJoin));
+            out.write("() {\n");
+            out.write("    ");
+            out.write(getQuerySimpleClassName(relationSpec.getEntitySpec()));
+            out.write(" ");
+            out.write(nodeSpec.getName());
+            out.write(" = new ");
+            out.write(getQuerySimpleClassName(relationSpec.getEntitySpec()));
+            out.write("();\n");
+            out.write("    ");
+            writeAddJoinMethodName(out, nodeSpec);
+            out.write("(");
+            out.write(nodeSpec.getName());
+            out.write(", \"");
+            out.write(nodeSpec.getName());
+            out.write("\");\n");
+            out.write("    return ");
+            out.write(nodeSpec.getName());
+            out.write(".");
+            out.write(getJoinToMethodName(ownwardJoin));
+            out.write("();\n");
+            out.write("  }\n");
+        }
     }
 
     private void writeExistsMethod(Writer out, NodeSpec nodeSpec) throws IOException {
