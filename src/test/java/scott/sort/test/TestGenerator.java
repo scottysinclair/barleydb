@@ -135,9 +135,12 @@ public class TestGenerator {
 
         DefinitionsSpec macSpec = processor.process(new MacSpec(), registry);
 
+        deleteFiles("src/test/java/com/smartstream/mac/model");
+
         GenerateDataModels generateModels = new GenerateDataModels();
         generateModels.generateDataModels("src/test/java", macSpec);
 
+        deleteFiles("src/test/java/com/smartstream/mac/query");
         GenerateQueryModels generateQueryModels = new GenerateQueryModels();
         generateQueryModels.generateQueryModels("src/test/java", macSpec);
 }
@@ -149,12 +152,14 @@ public class TestGenerator {
 
         DefinitionsSpec miSpec = processor.process(new MiSpec(), registry);
 
+        deleteFiles("src/test/java/com/smartstream/mi/model");
         GenerateDataModels generateDataModels = new GenerateDataModels();
         generateDataModels.generateDataModels("src/test/java", miSpec);
 
+        deleteFiles("src/test/java/com/smartstream/mi/query");
         GenerateQueryModels generateQueryModels = new GenerateQueryModels();
         generateQueryModels.generateQueryModels("src/test/java", miSpec);
-}
+    }
 
     @Test
     public void generateCleanScript() throws IOException {
@@ -177,6 +182,18 @@ public class TestGenerator {
             out.write('\n');
             out.write(gen.generateCleanScript(macSpec));
             out.flush();
+        }
+    }
+
+    private void deleteFiles(String string) {
+        File dir = new File(string);
+        if (!dir.exists()) {
+            return;
+        }
+        for (File file: dir.listFiles()) {
+            if (file.isFile()) {
+                file.delete();
+            }
         }
     }
 
