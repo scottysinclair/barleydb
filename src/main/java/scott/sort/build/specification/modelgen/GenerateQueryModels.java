@@ -8,7 +8,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-import scott.sort.api.query.JoinType;
 import scott.sort.api.specification.DefinitionsSpec;
 import scott.sort.api.specification.EntitySpec;
 import scott.sort.api.specification.JoinTypeSpec;
