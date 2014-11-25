@@ -1,5 +1,15 @@
 package scott.sort.api.specification;
 
+/*
+ * #%L
+ * Simple Object Relational Framework
+ * %%
+ * Copyright (C) 2014 Scott Sinclair <scottysinclair@gmail.com>
+ * %%
+ * All rights reserved.
+ * #L%
+ */
+
 import java.io.Serializable;
 
 import javax.xml.bind.annotation.XmlAccessType;

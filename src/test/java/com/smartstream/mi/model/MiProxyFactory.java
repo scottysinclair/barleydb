@@ -45,6 +45,9 @@ public class MiProxyFactory implements ProxyFactory {
     if (entity.getEntityType().getInterfaceName().equals(TemplateBusinessType.class.getName())) {
       return (T) new TemplateBusinessType(entity);
     }
+    if (entity.getEntityType().getInterfaceName().equals(RawData.class.getName())) {
+      return (T) new RawData(entity);
+    }
     return null;
   }
 }

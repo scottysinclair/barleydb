@@ -3,33 +3,6 @@
     <contents>
         <Definitions namespace="com.smartstream.mac">
             <EntitySpecs>
-                <EntitySpec className="com.smartstream.mac.model.AccessArea" tableName="MAC_ACCESS_AREA" abstract="false">
-                    <queryClass>com.smartstream.mac.query.QAccessArea</queryClass>
-                    <NodeSpecs>
-                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
-                            <suppression>GENERATED_CODE_SETTER</suppression>
-                            <id>com.smartstream.mac.model.AccessArea.id</id>
-                        </NodeSpec>
-                        <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
-                            <id>com.smartstream.mac.model.AccessArea.name</id>
-                        </NodeSpec>
-                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" optimisticLock="true">
-                            <id>com.smartstream.mac.model.AccessArea.modifiedAt</id>
-                        </NodeSpec>
-                        <NodeSpec name="parent" jdbcType="BIGINT" columnName="PARENT_ID" nullable="NULL" optimisticLock="false">
-                            <id>com.smartstream.mac.model.AccessArea.parent</id>
-                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea" joinType="LEFT_OUTER_JOIN"/>
-                        </NodeSpec>
-                        <NodeSpec name="children" optimisticLock="false">
-                            <id>com.smartstream.mac.model.AccessArea.children</id>
-                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea" backReference="com.smartstream.mac.model.AccessArea.parent" joinType="LEFT_OUTER_JOIN"/>
-                        </NodeSpec>
-                    </NodeSpecs>
-                    <Constraints>
-                        <PrimaryKey name="PK_ACCESS_AREA" nodes="com.smartstream.mac.model.AccessArea.id"/>
-                        <ForeignKey name="FK_ACCESS_AREA_ACCESS_AREA" fromKey="com.smartstream.mac.model.AccessArea.parent" toKey="com.smartstream.mac.model.AccessArea.id"/>
-                    </Constraints>
-                </EntitySpec>
                 <EntitySpec className="com.smartstream.mac.model.User" tableName="MAC_USER" abstract="false">
                     <queryClass>com.smartstream.mac.query.QUser</queryClass>
                     <NodeSpecs>
@@ -55,6 +28,33 @@
                         <PrimaryKey name="PK_USER" nodes="com.smartstream.mac.model.User.id"/>
                         <ForeignKey name="FK_USER_ACCESS_AREA" fromKey="com.smartstream.mac.model.User.accessArea" toKey="com.smartstream.mac.model.AccessArea.id"/>
                         <UniqueConstraint name="UC_USER_1" nodes="com.smartstream.mac.model.User.name com.smartstream.mac.model.User.accessArea"/>
+                    </Constraints>
+                </EntitySpec>
+                <EntitySpec className="com.smartstream.mac.model.AccessArea" tableName="MAC_ACCESS_AREA" abstract="false">
+                    <queryClass>com.smartstream.mac.query.QAccessArea</queryClass>
+                    <NodeSpecs>
+                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                            <suppression>GENERATED_CODE_SETTER</suppression>
+                            <id>com.smartstream.mac.model.AccessArea.id</id>
+                        </NodeSpec>
+                        <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
+                            <id>com.smartstream.mac.model.AccessArea.name</id>
+                        </NodeSpec>
+                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" optimisticLock="true">
+                            <id>com.smartstream.mac.model.AccessArea.modifiedAt</id>
+                        </NodeSpec>
+                        <NodeSpec name="parent" jdbcType="BIGINT" columnName="PARENT_ID" nullable="NULL" optimisticLock="false">
+                            <id>com.smartstream.mac.model.AccessArea.parent</id>
+                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea" joinType="LEFT_OUTER_JOIN"/>
+                        </NodeSpec>
+                        <NodeSpec name="children" optimisticLock="false">
+                            <id>com.smartstream.mac.model.AccessArea.children</id>
+                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea" backReference="com.smartstream.mac.model.AccessArea.parent" joinType="LEFT_OUTER_JOIN"/>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints>
+                        <PrimaryKey name="PK_ACCESS_AREA" nodes="com.smartstream.mac.model.AccessArea.id"/>
+                        <ForeignKey name="FK_ACCESS_AREA_ACCESS_AREA" fromKey="com.smartstream.mac.model.AccessArea.parent" toKey="com.smartstream.mac.model.AccessArea.id"/>
                     </Constraints>
                 </EntitySpec>
             </EntitySpecs>
@@ -387,6 +387,24 @@
                         <PrimaryKey name="PK_TEMPLATE_DATATYPE" nodes="com.smartstream.mi.model.TemplateBusinessType.id"/>
                         <ForeignKey name="FK_TEMPLATE_DATATYPE_TEMPLATE" fromKey="com.smartstream.mi.model.TemplateBusinessType.template" toKey="com.smartstream.mi.model.Template.id"/>
                         <ForeignKey name="FK_TEMPLATE_DATATYPE_DATATYPE" fromKey="com.smartstream.mi.model.TemplateBusinessType.businessType" toKey="com.smartstream.mi.model.BusinessType.id"/>
+                    </Constraints>
+                </EntitySpec>
+                <EntitySpec className="com.smartstream.mi.model.RawData" tableName="SS_RAWDATA" abstract="false">
+                    <queryClass>com.smartstream.mi.query.QRawData</queryClass>
+                    <NodeSpecs>
+                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                            <suppression>GENERATED_CODE_SETTER</suppression>
+                            <id>com.smartstream.mi.model.RawData.id</id>
+                        </NodeSpec>
+                        <NodeSpec name="data" javaType="BYTE_ARRAY" jdbcType="BLOB" columnName="DATA" nullable="NOT_NULL" optimisticLock="false">
+                            <id>com.smartstream.mi.model.RawData.data</id>
+                        </NodeSpec>
+                        <NodeSpec name="characterEncoding" javaType="STRING" jdbcType="VARCHAR" columnName="CHARACTER_ENCODING" nullable="NULL" length="50" optimisticLock="false">
+                            <id>com.smartstream.mi.model.RawData.characterEncoding</id>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints>
+                        <PrimaryKey name="PK_RAWDATA" nodes="com.smartstream.mi.model.RawData.id"/>
                     </Constraints>
                 </EntitySpec>
             </EntitySpecs>

@@ -3,6 +3,7 @@
 ---
 ---
 
+delete from SS_RAWDATA;
 delete from SS_TEMPLATE_DATATYPE;
 delete from SS_DATATYPE;
 delete from SS_TEMPLATE_CONTENT;

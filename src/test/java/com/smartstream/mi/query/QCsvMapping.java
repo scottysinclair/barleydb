@@ -8,7 +8,7 @@ import com.smartstream.mi.query.QCsvSyntaxModel;
 import com.smartstream.mi.query.QCsvStructureField;
 
 /**
- * Generated from Entity Specification on Thu Nov 13 07:55:41 CET 2014
+ * Generated from Entity Specification on Tue Nov 25 06:45:20 CET 2014
  *
  * @author scott
  */

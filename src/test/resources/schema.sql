@@ -3,13 +3,6 @@
 ---
 ---
 
-create table MAC_ACCESS_AREA (
-  ID BIGINT NOT NULL,
-  NAME VARCHAR(50) NOT NULL,
-  MODIFIED_AT TIMESTAMP NOT NULL,
-  PARENT_ID BIGINT NULL
-);
-
 create table MAC_USER (
   ID BIGINT NOT NULL,
   ACCESS_AREA_ID BIGINT NOT NULL,
@@ -18,11 +11,18 @@ create table MAC_USER (
   USER_NAME VARCHAR(50) NOT NULL
 );
 
-alter table MAC_ACCESS_AREA add constraint PK_ACCESS_AREA primary key (ID);
-alter table MAC_USER add constraint PK_USER primary key (ID);
+create table MAC_ACCESS_AREA (
+  ID BIGINT NOT NULL,
+  NAME VARCHAR(50) NOT NULL,
+  MODIFIED_AT TIMESTAMP NOT NULL,
+  PARENT_ID BIGINT NULL
+);
 
-alter table MAC_ACCESS_AREA add constraint FK_ACCESS_AREA_ACCESS_AREA foreign key (PARENT_ID) references MAC_ACCESS_AREA(ID);
+alter table MAC_USER add constraint PK_USER primary key (ID);
+alter table MAC_ACCESS_AREA add constraint PK_ACCESS_AREA primary key (ID);
+
 alter table MAC_USER add constraint FK_USER_ACCESS_AREA foreign key (ACCESS_AREA_ID) references MAC_ACCESS_AREA(ID);
+alter table MAC_ACCESS_AREA add constraint FK_ACCESS_AREA_ACCESS_AREA foreign key (PARENT_ID) references MAC_ACCESS_AREA(ID);
 
 create table SS_SYNTAX_MODEL (
   ID BIGINT NOT NULL,
@@ -105,6 +105,12 @@ create table SS_TEMPLATE_DATATYPE (
   DATATYPE_ID BIGINT NOT NULL
 );
 
+create table SS_RAWDATA (
+  ID BIGINT NOT NULL,
+  DATA VARBINARY(1073741824) NOT NULL,
+  CHARACTER_ENCODING VARCHAR(50) NULL
+);
+
 alter table SS_SYNTAX_MODEL add constraint PK_SYNTAX_MODEL primary key (ID);
 alter table SS_XMLSTRUCTURE add constraint PK_XMLSTRUCTURE primary key (ID);
 alter table SS_XML_MAPPING add constraint PK_XML_MAPPING primary key (ID);
@@ -115,6 +121,7 @@ alter table SS_TEMPLATE add constraint PK_TEMPLATE primary key (ID);
 alter table SS_TEMPLATE_CONTENT add constraint PK_TEMPLATE_CONTENT primary key (ID);
 alter table SS_DATATYPE add constraint PK_DATATYPE primary key (ID);
 alter table SS_TEMPLATE_DATATYPE add constraint PK_TEMPLATE_DATATYPE primary key (ID);
+alter table SS_RAWDATA add constraint PK_RAWDATA primary key (ID);
 
 alter table SS_SYNTAX_MODEL add constraint FK_SYNTAX_MODEL_ACCESS_AREA foreign key (ACCESS_AREA_ID) references MAC_ACCESS_AREA(ID);
 alter table SS_SYNTAX_MODEL add constraint FK_SYNTAX_MODEL_USER foreign key (USER_ID) references MAC_USER(ID);

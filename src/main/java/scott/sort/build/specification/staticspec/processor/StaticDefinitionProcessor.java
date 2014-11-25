@@ -1,5 +1,15 @@
 package scott.sort.build.specification.staticspec.processor;
 
+/*
+ * #%L
+ * Simple Object Relational Framework
+ * %%
+ * Copyright (C) 2014 Scott Sinclair <scottysinclair@gmail.com>
+ * %%
+ * All rights reserved.
+ * #L%
+ */
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Collection;

@@ -1,5 +1,15 @@
 package scott.sort.api.specification;
 
+/*
+ * #%L
+ * Simple Object Relational Framework
+ * %%
+ * Copyright (C) 2014 Scott Sinclair <scottysinclair@gmail.com>
+ * %%
+ * All rights reserved.
+ * #L%
+ */
+
 import scott.sort.api.config.RelationType;
 import scott.sort.api.core.types.JavaType;
 import scott.sort.api.core.types.JdbcType;
