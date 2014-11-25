@@ -57,7 +57,8 @@ public class MiSpec extends MorpheusSpec {
                 Template.class,
                 TemplateContent.class,
                 BusinessType.class,
-                TemplateBusinessType.class
+                TemplateBusinessType.class,
+                RawData.class
         };
     }
 
@@ -179,6 +180,15 @@ public class MiSpec extends MorpheusSpec {
 
     @Entity("SS_DATATYPE")
     public static class BusinessType implements TopLevelModel {
+    }
+
+    @Entity("SS_RAWDATA")
+    public static class RawData {
+        public static final NodeSpec id = longPrimaryKey();
+
+        public static final NodeSpec data = mandatoryNonStreamingLob();
+
+        public static final NodeSpec characterEncoding = optionalVarchar50();
     }
 
 }

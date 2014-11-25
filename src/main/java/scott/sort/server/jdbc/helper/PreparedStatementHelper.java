@@ -123,6 +123,9 @@ public abstract class PreparedStatementHelper<PREPARING_PERSIST_EX extends SortE
         case UTIL_DATE:
             setUtilDate(ps, index, jdbcType, (Date) value);
             return;
+        case BYTE_ARRAY:
+            setByteArray(ps, index, jdbcType, (byte[]) value);
+            return;
         default:
             throw newPreparingPersistStatementException("Java type " + javaType + " is not supported");
         }
@@ -286,26 +289,42 @@ public abstract class PreparedStatementHelper<PREPARING_PERSIST_EX extends SortE
 
     private void setUtilDate(PreparedStatement ps, int index, JdbcType jdbcType, Date value) throws PREPARING_PERSIST_EX {
         switch (jdbcType) {
-        case TIMESTAMP:
-            try {
-                ps.setTimestamp(index, new java.sql.Timestamp((Long) value.getTime()));
-            }
-            catch (SQLException x) {
-                throw newSetValueError("java.sql.Timestamp", x);
-            }
-            break;
-        case DATE:
-            try {
-                ps.setDate(index, new java.sql.Date(value.getTime()));
-            }
-            catch (SQLException x) {
-                throw newSetValueError("java.sql.Date", x);
-            }
-            break;
-        default:
-            fail(value, jdbcType);
+            case TIMESTAMP:
+                try {
+                    ps.setTimestamp(index, new java.sql.Timestamp((Long) value.getTime()));
+                }
+                catch (SQLException x) {
+                    throw newSetValueError("java.sql.Timestamp", x);
+                }
+                break;
+            case DATE:
+                try {
+                    ps.setDate(index, new java.sql.Date(value.getTime()));
+                }
+                catch (SQLException x) {
+                    throw newSetValueError("java.sql.Date", x);
+                }
+                break;
+            default:
+                fail(value, jdbcType);
         }
     }
+
+    private void setByteArray(PreparedStatement ps, int index, JdbcType jdbcType, byte[] value) throws PREPARING_PERSIST_EX {
+        switch (jdbcType) {
+            case BLOB:
+                try {
+                    ps.setBytes(index, value);
+                }
+                catch (SQLException x) {
+                    throw newSetValueError("java.sql.Timestamp", x);
+                }
+                break;
+            default:
+                fail(value, jdbcType);
+        }
+    }
+
 
     private void fail(Object value, JdbcType jdbcType) throws PREPARING_PERSIST_EX {
         throw newPreparingPersistStatementException("Cannot convert " + value + " to jdbc type " + jdbcType);

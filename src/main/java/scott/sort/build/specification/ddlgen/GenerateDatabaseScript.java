@@ -276,6 +276,9 @@ public class GenerateDatabaseScript {
                 sb.append("CHAR");
                 generateLength(nodeSpec, sb);
                 break;
+            case BLOB:
+                sb.append("VARBINARY(1073741824)");
+                break;
             default:
                 throw new IllegalStateException("Invalid JDBC type: " + nodeSpec.getJdbcType());
         }

@@ -253,6 +253,9 @@ final class EntityLoader {
                 case UUID:
                     result = convertToUuid(value);
                     break;
+                case BYTE_ARRAY:
+                    result = convertToByteArray(value);
+                    break;
                 default:
                    throw new InvalidNodeTypeException(nd, "Java type " + javaType + " is not supported");
                }
@@ -344,6 +347,13 @@ final class EntityLoader {
     private UUID convertToUuid(Object value) {
         if (value instanceof String) {
             UUID.fromString((String)value);
+        }
+        return null;
+    }
+
+    private byte[] convertToByteArray(Object value) {
+        if (byte[].class.isAssignableFrom( value.getClass() )) {
+            return (byte[])value;
         }
         return null;
     }

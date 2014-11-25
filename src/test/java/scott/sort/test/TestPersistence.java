@@ -15,6 +15,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -33,8 +34,10 @@ import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.core.entity.EntityContextHelper;
 import scott.sort.api.core.entity.ProxyController;
+import scott.sort.api.exception.execution.SortServiceProviderException;
 import scott.sort.api.exception.execution.persist.EntityMissingException;
 import scott.sort.api.exception.execution.persist.OptimisticLockMismatchException;
+import scott.sort.api.exception.execution.persist.SortPersistException;
 import scott.sort.api.persist.PersistRequest;
 import scott.sort.server.jdbc.persist.Persister;
 import scott.sort.server.jdbc.resources.ConnectionResources;
@@ -45,11 +48,13 @@ import com.smartstream.mac.model.User;
 import com.smartstream.mac.query.QAccessArea;
 import com.smartstream.mi.context.MiEntityContext;
 import com.smartstream.mi.model.BusinessType;
+import com.smartstream.mi.model.RawData;
 import com.smartstream.mi.model.Template;
 import com.smartstream.mi.model.TemplateContent;
 import com.smartstream.mi.model.XmlMapping;
 import com.smartstream.mi.model.XmlStructure;
 import com.smartstream.mi.model.XmlSyntaxModel;
+import com.smartstream.mi.query.QRawData;
 import com.smartstream.mi.query.QTemplate;
 import com.smartstream.mi.query.QXmlSyntaxModel;
 import com.smartstream.mi.types.SyntaxType;
@@ -97,6 +102,7 @@ public class TestPersistence extends TestRemoteClientBase {
     public XmlSyntaxModel buildSyntax() {
         return buildSyntax(theEntityContext);
     }
+
     public static XmlSyntaxModel buildSyntax(EntityContext theEntityContext) {
 
         AccessArea root = theEntityContext.newModel(AccessArea.class);
@@ -165,6 +171,13 @@ public class TestPersistence extends TestRemoteClientBase {
         mapping.setTargetFieldName("subtarget2");
         subSyntaxModel.getMappings().add(mapping);
         return syntaxModel;
+    }
+
+    public RawData buildRawData(String dataString) throws UnsupportedEncodingException {
+        RawData rd = theEntityContext.newModel(RawData.class);
+        rd.setCharacterEncoding("UTF-8");
+        rd.setData(dataString.getBytes("UTF-8"));
+        return rd;
     }
 
     private AccessArea buildAccessAreas() {
@@ -768,7 +781,17 @@ public class TestPersistence extends TestRemoteClientBase {
         } catch (OptimisticLockMismatchException x) {
             assertEquals(template.getBusinessTypes().get(0).getId(), x.getEntity().getKey().getValue());
         }
-
     }
 
+    @Test
+    public void testSaveRawData() throws Exception {
+        RawData rd = buildRawData("rawdata");
+        theEntityContext.persist(new PersistRequest().save(rd));
+
+        for (RawData r: theEntityContext.performQuery(new QRawData()).getList()) {
+            System.out.println(r.getId());
+            System.out.println(r.getData().length);
+            System.out.println(r.getCharacterEncoding());
+        }
+   }
 }

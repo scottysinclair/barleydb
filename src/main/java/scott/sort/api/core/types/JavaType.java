@@ -21,7 +21,8 @@ public enum JavaType {
     SQL_DATE(java.sql.Date.class),
     BOOLEAN(Boolean.class),
     ENUM(null),
-    UUID(java.util.UUID.class);
+    UUID(java.util.UUID.class),
+    BYTE_ARRAY(byte[].class);
 
     private final Class<?> javaTypeClass;
 

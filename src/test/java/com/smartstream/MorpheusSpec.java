@@ -115,6 +115,14 @@ public class MorpheusSpec extends StaticDefinitions {
         return varchar(columnName, 50, Nullable.NOT_NULL);
     }
 
+    public static NodeSpec mandatoryNonStreamingLob() {
+        NodeSpec spec = new NodeSpec();
+        spec.setJavaType(JavaType.BYTE_ARRAY);
+        spec.setJdbcType(JdbcType.BLOB);
+        spec.setNullable(Nullable.NOT_NULL);
+        return spec;
+    }
+
     public static <E extends Enum<E>> NodeSpec mandatoryEnum(Class<E> type) {
         return CoreSpec.mandatoryEnum(type, JdbcType.INT);
     }

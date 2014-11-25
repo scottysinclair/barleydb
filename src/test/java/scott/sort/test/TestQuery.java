@@ -124,7 +124,7 @@ public class TestQuery extends TestRemoteClientBase {
         qxsm.joinToUser();
         qxsm.joinToMappings()
                 .joinToSubSyntax()
-                .joinToUser();
+                   .joinToUser();
 
         theEntityContext.register(qxsm);
 
