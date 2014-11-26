@@ -3,33 +3,6 @@
     <contents>
         <Definitions namespace="com.smartstream.mac">
             <EntitySpecs>
-                <EntitySpec className="com.smartstream.mac.model.User" tableName="MAC_USER" abstract="false">
-                    <queryClass>com.smartstream.mac.query.QUser</queryClass>
-                    <NodeSpecs>
-                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
-                            <suppression>GENERATED_CODE_SETTER</suppression>
-                            <id>com.smartstream.mac.model.User.id</id>
-                        </NodeSpec>
-                        <NodeSpec name="accessArea" jdbcType="BIGINT" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
-                            <id>com.smartstream.mac.model.User.accessArea</id>
-                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea" joinType="LEFT_OUTER_JOIN"/>
-                        </NodeSpec>
-                        <NodeSpec name="uuid" javaType="STRING" jdbcType="CHAR" columnName="UUID" nullable="NOT_NULL" length="60" optimisticLock="false">
-                            <id>com.smartstream.mac.model.User.uuid</id>
-                        </NodeSpec>
-                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" optimisticLock="true">
-                            <id>com.smartstream.mac.model.User.modifiedAt</id>
-                        </NodeSpec>
-                        <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="USER_NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
-                            <id>com.smartstream.mac.model.User.name</id>
-                        </NodeSpec>
-                    </NodeSpecs>
-                    <Constraints>
-                        <PrimaryKey name="PK_USER" nodes="com.smartstream.mac.model.User.id"/>
-                        <ForeignKey name="FK_USER_ACCESS_AREA" fromKey="com.smartstream.mac.model.User.accessArea" toKey="com.smartstream.mac.model.AccessArea.id"/>
-                        <UniqueConstraint name="UC_USER_1" nodes="com.smartstream.mac.model.User.name com.smartstream.mac.model.User.accessArea"/>
-                    </Constraints>
-                </EntitySpec>
                 <EntitySpec className="com.smartstream.mac.model.AccessArea" tableName="MAC_ACCESS_AREA" abstract="false">
                     <queryClass>com.smartstream.mac.query.QAccessArea</queryClass>
                     <NodeSpecs>
@@ -55,6 +28,33 @@
                     <Constraints>
                         <PrimaryKey name="PK_ACCESS_AREA" nodes="com.smartstream.mac.model.AccessArea.id"/>
                         <ForeignKey name="FK_ACCESS_AREA_ACCESS_AREA" fromKey="com.smartstream.mac.model.AccessArea.parent" toKey="com.smartstream.mac.model.AccessArea.id"/>
+                    </Constraints>
+                </EntitySpec>
+                <EntitySpec className="com.smartstream.mac.model.User" tableName="MAC_USER" abstract="false">
+                    <queryClass>com.smartstream.mac.query.QUser</queryClass>
+                    <NodeSpecs>
+                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                            <suppression>GENERATED_CODE_SETTER</suppression>
+                            <id>com.smartstream.mac.model.User.id</id>
+                        </NodeSpec>
+                        <NodeSpec name="accessArea" jdbcType="BIGINT" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>com.smartstream.mac.model.User.accessArea</id>
+                            <relation type="REFERS" entitySpec="com.smartstream.mac.model.AccessArea" joinType="LEFT_OUTER_JOIN"/>
+                        </NodeSpec>
+                        <NodeSpec name="uuid" javaType="STRING" jdbcType="CHAR" columnName="UUID" nullable="NOT_NULL" length="60" optimisticLock="false">
+                            <id>com.smartstream.mac.model.User.uuid</id>
+                        </NodeSpec>
+                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" optimisticLock="true">
+                            <id>com.smartstream.mac.model.User.modifiedAt</id>
+                        </NodeSpec>
+                        <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="USER_NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
+                            <id>com.smartstream.mac.model.User.name</id>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints>
+                        <PrimaryKey name="PK_USER" nodes="com.smartstream.mac.model.User.id"/>
+                        <ForeignKey name="FK_USER_ACCESS_AREA" fromKey="com.smartstream.mac.model.User.accessArea" toKey="com.smartstream.mac.model.AccessArea.id"/>
+                        <UniqueConstraint name="UC_USER_1" nodes="com.smartstream.mac.model.User.name com.smartstream.mac.model.User.accessArea"/>
                     </Constraints>
                 </EntitySpec>
             </EntitySpecs>

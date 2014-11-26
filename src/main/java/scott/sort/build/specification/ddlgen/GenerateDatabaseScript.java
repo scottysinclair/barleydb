@@ -28,6 +28,7 @@ import scott.sort.api.specification.EntitySpec;
 import scott.sort.api.specification.NodeSpec;
 import scott.sort.api.specification.constraint.ForeignKeyConstraintSpec;
 import scott.sort.api.specification.constraint.PrimaryKeyConstraintSpec;
+import scott.sort.api.specification.constraint.UniqueConstraintSpec;
 
 public class GenerateDatabaseScript {
 
@@ -43,10 +44,14 @@ public class GenerateDatabaseScript {
         for (EntitySpec entitySpec: definitionsSpec.getEntitySpecs()) {
             generateFkConstraints(entitySpec, sb);
         }
+        sb.append('\n');
+        for (EntitySpec entitySpec: definitionsSpec.getEntitySpecs()) {
+            generateUniqueConstraints(entitySpec, sb);
+        }
         return sb.toString();
     }
 
-    public String generateCleanScript(DefinitionsSpec definitionsSpec) {
+	public String generateCleanScript(DefinitionsSpec definitionsSpec) {
         /*
          * TODO: we should build a proper dependency tree.
          *
@@ -234,6 +239,23 @@ public class GenerateDatabaseScript {
             sb.append(");");
         }
     }
+    
+    private void generateUniqueConstraints(EntitySpec entitySpec, StringBuilder sb) {
+        for (UniqueConstraintSpec spec: entitySpec.getUniqueConstraints()) {
+            sb.append("\nalter table ");
+            sb.append(entitySpec.getTableName());
+            sb.append(" add constraint ");
+            sb.append(spec.getName());
+            sb.append(" unique (");
+            for (NodeSpec nodeSpec: spec.getNodes()) {
+                sb.append(nodeSpec.getColumnName());
+                sb.append(',');
+            }
+            sb.setLength(sb.length()-1);
+            sb.append(");");
+        }    	
+	}
+
 
 
     private void generateCreateColumn(NodeSpec nodeSpec, StringBuilder sb) {

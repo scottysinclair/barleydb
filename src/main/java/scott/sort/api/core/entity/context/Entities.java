@@ -217,14 +217,14 @@ public final class Entities implements Iterable<Entity>, Serializable {
         while((entityInfo = (EntityInfo)entityReferenceQueue.poll()) != null) {
             if (entityInfo.getPrimaryKey() != null) {
                 if (entityByPk.remove(new EntityPkKey(entityInfo)) == null) {
-                    GC_LOG.warn("Failed to remove EntityInfo from prmary key lookup for " + entityInfo);
+                    GC_LOG.warn("Failed to remove EntityInfo from prmary key lookup for {}", entityInfo);
                 }
             }
             if (entityByUuid.remove(entityInfo.getUuid()) == null) {
-                GC_LOG.warn("Failed to remove EntityInfo from UUID lookup for " + entityInfo);
+                GC_LOG.warn("Failed to remove EntityInfo from UUID lookup for {}", entityInfo);
             }
             if (!removeEntityByType(entityInfo)) {
-                GC_LOG.warn("Failed to remove EntityInfo from set of entities by type" + entityInfo);
+                GC_LOG.warn("Failed to remove EntityInfo from set of entities by type {}", entityInfo);
             }
             //calling size on WeakHashMap will force any stale references to be cleared.
             //this is required for our EnityInfo which is stored as a map value.

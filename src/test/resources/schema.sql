@@ -24,6 +24,8 @@ alter table MAC_USER add constraint PK_USER primary key (ID);
 alter table MAC_ACCESS_AREA add constraint FK_ACCESS_AREA_ACCESS_AREA foreign key (PARENT_ID) references MAC_ACCESS_AREA(ID);
 alter table MAC_USER add constraint FK_USER_ACCESS_AREA foreign key (ACCESS_AREA_ID) references MAC_ACCESS_AREA(ID);
 
+alter table MAC_USER add constraint UC_USER_1 unique (USER_NAME,ACCESS_AREA_ID);
+
 create table SS_SYNTAX_MODEL (
   ID BIGINT NOT NULL,
   ACCESS_AREA_ID BIGINT NOT NULL,
@@ -137,3 +139,9 @@ alter table SS_TEMPLATE_CONTENT add constraint FK_TEMPLATE_CONTENT_TEMPLATE fore
 alter table SS_DATATYPE add constraint FK_DATATYPE_ACCESS_AREA foreign key (ACCESS_AREA_ID) references MAC_ACCESS_AREA(ID);
 alter table SS_TEMPLATE_DATATYPE add constraint FK_TEMPLATE_DATATYPE_TEMPLATE foreign key (TEMPLATE_ID) references SS_TEMPLATE(ID);
 alter table SS_TEMPLATE_DATATYPE add constraint FK_TEMPLATE_DATATYPE_DATATYPE foreign key (DATATYPE_ID) references SS_DATATYPE(ID);
+
+alter table SS_SYNTAX_MODEL add constraint UC_SYNTAX_MODEL_1 unique (NAME,ACCESS_AREA_ID);
+alter table SS_XMLSTRUCTURE add constraint UC_XMLSTRUCTURE_1 unique (NAME,ACCESS_AREA_ID);
+alter table SS_CSVSTRUCTURE add constraint UC_CSVSTRUCTURE_1 unique (NAME,ACCESS_AREA_ID);
+alter table SS_TEMPLATE add constraint UC_TEMPLATE_1 unique (NAME,ACCESS_AREA_ID);
+alter table SS_DATATYPE add constraint UC_DATATYPE_1 unique (NAME,ACCESS_AREA_ID);

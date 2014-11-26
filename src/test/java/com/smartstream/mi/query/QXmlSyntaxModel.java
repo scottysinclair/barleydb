@@ -9,7 +9,7 @@ import com.smartstream.mi.query.QXmlStructure;
 import com.smartstream.mi.query.QXmlMapping;
 
 /**
- * Generated from Entity Specification on Tue Nov 25 06:45:20 CET 2014
+ * Generated from Entity Specification on Tue Nov 25 22:22:13 CET 2014
  *
  * @author scott
  */

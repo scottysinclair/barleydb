@@ -10,7 +10,7 @@ import com.smartstream.mi.types.SyntaxType;
 import com.smartstream.mac.query.QUser;
 
 /**
- * Generated from Entity Specification on Tue Nov 25 06:45:20 CET 2014
+ * Generated from Entity Specification on Tue Nov 25 22:22:13 CET 2014
  *
  * @author scott
  */

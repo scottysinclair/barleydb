@@ -6,7 +6,7 @@ import scott.sort.api.query.QueryObject;
 import com.smartstream.mi.model.RawData;
 
 /**
- * Generated from Entity Specification on Tue Nov 25 08:01:03 CET 2014
+ * Generated from Entity Specification on Tue Nov 25 22:22:13 CET 2014
  *
  * @author scott
  */
