@@ -15,6 +15,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 import scott.sort.api.core.entity.RefNode;
 import scott.sort.api.core.entity.ToManyNode;
@@ -188,6 +190,7 @@ public class GenerateDataModels extends GenerateModelsHelper {
     }
 
     private void writeModelImports(DefinitionsSpec definitions, EntitySpec entitySpec, Writer out) throws IOException {
+        Set<String> imports = new HashSet<>();
         boolean writtenFirstNewLine = false;
         for (NodeSpec nodeSpec: entitySpec.getNodeSpecs()) {
             if (nodeSpec.getRelationSpec() != null) {
@@ -210,6 +213,18 @@ public class GenerateDataModels extends GenerateModelsHelper {
                 out.write("import ");
                 out.write(nodeSpec.getEnumType().getName());
                 out.write(";\n");
+            }
+            if (nodeSpec.getJavaType() != null && nodeSpec.getJavaType().getJavaTypeClass() != null) {
+                if (!nodeSpec.getJavaType().getJavaTypeClass().getName().startsWith("java.lang")) {
+                    if (!nodeSpec.getJavaType().getJavaTypeClass().isArray()) {
+                        if (imports.add(nodeSpec.getJavaType().getJavaTypeClass().getName())) {
+                            out.write("import ");
+                            out.write(nodeSpec.getJavaType().getJavaTypeClass().getName());
+                            out.write(";\n");
+                            imports.add(nodeSpec.getJavaType().getJavaTypeClass().getName());
+                        }
+                    }
+                }
             }
         }
         if (entitySpec.getParentEntity() != null) {

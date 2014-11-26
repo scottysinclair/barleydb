@@ -155,8 +155,7 @@ public abstract class TestBase {
             public Object getNextKey(EntityType entityType) {
                 return key++;
             }
-        }
-        ;
+        };
         entityContextServices.setSequenceGenerator(new TestSequenceGenerator());
 
         env.addDefinitions( Definitions.create( loadDefinitions("src/test/java/com/smartstream/mac/macspec.xml", "com.smartstream.mac") ) );

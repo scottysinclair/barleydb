@@ -49,6 +49,7 @@ import scott.sort.api.core.QueryBatcher;
 import scott.sort.api.core.QueryRegistry;
 import scott.sort.api.core.entity.context.Entities;
 import scott.sort.api.core.entity.context.EntityInfo;
+import scott.sort.api.core.proxy.ProxyList;
 import scott.sort.api.core.util.EnvironmentAccessor;
 import scott.sort.api.exception.execution.SortServiceProviderException;
 import scott.sort.api.exception.execution.persist.OptimisticLockMismatchException;
@@ -811,6 +812,11 @@ public class EntityContext implements Serializable {
             }
         }
         return list;
+    }
+
+    public <T> Collection<T> getByType(Class<T> type) {
+        EntityType et = definitions.getEntityTypeForClass(type, true);
+        return new ProxyList<T>(this, entities.getEntitiesByType(et));
     }
 
     public Collection<Entity> getEntitiesByType(Class<?> type) {

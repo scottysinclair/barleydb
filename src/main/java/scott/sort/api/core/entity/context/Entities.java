@@ -14,6 +14,7 @@ import java.io.Serializable;
 import java.lang.ref.ReferenceQueue;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -141,6 +142,9 @@ public final class Entities implements Iterable<Entity>, Serializable {
 
     public Collection<Entity> getEntitiesByType(EntityType entityType) {
         Collection<EntityInfo> infos = entitiesByType.get(entityType);
+        if (infos == null) {
+            return Collections.emptyList();
+        }
         Collection<Entity> result = new ArrayList<>(infos.size());
         for (EntityInfo entityInfo: infos) {
             Entity entity = entityInfo.getEntity(false);

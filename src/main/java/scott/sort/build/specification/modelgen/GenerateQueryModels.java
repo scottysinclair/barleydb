@@ -135,6 +135,18 @@ public class GenerateQueryModels extends GenerateModelsHelper {
                         imports.add(nodeSpec.getEnumType().getName());
                     }
                 }
+                if (nodeSpec.getJavaType() != null && nodeSpec.getJavaType().getJavaTypeClass() != null) {
+                    if (!nodeSpec.getJavaType().getJavaTypeClass().getName().startsWith("java.lang")) {
+                        if (!nodeSpec.getJavaType().getJavaTypeClass().isArray()) {
+                            if (imports.add(nodeSpec.getJavaType().getJavaTypeClass().getName())) {
+                                out.write("import ");
+                                out.write(nodeSpec.getJavaType().getJavaTypeClass().getName());
+                                out.write(";\n");
+                                imports.add(nodeSpec.getJavaType().getJavaTypeClass().getName());
+                            }
+                        }
+                    }
+                }
 
             }
         }

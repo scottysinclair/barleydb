@@ -65,6 +65,9 @@ public class PersistRequest implements Serializable {
         if (object == null) {
             throw new NullPointerException("Cannot " + operation + "a null reference");
         }
+        if (object instanceof Entity) {
+            return (Entity)object;
+        }
         if (!(object instanceof ProxyController)) {
             throw new ProxyRequiredException("Object to save must be a proxy type, " + object.getClass() + " is not allowed.");
         }
