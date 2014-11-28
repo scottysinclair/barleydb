@@ -30,7 +30,7 @@ import scott.sort.api.specification.constraint.ForeignKeyConstraintSpec;
 import scott.sort.api.specification.constraint.PrimaryKeyConstraintSpec;
 import scott.sort.api.specification.constraint.UniqueConstraintSpec;
 
-public class GenerateDatabaseScript {
+public abstract class GenerateDatabaseScript {
 
     public String generateScript(DefinitionsSpec definitionsSpec) {
         StringBuilder sb = new StringBuilder();
@@ -51,7 +51,7 @@ public class GenerateDatabaseScript {
         return sb.toString();
     }
 
-	public String generateCleanScript(DefinitionsSpec definitionsSpec) {
+    public String generateCleanScript(DefinitionsSpec definitionsSpec) {
         /*
          * TODO: we should build a proper dependency tree.
          *
@@ -239,7 +239,7 @@ public class GenerateDatabaseScript {
             sb.append(");");
         }
     }
-    
+
     private void generateUniqueConstraints(EntitySpec entitySpec, StringBuilder sb) {
         for (UniqueConstraintSpec spec: entitySpec.getUniqueConstraints()) {
             sb.append("\nalter table ");
@@ -253,8 +253,8 @@ public class GenerateDatabaseScript {
             }
             sb.setLength(sb.length()-1);
             sb.append(");");
-        }    	
-	}
+        }
+    }
 
 
 
@@ -276,47 +276,9 @@ public class GenerateDatabaseScript {
         }
     }
 
-    private void generateColumnType(NodeSpec nodeSpec, StringBuilder sb) {
-        Objects.requireNonNull(nodeSpec.getJdbcType(), "JDBC type should not be null for " + nodeSpec);
-        switch (nodeSpec.getJdbcType()) {
-            case BIGINT:
-                sb.append("BIGINT");
-                break;
-//            case BLOB:
-//                break;
-//            case CLOB:
-//                break;
-//            case DATE:
-//                break;
-//            case DECIMAL:
-//                break;
-            case INT:
-                sb.append("INTEGER");
-                break;
-            case NVARCHAR:
-                sb.append("NVARCHAR");
-                generateLength(nodeSpec, sb);
-                break;
-            case TIMESTAMP:
-                sb.append("TIMESTAMP");
-                break;
-            case VARCHAR:
-                sb.append("VARCHAR");
-                generateLength(nodeSpec, sb);
-                break;
-            case CHAR:
-                sb.append("CHAR");
-                generateLength(nodeSpec, sb);
-                break;
-            case BLOB:
-                sb.append("VARBINARY(1073741824)");
-                break;
-            default:
-                throw new IllegalStateException("Invalid JDBC type: " + nodeSpec.getJdbcType());
-        }
-    }
+    protected abstract void generateColumnType(NodeSpec nodeSpec, StringBuilder sb);
 
-    private void generateLength(NodeSpec nodeSpec, StringBuilder sb) {
+    protected void generateLength(NodeSpec nodeSpec, StringBuilder sb) {
         sb.append('(');
         sb.append(nodeSpec.getLength());
         sb.append(')');
