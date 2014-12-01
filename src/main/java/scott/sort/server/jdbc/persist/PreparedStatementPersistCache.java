@@ -4,6 +4,7 @@ import scott.sort.api.config.Definitions;
 import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.exception.execution.persist.PersistTransactionRequiredException;
 import scott.sort.api.exception.execution.persist.PreparingPersistStatementException;
+import scott.sort.server.jdbc.JdbcEntityContextServices;
 import scott.sort.server.jdbc.helper.PreparedStatementCache;
 import scott.sort.server.jdbc.resources.ConnectionResources;
 
@@ -20,8 +21,8 @@ import scott.sort.server.jdbc.resources.ConnectionResources;
 
 class PreparedStatementPersistCache extends PreparedStatementCache<PreparingPersistStatementException, PersistTransactionRequiredException> {
 
-    public PreparedStatementPersistCache(Definitions definitions) {
-        super(new PersistPreparedStatementHelper(definitions));
+    public PreparedStatementPersistCache(JdbcEntityContextServices jdbcEntityContextServices, Definitions definitions) {
+        super(new PersistPreparedStatementHelper(jdbcEntityContextServices, definitions));
     }
 
     @Override

@@ -186,7 +186,7 @@ public class MiSpec extends MorpheusSpec {
     public static class RawData {
         public static final NodeSpec id = longPrimaryKey();
 
-        public static final NodeSpec data = mandatoryNonStreamingBlob();
+        public static final NodeSpec data = mandatoryNonStreamingLob();
 
         public static final NodeSpec characterEncoding = optionalVarchar50();
     }

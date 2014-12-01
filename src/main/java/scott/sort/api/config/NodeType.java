@@ -20,6 +20,7 @@ import scott.sort.api.core.types.JdbcType;
 import scott.sort.api.core.util.EnvironmentAccessor;
 import scott.sort.api.specification.NodeSpec;
 import scott.sort.api.specification.RelationSpec;
+import scott.sort.server.jdbc.converter.TypeConverter;
 
 public class NodeType implements Serializable, Cloneable {
     private static final long serialVersionUID = 1L;
@@ -35,6 +36,8 @@ public class NodeType implements Serializable, Cloneable {
     private String columnName;
 
     private JdbcType jdbcType;
+    
+    private String typeConverterFqn;
 
     private Boolean optimisticLock;
 
@@ -61,6 +64,7 @@ public class NodeType implements Serializable, Cloneable {
         nodeType.optimisticLock = nodeSpec.isOptimisticLock();
         nodeType.enumType = nodeSpec.getEnumType();
         nodeType.fixedValue = nodeSpec.getFixedValue();
+        nodeType.typeConverterFqn = nodeSpec.getTypeConverter();
         return nodeType;
     }
 
@@ -89,7 +93,11 @@ public class NodeType implements Serializable, Cloneable {
         return optimisticLock != null && optimisticLock;
     }
 
-    public Class<?> getEnumType() {
+    public String getTypeConverterFqn() {
+		return typeConverterFqn;
+	}
+
+	public Class<?> getEnumType() {
         return enumType;
     }
 

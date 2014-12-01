@@ -19,6 +19,8 @@ import scott.sort.api.core.entity.Entity;
 import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.exception.execution.query.IllegalQueryStateException;
 import scott.sort.api.query.QueryObject;
+import scott.sort.server.jdbc.JdbcEntityContextServices;
+import scott.sort.server.jdbc.converter.TypeConverter;
 
 /**
  * Builds and maintains a set of entity loaders for a given projection, resultset and entitycontext
@@ -27,11 +29,17 @@ import scott.sort.api.query.QueryObject;
  *
  */
 final class EntityLoaders implements Iterable<EntityLoader> {
+	private final JdbcEntityContextServices entityContextServices;
     private final List<EntityLoader> entityLoadersList;
 
-    public EntityLoaders(Projection projection, ResultSet resultSet, EntityContext entityContext) {
+    public EntityLoaders(JdbcEntityContextServices entityContextServices, Projection projection, ResultSet resultSet, EntityContext entityContext) {
+    	this.entityContextServices = entityContextServices;
         this.entityLoadersList = build(projection, resultSet, entityContext);
     }
+    
+	public TypeConverter getTypeConverter(String typeConverterFqn) {
+		return entityContextServices.getTypeConverter(typeConverterFqn);
+	}
 
     public void clearRowCache() {
         for (EntityLoader entityLoader : entityLoadersList) {

@@ -34,6 +34,7 @@ import scott.sort.api.exception.execution.query.QueryConnectionRequiredException
 import scott.sort.api.exception.execution.query.SortQueryException;
 import scott.sort.api.query.QJoin;
 import scott.sort.api.query.QueryObject;
+import scott.sort.server.jdbc.JdbcEntityContextServices;
 import scott.sort.server.jdbc.query.QueryGenerator.Param;
 import scott.sort.server.jdbc.resources.ConnectionResources;
 import scott.sort.server.jdbc.vendor.Database;
@@ -49,6 +50,7 @@ public class QueryExecution<T> {
 
     private static final Logger LOG = LoggerFactory.getLogger(QueryExecution.class);
 
+    private JdbcEntityContextServices jdbcEntityContextServices;
     private final EntityContext entityContext;
     private final QueryObject<T> query;
     private final Definitions definitions;
@@ -58,7 +60,8 @@ public class QueryExecution<T> {
     private EntityLoaders entityLoaders;
     private QueryGenerator qGen;
 
-    public QueryExecution(EntityContext entityContext, QueryObject<T> query, Definitions definitions) throws QueryConnectionRequiredException {
+    public QueryExecution(JdbcEntityContextServices jdbcEntityContextServices, EntityContext entityContext, QueryObject<T> query, Definitions definitions) throws QueryConnectionRequiredException {
+    	this.jdbcEntityContextServices = jdbcEntityContextServices;
         this.entityContext = entityContext;
         this.query = query;
         this.definitions = definitions;
@@ -287,7 +290,7 @@ public class QueryExecution<T> {
      */
     private void processRow(ResultSet resultSet) throws SortJdbcException, SortQueryException {
         if (entityLoaders == null) {
-            entityLoaders = new EntityLoaders(projection, resultSet, entityContext);
+            entityLoaders = new EntityLoaders(jdbcEntityContextServices, projection, resultSet, entityContext);
         }
         else {
             entityLoaders.clearRowCache();

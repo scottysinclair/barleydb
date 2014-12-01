@@ -15,6 +15,9 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Date;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import scott.sort.api.config.Definitions;
 import scott.sort.api.config.EntityType;
 import scott.sort.api.config.NodeType;
@@ -24,16 +27,24 @@ import scott.sort.api.core.entity.ValueNode;
 import scott.sort.api.core.types.JavaType;
 import scott.sort.api.core.types.JdbcType;
 import scott.sort.api.exception.SortException;
+import scott.sort.api.exception.execution.TypeConversionException;
+import scott.sort.api.exception.execution.TypeConverterNotFoundException;
+import scott.sort.server.jdbc.JdbcEntityContextServices;
+import scott.sort.server.jdbc.converter.TypeConverter;
 
-public abstract class PreparedStatementHelper<PREPARING_PERSIST_EX extends SortException> {
+public abstract class PreparedStatementHelper<PREPARING_EX extends SortException> {
 
+	private static final Logger LOG = LoggerFactory.getLogger(PreparedStatementHelper.class);
+	
+	private final JdbcEntityContextServices entityContextServices;
     private final Definitions definitions;
 
-    public PreparedStatementHelper(Definitions definitions) {
+    public PreparedStatementHelper(JdbcEntityContextServices entityContextServices, Definitions definitions) {
+    	this.entityContextServices = entityContextServices;
         this.definitions = definitions;
     }
 
-    public void setParameter(final PreparedStatement ps, final int index, final Node node) throws PREPARING_PERSIST_EX {
+    public void setParameter(final PreparedStatement ps, final int index, final Node node) throws PREPARING_EX {
         final NodeType nd = node.getNodeType();
         if (node instanceof RefNode) {
             setParameter(ps, index, nd, ((RefNode) node).getEntityKey());
@@ -42,25 +53,57 @@ public abstract class PreparedStatementHelper<PREPARING_PERSIST_EX extends SortE
             setParameter(ps, index, nd, ((ValueNode) node).getValue());
         }
         else {
-            throw newPreparingPersistStatementException("Cannot set parameter for node '" + node + "'");
+            throw newPreparingStatementException("Cannot set parameter for node '" + node + "'");
         }
     }
 
-    public void setParameter(final PreparedStatement ps, final int index, final Node node, final Object value) throws PREPARING_PERSIST_EX {
+    public void setParameter(final PreparedStatement ps, final int index, final Node node, final Object value) throws PREPARING_EX {
         setParameter(ps, index, node.getNodeType(), value);
     }
 
-    public void setParameter(final PreparedStatement ps, final int index, final NodeType nd, final Object value) throws PREPARING_PERSIST_EX {
+    public void setParameter(final PreparedStatement ps, final int index, final NodeType nd, Object value) throws PREPARING_EX {
         if (value == null) {
             setNull(ps, index, nd.getJdbcType());
             return;
         }
         JavaType javaType = getJavaType(nd);
         JdbcType jdbcType = getJdbcType(nd);
+        TypeConverter converter;
+		try {
+			converter = getTypeConverter( nd );
+		} 
+		catch (TypeConverterNotFoundException e) {
+			throw newPreparingStatementException("Could not find type converter '" + nd.getTypeConverterFqn() + "'");
+		}
+        if (converter != null) {
+        	/*
+        	 * Perform the configured conversion before setting the JDBC parameter
+        	 */
+        	try {
+        		Object oldValue = value;
+				value = converter.convertForwards(value);
+	        	LOG.debug("Performing type conversion {} from {} to {}", new Object[]{nd.getTypeConverterFqn(), oldValue, value});
+			} catch (TypeConversionException e) {
+				throw newPreparingStatementException("Error during type conversion", e);
+			}
+        	javaType = converter.getForwardsJavaType();
+        }
         setValue(ps, index, javaType, jdbcType, value);
     }
 
-    private JavaType getJavaType(NodeType nd) throws PREPARING_PERSIST_EX {
+    private TypeConverter getTypeConverter(NodeType nd) throws TypeConverterNotFoundException {
+    	String typeConverterFqn = nd.getTypeConverterFqn();
+    	if (typeConverterFqn == null) {
+    		return null;
+    	}
+    	TypeConverter tc = entityContextServices.getTypeConverter(typeConverterFqn);
+    	if (tc == null) {
+    		throw new TypeConverterNotFoundException("Could not find type converter '" + typeConverterFqn + "'");
+    	}
+    	return tc;
+	}
+
+	private JavaType getJavaType(NodeType nd) throws PREPARING_EX {
         if (nd.getJavaType() != null) {
             return nd.getJavaType();
         }
@@ -72,10 +115,10 @@ public abstract class PreparedStatementHelper<PREPARING_PERSIST_EX extends SortE
         if (nd.getEnumType() != null) {
             return JavaType.ENUM;
         }
-        throw newPreparingPersistStatementException(nd + " has no javatype");
+        throw newPreparingStatementException(nd + " has no javatype");
     }
 
-    private JdbcType getJdbcType(NodeType nd) throws PREPARING_PERSIST_EX {
+    private JdbcType getJdbcType(NodeType nd) throws PREPARING_EX {
         if (nd.getJdbcType() != null) {
             return nd.getJdbcType();
         }
@@ -84,18 +127,18 @@ public abstract class PreparedStatementHelper<PREPARING_PERSIST_EX extends SortE
             final NodeType nd2 = et.getNodeType(et.getKeyNodeName(), true);
             return nd2.getJdbcType();
         }
-        throw newPreparingPersistStatementException(nd + " has no jdbctype");
+        throw newPreparingStatementException(nd + " has no jdbctype");
     }
 
-    public abstract PREPARING_PERSIST_EX newPreparingPersistStatementException(String message);
+    public abstract PREPARING_EX newPreparingStatementException(String message);
 
-    public abstract PREPARING_PERSIST_EX newPreparingPersistStatementException(String message, Throwable cause);
+    public abstract PREPARING_EX newPreparingStatementException(String message, Throwable cause);
 
-    protected PREPARING_PERSIST_EX newSetValueError(String type, Throwable cause) {
-        return newPreparingPersistStatementException("Error seting value of type " + type + " on prepared statement", cause);
+    protected PREPARING_EX newSetValueError(String type, Throwable cause) {
+        return newPreparingStatementException("Error seting value of type " + type + " on prepared statement", cause);
     }
 
-    private final void setValue(PreparedStatement ps, int index, JavaType javaType, JdbcType jdbcType, Object value) throws PREPARING_PERSIST_EX  {
+    private final void setValue(PreparedStatement ps, int index, JavaType javaType, JdbcType jdbcType, Object value) throws PREPARING_EX  {
         switch (javaType) {
         case ENUM:
             @SuppressWarnings("unchecked")
@@ -127,11 +170,11 @@ public abstract class PreparedStatementHelper<PREPARING_PERSIST_EX extends SortE
             setByteArray(ps, index, jdbcType, (byte[]) value);
             return;
         default:
-            throw newPreparingPersistStatementException("Java type " + javaType + " is not supported");
+            throw newPreparingStatementException("Java type " + javaType + " is not supported");
         }
     }
 
-    private void setEnum(PreparedStatement ps, int index, JdbcType jdbcType, Enum<? extends Enum<?>> value) throws PREPARING_PERSIST_EX {
+    private void setEnum(PreparedStatement ps, int index, JdbcType jdbcType, Enum<? extends Enum<?>> value) throws PREPARING_EX {
         switch (jdbcType) {
         case INT:
             try {
@@ -161,7 +204,7 @@ public abstract class PreparedStatementHelper<PREPARING_PERSIST_EX extends SortE
         }
     }
 
-    private void setBigDecimal(PreparedStatement ps, int index, JdbcType jdbcType, BigDecimal value) throws PREPARING_PERSIST_EX {
+    private void setBigDecimal(PreparedStatement ps, int index, JdbcType jdbcType, BigDecimal value) throws PREPARING_EX {
         try {
             ps.setBigDecimal(index, value);
         }
@@ -170,7 +213,7 @@ public abstract class PreparedStatementHelper<PREPARING_PERSIST_EX extends SortE
         }
     }
 
-    private void setBoolean(PreparedStatement ps, int index, JdbcType jdbcType, Boolean value) throws PREPARING_PERSIST_EX {
+    private void setBoolean(PreparedStatement ps, int index, JdbcType jdbcType, Boolean value) throws PREPARING_EX {
         try {
             ps.setBoolean(index, value);
         }
@@ -179,7 +222,7 @@ public abstract class PreparedStatementHelper<PREPARING_PERSIST_EX extends SortE
         }
     }
 
-    private void setInteger(PreparedStatement ps, int index, JdbcType jdbcType, Integer value) throws PREPARING_PERSIST_EX {
+    private void setInteger(PreparedStatement ps, int index, JdbcType jdbcType, Integer value) throws PREPARING_EX {
         switch (jdbcType) {
         case INT:
             try {
@@ -210,7 +253,7 @@ public abstract class PreparedStatementHelper<PREPARING_PERSIST_EX extends SortE
         }
     }
 
-    private void setLong(PreparedStatement ps, int index, JdbcType jdbcType, Long value) throws PREPARING_PERSIST_EX  {
+    private void setLong(PreparedStatement ps, int index, JdbcType jdbcType, Long value) throws PREPARING_EX  {
         switch (jdbcType) {
         case BIGINT:
             try {
@@ -236,12 +279,21 @@ public abstract class PreparedStatementHelper<PREPARING_PERSIST_EX extends SortE
                 throw newSetValueError("java.sql.Date", x);
             }
             break;
+        case VARCHAR:
+        case CHAR:
+            try {
+                ps.setString(index, value.toString());
+            }
+            catch (SQLException x) {
+                throw newSetValueError("java.sql.Date", x);
+            }
+            break;
         default:
             fail(value, jdbcType);
         }
     }
 
-    private void setSqlDate(PreparedStatement ps, int index, JdbcType jdbcType, java.sql.Date value) throws PREPARING_PERSIST_EX {
+    private void setSqlDate(PreparedStatement ps, int index, JdbcType jdbcType, java.sql.Date value) throws PREPARING_EX {
         switch (jdbcType) {
         case DATE:
             try {
@@ -256,7 +308,7 @@ public abstract class PreparedStatementHelper<PREPARING_PERSIST_EX extends SortE
         }
     }
 
-    private void setString(PreparedStatement ps, int index, JdbcType jdbcType, String value) throws PREPARING_PERSIST_EX  {
+    private void setString(PreparedStatement ps, int index, JdbcType jdbcType, String value) throws PREPARING_EX  {
         switch (jdbcType) {
         case NVARCHAR:
             try {
@@ -287,7 +339,7 @@ public abstract class PreparedStatementHelper<PREPARING_PERSIST_EX extends SortE
         }
     }
 
-    private void setUtilDate(PreparedStatement ps, int index, JdbcType jdbcType, Date value) throws PREPARING_PERSIST_EX {
+    private void setUtilDate(PreparedStatement ps, int index, JdbcType jdbcType, Date value) throws PREPARING_EX {
         switch (jdbcType) {
             case TIMESTAMP:
                 try {
@@ -310,7 +362,7 @@ public abstract class PreparedStatementHelper<PREPARING_PERSIST_EX extends SortE
         }
     }
 
-    private void setByteArray(PreparedStatement ps, int index, JdbcType jdbcType, byte[] value) throws PREPARING_PERSIST_EX {
+    private void setByteArray(PreparedStatement ps, int index, JdbcType jdbcType, byte[] value) throws PREPARING_EX {
         switch (jdbcType) {
             case BLOB:
                 try {
@@ -326,20 +378,20 @@ public abstract class PreparedStatementHelper<PREPARING_PERSIST_EX extends SortE
     }
 
 
-    private void fail(Object value, JdbcType jdbcType) throws PREPARING_PERSIST_EX {
-        throw newPreparingPersistStatementException("Cannot convert " + value + " to jdbc type " + jdbcType);
+    private void fail(Object value, JdbcType jdbcType) throws PREPARING_EX {
+        throw newPreparingStatementException("Cannot convert " + value + " to jdbc type " + jdbcType);
     }
 
-    private void setNull(final PreparedStatement ps, final int index, final JdbcType type) throws PREPARING_PERSIST_EX {
+    private void setNull(final PreparedStatement ps, final int index, final JdbcType type) throws PREPARING_EX {
         try {
             ps.setNull(index, toSqlTypes(type));
         }
         catch (SQLException x) {
-            throw newPreparingPersistStatementException("SQLException setting null value for JDBC type " + type);
+            throw newPreparingStatementException("SQLException setting null value for JDBC type " + type);
         }
     }
 
-    private int toSqlTypes(JdbcType type) throws PREPARING_PERSIST_EX {
+    private int toSqlTypes(JdbcType type) throws PREPARING_EX {
         switch (type) {
         case BIGINT:
             return java.sql.Types.BIGINT;
@@ -362,7 +414,7 @@ public abstract class PreparedStatementHelper<PREPARING_PERSIST_EX extends SortE
         case CHAR:
             return java.sql.Types.CHAR;
         default:
-            throw newPreparingPersistStatementException("Unsupported jdbctype " + type);
+            throw newPreparingStatementException("Unsupported jdbctype " + type);
         }
     }
 

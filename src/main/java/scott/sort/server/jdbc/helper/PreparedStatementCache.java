@@ -50,7 +50,7 @@ public abstract class PreparedStatementCache<PREPARING_PERSIST_EX extends SortEx
                 ps = conRes.getConnection().prepareStatement(generateInsertSql(entity));
             }
             catch (SQLException x) {
-                throw helper.newPreparingPersistStatementException("SQLException preparing statement", x);
+                throw helper.newPreparingStatementException("SQLException preparing statement", x);
             }
             inserts.put(entity.getEntityType(), ps);
         }
@@ -67,7 +67,7 @@ public abstract class PreparedStatementCache<PREPARING_PERSIST_EX extends SortEx
                 updates.put(entity.getEntityType(), ps);
             }
             catch(SQLException x) {
-                throw helper.newPreparingPersistStatementException("SQLException preparing statement", x);
+                throw helper.newPreparingStatementException("SQLException preparing statement", x);
             }
         }
         setUpdateParameters(ps, entity, newOptimisticLockTime);
@@ -82,7 +82,7 @@ public abstract class PreparedStatementCache<PREPARING_PERSIST_EX extends SortEx
                 ps = conRes.getConnection().prepareStatement(generateDeleteSql(entity));
             }
             catch (SQLException x) {
-                throw helper.newPreparingPersistStatementException("SQLException preparing statement", x);
+                throw helper.newPreparingStatementException("SQLException preparing statement", x);
             }
             deletes.put(entity.getEntityType(), ps);
         }

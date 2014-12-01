@@ -10,6 +10,8 @@ package scott.sort.api.core;
  * #L%
  */
 
+import java.util.Map;
+
 import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
@@ -24,6 +26,7 @@ import scott.sort.api.exception.execution.SortServiceProviderException;
 import scott.sort.api.exception.model.ProxyCreationException;
 import scott.sort.api.query.QueryObject;
 import scott.sort.api.query.RuntimeProperties;
+import scott.sort.server.jdbc.converter.TypeConverter;
 import scott.sort.server.jdbc.query.QueryPreProcessor;
 
 /**
@@ -36,7 +39,7 @@ public final class Environment {
 
     @SuppressWarnings("unused")
     private static final Logger LOG = LoggerFactory.getLogger(Environment.class);
-
+    
     private final DefinitionsSet definitionsSet;
 
     private QueryPreProcessor queryPreProcessor;

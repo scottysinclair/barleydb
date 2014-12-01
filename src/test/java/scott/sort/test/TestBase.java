@@ -12,8 +12,17 @@ package scott.sort.test;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.LineNumberInputStream;
+import java.io.LineNumberReader;
+import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.Statement;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Properties;
 
 import javax.sql.DataSource;
 import javax.xml.bind.JAXBContext;
@@ -30,6 +39,7 @@ import org.junit.Before;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.jdbc.SimpleJdbcTestUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -46,9 +56,12 @@ import scott.sort.api.query.RuntimeProperties.Concurrency;
 import scott.sort.api.query.RuntimeProperties.ScrollType;
 import scott.sort.api.specification.DefinitionsSpec;
 import scott.sort.api.specification.SpecRegistry;
+import scott.sort.build.specification.vendor.MySqlSpecConverter;
+import scott.sort.server.jdbc.converter.LongToStringTimestampConverter;
 import scott.sort.server.jdbc.persist.SequenceGenerator;
 import scott.sort.server.jdbc.query.QueryPreProcessor;
 import scott.sort.server.jdbc.vendor.HsqlDatabase;
+import scott.sort.server.jdbc.vendor.MySqlDatabase;
 import scott.sort.server.jdbc.vendor.OracleDatabase;
 import scott.sort.server.jdbc.vendor.SqlServerDatabase;
 
@@ -88,33 +101,153 @@ import com.smartstream.mi.types.SyntaxType;
 @SuppressWarnings("deprecation")
 public abstract class TestBase {
 
+    public interface DatabaseTestSetup  {
+        String getDriverClassName();
+        String getUrl();
+        String getUser();
+        String getPassword();
+        String getSchemaName();
+        Properties getConnectionProperties();
+    }
+
+    public static class HsqlDbTest implements DatabaseTestSetup {
+        @Override
+        public String getDriverClassName() {
+            return "org.hsqldb.jdbcDriver";
+        }
+
+        @Override
+        public String getUrl() {
+            return "jdbc:hsqldb:mem:testdb";
+        }
+
+        @Override
+        public String getUser() {
+            return "sa";
+        }
+
+        @Override
+        public String getPassword() {
+            return "";
+        }
+
+        @Override
+        public String getSchemaName() {
+            return "hsqldb-schema.sql";
+        }
+
+        @Override
+        public Properties getConnectionProperties() {
+            Properties props = new Properties();
+            return props;
+        }
+    }
+
+    public static class MySqlDbTest implements DatabaseTestSetup {
+        @Override
+        public String getDriverClassName() {
+            return "com.mysql.jdbc.Driver";
+        }
+
+        @Override
+        public String getUrl() {
+            return "jdbc:mysql://localhost:3306/sort";
+        }
+
+        @Override
+        public String getUser() {
+            return "root";
+        }
+
+        @Override
+        public String getPassword() {
+            return "s1ncla1r12";
+        }
+
+        @Override
+        public String getSchemaName() {
+            return "mysql-schema.sql";
+        }
+
+        @Override
+        public Properties getConnectionProperties() {
+            Properties props = new Properties();
+            props.setProperty("CLIENT_MULTI_STATEMENTS", "true");
+            return props;
+        }
+    }
+
+
     private static boolean databaseInitialized = false;
     protected static Environment env;
     protected static TestEntityContextServices entityContextServices;
     protected static String transformXml;
+    protected static DatabaseTestSetup db = new HsqlDbTest();
 
     protected static final String namespace = "com.smartstream.mi";
     protected static DataSource dataSource;
     protected EntityContext serverEntityContext;
     protected boolean autoCommitMode = false;
 
-    protected void prepareData() {
-        SimpleJdbcTestUtils.executeSqlScript(new SimpleJdbcTemplate(dataSource), new ClassPathResource("/clean.sql"), false);
+    protected void prepareData() throws Exception {
+      executeScript("/clean.sql", false);
     }
 
-    private void initDb() {
+    private void initDb() throws Exception {
         if (!databaseInitialized) {
             DriverManagerDataSource dmDataSource = new DriverManagerDataSource();
-            dmDataSource.setDriverClassName("org.hsqldb.jdbcDriver");
-            dmDataSource.setUrl("jdbc:hsqldb:mem:testdb");
-            //dmDataSource.setUrl( "jdbc:hsqldb:mem:testdb;close_result=true;hsqldb.applog=3;hsqldb.sqllog=3");
-            dmDataSource.setUsername("sa");
-            dmDataSource.setPassword("");
+            dmDataSource.setDriverClassName( db.getDriverClassName());
+            dmDataSource.setUrl( db.getUrl());
+            dmDataSource.setUsername( db.getUser() );
+            dmDataSource.setPassword( db.getPassword() );
+            dmDataSource.setConnectionProperties( db.getConnectionProperties() );
             dataSource = dmDataSource;
 
-            SimpleJdbcTestUtils.executeSqlScript(new SimpleJdbcTemplate(dataSource), new ClassPathResource("/schema.sql"), false);
+            if (db instanceof HsqlDbTest) {
+            executeScript("/drop.sql", true);
+            executeScript("/" + db.getSchemaName(), false);
+           }
             databaseInitialized = true;
         }
+    }
+
+    public static void executeScript(String script, boolean continueOnError) throws Exception {
+        System.out.println("EXECUTING SCRIPT " + script);
+        LineNumberReader in = new LineNumberReader(new InputStreamReader(new ClassPathResource(script).getInputStream(), "UTF-8"));
+        List<String> statements = new LinkedList<>();
+        JdbcTestUtils.splitSqlScript(JdbcTestUtils.readScript(in), ';', statements);
+        try (Connection c = dataSource.getConnection(); ) {
+            c.setAutoCommit(false);
+            try ( Statement s = c.createStatement(); ) {
+                for (String line: statements) {
+                    try {
+                        s.addBatch(line);
+                    }
+                    catch(Exception x) {
+                        if (!continueOnError) {
+                            c.rollback();
+                            throw x;
+                        }
+                        System.err.println(x.getMessage());
+                    }
+                }
+                try {
+                    s.executeBatch();
+                }
+                catch(Exception x) {
+                    if (!continueOnError) {
+                        c.rollback();
+                        throw x;
+                    }
+                    System.err.println(x.getMessage());
+                }
+                c.commit();
+            }
+        }
+        catch(Exception x) {
+            if (!continueOnError) throw x;
+        }
+        System.out.println("FINISHED EXECUTING SCRIPT " + script);
     }
 
     public static void setupDefs() throws Exception {
@@ -144,7 +277,8 @@ public abstract class TestBase {
         entityContextServices.addDatabases(
                 new HsqlDatabase(metadata),
                 new OracleDatabase(metadata),
-                new SqlServerDatabase(metadata));
+                new SqlServerDatabase(metadata),
+                new MySqlDatabase(metadata));
 
         connection.close();
 
@@ -156,7 +290,10 @@ public abstract class TestBase {
                 return key++;
             }
         };
+
         entityContextServices.setSequenceGenerator(new TestSequenceGenerator());
+        entityContextServices.register(new LongToStringTimestampConverter());
+
 
         env.addDefinitions( Definitions.create( loadDefinitions("src/test/java/com/smartstream/mac/macspec.xml", "com.smartstream.mac") ) );
         env.addDefinitions( Definitions.create( loadDefinitions("src/test/java/com/smartstream/mi/mispec.xml", "com.smartstream.mi") ) );
@@ -223,6 +360,10 @@ public abstract class TestBase {
         DefinitionsSpec spec = registry.getDefinitionsSpec(namespace);
         if (spec == null) {
             throw new IllegalStateException("Could not load definitions " + namespace);
+        }
+
+        if (db instanceof MySqlDbTest) {
+            spec = MySqlSpecConverter.convertSpec( spec );
         }
         return spec;
     }

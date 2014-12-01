@@ -35,12 +35,15 @@ import scott.sort.api.core.entity.RefNode;
 import scott.sort.api.core.entity.ValueNode;
 import scott.sort.api.core.types.JavaType;
 import scott.sort.api.core.types.JdbcType;
+import scott.sort.api.exception.execution.TypeConversionException;
+import scott.sort.api.exception.execution.TypeConverterNotFoundException;
 import scott.sort.api.exception.execution.jdbc.SortJdbcException;
 import scott.sort.api.exception.execution.query.IllegalQueryStateException;
 import scott.sort.api.exception.execution.query.InvalidNodeTypeException;
 import scott.sort.api.exception.execution.query.ResultDataConversionException;
 import scott.sort.api.exception.execution.query.SortQueryException;
 import scott.sort.api.query.QueryObject;
+import scott.sort.server.jdbc.converter.TypeConverter;
 
 /**
  *
@@ -55,7 +58,6 @@ final class EntityLoader {
 
     private static final Logger LOG = LoggerFactory.getLogger(EntityLoader.class);
 
-    @SuppressWarnings("unused")
     private final EntityLoaders entityLoaders;
     private final List<ProjectionColumn> myProjectionCols;
     private final QueryObject<?> queryObject;
@@ -217,10 +219,35 @@ final class EntityLoader {
         }
     }
 
-    private Object convertValue(NodeType nd, Object value, JavaType javaType) throws InvalidNodeTypeException, ResultDataConversionException, IllegalQueryStateException {
+    private Object convertValue(NodeType nd, Object value, JavaType javaType) throws SortQueryException {
         if  (value == null) {
             return null;
         }
+        
+        /*
+         * If we have a configured type conversion
+         * then use it first
+         */
+        TypeConverter converter;
+		try {
+			converter = getTypeConverter( nd );
+		} 
+		catch (TypeConverterNotFoundException e) {
+			throw new IllegalQueryStateException("Type converter " + nd.getTypeConverterFqn() + " missing");
+		}
+        if (converter != null) {
+        	/*
+        	 * We convert backwards when getting data from the database
+        	 */
+        	try {
+				value = converter.convertBackwards(value);
+			} 
+        	catch (TypeConversionException e) {
+        		throw new IllegalQueryStateException("Type conversion error", e);
+			}
+        	javaType = converter.getBackwardsJavaType();
+        }
+        
         Object result = null;
         if (nd.getEnumType() != null) {
             result = convertToEnum(nd, value);
@@ -266,7 +293,19 @@ final class EntityLoader {
         return result;
     }
 
-    private BigDecimal convertToBigDecimal(Object value) {
+    private TypeConverter getTypeConverter(NodeType nd) throws TypeConverterNotFoundException  {
+    	String typeConverterFqn = nd.getTypeConverterFqn();
+    	if (typeConverterFqn == null) {
+    		return null;
+    	}
+    	TypeConverter tc = entityLoaders.getTypeConverter(typeConverterFqn);
+    	if (tc == null) {
+    		throw new TypeConverterNotFoundException("Could not find type converter '" + typeConverterFqn + "'");
+    	}
+    	return tc;
+	}
+
+	private BigDecimal convertToBigDecimal(Object value) {
         if (value instanceof BigDecimal) {
             return (BigDecimal)value;
         }
@@ -309,6 +348,9 @@ final class EntityLoader {
         }
         if (value instanceof java.sql.Timestamp) {
             return ((java.sql.Timestamp)value).getTime();
+        }
+        if (value instanceof String) {
+            return Long.parseLong((String)value);
         }
         return null;
     }

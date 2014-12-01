@@ -27,6 +27,7 @@ import scott.sort.api.exception.execution.jdbc.SortJdbcException;
 import scott.sort.api.exception.execution.persist.IllegalPersistStateException;
 import scott.sort.api.exception.execution.persist.PreparingPersistStatementException;
 import scott.sort.api.exception.execution.persist.SortPersistException;
+import scott.sort.server.jdbc.JdbcEntityContextServices;
 import scott.sort.server.jdbc.vendor.Database;
 
 /**
@@ -49,11 +50,11 @@ abstract class BatchExecuter {
         this.database = database;
     }
 
-    public void execute(Definitions definitions) throws PreparingPersistStatementException, SortPersistException, SortJdbcException {
+    public void execute(JdbcEntityContextServices jdbcEntityContextServices, Definitions definitions) throws PreparingPersistStatementException, SortPersistException, SortJdbcException {
         if (group.getEntities().isEmpty()) {
             return;
         }
-        try ( PreparedStatementPersistCache psCache = new PreparedStatementPersistCache(definitions);) {
+        try ( PreparedStatementPersistCache psCache = new PreparedStatementPersistCache(jdbcEntityContextServices, definitions);) {
             PreparedStatement psLast = null;
             List<Entity> entities = new LinkedList<>();
             for (Entity entity : group.getEntities()) {

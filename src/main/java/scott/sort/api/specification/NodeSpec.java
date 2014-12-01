@@ -61,12 +61,21 @@ public class NodeSpec implements Serializable, Cloneable {
 
     @XmlAttribute
     private Integer length;
+    
+    @XmlAttribute
+    private Integer precision;
+    
+    @XmlAttribute
+    private Integer scale;
 
     @XmlAttribute
     private boolean optimisticLock;
 
     @XmlElement
     private SuppressionSpec suppression;
+    
+    @XmlElement
+    private String typeConverter;
 
 
     @XmlAttribute(name="pk")
@@ -100,8 +109,16 @@ public class NodeSpec implements Serializable, Cloneable {
     public void setEntity(EntitySpec entity) {
         this.entity = entity;
     }
+    
+    public String getTypeConverter() {
+		return typeConverter;
+	}
 
-    public String getName() {
+	public void setTypeConverter(String typeConverter) {
+		this.typeConverter = typeConverter;
+	}
+
+	public String getName() {
         return name;
     }
 
@@ -174,7 +191,31 @@ public class NodeSpec implements Serializable, Cloneable {
         this.length = length;
     }
 
-    public boolean isOptimisticLock() {
+    public RelationSpec getRelation() {
+		return relation;
+	}
+
+	public void setRelation(RelationSpec relation) {
+		this.relation = relation;
+	}
+
+	public Integer getPrecision() {
+		return precision;
+	}
+
+	public void setPrecision(Integer precision) {
+		this.precision = precision;
+	}
+
+	public Integer getScale() {
+		return scale;
+	}
+
+	public void setScale(Integer scale) {
+		this.scale = scale;
+	}
+
+	public boolean isOptimisticLock() {
         return optimisticLock;
     }
 

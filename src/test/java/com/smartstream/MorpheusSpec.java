@@ -115,7 +115,7 @@ public class MorpheusSpec extends StaticDefinitions {
         return varchar(columnName, 50, Nullable.NOT_NULL);
     }
 
-    public static NodeSpec mandatoryNonStreamingBlob() {
+    public static NodeSpec mandatoryNonStreamingLob() {
         NodeSpec spec = new NodeSpec();
         spec.setJavaType(JavaType.BYTE_ARRAY);
         spec.setJdbcType(JdbcType.BLOB);
@@ -157,6 +157,7 @@ public class MorpheusSpec extends StaticDefinitions {
         NodeSpec spec = new NodeSpec();
         spec.setJavaType(JavaType.LONG);
         spec.setJdbcType(JdbcType.TIMESTAMP);
+        spec.setLength(50);
         spec.setNullable(Nullable.NOT_NULL);
         spec.setOptimisticLock(true);
         return spec;

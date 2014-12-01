@@ -137,12 +137,16 @@ public class StaticDefinitionProcessor {
                          * JDBC type of the FK from the entity primary key.
                          *
                          */
-                        if (relationSpec.isForeignKeyRelation() && nodeSpec.getJdbcType() == null) {
+                        if (relationSpec.isForeignKeyRelation()) {
                             Collection<NodeSpec> key = es.getPrimaryKeyNodes(true);
                             if (key.size() != 1) {
                                 throw new IllegalStateException("Invalid key " + key + " for entity: " + es);
                             }
-                            nodeSpec.setJdbcType( key.iterator().next().getJdbcType() );
+                            if (nodeSpec.getJdbcType() == null) {
+                            	nodeSpec.setJdbcType( key.iterator().next().getJdbcType() );
+                            	nodeSpec.setLength( key.iterator().next().getLength() );
+                            }
+                            
                         }
 
                         if (nodeSpec.getColumnName() == null) {

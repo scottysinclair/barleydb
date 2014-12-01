@@ -1,9 +1,5 @@
 package scott.sort.build.specification.ddlgen;
 
-import java.util.Objects;
-
-import scott.sort.api.specification.NodeSpec;
-
 /*
  * #%L
  * Simple Object Relational Framework
@@ -14,11 +10,14 @@ import scott.sort.api.specification.NodeSpec;
  * #L%
  */
 
+import java.util.Objects;
+
+import scott.sort.api.specification.NodeSpec;
 
 public class GenerateMySqlDatabaseScript extends GenerateDatabaseScript {
 
-    @Override
-    protected void generateColumnType(NodeSpec nodeSpec, StringBuilder sb) {
+	@Override
+	protected void generateColumnType(NodeSpec nodeSpec, StringBuilder sb) {
         Objects.requireNonNull(nodeSpec.getJdbcType(), "JDBC type should not be null for " + nodeSpec);
         switch (nodeSpec.getJdbcType()) {
             case BIGINT:
@@ -34,6 +33,10 @@ public class GenerateMySqlDatabaseScript extends GenerateDatabaseScript {
             case TIMESTAMP:
                 sb.append("TIMESTAMP");
                 break;
+            case DECIMAL:
+            	sb.append("DECIMAL");
+            	generatePrecisionAndScale(nodeSpec, sb);
+            	break;
             case VARCHAR:
                 sb.append("VARCHAR");
                 generateLength(nodeSpec, sb);
@@ -43,12 +46,19 @@ public class GenerateMySqlDatabaseScript extends GenerateDatabaseScript {
                 generateLength(nodeSpec, sb);
                 break;
             case BLOB:
-                sb.append("BLOB");
+                sb.append("MEDIUMBLOB");
                 break;
             default:
                 throw new IllegalStateException("Invalid JDBC type: " + nodeSpec.getJdbcType());
         }
-    }
+	}
 
+	private void generatePrecisionAndScale(NodeSpec nodeSpec, StringBuilder sb) {
+		sb.append('(');
+		sb.append(nodeSpec.getPrecision());
+		sb.append(',');
+		sb.append(nodeSpec.getScale());
+		sb.append(')');
+	}
 
 }

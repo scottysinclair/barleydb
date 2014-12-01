@@ -7,7 +7,7 @@ import scott.sort.api.core.entity.RefNode;
 import scott.sort.api.core.proxy.RefNodeProxyHelper;
 
 /**
- * Generated from Entity Specification on Tue Nov 25 22:22:13 CET 2014
+ * Generated from Entity Specification on Mon Dec 01 13:57:40 CET 2014
  *
  * @author scott
  */

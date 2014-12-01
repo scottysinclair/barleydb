@@ -32,6 +32,8 @@ import scott.sort.api.specification.constraint.UniqueConstraintSpec;
 
 public abstract class GenerateDatabaseScript {
 
+    protected boolean dropAndCreateConstraintsOnClean = false;
+
     public String generateScript(DefinitionsSpec definitionsSpec) {
         StringBuilder sb = new StringBuilder();
         for (EntitySpec entitySpec: definitionsSpec.getEntitySpecs()) {
@@ -52,15 +54,14 @@ public abstract class GenerateDatabaseScript {
     }
 
     public String generateCleanScript(DefinitionsSpec definitionsSpec) {
-        /*
-         * TODO: we should build a proper dependency tree.
-         *
-         * @param definitionsSpec
-         * @return
-         */
         StringBuilder sb = new StringBuilder();
         List<EntitySpec> entities = new LinkedList<>(definitionsSpec.getEntitySpecs());
 
+        if (dropAndCreateConstraintsOnClean) {
+            for (EntitySpec entitySpec: entities) {
+                generateDropForeignKeyConstraints(entitySpec, sb);
+            }
+        }
         /*
          * Abstract entities don't have all of the relations in them
          * remove them.
@@ -71,9 +72,65 @@ public abstract class GenerateDatabaseScript {
         for (String tableName: tableNames) {
             sb.append("\ndelete from ");
             sb.append(tableName);
+            sb.append(';');
+        }
+
+        if (dropAndCreateConstraintsOnClean) {
+            for (EntitySpec entitySpec: entities) {
+                generateFkConstraints(entitySpec, sb);
+            }
+        }
+        return sb.toString();
+    }
+
+    public String generateDropScript(DefinitionsSpec definitionsSpec) {
+        StringBuilder sb = new StringBuilder();
+        List<EntitySpec> entities = new LinkedList<>(definitionsSpec.getEntitySpecs());
+
+        for (EntitySpec entitySpec: entities) {
+            for (UniqueConstraintSpec spec: entitySpec.getUniqueConstraints()) {
+                sb.append("\nalter table ");
+                sb.append(entitySpec.getTableName());
+                sb.append(" drop index ");
+                sb.append(spec.getName());
+                sb.append(';');
+            }
+
+            generateDropForeignKeyConstraints(entitySpec, sb);
+
+            PrimaryKeyConstraintSpec spec = entitySpec.getPrimaryKeyConstraint();
+            if (spec != null) {
+                sb.append("\nalter table ");
+                sb.append(entitySpec.getTableName());
+                sb.append(" drop primary key  ");
+                sb.append(spec.getName());
+                sb.append(';');
+            }
+        }
+
+        /*
+         * Abstract entities don't have all of the relations in them
+         * remove them.
+         */
+        Collections.sort(entities, new DependencyComparator());
+        List<String> tableNames = toTableNames( entities );
+        removeDuplicates(tableNames);
+        for (String tableName: tableNames) {
+            sb.append("\ndrop table ");
+            sb.append(tableName);
             sb.append(";");
         }
         return sb.toString();
+    }
+
+    private void generateDropForeignKeyConstraints(EntitySpec entitySpec, StringBuilder sb) {
+        for (ForeignKeyConstraintSpec spec: entitySpec.getForeignKeyConstraints()) {
+            sb.append("\nalter table ");
+            sb.append(entitySpec.getTableName());
+            sb.append(" drop foreign key ");
+            sb.append(spec.getName());
+            sb.append(';');
+        }
     }
 
     private List<String> toTableNames(List<EntitySpec> entitySpecs) {

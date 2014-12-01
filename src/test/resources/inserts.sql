@@ -1,12 +1,12 @@
----
--- #%L
--- Simple Object Relational Framework
--- %%
--- Copyright (C) 2014 Scott Sinclair <scottysinclair@gmail.com>
--- %%
--- All rights reserved.
--- #L%
----
+/*
+ #%L
+  Simple Object Relational Framework
+   %%
+   Copyright (C) 2014 Scott Sinclair <scottysinclair@gmail.com>
+   %%
+   All rights reserved.
+   #L%
+*/
 
 insert into MAC_ACCESS_AREA (ID, NAME, MODIFIED_AT) values (1, 'Root', '2014-01-01 00:00:00.00000');
 

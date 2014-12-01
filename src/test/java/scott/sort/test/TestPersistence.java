@@ -25,9 +25,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
-import org.springframework.test.jdbc.SimpleJdbcTestUtils;
 
 import scott.sort.api.core.Environment;
 import scott.sort.api.core.entity.Entity;
@@ -76,12 +73,6 @@ public class TestPersistence extends TestRemoteClientBase {
     public TestPersistence(EntityContextGetter getter) {
         this.getter = getter;
     }
-
-    protected void prepareData() {
-        super.prepareData();
-        SimpleJdbcTestUtils.executeSqlScript(new SimpleJdbcTemplate(dataSource), new ClassPathResource("/clean.sql"), false);
-    }
-
 
     @Override
     public void setup() throws Exception {
@@ -453,7 +444,6 @@ public class TestPersistence extends TestRemoteClientBase {
             @Override
             protected void preJdbcWorkHook() {
                 try {
-
                     QXmlSyntaxModel qsyntax = new QXmlSyntaxModel();
                     qsyntax.where(qsyntax.name().equal("Scott's SyntaxModel"));
 
@@ -465,6 +455,7 @@ public class TestPersistence extends TestRemoteClientBase {
                     XmlSyntaxModel otherSyntax = otherUser.performQuery(qsyntax).getList().get(0);
                     entityContextServices.setPersisterFactory(null);
                     otherUser.persist( new PersistRequest().delete(otherSyntax) );
+                    otherUser.commit();
                 }
                 catch (Exception x) {}
             }
@@ -500,6 +491,10 @@ public class TestPersistence extends TestRemoteClientBase {
             Entity entityToSave = ((ProxyController) syntaxModel).getEntity();
             Assert.assertSame(entityToSave.getEntityType(), x.getEntityType());
             Assert.assertSame(entityToSave.getKey().getValue(), syntaxModel.getId());
+        }
+        catch(Exception x) {
+            x.printStackTrace(System.err);
+            throw x;
         }
     }
 
@@ -539,6 +534,8 @@ public class TestPersistence extends TestRemoteClientBase {
 
                     entityContextServices.setPersisterFactory(null);
                     otherUser.persist( new PersistRequest().save(otherSyntaxCopy) );
+                    otherUser.commit();
+                    otherUser.setAutocommit(true);
                 }
                 catch (Exception x) {}
             }

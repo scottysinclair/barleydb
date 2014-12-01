@@ -104,6 +104,9 @@ public class Persister {
          * in the update and delete statements.
          * This is why we have to manually apply the OL audit information, it was not automatically detected.
          */
+        /*
+         * TODO:The optimistic lock should be type converted to the String timestamp for mysql
+         */
         setNewOptimisticLockOnAuditRecords(audit, analyser.getCreateGroup(), analyser.getUpdateGroup(), newOptimisticLockTime);
 
         /*
@@ -336,9 +339,11 @@ public class Persister {
     private void setPrimaryKeys(OperationGroup createGroup) throws SortPersistException {
         logStep("Setting primary keys");
         for (Entity entity : createGroup.getEntities()) {
-            Object value = entityContextServices.getSequenceGenerator().getNextKey(entity.getEntityType());
-            LOG.debug("Setting key for " + entity + " to " + value);
-            entity.getKey().setValue(value);
+            if (entity.getKey().getValue() == null) {
+                Object value = entityContextServices.getSequenceGenerator().getNextKey(entity.getEntityType());
+                LOG.debug("Setting key for " + entity + " to " + value);
+                entity.getKey().setValue(value);
+            }
         }
     }
 
@@ -537,7 +542,7 @@ public class Persister {
                 handleInsertFailure(entity, throwable);
             }
         };
-        batchExecuter.execute(env.getDefinitions(namespace));
+        batchExecuter.execute(entityContextServices, env.getDefinitions(namespace));
     }
 
     private void update(OperationGroup updateGroup, final Long newOptimisticLockTime, final Database database) throws PreparingPersistStatementException, SortJdbcException, SortPersistException {
@@ -549,14 +554,14 @@ public class Persister {
             }
             @Override
             protected void handleNoop(Entity entity, Throwable throwable) throws SortPersistException {
-                handleUpdateFailure(entity, throwable);
+                handleUpdateNoop(entity);
             }
             @Override
             protected void handleFailure(Entity entity, Throwable throwable) throws SortPersistException {
                 handleUpdateFailure(entity, throwable);
             }
         };
-        batchExecuter.execute(env.getDefinitions(namespace));
+        batchExecuter.execute(entityContextServices, env.getDefinitions(namespace));
     }
 
     private void delete(OperationGroup deleteGroup, final Database database) throws PreparingPersistStatementException, SortPersistException, SortJdbcException {
@@ -568,14 +573,14 @@ public class Persister {
             }
             @Override
             protected void handleNoop(Entity entity, Throwable throwable) throws SortPersistException {
-                handleDeleteFailure(entity, throwable);
+                handleDeleteNoop(entity);
             }
             @Override
             protected void handleFailure(Entity entity, Throwable throwable) throws SortPersistException {
                 handleDeleteFailure(entity, throwable);
             }
         };
-        batchExecuter.execute(env.getDefinitions(namespace));
+        batchExecuter.execute(entityContextServices, env.getDefinitions(namespace));
     }
 
     /**
@@ -700,6 +705,53 @@ public class Persister {
         }
         else {
             throw new SortPersistException("Could not update entity: " + entity, throwable);
+        }
+    }
+
+    private void handleUpdateNoop(Entity entity) throws SortPersistException {
+        LOG.debug("Analysing update noop, querying for problematic entity {}", entity);
+        /*
+         * The tempCtx takes a fresh entity context with it's own transaction.
+         * This guarantees absolute freshness when querying for the (most likely deleted entity).
+         *
+         * For example MySql's repeatable read transactions, are based on a MVCC system
+         * And the transaction's database state is fixed from the first query in that transaction.
+         *
+         */
+        //EntityContext tempCtx = new EntityContext(env, entity.getEntityContext().getNamespace());
+        EntityContext tempCtx = entity.getEntityContext().newEntityContextSharingTransaction();
+        Entity loadedEntity = tempCtx.getOrLoad(entity.getEntityType(), entity.getKey().getValue());
+        if (loadedEntity == null) {
+            throw new EntityMissingException(entity.getEntityType(), entity.getKey().getValue());
+        }
+        else if (!Objects.equals(loadedEntity.getOptimisticLock().getValue(), entity.getOptimisticLock().getValue())) {
+            throw new OptimisticLockMismatchException(entity, loadedEntity);
+        }
+        else {
+            throw new SortPersistException("Update was a noop for an unknown reason: "  + entity);
+        }
+    }
+
+    private void handleDeleteNoop(Entity entity) throws SortPersistException {
+        /*
+         * The tempCtx takes a fresh entity context with it's own transaction.
+         * This guarantees absolute freshness when querying for the (most likely deleted entity).
+         *
+         * For example MySql's repeatable read transactions, are based on a MVCC system
+         * And the transaction's database state is fixed from the first query in that transaction.
+         *
+         */
+        //EntityContext tempCtx = new EntityContext(env, entity.getEntityContext().getNamespace());
+        EntityContext tempCtx = entity.getEntityContext().newEntityContextSharingTransaction();
+        Entity loadedEntity = tempCtx.getOrLoad(entity.getEntityType(), entity.getKey().getValue());
+        if (loadedEntity == null) {
+            throw new EntityMissingException(entity.getEntityType(), entity.getKey().getValue());
+        }
+        else if (!Objects.equals(loadedEntity.getOptimisticLock().getValue(), entity.getOptimisticLock().getValue())) {
+            throw new OptimisticLockMismatchException(entity, loadedEntity);
+        }
+        else {
+            throw new SortPersistException("Delete was a noop for an unknown reason: "  + entity);
         }
     }
 

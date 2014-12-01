@@ -11,6 +11,7 @@ package scott.sort.server.jdbc.resources;
  */
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -72,12 +73,15 @@ public class ConnectionResources {
         return database;
     }
 
+    public void close() throws SQLException {
+        removeFromEntityContexts();
+        getConnection().close();
+    }
+
     public void removeFromEntityContexts() {
         for (EntityContext ec: entityContexts) {
             ec.removeResource(ConnectionResources.class.getName());
         }
     }
-
-
 
 }

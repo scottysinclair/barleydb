@@ -29,6 +29,7 @@ import scott.sort.api.exception.execution.query.IllegalQueryStateException;
 import scott.sort.api.exception.execution.query.PreparingQueryStatementException;
 import scott.sort.api.exception.execution.query.SortQueryException;
 import scott.sort.api.query.RuntimeProperties;
+import scott.sort.server.jdbc.JdbcEntityContextServices;
 import scott.sort.server.jdbc.query.QueryGenerator.Param;
 import scott.sort.server.jdbc.vendor.Database;
 
@@ -45,12 +46,14 @@ public class QueryExecuter {
 
     private static final Logger LOG = LoggerFactory.getLogger(QueryExecuter.class);
 
+    private JdbcEntityContextServices jdbcEntityContextServices;
     private final Connection connection;
     private final EntityContext entityContext;
     private final Database database;
     private final RuntimeProperties runtimeProperties;
 
-    public QueryExecuter(Database database, Connection connection, EntityContext entityContext, RuntimeProperties runtimeProperties)  {
+    public QueryExecuter(JdbcEntityContextServices jdbcEntityContextServices, Database database, Connection connection, EntityContext entityContext, RuntimeProperties runtimeProperties)  {
+    	this.jdbcEntityContextServices = jdbcEntityContextServices;
         this.database = database;
         this.connection = connection;
         this.entityContext = entityContext;
@@ -274,9 +277,9 @@ public class QueryExecuter {
         }
     }
 
-    private void setParameters(PreparedStatement stmt, List<Param> params) throws PreparingQueryStatementException  {
+    private void setParameters(PreparedStatement stmt, List<Param> params) throws SortQueryException  {
         int i = 1;
-        QueryPreparedStatementHelper helper = new QueryPreparedStatementHelper(entityContext.getDefinitions());
+        QueryPreparedStatementHelper helper = new QueryPreparedStatementHelper(jdbcEntityContextServices, entityContext.getDefinitions());
         for (QueryGenerator.Param param : params) {
             helper.setParameter(stmt, i++, param.getNodeType(), param.getValue());
         }

@@ -14,10 +14,15 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import javax.sql.DataSource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import scott.sort.api.config.DefinitionsSet;
 import scott.sort.api.core.Environment;
@@ -26,6 +31,7 @@ import scott.sort.api.core.QueryBatcher;
 import scott.sort.api.core.entity.EntityContext;
 import scott.sort.api.exception.execution.SortServiceProviderException;
 import scott.sort.api.exception.execution.jdbc.AquireConnectionException;
+import scott.sort.api.exception.execution.jdbc.ClosingConnectionException;
 import scott.sort.api.exception.execution.jdbc.CommitException;
 import scott.sort.api.exception.execution.jdbc.CommitWithoutTransactionException;
 import scott.sort.api.exception.execution.jdbc.DatabaseAccessError;
@@ -39,6 +45,7 @@ import scott.sort.api.persist.PersistAnalyser;
 import scott.sort.api.persist.PersistRequest;
 import scott.sort.api.query.QueryObject;
 import scott.sort.api.query.RuntimeProperties;
+import scott.sort.server.jdbc.converter.TypeConverter;
 import scott.sort.server.jdbc.persist.Persister;
 import scott.sort.server.jdbc.persist.SequenceGenerator;
 import scott.sort.server.jdbc.query.QueryExecuter;
@@ -54,16 +61,27 @@ import scott.sort.server.jdbc.vendor.Database;
  */
 public class JdbcEntityContextServices implements IEntityContextServices {
 
+    private static final Logger LOG = LoggerFactory.getLogger(JdbcEntityContextServices.class);
+
     private Environment env;
 
     private final DataSource dataSource;
 
     private final List<Database> databases = new LinkedList<>();
 
+    private final Map<String,TypeConverter> typeConverters;
+
     private SequenceGenerator sequenceGenerator;
 
     public JdbcEntityContextServices(DataSource dataSource) {
         this.dataSource = dataSource;
+        this.typeConverters = new HashMap<>();
+    }
+
+    public void register(TypeConverter ...converters) {
+        for (TypeConverter tc: converters) {
+            typeConverters.put(tc.getClass().getName(), tc);
+        }
     }
 
     public DataSource getDataSource() {
@@ -107,7 +125,14 @@ public class JdbcEntityContextServices implements IEntityContextServices {
     @Override
     public void setAutoCommit(EntityContext entityContext, boolean value) throws SortJdbcException {
         ConnectionResources conRes = ConnectionResources.get(entityContext);
+
         if (conRes == null) {
+            /*
+             * If there is no associated connection and we want autocommit on, then there is nothing to do.
+             */
+            if (value) {
+                return;
+            }
             /*
              * Create a new connection with the required autocommit value
              */
@@ -120,8 +145,21 @@ public class JdbcEntityContextServices implements IEntityContextServices {
              */
             try {
                 conRes.getConnection().setAutoCommit(value);
-            } catch (SQLException x) {
+            }
+            catch (SQLException x) {
                 throw new SetAutoCommitException("Error setting autocommit to '" + value + "'", x);
+            }
+            /*
+             * If we are setting autocommit to true, then we can release the connection
+             */
+            if (value) {
+                try {
+                    LOG.debug("Releasing the jdbc connection as auto commit set to true");
+                    conRes.close();
+                }
+                catch (SQLException x) {
+                    throw new ClosingConnectionException("Error closing connection after set auto commit (true)", x);
+                }
             }
         }
     }
@@ -175,7 +213,19 @@ public class JdbcEntityContextServices implements IEntityContextServices {
                 throw new DatabaseAccessError("Database access error calling connection getAutoCommit before perfoming commit");
             }
             try {
+                LOG.debug("Comitting jdbc connection");
                 conRes.getConnection().commit();
+                /*
+                 * We assume that we can release the connection
+                 * once we have comitted it.
+                 */
+                LOG.debug("Releasing the jdbc connection due to successfull commit");
+                try {
+                    conRes.close();
+                }
+                catch(SQLException x) {
+                    throw new ClosingConnectionException("Error closing connection after commit", x);
+                }
             }
             catch (SQLException x) {
                 throw new CommitException("SQLException while performing commit", x);
@@ -194,10 +244,10 @@ public class JdbcEntityContextServices implements IEntityContextServices {
             returnToPool = true;
         }
 
-        QueryExecution<T> execution = new QueryExecution<T>(entityContext, query, env.getDefinitions(entityContext.getNamespace()));
+        QueryExecution<T> execution = new QueryExecution<T>(this, entityContext, query, env.getDefinitions(entityContext.getNamespace()));
 
         try (OptionalyClosingResources con = new OptionalyClosingResources(conRes, returnToPool)){
-            QueryExecuter executer = new QueryExecuter(conRes.getDatabase(), con.getConnection(), entityContext, props);
+            QueryExecuter executer = new QueryExecuter(this, conRes.getDatabase(), con.getConnection(), entityContext, props);
             executer.execute(execution);
             return execution.getResult();
         }
@@ -216,12 +266,11 @@ public class JdbcEntityContextServices implements IEntityContextServices {
         int i = 0;
         for (QueryObject<?> queryObject : queryBatcher.getQueries()) {
             env.preProcess(queryObject, entityContext.getDefinitions());
-            queryExecutions[i++] = new QueryExecution<>(entityContext, queryObject, env.getDefinitions(entityContext.getNamespace()));
+            queryExecutions[i++] = new QueryExecution<>(this, entityContext, queryObject, env.getDefinitions(entityContext.getNamespace()));
         }
 
-
         try (OptionalyClosingResources con = new OptionalyClosingResources(conRes, returnToPool);) {
-            QueryExecuter exec = new QueryExecuter(conRes.getDatabase(), con.getConnection(), entityContext, props);
+            QueryExecuter exec = new QueryExecuter(this, conRes.getDatabase(), con.getConnection(), entityContext, props);
             exec.execute(queryExecutions);
             for (i = 0; i < queryExecutions.length; i++) {
                 queryBatcher.addResult(queryExecutions[i].getResult());
@@ -325,6 +374,10 @@ public class JdbcEntityContextServices implements IEntityContextServices {
         }
     }
 
+    public TypeConverter getTypeConverter(String typeConverterFqn) {
+        return typeConverters.get(typeConverterFqn);
+    }
+
 }
 
 class OptionalyClosingResources implements AutoCloseable {
@@ -340,8 +393,7 @@ class OptionalyClosingResources implements AutoCloseable {
     public void close() throws SortJdbcException  {
         if (reallyClose) {
             try {
-                conRes.removeFromEntityContexts();
-                conRes.getConnection().close();
+                conRes.close();
             }
             catch(SQLException x) {
                 throw new SortJdbcException("Error closing connection", x);

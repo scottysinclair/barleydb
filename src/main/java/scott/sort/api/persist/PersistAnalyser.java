@@ -156,6 +156,18 @@ public class PersistAnalyser implements Serializable {
      */
     public void analyse(PersistRequest persistRequest) throws IllegalPersistStateException, EntityMissingException {
         try {
+            for (Entity entity : persistRequest.getToInsert()) {
+                /*
+                 * top level toInsert entities get analyzed by themselves
+                 * so if they have been analyzed already then clear that.
+                 */
+                removeAnalysis(entity);
+
+                if (entity.getEntityContext() != entityContext) {
+                    throw new IllegalPersistStateException("Cannot persist entity from a different context");
+                }
+                analyseCreate(entity);
+            }
             for (Entity entity : persistRequest.getToSave()) {
                 /*
                  * top level toSave entities get analyzed by themselves

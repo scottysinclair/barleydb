@@ -30,6 +30,7 @@ import org.springframework.test.jdbc.SimpleJdbcTestUtils;
 import scott.sort.api.core.QueryBatcher;
 import scott.sort.api.core.entity.EntityContext;
 import scott.sort.server.jdbc.query.QueryResult;
+import scott.sort.server.jdbc.resources.ConnectionResources;
 
 import com.smartstream.mac.query.QUser;
 import com.smartstream.mi.model.CsvSyntaxModel;
@@ -74,9 +75,9 @@ public class TestQuery extends TestRemoteClientBase {
     }
 
     @Override
-    protected void prepareData() {
+    protected void prepareData() throws Exception {
         super.prepareData();
-        SimpleJdbcTestUtils.executeSqlScript(new SimpleJdbcTemplate(dataSource), new ClassPathResource("/inserts.sql"), false);
+        executeScript("/inserts.sql", false);
     }
 
     @Override

@@ -13,7 +13,8 @@
                         <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
                             <id>com.smartstream.mac.model.AccessArea.name</id>
                         </NodeSpec>
-                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" optimisticLock="true">
+                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="VARCHAR" columnName="MODIFIED_AT" nullable="NOT_NULL" length="50" optimisticLock="true">
+                            <typeConverter>scott.sort.server.jdbc.converter.LongToStringTimestampConverter</typeConverter>
                             <id>com.smartstream.mac.model.AccessArea.modifiedAt</id>
                         </NodeSpec>
                         <NodeSpec name="parent" jdbcType="BIGINT" columnName="PARENT_ID" nullable="NULL" optimisticLock="false">
@@ -44,7 +45,7 @@
                         <NodeSpec name="uuid" javaType="STRING" jdbcType="CHAR" columnName="UUID" nullable="NOT_NULL" length="60" optimisticLock="false">
                             <id>com.smartstream.mac.model.User.uuid</id>
                         </NodeSpec>
-                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" optimisticLock="true">
+                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" length="50" optimisticLock="true">
                             <id>com.smartstream.mac.model.User.modifiedAt</id>
                         </NodeSpec>
                         <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="USER_NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
@@ -76,7 +77,7 @@
                         <NodeSpec name="uuid" javaType="STRING" jdbcType="CHAR" columnName="UUID" nullable="NOT_NULL" length="60" optimisticLock="false">
                             <id>com.smartstream.mi.model.SyntaxModel.uuid</id>
                         </NodeSpec>
-                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" optimisticLock="true">
+                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" length="50" optimisticLock="true">
                             <id>com.smartstream.mi.model.SyntaxModel.modifiedAt</id>
                         </NodeSpec>
                         <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
@@ -137,7 +138,7 @@
                         <NodeSpec name="uuid" javaType="STRING" jdbcType="CHAR" columnName="UUID" nullable="NOT_NULL" length="60" optimisticLock="false">
                             <id>com.smartstream.mi.model.XmlStructure.uuid</id>
                         </NodeSpec>
-                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" optimisticLock="true">
+                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" length="50" optimisticLock="true">
                             <id>com.smartstream.mi.model.XmlStructure.modifiedAt</id>
                         </NodeSpec>
                         <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
@@ -211,7 +212,7 @@
                         <NodeSpec name="uuid" javaType="STRING" jdbcType="CHAR" columnName="UUID" nullable="NOT_NULL" length="60" optimisticLock="false">
                             <id>com.smartstream.mi.model.CsvStructure.uuid</id>
                         </NodeSpec>
-                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" optimisticLock="true">
+                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" length="50" optimisticLock="true">
                             <id>com.smartstream.mi.model.CsvStructure.modifiedAt</id>
                         </NodeSpec>
                         <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
@@ -296,7 +297,7 @@
                         <NodeSpec name="uuid" javaType="STRING" jdbcType="CHAR" columnName="UUID" nullable="NOT_NULL" length="60" optimisticLock="false">
                             <id>com.smartstream.mi.model.Template.uuid</id>
                         </NodeSpec>
-                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" optimisticLock="true">
+                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" length="50" optimisticLock="true">
                             <id>com.smartstream.mi.model.Template.modifiedAt</id>
                         </NodeSpec>
                         <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
@@ -327,7 +328,8 @@
                         <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
                             <id>com.smartstream.mi.model.TemplateContent.name</id>
                         </NodeSpec>
-                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" optimisticLock="true">
+                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="VARCHAR" columnName="MODIFIED_AT" nullable="NOT_NULL" length="50" optimisticLock="true">
+                            <typeConverter>scott.sort.server.jdbc.converter.LongToStringTimestampConverter</typeConverter>
                             <id>com.smartstream.mi.model.TemplateContent.modifiedAt</id>
                         </NodeSpec>
                         <NodeSpec name="template" jdbcType="BIGINT" columnName="TEMPLATE_ID" nullable="NOT_NULL" optimisticLock="false">
@@ -354,7 +356,7 @@
                         <NodeSpec name="uuid" javaType="STRING" jdbcType="CHAR" columnName="UUID" nullable="NOT_NULL" length="60" optimisticLock="false">
                             <id>com.smartstream.mi.model.BusinessType.uuid</id>
                         </NodeSpec>
-                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" optimisticLock="true">
+                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" length="50" optimisticLock="true">
                             <id>com.smartstream.mi.model.BusinessType.modifiedAt</id>
                         </NodeSpec>
                         <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
