@@ -18,6 +18,11 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+
 import scott.sort.api.core.entity.RefNode;
 import scott.sort.api.core.entity.ToManyNode;
 import scott.sort.api.core.entity.ValueNode;
@@ -121,7 +126,7 @@ public class GenerateDataModels extends GenerateModelsHelper {
             writeModelImports(definitions, entitySpec, out);
             out.write("\n");
             writeClassJavaDoc(out, entitySpec);
-            writeClassDeclaration(out, entitySpec);
+            writeClassDeclaration(out, definitions, entitySpec);
             out.write("{\n");
             out.write("  private static final long serialVersionUID = 1L;\n");
             if (!entitySpec.getNodeSpecs().isEmpty()) {
@@ -134,11 +139,11 @@ public class GenerateDataModels extends GenerateModelsHelper {
                 out.write("\n");
             }
 
-            writeConstructor(out, entitySpec);
+            writeConstructor(out, definitions, entitySpec);
 
             for (NodeSpec nodeSpec: entitySpec.getNodeSpecs()) {
                 if (!isCompletelySuppressed(nodeSpec)) {
-                    writeNodeGetterAndSetter(out, nodeSpec);
+                    writeNodeGetterAndSetter(out, definitions, nodeSpec);
                 }
             }
             out.write("}\n");
@@ -158,14 +163,14 @@ public class GenerateDataModels extends GenerateModelsHelper {
         out.write(" */\n");
     }
 
-    private void writeConstructor(Writer out, EntitySpec entitySpec) throws IOException {
+    private void writeConstructor(Writer out, DefinitionsSpec definitions, EntitySpec entitySpec) throws IOException {
         out.write("  public ");
         out.write(getModelSimpleClassName(entitySpec));
         out.write("(Entity entity) {\n");
         out.write("    super(entity);\n");
         for (NodeSpec nodeSpec: entitySpec.getNodeSpecs()) {
             if (!isCompletelySuppressed(nodeSpec)) {
-                writeNodeFieldAssignment(out, nodeSpec);
+                writeNodeFieldAssignment(out, nodeSpec, false);
             }
         }
         out.write("  }\n");
@@ -254,8 +259,13 @@ public class GenerateDataModels extends GenerateModelsHelper {
         }
     }
 
-    private void writeNodeFieldAssignment(Writer out, NodeSpec nodeSpec) throws IOException {
+    private void writeNodeFieldAssignment(Writer out, NodeSpec nodeSpec, boolean toNull) throws IOException {
         out.write("    ");
+        if (toNull){
+            out.write(nodeSpec.getName());
+            out.write(" = null;\n");
+            return;
+        }
         switch(calcNodeType(nodeSpec)) {
             case "ValueNode":
                 out.write(nodeSpec.getName());
@@ -278,15 +288,15 @@ public class GenerateDataModels extends GenerateModelsHelper {
             }
     }
 
-    private void writeNodeGetterAndSetter(Writer out, NodeSpec nodeSpec) throws IOException {
+    private void writeNodeGetterAndSetter(Writer out, DefinitionsSpec definitions, NodeSpec nodeSpec) throws IOException {
         switch(calcNodeType(nodeSpec)) {
             case "ToManyNode":
                 out.write("\n");
-                writeNodeGetter(out, nodeSpec);
+                writeNodeGetter(out, definitions, nodeSpec);
                 break;
              default:
                  out.write("\n");
-                 writeNodeGetter(out, nodeSpec);
+                 writeNodeGetter(out, definitions, nodeSpec);
                  if (nodeSpec.getSuppression() != SuppressionSpec.GENERATED_CODE_SETTER) {
                      out.write("\n");
                      writeNodeSetter(out, nodeSpec);
@@ -331,7 +341,7 @@ public class GenerateDataModels extends GenerateModelsHelper {
         }
     }
 
-    private void writeNodeGetter(Writer out, NodeSpec nodeSpec) throws IOException {
+    private void writeNodeGetter(Writer out, DefinitionsSpec definitions, NodeSpec nodeSpec) throws IOException {
         switch(calcNodeType(nodeSpec)) {
         case "ValueNode":
             out.write("  public ");
@@ -369,7 +379,7 @@ public class GenerateDataModels extends GenerateModelsHelper {
         }
     }
 
-    private void writeClassDeclaration(Writer out, EntitySpec entitySpec) throws IOException {
+    private void writeClassDeclaration(Writer out, DefinitionsSpec definitions, EntitySpec entitySpec) throws IOException {
         out.write("public class ");
         out.write(getModelSimpleClassName(entitySpec));
         out.write(" ");

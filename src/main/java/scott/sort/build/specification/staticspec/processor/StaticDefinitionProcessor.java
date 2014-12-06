@@ -143,10 +143,10 @@ public class StaticDefinitionProcessor {
                                 throw new IllegalStateException("Invalid key " + key + " for entity: " + es);
                             }
                             if (nodeSpec.getJdbcType() == null) {
-                            	nodeSpec.setJdbcType( key.iterator().next().getJdbcType() );
-                            	nodeSpec.setLength( key.iterator().next().getLength() );
+                                nodeSpec.setJdbcType( key.iterator().next().getJdbcType() );
+                                nodeSpec.setLength( key.iterator().next().getLength() );
                             }
-                            
+
                         }
 
                         if (nodeSpec.getColumnName() == null) {

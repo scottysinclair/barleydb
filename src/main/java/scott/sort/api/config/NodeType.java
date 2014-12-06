@@ -20,7 +20,6 @@ import scott.sort.api.core.types.JdbcType;
 import scott.sort.api.core.util.EnvironmentAccessor;
 import scott.sort.api.specification.NodeSpec;
 import scott.sort.api.specification.RelationSpec;
-import scott.sort.server.jdbc.converter.TypeConverter;
 
 public class NodeType implements Serializable, Cloneable {
     private static final long serialVersionUID = 1L;
@@ -53,10 +52,12 @@ public class NodeType implements Serializable, Cloneable {
         if (nodeSpec.getRelationSpec() != null) {
             RelationSpec spec = nodeSpec.getRelationSpec();
             NodeSpec backReference = spec.getBackReference();
+            NodeSpec sortNode = spec.getSortNode();
             NodeSpec onwardJoin = spec.getOwnwardJoin();
             nodeType.relation = new Relation(spec.getEntitySpec().getClassName(),
                     spec.getType(),
                     backReference != null ? backReference.getName() : null,
+                    sortNode != null ? sortNode.getName() : null,
                     onwardJoin != null ? onwardJoin.getName() : null);
         }
         nodeType.columnName = nodeSpec.getColumnName();
@@ -96,6 +97,10 @@ public class NodeType implements Serializable, Cloneable {
     public String getTypeConverterFqn() {
 		return typeConverterFqn;
 	}
+    
+    public String getSortNode() {
+        return relation != null ? relation.getSortNodeName() : null;
+    }
 
 	public Class<?> getEnumType() {
         return enumType;

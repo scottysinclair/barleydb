@@ -37,6 +37,10 @@ public class QProperty<VAL> implements Serializable {
         return new QPropertyCondition(this, QMathOps.EQ, value);
     }
 
+    public QPropertyCondition like(VAL value) {
+        return new QPropertyCondition(this, QMathOps.LIKE, value);
+    }
+
     public QPropertyCondition greaterOrEqual(VAL value) {
         return new QPropertyCondition(this, QMathOps.GREATER_THAN_OR_EQUAL, value);
     }

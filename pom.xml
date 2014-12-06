@@ -96,17 +96,7 @@
 			<scope>provided</scope>
 		</dependency>
 
-		<dependency>
-			<groupId>org.eclipse.ui</groupId>
-			<artifactId>org.eclipse.ui.workbench</artifactId>
-			<version>3.7.1.v20120104-1859</version>
-		</dependency>
 
-		<dependency>
-			<groupId>org.eclipse.swt</groupId>
-			<artifactId>org.eclipse.swt.gtk.linux.x86_64</artifactId>
-			<version>4.4</version>
-		</dependency>
 
 	</dependencies>
 

@@ -12,6 +12,7 @@ package scott.sort.api.query;
 
 public enum QMathOps {
     EQ,
+    LIKE,
     GREATER_THAN,
     GREATER_THAN_OR_EQUAL,
     LESS_THAN,

@@ -46,7 +46,6 @@ public abstract class StaticDefinitions {
         return namespace;
     }
 
-
     /*
      * Provides the default compiler / vm ordering
      */

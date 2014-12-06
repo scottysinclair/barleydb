@@ -15,7 +15,7 @@ import java.io.Serializable;
 public class QOrderBy implements Serializable {
 
     private static final long serialVersionUID = 1L;
-
+    
     private final QProperty<?> property;
 
     private final boolean ascending;
@@ -24,7 +24,7 @@ public class QOrderBy implements Serializable {
         this.property = property;
         this.ascending = ascending;
     }
-
+    
     public QProperty<?> getProperty() {
         return property;
     }

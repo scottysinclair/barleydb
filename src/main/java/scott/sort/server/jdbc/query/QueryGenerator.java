@@ -116,7 +116,7 @@ public class QueryGenerator {
                 query.getCondition().visit(new ConditionRenderer(database, sb, definitions, params, initialIndent));
             }
             if (!query.getOrderBy().isEmpty()) {
-                generateOrderBy(sb, entityType);
+                generateOrderBy(sb);
             }
             if (query.getForUpdate() != null) {
                 generateForUpdate(sb);
@@ -160,9 +160,13 @@ public class QueryGenerator {
         }
     }
 
-    private void generateOrderBy(StringBuilder sb, EntityType entityType) {
+    private void generateOrderBy(StringBuilder sb) {
         sb.append("\norder by ");
         for (QOrderBy orderby : query.getOrderBy()) {
+            QueryObject<?> qo = orderby.getProperty().getQueryObject();
+            EntityType entityType = definitions.getEntityTypeMatchingInterface(qo.getTypeName(), true);
+            sb.append(qo.getAlias());
+            sb.append('.');
             sb.append(entityType.getNodeType(orderby.getProperty().getName(), true).getColumnName());
             if (orderby.isAscending()) {
                 sb.append(" asc");

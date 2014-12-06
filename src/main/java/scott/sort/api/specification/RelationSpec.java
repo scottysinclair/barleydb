@@ -57,6 +57,15 @@ public class RelationSpec implements Serializable, Cloneable {
     private NodeSpec backReference;
 
     /**
+     * For a many relationship.
+     * the node to sort on
+     */
+    @XmlIDREF
+    @XmlAttribute
+    private NodeSpec sortNode;
+    
+
+    /**
      * For reference to a join table
      * we can specify the onwards join out past the join table
      * ie onwards to datatype from template_datatype join table.
@@ -88,6 +97,14 @@ public class RelationSpec implements Serializable, Cloneable {
 
     public void setJoinType(JoinTypeSpec joinType) {
         this.joinType = joinType;
+    }
+    
+    public NodeSpec getSortNode() {
+        return sortNode;
+    }
+
+    public void setSortNode(NodeSpec sortNode) {
+        this.sortNode = sortNode;
     }
 
     public RelationType getType() {

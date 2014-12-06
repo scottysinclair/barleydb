@@ -145,20 +145,13 @@ public class ToManyNode extends Node {
                 entities.clear();
                 entities.addAll(refreshedEntities);
                 if (entities.size() > 0) {
-                    //the list of entities must have a consistent natural order
-                    //natural order means based on the PK
-                    Collections.sort(entities, new Comparator<Entity>() {
-                        @SuppressWarnings("unchecked")
-                        @Override
-                        public int compare(Entity o1, Entity o2) {
-                            if (o1.getKey().getValue() != null) {
-                                if (o2.getKey().getValue() == null) return 1;
-                                else return ((Comparable<Object>) o1.getKey().getValue()).compareTo(o2.getKey().getValue());
-                            }
-                            else if (o2.getKey().getValue() == null) return 0;
-                            else return -1;
-                        }
-                    });
+                    //the list of entities must have a consistent order
+                    //we sort on the sort column or the PL if not specified.
+                    String sortNodeName = getNodeType().getSortNode();
+                    if (sortNodeName == null) {
+                        sortNodeName = entityType.getKeyNodeName();
+                    }
+                    Collections.sort(entities, new MyComparator(sortNodeName));
                 }
                 if (result.isEmpty()) {
                     LOG.debug("no entities for " + getParent() + "." + getName() + "=" + this);
@@ -166,6 +159,40 @@ public class ToManyNode extends Node {
                 else {
                     LOG.debug("resolved " + result.size() + " entities for " + getParent() + "." + getName() + "=" + this);
                 }
+            }
+        }
+    }
+    
+    private static final class MyComparator implements Comparator<Entity> {
+        private final String sortNodeName;
+        
+        public MyComparator(String sortNodeName) {
+            this.sortNodeName = sortNodeName;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public int compare(Entity o1, Entity o2) {
+            Object value1 = getValue(o1, sortNodeName);
+            Object value2 = getValue(o2, sortNodeName);
+            if (value1 != null) {
+                if (value2 == null) return 1;
+                else return ((Comparable<Object>) value1).compareTo(value2);
+            }
+            else if (value2 == null) return 0;
+            else return -1;
+        }
+        
+        private Object getValue(Entity entity, String sortNodeName) {
+            Node node = entity.getChild(sortNodeName, Node.class);
+            if (node instanceof ValueNode) {
+                return ((ValueNode) node).getValue();
+            }
+            else if (node instanceof RefNode) {
+                return ((RefNode) node).getEntityKey();
+            }
+            else {
+                return null;
             }
         }
     }

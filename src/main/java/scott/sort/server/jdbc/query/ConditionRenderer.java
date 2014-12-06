@@ -54,6 +54,10 @@ public class ConditionRenderer implements ConditionVisitor {
             sb.append(" = ");
             break;
         }
+        case LIKE: {
+            sb.append(" like ");
+            break;
+        }
         case GREATER_THAN: {
             sb.append(" > ");
             break;

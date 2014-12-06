@@ -9,11 +9,11 @@ public class MacProxyFactory implements ProxyFactory {
 
   @SuppressWarnings("unchecked")
   public <T> T newProxy(Entity entity) throws ProxyCreationException {
-    if (entity.getEntityType().getInterfaceName().equals(AccessArea.class.getName())) {
-      return (T) new AccessArea(entity);
-    }
     if (entity.getEntityType().getInterfaceName().equals(User.class.getName())) {
       return (T) new User(entity);
+    }
+    if (entity.getEntityType().getInterfaceName().equals(AccessArea.class.getName())) {
+      return (T) new AccessArea(entity);
     }
     return null;
   }

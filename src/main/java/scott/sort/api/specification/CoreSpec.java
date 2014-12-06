@@ -132,6 +132,11 @@ public class CoreSpec {
         return manyRelation(RelationType.REFERS, type, nodeType, null);
     }
 
+    public static NodeSpec sort(NodeSpec nodeSpec, NodeSpec byMe) {
+        nodeSpec.getRelationSpec().setSortNode(byMe);
+        return nodeSpec;
+    }
+
     public static NodeSpec manyRelation(RelationType relationType, Class<?> type, NodeSpec nodeType, NodeSpec onwardJoinNodeType) {
         NodeSpec spec = new NodeSpec();
         spec.setRelationSpec(new RelationSpec(relationType, type, nodeType, onwardJoinNodeType));
