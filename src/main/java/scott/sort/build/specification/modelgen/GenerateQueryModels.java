@@ -403,7 +403,7 @@ public class GenerateQueryModels extends GenerateModelsHelper {
         out.write(nodeSpec.getName());
         out.write(" = new ");
         out.write(getQuerySimpleClassName(relationSpec.getEntitySpec()));
-        out.write("();\n");
+        out.write("(this);\n");
         out.write("    addExists(");
         out.write(nodeSpec.getName());
         out.write(", \"");

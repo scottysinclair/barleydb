@@ -31,7 +31,7 @@ public class EntityContextHelper {
     public static int countNotLoaded(Collection<Entity> entities) {
         int count = 0;
         for (Entity e: entities) {
-            if (e.isNotLoaded()) {
+            if (e.isFetchRequired()) {
                 count++;
             }
         }
@@ -57,7 +57,7 @@ public class EntityContextHelper {
         List<Entity> copiedEntities = new LinkedList<Entity>();
         for (Entity entity : entities) {
             //don't add entities which are not yet loaded
-            if (entity.getKey().getValue() != null && entity.isNotLoaded()) {
+            if (entity.getKey().getValue() != null && entity.isFetchRequired()) {
                 continue;
             }
             Entity e = newContext.getEntityByUuidOrKey(entity.getUuid(), entity.getEntityType(), entity.getKey().getValue(), false);

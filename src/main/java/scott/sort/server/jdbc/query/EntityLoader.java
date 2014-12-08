@@ -212,7 +212,12 @@ final class EntityLoader {
             else {
                 value = rs.getObject(index);
             }
-            return convertValue(nd, value, javaType);
+            if (rs.wasNull()) {
+                return null;
+            }
+            else {
+                return convertValue(nd, value, javaType);
+            }
         }
         catch (SQLException x) {
             throw new SortJdbcException("SQLException getting object from resultset", x);

@@ -225,7 +225,7 @@ public class ToManyNode extends Node {
         Entity entity = entities.remove(index);
         if (entity != null) {
             newEntities.remove(entity);
-            if (entity.getKey().getValue() != null) {
+            if (!entity.isNew()) {
                 removedEntities.add(entity);
             }
         }

@@ -252,7 +252,7 @@ public class EntityContext implements Serializable {
     @SuppressWarnings("unchecked")
     public <T> T newModel(Class<T> type) {
         EntityType entityType = definitions.getEntityTypeMatchingInterface(type.getName(), true);
-        Entity entity = new Entity(this, entityType);
+        Entity entity = new Entity(this, EntityState.NEW, entityType);
         add(entity);
         return (T) getProxy(entity);
     }

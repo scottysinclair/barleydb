@@ -115,7 +115,7 @@ public class TestDatabaseDataSet extends TestBase {
     private int countLoadedEntities(EntityContext entityContext) {
         int count = 0;
         for (Entity entity : entityContext.getEntities()) {
-            if (entity.isLoaded()) {
+            if (!entity.isFetchRequired()) {
                 count++;
             }
         }

@@ -47,34 +47,47 @@ public class Entity implements Serializable {
      * @param toCopy
      */
     public Entity(EntityContext context, Entity toCopy) {
-        this(context, toCopy.getEntityType(), toCopy.getKey().getValue(), toCopy.getUuid());
+        this(context, EntityState.NOTLOADED, toCopy.getEntityType(), toCopy.getKey().getValue(), toCopy.getUuid());
     }
 
     public Entity(EntityContext context, EntityType entityType) {
-        this(context, entityType, null, UUID.randomUUID());
+        this(context, EntityState.NOTLOADED, entityType, null, UUID.randomUUID());
+    }
+
+    public Entity(EntityContext context, EntityState entityState, EntityType entityType) {
+        this(context, entityState, entityType, null, UUID.randomUUID());
     }
 
     public Entity(EntityContext context, EntityType entityType, Object key) {
-        this(context, entityType, key, UUID.randomUUID());
+        this(context, EntityState.NOTLOADED, entityType, key, UUID.randomUUID());
     }
 
-    public Entity(EntityContext context, EntityType entityType, Object key, UUID uuid) {
+    public Entity(EntityContext context, EntityState entityState, EntityType entityType, Object key, UUID uuid) {
         this.entityContext = context;
         this.entityType = entityType;
         this.children = new TreeMap<String, Node>();
-        entityState = EntityState.NOTLOADED;
+        this.entityState = entityState;
         initNodes();
         if (key != null) {
             getKey().setValueNoEvent(key);
         }
         this.uuid = uuid;
     }
-
-    public boolean isLoaded() {
-        return entityState == EntityState.LOADED;
+    
+    public boolean isLoadedOrNew() {
+        return isLoaded() || isNew();
+    }
+    
+    public boolean isNew() {
+        return entityState == EntityState.NEW;
     }
 
-    public boolean isNotLoaded() {
+    public boolean isLoaded() {
+        //loaded meaning no fetch required
+        return entityState == EntityState.LOADED;
+    }
+    
+    public boolean isFetchRequired() {
         return entityState == EntityState.NOTLOADED;
     }
 

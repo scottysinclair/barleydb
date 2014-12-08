@@ -168,6 +168,18 @@ public class PersistAnalyser implements Serializable {
                 }
                 analyseCreate(entity);
             }
+            for (Entity entity : persistRequest.getToUpdate()) {
+                /*
+                 * top level toInsert entities get analyzed by themselves
+                 * so if they have been analyzed already then clear that.
+                 */
+                removeAnalysis(entity);
+
+                if (entity.getEntityContext() != entityContext) {
+                    throw new IllegalPersistStateException("Cannot persist entity from a different context");
+                }
+                analyseUpdate(entity);
+            }
             for (Entity entity : persistRequest.getToSave()) {
                 /*
                  * top level toSave entities get analyzed by themselves
@@ -351,7 +363,7 @@ public class PersistAnalyser implements Serializable {
                  * If the reference is used then schedule the ref'd entity for deletion
                  */
                 if (refEntity.getKey().getValue() != null) {
-                    if (!refEntity.isLoaded()) {
+                    if (refEntity.isFetchRequired()) {
                         entityContext.fetchSingle(refEntity, true);
                     }
                     analyseDelete(refEntity);
@@ -438,14 +450,14 @@ public class PersistAnalyser implements Serializable {
                  * we are referring to an entity which is not yet created, process it first
                  */
                 analyseCreate(refEntity);
-            } else if (updateOwnedRefs && refNode.getNodeType().isOwns() && refEntity.isLoaded()) {
+            } else if (updateOwnedRefs && refNode.getNodeType().isOwns() && !refEntity.isFetchRequired()) {
                 /*
                  * the entity already exists in the database, but we own it so we are also going to perform an update.
                  * as long as it was loaded
                  */
                 analyseUpdate(refEntity);
             }
-            else if (refNode.getNodeType().dependsOrOwns() && refEntity.isLoaded()) {
+            else if (refNode.getNodeType().dependsOrOwns() && !refEntity.isFetchRequired()) {
                 /*
                  * We don't own, but logically depend on this reference to be considered valid
                  * since the entity was loaded, we need to analyze this dependency in-case the version

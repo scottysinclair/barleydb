@@ -27,6 +27,8 @@ public class PersistRequest implements Serializable {
 
     private final List<Entity> toInsert = new LinkedList<>();
     
+    private final List<Entity> toUpdate = new LinkedList<>();
+    
     private final List<Entity> toSave = new LinkedList<>();
 
     private final List<Entity> toDelete = new LinkedList<>();
@@ -38,6 +40,11 @@ public class PersistRequest implements Serializable {
 
     public PersistRequest insert(Object object) {
         toInsert.add( verifyArg(object, "insert") );
+        return this;
+    }
+
+    public PersistRequest update(Object object) {
+        toUpdate.add( verifyArg(object, "update") );
         return this;
     }
 
@@ -54,7 +61,11 @@ public class PersistRequest implements Serializable {
 		return toInsert;
 	}
 
-	public Collection<Entity> getToDelete() {
+	public List<Entity> getToUpdate() {
+        return toUpdate;
+    }
+
+    public Collection<Entity> getToDelete() {
         return toDelete;
     }
 
@@ -71,6 +82,9 @@ public class PersistRequest implements Serializable {
         }
         else if (!toInsert.isEmpty()) {
             return toInsert.get(0).getEntityContext();
+        }
+        else if (!toUpdate.isEmpty()) {
+            return toUpdate.get(0).getEntityContext();
         }
         throw new IllegalPersistStateException("PersistRequest has no objects to save or delete");
     }

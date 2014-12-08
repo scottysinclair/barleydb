@@ -393,7 +393,7 @@ public class Persister {
                 continue;
             }
             //if it has not been loaded from the db (and therefore not modified) then there is no update required.
-            if (!refNode.getReference().isLoaded()) {
+            if (refNode.getReference().isFetchRequired()) {
                 continue;
             }
             //we don't own the node, so no changes reflect on us
@@ -434,7 +434,7 @@ public class Persister {
                 boolean ownedEntityRequiresUpdate = false;
                 //the tomany entity which we own was not loaded and is therefore new
                 //meaning we need to update.
-                if (!toManyEntity.isLoaded()) {
+                if (!toManyEntity.isNew()) {
                     ownedEntityRequiresUpdate = true;
                 }
                 else {
