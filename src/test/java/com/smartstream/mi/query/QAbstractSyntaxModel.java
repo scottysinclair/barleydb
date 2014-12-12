@@ -10,7 +10,7 @@ import com.smartstream.mi.types.SyntaxType;
 import com.smartstream.mac.query.QUser;
 
 /**
- * Generated from Entity Specification on Sat Dec 06 10:17:07 CET 2014
+ * Generated from Entity Specification on Fri Dec 12 17:20:40 CET 2014
  *
  * @author scott
  */
@@ -40,7 +40,7 @@ class QAbstractSyntaxModel<T extends SyntaxModel, CHILD extends QAbstractSyntaxM
   }
 
   public QAccessArea existsAccessArea() {
-    QAccessArea accessArea = new QAccessArea();
+    QAccessArea accessArea = new QAccessArea(this);
     addExists(accessArea, "accessArea");
     return accessArea;
   }
@@ -78,7 +78,7 @@ class QAbstractSyntaxModel<T extends SyntaxModel, CHILD extends QAbstractSyntaxM
   }
 
   public QUser existsUser() {
-    QUser user = new QUser();
+    QUser user = new QUser(this);
     addExists(user, "user");
     return user;
   }

@@ -7,7 +7,7 @@ import com.smartstream.mi.model.XmlMapping;
 import com.smartstream.mi.query.QXmlSyntaxModel;
 
 /**
- * Generated from Entity Specification on Sat Dec 06 10:17:07 CET 2014
+ * Generated from Entity Specification on Fri Dec 12 17:20:40 CET 2014
  *
  * @author scott
  */
@@ -39,7 +39,7 @@ public class QXmlMapping extends QueryObject<XmlMapping> {
   }
 
   public QXmlSyntaxModel existsSyntax() {
-    QXmlSyntaxModel syntax = new QXmlSyntaxModel();
+    QXmlSyntaxModel syntax = new QXmlSyntaxModel(this);
     addExists(syntax, "syntax");
     return syntax;
   }
@@ -57,7 +57,7 @@ public class QXmlMapping extends QueryObject<XmlMapping> {
   }
 
   public QXmlSyntaxModel existsSubSyntax() {
-    QXmlSyntaxModel subSyntax = new QXmlSyntaxModel();
+    QXmlSyntaxModel subSyntax = new QXmlSyntaxModel(this);
     addExists(subSyntax, "subSyntax");
     return subSyntax;
   }

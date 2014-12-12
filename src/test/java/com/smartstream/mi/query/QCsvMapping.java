@@ -8,7 +8,7 @@ import com.smartstream.mi.query.QCsvSyntaxModel;
 import com.smartstream.mi.query.QCsvStructureField;
 
 /**
- * Generated from Entity Specification on Sat Dec 06 10:17:07 CET 2014
+ * Generated from Entity Specification on Fri Dec 12 17:20:40 CET 2014
  *
  * @author scott
  */
@@ -40,7 +40,7 @@ public class QCsvMapping extends QueryObject<CsvMapping> {
   }
 
   public QCsvSyntaxModel existsSyntax() {
-    QCsvSyntaxModel syntax = new QCsvSyntaxModel();
+    QCsvSyntaxModel syntax = new QCsvSyntaxModel(this);
     addExists(syntax, "syntax");
     return syntax;
   }
@@ -58,7 +58,7 @@ public class QCsvMapping extends QueryObject<CsvMapping> {
   }
 
   public QCsvStructureField existsStructureField() {
-    QCsvStructureField structureField = new QCsvStructureField();
+    QCsvStructureField structureField = new QCsvStructureField(this);
     addExists(structureField, "structureField");
     return structureField;
   }

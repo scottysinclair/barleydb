@@ -7,7 +7,7 @@ import com.smartstream.mi.model.TemplateContent;
 import com.smartstream.mi.query.QTemplate;
 
 /**
- * Generated from Entity Specification on Sat Dec 06 10:17:07 CET 2014
+ * Generated from Entity Specification on Fri Dec 12 17:20:40 CET 2014
  *
  * @author scott
  */
@@ -47,7 +47,7 @@ public class QTemplateContent extends QueryObject<TemplateContent> {
   }
 
   public QTemplate existsTemplate() {
-    QTemplate template = new QTemplate();
+    QTemplate template = new QTemplate(this);
     addExists(template, "template");
     return template;
   }

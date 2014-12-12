@@ -9,7 +9,7 @@ import com.smartstream.mi.query.QCsvStructure;
 import com.smartstream.mi.query.QCsvMapping;
 
 /**
- * Generated from Entity Specification on Sat Dec 06 10:17:07 CET 2014
+ * Generated from Entity Specification on Fri Dec 12 17:20:40 CET 2014
  *
  * @author scott
  */
@@ -41,7 +41,7 @@ public class QCsvSyntaxModel extends QAbstractSyntaxModel<CsvSyntaxModel, QCsvSy
   }
 
   public QCsvStructure existsStructure() {
-    QCsvStructure structure = new QCsvStructure();
+    QCsvStructure structure = new QCsvStructure(this);
     addExists(structure, "structure");
     return structure;
   }
@@ -59,7 +59,7 @@ public class QCsvSyntaxModel extends QAbstractSyntaxModel<CsvSyntaxModel, QCsvSy
   }
 
   public QCsvMapping existsMappings() {
-    QCsvMapping mappings = new QCsvMapping();
+    QCsvMapping mappings = new QCsvMapping(this);
     addExists(mappings, "mappings");
     return mappings;
   }

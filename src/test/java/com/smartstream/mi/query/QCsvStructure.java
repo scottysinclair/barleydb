@@ -8,7 +8,7 @@ import com.smartstream.mac.query.QAccessArea;
 import com.smartstream.mi.query.QCsvStructureField;
 
 /**
- * Generated from Entity Specification on Sat Dec 06 10:17:07 CET 2014
+ * Generated from Entity Specification on Fri Dec 12 17:20:40 CET 2014
  *
  * @author scott
  */
@@ -40,7 +40,7 @@ public class QCsvStructure extends QueryObject<CsvStructure> {
   }
 
   public QAccessArea existsAccessArea() {
-    QAccessArea accessArea = new QAccessArea();
+    QAccessArea accessArea = new QAccessArea(this);
     addExists(accessArea, "accessArea");
     return accessArea;
   }
@@ -74,7 +74,7 @@ public class QCsvStructure extends QueryObject<CsvStructure> {
   }
 
   public QCsvStructureField existsFields() {
-    QCsvStructureField fields = new QCsvStructureField();
+    QCsvStructureField fields = new QCsvStructureField(this);
     addExists(fields, "fields");
     return fields;
   }

@@ -7,7 +7,7 @@ import com.smartstream.mac.model.AccessArea;
 import com.smartstream.mac.query.QAccessArea;
 
 /**
- * Generated from Entity Specification on Sat Dec 06 10:17:07 CET 2014
+ * Generated from Entity Specification on Fri Dec 12 17:20:40 CET 2014
  *
  * @author scott
  */
@@ -47,7 +47,7 @@ public class QAccessArea extends QueryObject<AccessArea> {
   }
 
   public QAccessArea existsParent() {
-    QAccessArea parent = new QAccessArea();
+    QAccessArea parent = new QAccessArea(this);
     addExists(parent, "parent");
     return parent;
   }
@@ -65,7 +65,7 @@ public class QAccessArea extends QueryObject<AccessArea> {
   }
 
   public QAccessArea existsChildren() {
-    QAccessArea children = new QAccessArea();
+    QAccessArea children = new QAccessArea(this);
     addExists(children, "children");
     return children;
   }

@@ -7,7 +7,7 @@ import com.smartstream.mi.model.CsvStructureField;
 import com.smartstream.mi.query.QCsvStructure;
 
 /**
- * Generated from Entity Specification on Sat Dec 06 10:17:07 CET 2014
+ * Generated from Entity Specification on Fri Dec 12 17:20:40 CET 2014
  *
  * @author scott
  */
@@ -43,7 +43,7 @@ public class QCsvStructureField extends QueryObject<CsvStructureField> {
   }
 
   public QCsvStructure existsStructure() {
-    QCsvStructure structure = new QCsvStructure();
+    QCsvStructure structure = new QCsvStructure(this);
     addExists(structure, "structure");
     return structure;
   }

@@ -9,7 +9,7 @@ import com.smartstream.mi.query.QXmlStructure;
 import com.smartstream.mi.query.QXmlMapping;
 
 /**
- * Generated from Entity Specification on Sat Dec 06 10:17:07 CET 2014
+ * Generated from Entity Specification on Fri Dec 12 17:20:40 CET 2014
  *
  * @author scott
  */
@@ -41,7 +41,7 @@ public class QXmlSyntaxModel extends QAbstractSyntaxModel<XmlSyntaxModel, QXmlSy
   }
 
   public QXmlStructure existsStructure() {
-    QXmlStructure structure = new QXmlStructure();
+    QXmlStructure structure = new QXmlStructure(this);
     addExists(structure, "structure");
     return structure;
   }
@@ -59,7 +59,7 @@ public class QXmlSyntaxModel extends QAbstractSyntaxModel<XmlSyntaxModel, QXmlSy
   }
 
   public QXmlMapping existsMappings() {
-    QXmlMapping mappings = new QXmlMapping();
+    QXmlMapping mappings = new QXmlMapping(this);
     addExists(mappings, "mappings");
     return mappings;
   }

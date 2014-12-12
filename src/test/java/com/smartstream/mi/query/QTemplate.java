@@ -9,7 +9,7 @@ import com.smartstream.mi.query.QTemplateContent;
 import com.smartstream.mi.query.QTemplateBusinessType;
 
 /**
- * Generated from Entity Specification on Sat Dec 06 10:17:07 CET 2014
+ * Generated from Entity Specification on Fri Dec 12 17:20:40 CET 2014
  *
  * @author scott
  */
@@ -41,7 +41,7 @@ public class QTemplate extends QueryObject<Template> {
   }
 
   public QAccessArea existsAccessArea() {
-    QAccessArea accessArea = new QAccessArea();
+    QAccessArea accessArea = new QAccessArea(this);
     addExists(accessArea, "accessArea");
     return accessArea;
   }
@@ -71,7 +71,7 @@ public class QTemplate extends QueryObject<Template> {
   }
 
   public QTemplateContent existsContents() {
-    QTemplateContent contents = new QTemplateContent();
+    QTemplateContent contents = new QTemplateContent(this);
     addExists(contents, "contents");
     return contents;
   }

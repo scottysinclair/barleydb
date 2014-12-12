@@ -13,7 +13,7 @@ import scott.sort.api.core.proxy.ToManyNodeProxyHelper;
 import com.smartstream.mac.model.AccessArea;
 
 /**
- * Generated from Entity Specification on Sat Dec 06 10:17:07 CET 2014
+ * Generated from Entity Specification on Fri Dec 12 17:20:40 CET 2014
  *
  * @author scott
  */
