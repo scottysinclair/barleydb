@@ -111,7 +111,7 @@ public class MiSpec extends MorpheusSpec {
 
         public static final NodeSpec structure = dependsOn(CsvStructure.class, "STRUCTURE_ID");
 
-        public static final NodeSpec mappings = ownsMany(CsvMapping.class, CsvMapping.syntax);
+        public static final NodeSpec mappings = sort(ownsMany(CsvMapping.class, CsvMapping.syntax), CsvMapping.structureField);
     }
 
     @Entity("SS_CSVSTRUCTURE")

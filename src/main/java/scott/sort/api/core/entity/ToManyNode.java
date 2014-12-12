@@ -163,10 +163,13 @@ public class ToManyNode extends Node {
         }
     }
     
-    private static final class MyComparator implements Comparator<Entity> {
+    private final class MyComparator implements Comparator<Entity> {
         private final String sortNodeName;
         
         public MyComparator(String sortNodeName) {
+        	if (LOG.isTraceEnabled()) {
+        		LOG.trace("Comparing entities for {} according to {}", getNodeType().getShortId(), sortNodeName);
+        	}
             this.sortNodeName = sortNodeName;
         }
 

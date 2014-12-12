@@ -15,6 +15,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.smartstream.mac.MacSpec;
@@ -124,6 +125,7 @@ public class TestGenerator {
         }
     }
 
+    @Ignore
     @Test
     public void generateDDLForMySql() throws IOException {
         SpecRegistry registry = new SpecRegistry();

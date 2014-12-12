@@ -167,7 +167,14 @@ public class NodeType implements Serializable, Cloneable {
         return EnvironmentAccessor.get().getDefinitions(namespace).getEntityTypeMatchingInterface(entityTypeName, true).getNodeType(nodeName, true);
     }
 
-    @Override
+    /**
+     * Handy string representation
+     * @return
+     */
+    public String getShortId() {
+    	return entityType.getInterfaceShortName() + "." + name;
+    }
+    	@Override
     public String toString() {
         return "NodeType - " + entityType.getInterfaceShortName() + "." + name
                 + " [javaType=" + javaType + ", relation=" + relation
