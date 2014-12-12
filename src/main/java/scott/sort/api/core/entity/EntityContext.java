@@ -415,6 +415,7 @@ public class EntityContext implements Serializable {
                 if (analyser.getEntityContext() != this) {
                     analyser.applyChanges(this);
                 }
+                LOG.debug("Persist completed successfully");
             }
             catch (OptimisticLockMismatchException x) {
                 x.switchEntitiesAndThrow(this);

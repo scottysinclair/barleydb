@@ -434,7 +434,7 @@ public class Persister {
                 boolean ownedEntityRequiresUpdate = false;
                 //the tomany entity which we own was not loaded and is therefore new
                 //meaning we need to update.
-                if (!toManyEntity.isNew()) {
+                if (toManyEntity.isNew()) {
                     ownedEntityRequiresUpdate = true;
                 }
                 else {

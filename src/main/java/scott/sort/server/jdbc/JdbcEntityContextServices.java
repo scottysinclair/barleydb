@@ -294,7 +294,9 @@ public class JdbcEntityContextServices implements IEntityContextServices {
         if (runtimeProperties.getExecuteInSameContext() == null || !runtimeProperties.getExecuteInSameContext()) {
             analyser = analyser.deepCopy();
         }
-
+        if (LOG.isDebugEnabled()) {
+        	LOG.debug("Persist Analysis Results: \n{}", analyser.report());
+        }
 
         Persister persister = newPersister(env, analyser.getEntityContext().getNamespace());
         EntityContext entityContext = analyser.getEntityContext();
