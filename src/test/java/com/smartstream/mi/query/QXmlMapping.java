@@ -7,7 +7,7 @@ import com.smartstream.mi.model.XmlMapping;
 import com.smartstream.mi.query.QXmlSyntaxModel;
 
 /**
- * Generated from Entity Specification on Fri Dec 12 17:20:40 CET 2014
+ * Generated from Entity Specification
  *
  * @author scott
  */

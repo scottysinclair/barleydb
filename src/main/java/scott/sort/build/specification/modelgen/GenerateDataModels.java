@@ -18,11 +18,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import scott.sort.api.core.entity.RefNode;
 import scott.sort.api.core.entity.ToManyNode;
 import scott.sort.api.core.entity.ValueNode;
@@ -153,9 +148,7 @@ public class GenerateDataModels extends GenerateModelsHelper {
 
     private void writeClassJavaDoc(Writer out, EntitySpec entitySpec) throws IOException {
         out.write("/**\n");
-        out.write(" * Generated from Entity Specification on ");
-        out.write(new Date().toString());
-        out.write("\n");
+        out.write(" * Generated from Entity Specification\n");
         out.write(" *\n");
         out.write(" * @author ");
         out.write(System.getProperty("user.name"));

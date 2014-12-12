@@ -8,7 +8,7 @@ import com.smartstream.mac.query.QAccessArea;
 import com.smartstream.mi.query.QCsvStructureField;
 
 /**
- * Generated from Entity Specification on Fri Dec 12 17:20:40 CET 2014
+ * Generated from Entity Specification
  *
  * @author scott
  */

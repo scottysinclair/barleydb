@@ -9,7 +9,7 @@ import com.smartstream.mi.query.QTemplateContent;
 import com.smartstream.mi.query.QTemplateBusinessType;
 
 /**
- * Generated from Entity Specification on Fri Dec 12 17:20:40 CET 2014
+ * Generated from Entity Specification
  *
  * @author scott
  */

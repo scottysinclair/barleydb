@@ -154,9 +154,7 @@ public class GenerateQueryModels extends GenerateModelsHelper {
 
     private void writeClassJavaDoc(Writer out, EntitySpec entitySpec) throws IOException {
         out.write("/**\n");
-        out.write(" * Generated from Entity Specification on ");
-        out.write(new Date().toString());
-        out.write("\n");
+        out.write(" * Generated from Entity Specification\n");
         out.write(" *\n");
         out.write(" * @author ");
         out.write(System.getProperty("user.name"));

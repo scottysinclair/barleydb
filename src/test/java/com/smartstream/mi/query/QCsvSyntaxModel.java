@@ -9,7 +9,7 @@ import com.smartstream.mi.query.QCsvStructure;
 import com.smartstream.mi.query.QCsvMapping;
 
 /**
- * Generated from Entity Specification on Fri Dec 12 17:20:40 CET 2014
+ * Generated from Entity Specification
  *
  * @author scott
  */
