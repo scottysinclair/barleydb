@@ -15,8 +15,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -42,10 +40,6 @@ public class QueryRegistry implements Serializable, Cloneable {
         map.putAll(qr.map);
     }
 
-    public Collection<QueryObject<?>> getAll() {
-        return Collections.unmodifiableCollection(map.values());
-    }
-
     /**
      * The query objects in the map are considered immutable
      * since we always return cloned copies and we only allow them to be replaced.
@@ -65,9 +59,7 @@ public class QueryRegistry implements Serializable, Cloneable {
     public void register(QueryObject<?>... qos) {
         for (QueryObject<?> qo : qos) {
             String key = getKey(qo);
-            if (!map.containsKey(key)) {
-                map.put(key, qo);
-            }
+            map.put(key, qo);
         }
     }
 

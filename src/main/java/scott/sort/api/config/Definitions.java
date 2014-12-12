@@ -61,14 +61,6 @@ public class Definitions implements Serializable {
         this.proxyFactory = proxyFactory;
     }
 
-    /**
-     * Gets all of the queries in the standard internal query registry.
-     * @return
-     */
-    public Collection<QueryObject<?>> getAllQueries() {
-        return internalQueryRegistry.getAll();
-    }
-
     public List<ProxyFactory> getProxyFactories() {
         List<ProxyFactory> facs = new LinkedList<ProxyFactory>();
         if (proxyFactory != null) {

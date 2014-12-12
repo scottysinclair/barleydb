@@ -73,7 +73,12 @@ public class TestQuery extends TestRemoteClientBase {
         this.getter = getter;
         this.autoCommitMode = autoCommitMode;
     }
-
+/*
+    public TestQuery() {
+    	getter = new EntityContextGetter(false);
+    	autoCommitMode = false;
+    }
+    */
     @Override
     protected void prepareData() throws Exception {
         super.prepareData();

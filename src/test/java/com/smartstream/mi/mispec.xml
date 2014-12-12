@@ -118,7 +118,7 @@
                         </NodeSpec>
                         <NodeSpec name="mappings" optimisticLock="false">
                             <id>com.smartstream.mi.model.XmlSyntaxModel.mappings</id>
-                            <relation type="OWNS" entitySpec="com.smartstream.mi.model.XmlMapping" backReference="com.smartstream.mi.model.XmlMapping.syntax" joinType="LEFT_OUTER_JOIN"/>
+                            <relation type="OWNS" entitySpec="com.smartstream.mi.model.XmlMapping" backReference="com.smartstream.mi.model.XmlMapping.syntax" sortNode="com.smartstream.mi.model.XmlMapping.xpath" joinType="LEFT_OUTER_JOIN"/>
                         </NodeSpec>
                     </NodeSpecs>
                     <Constraints/>

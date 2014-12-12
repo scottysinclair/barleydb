@@ -5,6 +5,7 @@ import static scott.sort.api.specification.CoreSpec.mandatoryRefersTo;
 import static scott.sort.api.specification.CoreSpec.optionallyRefersTo;
 import static scott.sort.api.specification.CoreSpec.optionallyOwns;
 import static scott.sort.api.specification.CoreSpec.ownsMany;
+import static scott.sort.api.specification.CoreSpec.sort;
 
 import com.smartstream.MorpheusSpec;
 import com.smartstream.mac.MacSpec;
@@ -86,7 +87,7 @@ public class MiSpec extends MorpheusSpec {
 
         public static final NodeSpec structure = dependsOn(XmlStructure.class, "STRUCTURE_ID");
 
-        public static final NodeSpec mappings = ownsMany(XmlMapping.class, XmlMapping.syntax);
+        public static final NodeSpec mappings = sort(ownsMany(XmlMapping.class, XmlMapping.syntax), XmlMapping.xpath);
     }
 
     @Entity("SS_XML_MAPPING")
