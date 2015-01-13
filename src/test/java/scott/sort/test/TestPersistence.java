@@ -644,8 +644,8 @@ public class TestPersistence extends TestRemoteClientBase {
         assertTrue(theEntityContext.performQuery(new QXmlSyntaxModel()).getList().isEmpty());
         assertEquals(10, theEntityContext.size());
         assertEquals(1, EntityContextHelper.countLoaded( theEntityContext.getEntitiesByType(AccessArea.class) ) );
-        assertEquals(2, EntityContextHelper.countNotLoaded( theEntityContext.getEntitiesByType(XmlSyntaxModel.class) ) );
-        assertEquals(5, EntityContextHelper.countNotLoaded( theEntityContext.getEntitiesByType(XmlMapping.class) ) );
+        assertEquals(2, EntityContextHelper.countNew( theEntityContext.getEntitiesByType(XmlSyntaxModel.class) ) );
+        assertEquals(5, EntityContextHelper.countNew( theEntityContext.getEntitiesByType(XmlMapping.class) ) );
         assertEquals(1, EntityContextHelper.countLoaded( theEntityContext.getEntitiesByType(XmlStructure.class) ) );
         assertEquals(1, EntityContextHelper.countLoaded( theEntityContext.getEntitiesByType(User.class) ) );
     }

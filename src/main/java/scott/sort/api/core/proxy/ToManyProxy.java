@@ -105,9 +105,9 @@ public class ToManyProxy<R> extends AbstractList<R> implements Serializable {
     }
 
     private void fetchIfNeeded() {
-        if (toManyNode.getParent().getKey().getValue() == null) {
+        if (toManyNode.getParent().isNew()) {
             /*
-             * the syntax has no id, so how can we load it's mappings
+             * the syntax is not in the database, so how can we load it's mappings
              */
             return;
         }

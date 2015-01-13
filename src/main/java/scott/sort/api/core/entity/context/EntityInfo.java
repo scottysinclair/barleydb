@@ -59,9 +59,7 @@ public final class EntityInfo extends WeakReference<Entity>  {
          * PK may be null at this point, if so it gets set later
          */
         this.primaryKey = entity.getKey().getValue();
-        if (this.primaryKey != null) {
-            this.primaryKeyName  = entity.getKey().getName();
-        }
+        this.primaryKeyName  = entity.getKey().getName();
     }
 
     public Object getPrimaryKey() {

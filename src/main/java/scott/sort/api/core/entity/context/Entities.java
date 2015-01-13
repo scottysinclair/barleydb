@@ -217,7 +217,7 @@ public final class Entities implements Iterable<Entity>, Serializable {
         while((entityInfo = (EntityInfo)entityReferenceQueue.poll()) != null) {
             if (entityInfo.getPrimaryKey() != null) {
                 if (entityByPk.remove(new EntityPkKey(entityInfo)) == null) {
-                    GC_LOG.warn("Failed to remove EntityInfo from prmary key lookup for {}", entityInfo);
+                    GC_LOG.warn("Failed to remove EntityInfo from primary key lookup for {}", entityInfo);
                 }
             }
             if (entityByUuid.remove(entityInfo.getUuid()) == null) {

@@ -190,7 +190,7 @@ public class PersistAnalyser implements Serializable {
                 if (entity.getEntityContext() != entityContext) {
                     throw new IllegalPersistStateException("Cannot persist entity from a different context");
                 }
-                if (entity.getKey().getValue() == null) {
+                if (entity.isNew()) {
                     analyseCreate(entity);
                 } else {
                     analyseUpdate(entity);
@@ -248,6 +248,9 @@ public class PersistAnalyser implements Serializable {
          */
         for (ToManyNode toManyNode : entity.getChildren(ToManyNode.class)) {
             for (Entity refEntity : toManyNode.getList()) {
+            	if (!refEntity.isNew()) {
+            		LOG.error("A new entity has a tomany node containing entities which exist in the database, the data model is incorrect...");
+            	}
                 analyseCreate(refEntity);
             }
         }
@@ -288,15 +291,30 @@ public class PersistAnalyser implements Serializable {
                 continue;
             }
             for (Entity refEntity : toManyNode.getList()) {
-                if (refEntity.getKey().getValue() == null) {
+                if (refEntity.isNew()) {
                     analyseCreate(refEntity);
                 }
                 else if (toManyNode.getNodeType().isOwns()) {
                     analyseUpdate(refEntity);
                 }
+                else if (toManyNode.getNodeType().isDependsOn()) {
+                	analyseDependsOn(refEntity);
+                }
             }
             for (Entity refEntity : toManyNode.getRemovedEntities()) {
-                analyseDelete(refEntity);
+                if (refEntity.isNew()) {
+                	LOG.error("Found remove entity in ToManyNode which is new, this makes no sense, and indicates a bug.");
+                }
+            	else if (toManyNode.getNodeType().isRefers()) {
+            		LOG.error("TODO: an entity for update has a deleted tomany entity which it doesn't own");
+            	}
+                else if (toManyNode.getNodeType().isOwns()) {
+                	analyseDelete(refEntity);
+            	}
+            	else if (toManyNode.getNodeType().isDependsOn()) {
+            		LOG.error("TODO: an entity for update has a deleted tomany entity which it doesn't own");
+            		analyseDependsOn(refEntity);
+            	}
             }
         }
     }
@@ -312,6 +330,11 @@ public class PersistAnalyser implements Serializable {
         for (ToManyNode toManyNode : entity.getChildren(ToManyNode.class)) {
             /*
              * we only delete the many side if we own it.
+             * todo: how should it work for a ref then? 
+             * If a syntax only referred to a mapping and the syntax got deleted, then
+             * the mapping's fk relation to syntax would have to be set to null.
+             * this means that the entity would have to be updated so that it's FK gets set to null, 
+             * unless we knew that cascade delete was used.
              */
             if (!toManyNode.getNodeType().isOwns()) {
                 //TODO: we should also check if the entities in the many side
@@ -326,23 +349,33 @@ public class PersistAnalyser implements Serializable {
                 LOG.debug("Fetching 1:N relation as part of delete analysis");
                 entityContext.fetchSingle(toManyNode, true);
                 for (Entity fetchedEntity: toManyNode.getList()) {
+                	//we track the entites which were loaded during analysis, so we don't sync them back
+                	//to the original context after persist.
                     loadedDuringAnalysis.add(fetchedEntity);
                 }
             }
             /*
-             *  schedule any many entities with non-null keys for deletion.
+             *  schedule any many entities which exist in the database for deletion.
              */
             for (Entity refEntity : toManyNode.getList()) {
-                if (refEntity.getKey().getValue() != null) {
+            	/*
+            	 * the list really can contain new entities added by the user.
+            	 */
+                if (!refEntity.isNew()) {
                     analyseDelete(refEntity);
                 }
             }
             for (Entity refEntity : toManyNode.getRemovedEntities()) {
-                analyseDelete(refEntity);
+            	if (!refEntity.isNew()) {
+            		analyseDelete(refEntity);
+            	}
+            	else {
+            		LOG.error("Found a new entity in the list of removed entities, this makes no sense!");
+            	}
             }
         }
         /*
-         * Schedule ourselves for creation
+         * Schedule ourselves for deletion.
          */
         LOG.debug("adding " + entity + " for delete");
         deleteGroup.add(entity);
@@ -436,6 +469,12 @@ public class PersistAnalyser implements Serializable {
         return refNode.getNodeType().isOwns() ? refNode.getRemovedEntityKey() : null;
     }
 
+    /**
+     * 
+     * @param entity
+     * @param updateOwnedRefs if references that the entity own's should be updated.
+     * @throws EntityMissingException
+     */
     private void analyseRefNodes(Entity entity, boolean updateOwnedRefs) throws EntityMissingException {
         for (RefNode refNode : entity.getChildren(RefNode.class)) {
             final Entity refEntity = refNode.getReference();
@@ -445,14 +484,15 @@ public class PersistAnalyser implements Serializable {
             if (refEntity == null) {
                 continue;
             }
-            if (refEntity.getKey().getValue() == null) {
+            if (refEntity.isNew()) {
                 /*
                  * we are referring to an entity which is not yet created, process it first
                  */
                 analyseCreate(refEntity);
-            } else if (updateOwnedRefs && refNode.getNodeType().isOwns() && !refEntity.isFetchRequired()) {
+            } 
+            else if (updateOwnedRefs && refNode.getNodeType().isOwns() && !refEntity.isFetchRequired()) {
                 /*
-                 * the entity already exists in the database, but we own it so we are also going to perform an update.
+                 * the refEntity already exists in the database, but we own it so we are also going to perform an update.
                  * as long as it was loaded
                  */
                 analyseUpdate(refEntity);

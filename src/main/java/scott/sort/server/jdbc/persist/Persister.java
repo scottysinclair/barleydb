@@ -632,14 +632,23 @@ public class Persister {
      * @param group
      */
     private void setLoadedAndFetchedForCreatedEntities(OperationGroup createGroup) {
-        for (Entity en : createGroup.getEntities()) {
+        logStep("Setting created entities to loaded and fetched");
+
+    	/*
+    	 * Set all to state loaded and fetched
+    	 */
+    	for (Entity en : createGroup.getEntities()) {
             en.setEntityState(EntityState.LOADED);
             for (ToManyNode toManyNode : en.getChildren(ToManyNode.class)) {
                 toManyNode.setFetched(true);
             }
+        }
+    	/*
+    	 * Then clear their state to normal (no new or removed entities as they are now saved).
+    	 */
+        for (Entity en : createGroup.getEntities()) {
             //clear our ref states back to normal, the updated or deleted refs will be removed
             en.clear();
-            en.refresh();
         }
     }
 
@@ -656,15 +665,15 @@ public class Persister {
         logStep("updating references for updated entities");
         for (Entity en : updateGroup.getEntities()) {
             en.clear();
-            en.refresh();
         }
     }
 
     private void cleanDeletedItems(EntityContext entityContext, OperationGroup deleteGroup) {
-        logStep("setting deleted entity keys to null and NOTLOADED");
+        logStep("setting deleted entity keys to null and state NEW");
         for (Entity entity : deleteGroup.getEntities()) {
+        	//TODO:only set to null if key is auto generated.
             entity.getKey().setValue(null);
-            entity.setEntityState(EntityState.NOTLOADED);
+            entity.setEntityState(EntityState.NEW);
         }
     }
 

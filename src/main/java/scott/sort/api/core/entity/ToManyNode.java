@@ -31,7 +31,11 @@ import scott.sort.api.config.NodeType;
  * Contains information on how this node refers to many entities.
  * To look up matching entities in the node context we need
  * the entity type which we are referring to and the primary key of the entity which we belong to.
- * For example for the syntax.mappings ToManyNode this translates to the Mappings entityType and the syntax id
+ * For example for the syntax.mappings ToManyNode this translates to the Mappings entityType and the syntax id.
+ * 
+ * The ToMany node also tracks which entities have been deleted from the list and which new entities have been added to the list.
+ * 
+ * 
  */
 public class ToManyNode extends Node {
 
@@ -86,16 +90,17 @@ public class ToManyNode extends Node {
     public boolean isFetched() {
         return fetched;
     }
+    
+    public void unloadAndClear() {
+    	entities.clear();
+    	newEntities.clear();
+    	removedEntities.clear();
+    	fetched = false;
+    }
 
     public void setFetched(boolean fetched) {
         LOG.debug(getParent() + "." + getName() + "=" + this + " fetched == " + fetched);
         this.fetched = fetched;
-    }
-
-    public void clear() {
-        this.entities.clear();
-        this.newEntities.clear();
-        this.removedEntities.clear();
     }
 
     public void refresh() {
@@ -103,21 +108,28 @@ public class ToManyNode extends Node {
             return;
         }
 
+    	List<Entity> preventGc = new LinkedList<Entity>(entities);
+    	preventGc.addAll(removedEntities);
+
         /*
-         * if the new entities have keys then remove them from our newEntities list
+         * remove entities from the newEntities list which are no longer new.
          */
         for (Iterator<Entity> i = newEntities.iterator(); i.hasNext();) {
-            if (i.next().getKey().getValue() != null) {
+        	Entity e = i.next();
+            if (!e.isNew()) {
+            	LOG.trace("ToManyNode {} has new entity {} which is now saved, removing from newEntities list", this, e);
                 i.remove();
             }
         }
         /*
-         * if the removed entities have no keys then remove them from our removedEntities list
+         * if the removed entities have state "new" then remove them from our removedEntities list
+         * as this means that they have been deleted.
          */
         for (Iterator<Entity> i = removedEntities.iterator(); i.hasNext();) {
             Entity e = i.next();
-            if (e.getKey().getValue() == null) {
-                i.remove();
+            if (e.isNew()) {
+            	LOG.trace("ToManyNode {} has deleted entity {} which is now new, removing from removedEntities list", this, e);                
+            	i.remove();
             }
         }
         /*
@@ -162,46 +174,21 @@ public class ToManyNode extends Node {
             }
         }
     }
-    
-    private final class MyComparator implements Comparator<Entity> {
-        private final String sortNodeName;
-        
-        public MyComparator(String sortNodeName) {
-        	if (LOG.isTraceEnabled()) {
-        		LOG.trace("Comparing entities for {} according to {}", getNodeType().getShortId(), sortNodeName);
-        	}
-            this.sortNodeName = sortNodeName;
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public int compare(Entity o1, Entity o2) {
-            Object value1 = getValue(o1, sortNodeName);
-            Object value2 = getValue(o2, sortNodeName);
-            if (value1 != null) {
-                if (value2 == null) return 1;
-                else return ((Comparable<Object>) value1).compareTo(value2);
-            }
-            else if (value2 == null) return 0;
-            else return -1;
-        }
-        
-        private Object getValue(Entity entity, String sortNodeName) {
-            Node node = entity.getChild(sortNodeName, Node.class);
-            if (node instanceof ValueNode) {
-                return ((ValueNode) node).getValue();
-            }
-            else if (node instanceof RefNode) {
-                return ((RefNode) node).getEntityKey();
-            }
-            else {
-                return null;
-            }
-        }
-    }
-
+   
+    /**
+     * We are adding an entity to this list.
+     * 
+     * @param index
+     * @param entity
+     */
     public void add(int index, Entity entity) {
-        if (entity.getKey().getValue() == null) {
+        if (entities.contains(entity)) {
+            throw new IllegalStateException("ToMany relation already contains '" + entity + "'");
+        }
+        if (entity.getEntityType() != entityType) {
+            throw new IllegalStateException("Cannot add " + entity.getEntityType() + " to " + getParent() + "." + getName());
+        }
+        if (entity.isNew()) {
             newEntities.add(entity);
         }
         entities.add(index, entity);
@@ -214,7 +201,7 @@ public class ToManyNode extends Node {
         if (entity.getEntityType() != entityType) {
             throw new IllegalStateException("Cannot add " + entity.getEntityType() + " to " + getParent() + "." + getName());
         }
-        if (entity.getKey().getValue() == null) {
+        if (entity.isNew()) {
             newEntities.add(entity);
         }
         entities.add(entity);
@@ -289,4 +276,47 @@ public class ToManyNode extends Node {
         LOG.trace("Deserialized many references {}", this);
    }
 
+    /**
+     * Provides standard sorting for the list in the to many relation.
+     * @author scott
+     *
+     */
+    private final class MyComparator implements Comparator<Entity> {
+        private final String sortNodeName;
+        
+        public MyComparator(String sortNodeName) {
+        	if (LOG.isTraceEnabled()) {
+        		LOG.trace("Comparing entities for {} according to {}", getNodeType().getShortId(), sortNodeName);
+        	}
+            this.sortNodeName = sortNodeName;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public int compare(Entity o1, Entity o2) {
+            Object value1 = getValue(o1, sortNodeName);
+            Object value2 = getValue(o2, sortNodeName);
+            if (value1 != null) {
+                if (value2 == null) return 1;
+                else return ((Comparable<Object>) value1).compareTo(value2);
+            }
+            else if (value2 == null) return 0;
+            else return -1;
+        }
+        
+        private Object getValue(Entity entity, String sortNodeName) {
+            Node node = entity.getChild(sortNodeName, Node.class);
+            if (node instanceof ValueNode) {
+                return ((ValueNode) node).getValue();
+            }
+            else if (node instanceof RefNode) {
+                return ((RefNode) node).getEntityKey();
+            }
+            else {
+                return null;
+            }
+        }
+    }
+    
 }
+

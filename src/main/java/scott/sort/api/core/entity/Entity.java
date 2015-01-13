@@ -126,7 +126,9 @@ public class Entity implements Serializable {
                 ((RefNode) node).clear();
             }
             else if (node instanceof ToManyNode) {
-                ((ToManyNode) node).clear();
+            	//the refresh call checks the entity state of added or removed entities
+            	//and corrects accordingly.
+                ((ToManyNode) node).refresh();
             }
         }
     }

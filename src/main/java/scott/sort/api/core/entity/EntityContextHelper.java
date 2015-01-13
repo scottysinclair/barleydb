@@ -38,6 +38,16 @@ public class EntityContextHelper {
         return count;
     }
 
+    public static int countNew(Collection<Entity> entities) {
+        int count = 0;
+        for (Entity e: entities) {
+            if (e.isNew()) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     public static Collection<Entity> toParents(Collection<RefNode> fkReferences) {
         Collection<Entity> list = new LinkedList<Entity>();
         for (RefNode refNode : fkReferences) {

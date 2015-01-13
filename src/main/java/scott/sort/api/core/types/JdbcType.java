@@ -19,6 +19,7 @@ public enum JdbcType {
     BLOB,
     CLOB,
     DATE,
+    DATETIME,
     TIMESTAMP,
     DECIMAL;
 

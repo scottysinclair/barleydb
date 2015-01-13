@@ -5,7 +5,7 @@ import static scott.sort.api.specification.CoreSpec.mandatoryRefersTo;
 import static scott.sort.api.specification.CoreSpec.optionallyRefersTo;
 import static scott.sort.api.specification.CoreSpec.optionallyOwns;
 import static scott.sort.api.specification.CoreSpec.ownsMany;
-import static scott.sort.api.specification.CoreSpec.sort;
+import static scott.sort.api.specification.CoreSpec.sortedBy;
 
 import com.smartstream.MorpheusSpec;
 import com.smartstream.mac.MacSpec;
@@ -72,6 +72,10 @@ public class MiSpec extends MorpheusSpec {
 
         public static final NodeSpec user = optionallyRefersTo(User.class);
 
+        /**
+         * We don't have a getter or setter for this because the subclass will have the correct methods
+         * for the real association. 
+         */
         @SuppressFromGeneratedCode
         public static final NodeSpec structure = mandatoryLongValue("STRUCTURE_ID");
     }
@@ -87,7 +91,7 @@ public class MiSpec extends MorpheusSpec {
 
         public static final NodeSpec structure = dependsOn(XmlStructure.class, "STRUCTURE_ID");
 
-        public static final NodeSpec mappings = sort(ownsMany(XmlMapping.class, XmlMapping.syntax), XmlMapping.xpath);
+        public static final NodeSpec mappings = sortedBy(XmlMapping.xpath, ownsMany(XmlMapping.class, XmlMapping.syntax));
     }
 
     @Entity("SS_XML_MAPPING")
@@ -111,7 +115,7 @@ public class MiSpec extends MorpheusSpec {
 
         public static final NodeSpec structure = dependsOn(CsvStructure.class, "STRUCTURE_ID");
 
-        public static final NodeSpec mappings = sort(ownsMany(CsvMapping.class, CsvMapping.syntax), CsvMapping.structureField);
+        public static final NodeSpec mappings = sortedBy(CsvMapping.structureField, ownsMany(CsvMapping.class, CsvMapping.syntax));
     }
 
     @Entity("SS_CSVSTRUCTURE")

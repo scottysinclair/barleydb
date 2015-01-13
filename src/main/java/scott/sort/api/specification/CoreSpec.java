@@ -131,8 +131,8 @@ public class CoreSpec {
     public static NodeSpec refersToMany(Class<?> type, NodeSpec nodeType) {
         return manyRelation(RelationType.REFERS, type, nodeType, null);
     }
-
-    public static NodeSpec sort(NodeSpec nodeSpec, NodeSpec byMe) {
+    
+    public static NodeSpec sortedBy(NodeSpec byMe, NodeSpec nodeSpec) {
         nodeSpec.getRelationSpec().setSortNode(byMe);
         return nodeSpec;
     }

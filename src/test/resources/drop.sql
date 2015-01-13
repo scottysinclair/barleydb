@@ -43,10 +43,10 @@ drop table SS_XML_MAPPING;
 drop table SS_XMLSTRUCTURE;
 drop table SS_SYNTAX_MODEL;
 
+alter table MAC_ACCESS_AREA drop foreign key FK_ACCESS_AREA_ACCESS_AREA;
+alter table MAC_ACCESS_AREA drop primary key  PK_ACCESS_AREA;
 alter table MAC_USER drop index UC_USER_1;
 alter table MAC_USER drop foreign key FK_USER_ACCESS_AREA;
 alter table MAC_USER drop primary key  PK_USER;
-alter table MAC_ACCESS_AREA drop foreign key FK_ACCESS_AREA_ACCESS_AREA;
-alter table MAC_ACCESS_AREA drop primary key  PK_ACCESS_AREA;
 drop table MAC_USER;
 drop table MAC_ACCESS_AREA;

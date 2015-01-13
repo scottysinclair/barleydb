@@ -146,6 +146,8 @@ public final class RefNode extends Node {
      * reference key and reference, more like a reset really
      */
     public void clear() {
+    	@SuppressWarnings("unused")
+		Entity holdTheRef = reference; //we hold the ref to prevent garbage collection of the reference
         reference = null;
         removedEntityKey = null;
         if (entityKey != null) {
@@ -157,7 +159,8 @@ public final class RefNode extends Node {
     /**
      * Refresh the entity reference.
      */
-    public void refresh() {}
+    public void refresh() {
+    }
 
     /**
      * The reference is being set, it can be either an entity which

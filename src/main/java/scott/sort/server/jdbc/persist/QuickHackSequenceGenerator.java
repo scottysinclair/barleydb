@@ -40,7 +40,7 @@ public class QuickHackSequenceGenerator implements SequenceGenerator {
                 EntityContext entityContext = new EntityContext(env, namespace);
                 entityContext.performQuery(qo);
                 Long highest = 0l;
-                for (Entity e : entityContext.getEntities()) {
+                for (Entity e : entityContext.getEntitiesByType(entityType)) {
                     Long key = (Long) e.getKey().getValue();
                     if (key > highest) {
                         highest = key;

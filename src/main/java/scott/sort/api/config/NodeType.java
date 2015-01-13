@@ -146,6 +146,10 @@ public class NodeType implements Serializable, Cloneable {
         return relation.getRelationType() == RelationType.OWNS;
     }
 
+    public boolean isRefers() {
+        return relation.getRelationType() == RelationType.REFERS;
+    }
+
     public boolean isDependsOn() {
         return relation.getRelationType() == RelationType.DEPENDS;
     }
