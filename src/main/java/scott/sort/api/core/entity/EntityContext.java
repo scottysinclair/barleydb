@@ -120,7 +120,10 @@ public class EntityContext implements Serializable {
         proxies = new WeakHashMap<>();
         resources = new HashMap<String, Object>();
     }
-
+    /**
+     * if set to true, unreferenced entities will be garbage collected.
+     * @param allow
+     */
     public void setAllowGarbageCollection(boolean allow) {
         entities.setAllowGarbageCollection(allow);
     }
@@ -129,6 +132,10 @@ public class EntityContext implements Serializable {
         return entities.isAllowGarbageCollection();
     }
 
+    /**
+     * registers the given queries to be used for fetching their respective objects.
+     * @param qos
+     */
     public void register(QueryObject<?>... qos) {
         userQueryRegistry.register(qos);
     }
@@ -145,6 +152,10 @@ public class EntityContext implements Serializable {
         return env.getAutocommit(this);
     }
 
+    /**
+     * Rolls back the current transaction 
+     * @throws SortServiceProviderException if there is no transaction or the rollback failed.
+     */
     public void rollback() throws SortServiceProviderException {
         env.rollback(this);
     }
@@ -153,6 +164,12 @@ public class EntityContext implements Serializable {
         env.commit(this);
     }
 
+    /**
+     * gets a resource associated with the entity context.
+     * @param key
+     * @param required
+     * @return
+     */
     public Object getResource(String key, boolean required) {
         Object value = resources.get(key);
         if (value == null && required) {
@@ -173,10 +190,18 @@ public class EntityContext implements Serializable {
         return env;
     }
 
+    /**
+     * 
+     * @return the number of entities in the context.
+     */
     public int size() {
         return entities.size();
     }
 
+    /**
+     * an iterable object of all the entities in the context.
+     * @return
+     */
     public Iterable<Entity> getEntities() {
         return entities;
     }
@@ -225,6 +250,10 @@ public class EntityContext implements Serializable {
         }
     }
 
+    /**
+     * Handles events in the underlying entity model, like PKs being set.
+     * @param event
+     */
     public void handleEvent(NodeEvent event) {
         EntityContextState prev = entityContextState;
         try {
@@ -250,6 +279,11 @@ public class EntityContext implements Serializable {
         }
     }
 
+    /**
+     * Creates a new entity of the given type. 
+     * @param type
+     * @return
+     */
     @SuppressWarnings("unchecked")
     public <T> T newModel(Class<T> type) {
         EntityType entityType = definitions.getEntityTypeMatchingInterface(type.getName(), true);
@@ -322,6 +356,11 @@ public class EntityContext implements Serializable {
         }
     }
 
+    /**
+     * gets a proxy for the given entity, creating it if required.
+     * @param entity
+     * @return
+     */
     public Object getProxy(Entity entity) {
         WeakReference<Object> p = proxies.get(entity.getUuid());
         if (p == null || p.get() == null ) {
@@ -533,7 +572,10 @@ public class EntityContext implements Serializable {
 
     /**
      * Gets the entity if it exists or creates a non-loaded entity
-     * in the context
+     * in the context.<br/>
+     * 
+     * This means that the caller is expecting the entity to exist in the datasase already.
+     * 
      * @return the entity
      */
     public Entity getOrCreate(EntityType entityType, Object key) {
@@ -564,12 +606,30 @@ public class EntityContext implements Serializable {
         return env.generateProxy(entity);
 	}    
 
+	/**
+	 * creates a new entity context which shares the same transaction 
+	 * as the current entity context.
+	 * @return
+	 */
     public EntityContext newEntityContextSharingTransaction() {
         EntityContext entityContext = new EntityContext(env, namespace);
         env.joinTransaction(entityContext, this);
         return entityContext;
     }
 
+    /**
+     * gets the entity from the context loading it first if required.
+     * @param type
+     * @param key
+     * @return
+     * @throws ProxyCreationException
+     */
+    public <T> T getOrLoad(Class<T> type, Object key) throws ProxyCreationException {
+      EntityType entityType = definitions.getEntityTypeForClass(type, true);
+      Entity e = getOrLoad(entityType, key);
+      return env.generateProxy(e);
+    }
+    
     /**
      * Returns the entity from the context, loading it first if required.
      * @param entityType

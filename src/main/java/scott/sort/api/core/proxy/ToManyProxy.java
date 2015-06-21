@@ -70,7 +70,8 @@ public class ToManyProxy<R> extends AbstractList<R> implements Serializable {
             EntityType joinEntityType = defs.getEntityTypeMatchingInterface(nd.getRelationInterfaceName(), true);
             String typePastJoin = joinEntityType.getNodeType(joinProperty, true).getRelationInterfaceName();
             if (e.getEntityType().getInterfaceName().equals(typePastJoin)) {
-                Entity joinEntity = new Entity(e.getEntityContext(), joinEntityType);
+            	//an entity is being added to a n:m relation, the join table entity must therefore have state new.
+                Entity joinEntity = new Entity(e.getEntityContext(), EntityState.NEW, joinEntityType);
                 e.getEntityContext().add(joinEntity);
                 NodeType nodeTypeReferringBack = joinEntityType.getNodeTypeWithRelationTo(toManyNode.getParent().getEntityType().getInterfaceName());
                 joinEntity.getChild(nodeTypeReferringBack.getName(), RefNode.class, true).setReference(toManyNode.getParent());
