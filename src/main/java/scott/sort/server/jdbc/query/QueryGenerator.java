@@ -98,7 +98,9 @@ public class QueryGenerator {
             generateSubQueryCondition(sb, query);
             if (query.getCondition() != null) {
                 sb.append(" AND ");
+            	sb.append(" (");
                 query.getCondition().visit(new ConditionRenderer(database, sb, definitions, params, initialIndent));
+            	sb.append(" )");
             }
         }
         else {
