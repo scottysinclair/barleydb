@@ -210,6 +210,13 @@ public class EntityContext implements Serializable {
         return entities.safe();
     }
 
+    public void unload(Object object, boolean includeOwnedEntities) {
+    	if (object instanceof ProxyController) {
+    		ProxyController pc = (ProxyController)object;
+    		pc.getEntity().unload( includeOwnedEntities );
+    	}
+    }
+
     public void clear() {
         entities.clear();
         proxies.clear();
@@ -331,6 +338,13 @@ public class EntityContext implements Serializable {
         remove(entity, Collections.<Entity> emptyList());
     }
 
+    public void remove(Object object) {
+    	if (object instanceof ProxyController) {
+    		ProxyController pc = (ProxyController)object;
+    		remove(pc.getEntity());	
+    	}
+    }
+
     public void remove(List<Entity> allEntitiesToBeRemoved) {
         for (Entity e : allEntitiesToBeRemoved) {
             remove(e, allEntitiesToBeRemoved);
@@ -341,7 +355,7 @@ public class EntityContext implements Serializable {
         EntityInfo entityInfo = entities.getByUuid(entity.getUuid(), true);
         Collection<RefNode> refNodes = entityInfo.getFkReferences();
         if (!refNodes.isEmpty() && !allEntitiesToBeRemoved.containsAll(toParents(refNodes))) {
-            entity.unload();
+            entity.unload(false);
             LOG.debug("Unloaded entity " + entity + " " + entity.getUuid());
         }
         else {

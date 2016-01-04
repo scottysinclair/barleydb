@@ -93,24 +93,33 @@ public class Entity implements Serializable {
 
     /**
      * Sets the nodes state to unloaded
+     * Any entities owned by this one will also be unloaded.
      * Means only the key has a value and everything else
      * must be fetched
      */
-    public void unload() {
+    public void unload(boolean includeOwnedEntities) {
         for (Node node : getChildren()) {
             if (node != getKey()) {
                 if (node instanceof ValueNode) {
                     ((ValueNode) node).setValueNoEvent(NotLoaded.VALUE);
                 }
                 else if (node instanceof RefNode) {
-                    ((RefNode) node).setEntityKey(null);
+                	if (includeOwnedEntities && node.getNodeType().isOwns()) {
+	                	RefNode refNode = (RefNode) node;
+                		Entity reffedEntity = refNode.getReference();
+                		reffedEntity.unload(includeOwnedEntities);
+	                	refNode.setEntityKey(null);
+                	}
                 }
-                /* even if a syntax is unloaded, all of it's mappings can
-                 * still be there in the context
-                 *
                 else if (node instanceof ToManyNode) {
-                    ((ToManyNode) node).setFetched(false);
-                }*/
+                	if (includeOwnedEntities && node.getNodeType().isOwns()) {
+                		ToManyNode toMany = (ToManyNode)node;
+                		for (Entity e: toMany.getList()) {
+                			e.unload(includeOwnedEntities);
+                		}
+                		toMany.unloadAndClear();
+                	}
+                }
             }
         }
         setEntityState(EntityState.NOTLOADED);

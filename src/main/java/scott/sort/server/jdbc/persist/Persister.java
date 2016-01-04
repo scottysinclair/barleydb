@@ -672,7 +672,8 @@ public class Persister {
         logStep("setting deleted entity keys to null and state NEW");
         for (Entity entity : deleteGroup.getEntities()) {
         	//TODO:only set to null if key is auto generated.
-            entity.getKey().setValue(null);
+        	//no longer setting it to null seems to have no impact
+//            entity.getKey().setValue(null);
             entity.setEntityState(EntityState.NEW);
         }
     }
