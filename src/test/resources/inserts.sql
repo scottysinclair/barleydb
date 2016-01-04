@@ -1,6 +1,6 @@
 /*
  #%L
-  Simple Object Relational Framework
+  BarleyDB
    %%
    Copyright (C) 2014 Scott Sinclair <scottysinclair@gmail.com>
    %%
