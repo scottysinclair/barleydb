@@ -3,20 +3,24 @@
 BarleyDB is a Java ORM library which takes a different approach. Some of the interesting features of BarleyDB are:
 * Allowing the programmer to control **per usecase** how much data will be fetched when lazy loading an entity.
 * Normal garbage collection rules for entities loaded from the database.
-* Transfer over the wire of entities and their EntityContext.
+* Transfer over the wire of Entities and their EntityContext.
 * Batching of queries to the database (depending if the database supports multiple result-sets).
-* Java based schema specification which takes advantage of the compiler to ensure dependencies are met.
+* Java based schema specification which takes advantage of the compiler to ensure dependencies between tables are met.
+* No bytecode manipulation.
 
 ### Dynamic and Static Nature
 Another key interesting aspect of BarleyDB the fact that **compilation is a completely optional step!**. 
 It is completely possible and valid to import an XML specification outlining the complete **database schema**. 
 You can then use the meta-model to query and persist data. 
 
-You could in theory as well use the meta model to create generic CRUD UI screens in the UI technology of your choice which allow users to view and edit data in a basic way. Then create custom fancy UI screens for the parts of the application which matter most. This approach could greatly increase the speed of shipping.
-
 It is also possible to generate Java classes which then allow static and compilation safe interaction with the database. 
 
-#### ETL
+#### Benefits to UI development of dynamic nature:
+You could use the schema / meta model to create generic CRUD UI screens in the UI technology of your choice which would allow users to view and edit the database data. This would allow products to ship very early. Custom / fancy UI screens could then be created on an as needed basis.
+
+The custom UI screens can then use Java classes generated from the schema to query and persist data ensuring that any custom UI is completely compile safe.
+
+#### Benefits to ETL systems
 As someone who has worked extensively with ETL tools. BarleyDB could be used to dynamically define a database schema. The schema could then be loaded and the ETL tool could allow a message to be mapped to the meta-model provided by BarleyDB. Once the data is mapped to the meta model . Then BarleyDB could simply be asked to persist the whole dataset to the database.
 
 ## Usual ORM Featutres
@@ -24,7 +28,10 @@ BarleyDB also supports the usual ORM features:
 * Lazy loading of data.
 * Persisting of data to the database.
 * Transactional scope.
-* Querying of data using a QueryDSL.
+* Querying of data using a QueryDSL, including joins, subqueries etc.
+* Optimistic Locking.
+* Auditing of changes.
+* Access Control for insert, update and delete operations.1
 
 ## Data Structure
 BarleyDB has it's own simple data model for holding database data. It consists of:
