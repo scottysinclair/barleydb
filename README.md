@@ -42,7 +42,7 @@ BarleyDB has it's own simple data model for holding database data. It consists o
 * EntityContext - A container of entities and scope for transactions.
 
 ## Class Generation
-As programmers usually want to have their own Classes to program against. BarleyDB can generate the required Classes
+As programmers usually want to have their own classes to program against. BarleyDB can generate the required Classes
 for the programmer which are simply proxies to the underlying Entity data structure.
 
 BarleyDB also generates a domain specific query DSL which can be used to query for data. A simple example is as follows:
@@ -62,6 +62,27 @@ BarleyDB also generates a domain specific query DSL which can be used to query f
 The following features are supported by BarleyDB
 
 ### Querying
+A more complex query eample is as follows:
+```java
+  //find users with name 'John' who have a primary address with postcode 'KW14' or a seconary address with
+  //postcode 'OSA'
+  QUser quser = new QUser();
+  QAddress primAddr = quer.existsPrimaryAddress(); //sub-query for primary address
+  QAddress secAddr = quer.existsSecondaryAddress(); //sub-query for secondard address
+  
+  //join to the user's department and the department's country so the data is pulled in eagerly.
+  quser.joinToDepartment().joinToCountry();
+  
+  quser.where( quser.name().equal("John") )
+       .andExists( primAddr.where( primAddr.postCode().like("KW14") ) )
+       .orExists ( secAddr.where( primAddr.postCode().like("OSA") ) ); 
+
+  //execute the query and process the results.
+  for (User user: ctx.performQuery( quser ).getList()) {
+     System.out.println(user.getName() + " - " + user.getDepartment().getCountry().getName());
+  }
+```  
+The feature set is as follows:
 * Eager loading via inner joins or outer joins. 
 * Flexible lazy loading
   * The queries used to perform fetching can changed at any time to control how much data is fetched.
@@ -72,7 +93,28 @@ The following features are supported by BarleyDB
 * Configuration of the JDBC scroll type, Concurrency and fetch size.
 
 ### Persisting
+An example of persisting data is as follows:
+```java
+//create a new user
+User user = ctx.newModel(User.class);
+user.setName("John");
+
+//create a new department
+Department dept = ctx.newModel(Department.class);
+dept.setName("Computer Science");
+
+//assign the department to the user.
+user.setDepartment( dept );
+
+//Save the user. The user has a FK reference to the department so the department is saved too.
+PeristRequest req = new PeristRequest();
+req.save( user );
+ctx.persist( req ); 
+```
+
 * Inserting, Updating and deleting various entities in a single transaction.
+* Uses **owning** and **depends-on* relationships to correctly manage dependencies when saving and performing freshness checks.
+* Plugin sequence generator.
 * Optimistic locking (Timestamp based).
 * Advanced Freshness checks on the optimistic lock (checking if dependent data is also fresh).
 * Batch inserts, updates, deletes.
@@ -87,7 +129,7 @@ BarleyDB supports sending queries and data over the wire allowing for:
 * Smart serialization ensures that only the relevant data is serialized over the wire. 
   
 ### Entity Context
-The entity context functions as the executer of queries and persist requests. It also holds all of the entites.
+The entity context functions as the executer of queries and persist-requests. It also holds all of the entites.
 In this respect it is similar to the JPA EntityManager. The entity context however supports some extra features
 which the EntityManager does not:
 * Automatic garbage collection for a more normal expectation of the Java programmer (can be turned off if desired).
