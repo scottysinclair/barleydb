@@ -23,14 +23,14 @@ The custom UI screens can then use Java classes generated from the schema to que
 #### Benefits to ETL systems of dynamic nature
 As someone who has worked extensively with ETL tools. BarleyDB could be used to dynamically define a database schema. The schema could then be loaded and the ETL tool could allow a message to be mapped to the meta-model provided by BarleyDB. Once the data is mapped to the meta model . Then BarleyDB could simply be asked to persist the whole dataset to the database.
 
-#### Loading data from an older database on the fly
-As no compilation is required to load and save data from a database schema. It is possible to import BarleyDB XML schema definitions of an older database into a running system on the fly and then use those definitions to pull data out of the older database.
+#### Loading data from an older schema version on the fly
+As no compilation is required to load and save data from a database schema. It is possible to import BarleyDB XML schema definitions of an older schema into a running system on the fly and then use those definitions to pull data out of the older database.
 
 #### Sophisticated version management (future)
 BarleyDB can generate XML schema definition files. Each schema definition can be reduced to a SHA-1 hash. If migation logic was introduced, then it would be possible to define how to migrate data from one schema definition to another.
 This would allow for automatic forward porting and backporting of data.
 
-Such a system would allow connecting to a database with an older schema version, then loading in data and upgrading it to match the current schema and then inserting it into the database. If backporting was supported, the reverse could also be accomplished.
+Such a system would allow connecting to a database with an older schema version, then loading in data and upgrading it to match the current schema and then inserting it into the current database. If backporting was supported, the reverse could also be accomplished.
 
 ## Usual ORM Featutres
 BarleyDB also supports the usual ORM features:
@@ -79,7 +79,8 @@ A more complex query eample is as follows:
   QAddress primAddr = quer.existsPrimaryAddress(); //sub-query for primary address
   QAddress secAddr = quer.existsSecondaryAddress(); //sub-query for secondard address
   
-  //join to the user's department and the department's country so the data is pulled in eagerly.
+  //join to the user's department and the department's country so the data is pulled 
+  //in as part of the same query.
   quser.joinToDepartment().joinToCountry();
   
   quser.where( quser.name().equal("John") )
