@@ -1,6 +1,30 @@
 # BarleyDB
 
-BarleyDB is a Java ORM library which takes a different approach.
+BarleyDB is a Java ORM library which takes a different approach. Some of the interesting features of BarleyDB are:
+* Allowing the programmer to control **per usecase** how much data will be fetched when lazy loading an entity.
+* Normal garbage collection rules for entities loaded from the database.
+* Transfer over the wire of entities and their EntityContext.
+* Batching of queries to the database (depending if the database supports multiple result-sets).
+* Java based schema specification which takes advantage of the compiler to ensure dependencies are met.
+
+### Dynamic and Static Nature
+Another key interesting aspect of BarleyDB the fact that **compilation is a completely optional step!**. 
+It is completely possible and valid to import an XML specification outlining the complete **database schema**. 
+You can then use the meta-model to query and persist data. 
+
+You could in theory as well use the meta model to create generic CRUD UI screens in the UI technology of your choice which allow users to view and edit data in a basic way. Then create custom fancy UI screens for the parts of the application which matter most. This approach could greatly increase the speed of shipping.
+
+It is also possible to generate Java classes which then allow static and compilation safe interaction with the database. 
+
+#### ETL
+As someone who has worked extensively with ETL tools. BarleyDB could be used to dynamically define a database schema. The schema could then be loaded and the ETL tool could allow a message to be mapped to the meta-model provided by BarleyDB. Once the data is mapped to the meta model . Then BarleyDB could simply be asked to persist the whole dataset to the database.
+
+## Usual ORM Featutres
+BarleyDB also supports the usual ORM features:
+* Lazy loading of data.
+* Persisting of data to the database.
+* Transactional scope.
+* Querying of data using a QueryDSL.
 
 ## Data Structure
 BarleyDB has it's own simple data model for holding database data. It consists of:
@@ -16,6 +40,7 @@ for the programmer which are simply proxies to the underlying Entity data struct
 
 BarleyDB also generates a domain specific query DSL which can be used to query for data. A simple example is as follows:
 
+```java
   //build a simple query
   QUser quser  = new QUser();
   quser.where( quser.name().equal("John") );
@@ -24,6 +49,7 @@ BarleyDB also generates a domain specific query DSL which can be used to query f
   for (User user: ctx.performQuery( quser ).getList()) {
      System.out.println(user.getName() + " - " + user.getAge());
   }
+```  
   
 ## Supported Features:
 The following features are supported by BarleyDB
@@ -57,5 +83,5 @@ BarleyDB supports sending queries and data over the wire allowing for:
 The entity context functions as the executer of queries and persist requests. It also holds all of the entites.
 In this respect it is similar to the JPA EntityManager. The entity context however supports some extra features
 which the EntityManager does not:
-* Automatic garbage collection (can be turned off).
+* Automatic garbage collection for a more normal expectation of the Java programmer (can be turned off if desired).
 * Serialization - the EntityContext can be transferred across the wire.
