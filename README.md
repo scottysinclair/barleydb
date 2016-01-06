@@ -5,9 +5,9 @@ BarleyDB is a Java ORM library which takes a different approach.
 ## Data Structure
 BarleyDB has it's own simple data model for holding database data. It consists of:
 * Entity - a data record from a table, an entity contains one or more of...
-..* ValueNode - A data value. 
-..* RefNode - A 1:1 foreign key reference to another entity.
-..* ToManyNode - A 1:N reference to many entities.
+  * ValueNode - A data value. 
+  * RefNode - A 1:1 foreign key reference to another entity.
+  * ToManyNode - A 1:N reference to many entities.
 * EntityContext - A container of entities and scope for transactions.
 
 ## Class Generation
@@ -31,8 +31,8 @@ The following features are supported by BarleyDB
 ### Querying
 * Eager loading via inner joins or outer joins. 
 * Flexible lazy loading
-..* The queries used to perform fetching can changed at any time to control how much data is fetched.
-..* Lazy loading of individual columns.
+  * The queries used to perform fetching can changed at any time to control how much data is fetched.
+  * Lazy loading of individual columns.
 * SubQueries, Sub-SubQueries...
 * And, or, exists, not, equals, greater-than, greater-than-or-equal,less-than,less-than-or-equal, like.
 * Batching - executing multiple queries in one go (in a single statement if the database supports multiple result sets). 
