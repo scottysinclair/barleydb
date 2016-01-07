@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  #%L
+  BarleyDB
+  $Id:$
+  $HeadURL:$
+  %%
+  Copyright (C) 2014 - 2016 Scott Sinclair
+  			<scottysinclair@gmail.com>
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Lesser General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Lesser Public License for more details.
+  
+  You should have received a copy of the GNU General Lesser Public
+  License along with this program.  If not, see
+  <http://www.gnu.org/licenses/lgpl-3.0.html>.
+  #L%
+  -->
+
+<SpecRegistry>
+    <contents>
+        <Definitions namespace="org.example.acl">
+            <EntitySpecs>
+                <EntitySpec className="org.example.acl.model.User" tableName="MAC_USER" abstract="false">
+                    <queryClass>org.example.acl.query.QUser</queryClass>
+                    <NodeSpecs>
+                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                            <suppression>GENERATED_CODE_SETTER</suppression>
+                            <id>org.example.acl.model.User.id</id>
+                        </NodeSpec>
+                        <NodeSpec name="accessArea" jdbcType="BIGINT" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>org.example.acl.model.User.accessArea</id>
+                            <relation type="REFERS" entitySpec="org.example.acl.model.AccessArea" joinType="LEFT_OUTER_JOIN"/>
+                        </NodeSpec>
+                        <NodeSpec name="uuid" javaType="STRING" jdbcType="CHAR" columnName="UUID" nullable="NOT_NULL" length="60" optimisticLock="false">
+                            <id>org.example.acl.model.User.uuid</id>
+                        </NodeSpec>
+                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" length="50" optimisticLock="true">
+                            <id>org.example.acl.model.User.modifiedAt</id>
+                        </NodeSpec>
+                        <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="USER_NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
+                            <id>org.example.acl.model.User.name</id>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints>
+                        <PrimaryKey name="PK_USER" nodes="org.example.acl.model.User.id"/>
+                        <ForeignKey name="FK_USER_ACCESS_AREA" fromKey="org.example.acl.model.User.accessArea" toKey="org.example.acl.model.AccessArea.id"/>
+                        <UniqueConstraint name="UC_USER_1" nodes="org.example.acl.model.User.name org.example.acl.model.User.accessArea"/>
+                    </Constraints>
+                </EntitySpec>
+                <EntitySpec className="org.example.acl.model.AccessArea" tableName="MAC_ACCESS_AREA" abstract="false">
+                    <queryClass>org.example.acl.query.QAccessArea</queryClass>
+                    <NodeSpecs>
+                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                            <suppression>GENERATED_CODE_SETTER</suppression>
+                            <id>org.example.acl.model.AccessArea.id</id>
+                        </NodeSpec>
+                        <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
+                            <id>org.example.acl.model.AccessArea.name</id>
+                        </NodeSpec>
+                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" length="50" optimisticLock="true">
+                            <id>org.example.acl.model.AccessArea.modifiedAt</id>
+                        </NodeSpec>
+                        <NodeSpec name="parent" jdbcType="BIGINT" columnName="PARENT_ID" nullable="NULL" optimisticLock="false">
+                            <id>org.example.acl.model.AccessArea.parent</id>
+                            <relation type="REFERS" entitySpec="org.example.acl.model.AccessArea" joinType="LEFT_OUTER_JOIN"/>
+                        </NodeSpec>
+                        <NodeSpec name="children" optimisticLock="false">
+                            <id>org.example.acl.model.AccessArea.children</id>
+                            <relation type="REFERS" entitySpec="org.example.acl.model.AccessArea" backReference="org.example.acl.model.AccessArea.parent" joinType="LEFT_OUTER_JOIN"/>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints>
+                        <PrimaryKey name="PK_ACCESS_AREA" nodes="org.example.acl.model.AccessArea.id"/>
+                        <ForeignKey name="FK_ACCESS_AREA_ACCESS_AREA" fromKey="org.example.acl.model.AccessArea.parent" toKey="org.example.acl.model.AccessArea.id"/>
+                    </Constraints>
+                </EntitySpec>
+            </EntitySpecs>
+        </Definitions>
+    </contents>
+</SpecRegistry>

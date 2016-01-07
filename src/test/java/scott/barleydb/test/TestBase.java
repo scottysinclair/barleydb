@@ -46,38 +46,38 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import org.example.mac.model.AccessArea;
-import org.example.mac.model.MacProxyFactory;
-import org.example.mac.model.User;
-import org.example.mac.query.QAccessArea;
-import org.example.mac.query.QUser;
-import org.example.mi.MiSpec;
-import org.example.mi.context.MiEntityContext;
-import org.example.mi.model.BusinessType;
-import org.example.mi.model.CsvMapping;
-import org.example.mi.model.CsvStructure;
-import org.example.mi.model.CsvStructureField;
-import org.example.mi.model.CsvSyntaxModel;
-import org.example.mi.model.MiProxyFactory;
-import org.example.mi.model.SyntaxModel;
-import org.example.mi.model.Template;
-import org.example.mi.model.TemplateContent;
-import org.example.mi.model.XmlMapping;
-import org.example.mi.model.XmlStructure;
-import org.example.mi.model.XmlSyntaxModel;
-import org.example.mi.query.QBusinessType;
-import org.example.mi.query.QCsvMapping;
-import org.example.mi.query.QCsvStructure;
-import org.example.mi.query.QCsvStructureField;
-import org.example.mi.query.QCsvSyntaxModel;
-import org.example.mi.query.QTemplate;
-import org.example.mi.query.QTemplateBusinessType;
-import org.example.mi.query.QTemplateContent;
-import org.example.mi.query.QXmlMapping;
-import org.example.mi.query.QXmlStructure;
-import org.example.mi.query.QXmlSyntaxModel;
-import org.example.mi.types.StructureType;
-import org.example.mi.types.SyntaxType;
+import org.example.acl.model.AccessArea;
+import org.example.acl.model.MacProxyFactory;
+import org.example.acl.model.User;
+import org.example.acl.query.QAccessArea;
+import org.example.acl.query.QUser;
+import org.example.etl.EtlSpec;
+import org.example.etl.context.MiEntityContext;
+import org.example.etl.model.BusinessType;
+import org.example.etl.model.CsvMapping;
+import org.example.etl.model.CsvStructure;
+import org.example.etl.model.CsvStructureField;
+import org.example.etl.model.CsvSyntaxModel;
+import org.example.etl.model.MiProxyFactory;
+import org.example.etl.model.SyntaxModel;
+import org.example.etl.model.Template;
+import org.example.etl.model.TemplateContent;
+import org.example.etl.model.XmlMapping;
+import org.example.etl.model.XmlStructure;
+import org.example.etl.model.XmlSyntaxModel;
+import org.example.etl.query.QBusinessType;
+import org.example.etl.query.QCsvMapping;
+import org.example.etl.query.QCsvStructure;
+import org.example.etl.query.QCsvStructureField;
+import org.example.etl.query.QCsvSyntaxModel;
+import org.example.etl.query.QTemplate;
+import org.example.etl.query.QTemplateBusinessType;
+import org.example.etl.query.QTemplateContent;
+import org.example.etl.query.QXmlMapping;
+import org.example.etl.query.QXmlStructure;
+import org.example.etl.query.QXmlSyntaxModel;
+import org.example.etl.types.StructureType;
+import org.example.etl.types.SyntaxType;
 import org.junit.After;
 import org.junit.Before;
 import org.springframework.core.io.ClassPathResource;
@@ -195,7 +195,7 @@ public abstract class TestBase {
     protected static String transformXml;
     protected static DatabaseTestSetup db = new HsqlDbTest();
 
-    protected static final String namespace = "org.example.mi";
+    protected static final String namespace = "org.example.etl";
     protected static DataSource dataSource;
     protected EntityContext serverEntityContext;
     protected boolean autoCommitMode = false;
@@ -306,16 +306,16 @@ public abstract class TestBase {
         entityContextServices.register(new LongToStringTimestampConverter());
 
 
-        env.addDefinitions( Definitions.create( loadDefinitions("src/test/java/org/example/mac/macspec.xml", "org.example.mac") ) );
-        env.addDefinitions( Definitions.create( loadDefinitions("src/test/java/org/example/mi/mispec.xml", "org.example.mi") ) );
+        env.addDefinitions( Definitions.create( loadDefinitions("src/test/java/org/example/acl/aclspec.xml", "org.example.acl") ) );
+        env.addDefinitions( Definitions.create( loadDefinitions("src/test/java/org/example/etl/etlspec.xml", "org.example.etl") ) );
 
-        env.getDefinitions("org.example.mac").registerQueries(
+        env.getDefinitions("org.example.acl").registerQueries(
                 new QUser(),
                 new QAccessArea());
 
-        env.getDefinitions("org.example.mac").registerProxyFactory(new MacProxyFactory());
+        env.getDefinitions("org.example.acl").registerProxyFactory(new MacProxyFactory());
 
-        env.getDefinitions("org.example.mi").registerQueries(
+        env.getDefinitions("org.example.etl").registerQueries(
                 new QXmlSyntaxModel(),
                 new QXmlStructure(),
                 new QXmlMapping(),
@@ -328,7 +328,7 @@ public abstract class TestBase {
                 new QTemplateBusinessType(),
                 new QBusinessType());
 
-        env.getDefinitions("org.example.mi").registerProxyFactory(new MiProxyFactory());
+        env.getDefinitions("org.example.etl").registerProxyFactory(new MiProxyFactory());
 
         transformXml = "<?xml version=\"1.0\"?>" +
                 "<xsl:stylesheet version=\"1.0\" " +
@@ -365,7 +365,7 @@ public abstract class TestBase {
     }
 
     private static DefinitionsSpec loadDefinitions(String path, String namespace) throws Exception {
-        JAXBContext jc = JAXBContext.newInstance(SpecRegistry.class, StructureType.class, SyntaxType.class, MiSpec.class);
+        JAXBContext jc = JAXBContext.newInstance(SpecRegistry.class, StructureType.class, SyntaxType.class, EtlSpec.class);
         Unmarshaller unmarshaller = jc.createUnmarshaller();
         SpecRegistry registry = (SpecRegistry)unmarshaller.unmarshal(new File(path));
         DefinitionsSpec spec = registry.getDefinitionsSpec(namespace);

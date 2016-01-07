@@ -25,12 +25,12 @@ package scott.barleydb.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import org.example.mac.model.AccessArea;
-import org.example.mac.model.User;
-import org.example.mi.model.XmlMapping;
-import org.example.mi.model.XmlStructure;
-import org.example.mi.model.XmlSyntaxModel;
-import org.example.mi.types.SyntaxType;
+import org.example.acl.model.AccessArea;
+import org.example.acl.model.User;
+import org.example.etl.model.XmlMapping;
+import org.example.etl.model.XmlStructure;
+import org.example.etl.model.XmlSyntaxModel;
+import org.example.etl.types.SyntaxType;
 import org.junit.Test;
 
 import scott.barleydb.api.persist.PersistAnalyser;

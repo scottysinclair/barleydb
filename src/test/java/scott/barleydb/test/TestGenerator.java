@@ -40,10 +40,10 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
-import org.example.mac.MacSpec;
-import org.example.mi.MiSpec;
-import org.example.mi.types.StructureType;
-import org.example.mi.types.SyntaxType;
+import org.example.acl.MacSpec;
+import org.example.etl.EtlSpec;
+import org.example.etl.types.StructureType;
+import org.example.etl.types.SyntaxType;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -67,9 +67,9 @@ public class TestGenerator {
 	
 	@Before
 	public void setup() {
-        File file = new File("target/generated/src/test/java/org/example/mi");
+        File file = new File("target/generated/src/test/java/org/example/etl");
         file.mkdirs();
-        file = new File("target/generated/src/test/java/org/example/mac");
+        file = new File("target/generated/src/test/java/org/example/acl");
         file.mkdirs();
         file = new File("target/generated/src/test/resources/");
         file.mkdirs();
@@ -82,7 +82,7 @@ public class TestGenerator {
         @SuppressWarnings("unused")
         DefinitionsSpec macSpec = processor.process(new MacSpec(), registry);
 
-        JAXBContext jc = JAXBContext.newInstance(SpecRegistry.class, StructureType.class, SyntaxType.class, MiSpec.class);
+        JAXBContext jc = JAXBContext.newInstance(SpecRegistry.class, StructureType.class, SyntaxType.class, EtlSpec.class);
         Marshaller marshaller = jc.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
         marshaller.marshal(registry, System.out);
@@ -100,7 +100,7 @@ public class TestGenerator {
         assertTrue(Arrays.equals(data1, data2));
 
 
-        FileOutputStream fout = new FileOutputStream(new File("target/generated/src/test/java/org/example/mac/macspec.xml"));
+        FileOutputStream fout = new FileOutputStream(new File("target/generated/src/test/java/org/example/acl/aclspec.xml"));
         marshaller.marshal(registry, fout);
         fout.flush();
         fout.close();
@@ -111,9 +111,9 @@ public class TestGenerator {
         SpecRegistry registry = new SpecRegistry();
         StaticDefinitionProcessor processor = new StaticDefinitionProcessor();
         @SuppressWarnings("unused")
-        DefinitionsSpec miSpec = processor.process(new MiSpec(), registry);
+        DefinitionsSpec miSpec = processor.process(new EtlSpec(), registry);
 
-        JAXBContext jc = JAXBContext.newInstance(SpecRegistry.class, StructureType.class, SyntaxType.class, MiSpec.class);
+        JAXBContext jc = JAXBContext.newInstance(SpecRegistry.class, StructureType.class, SyntaxType.class, EtlSpec.class);
         Marshaller marshaller = jc.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 
@@ -129,7 +129,7 @@ public class TestGenerator {
         byte[] data2 = bout.toByteArray();
         assertTrue(Arrays.equals(data1, data2));
 
-        File file = new File("target/generated/src/test/java/org/example/mi/mispec.xml");
+        File file = new File("target/generated/src/test/java/org/example/etl/etlspec.xml");
         FileOutputStream fout = new FileOutputStream(file);
         marshaller.marshal(registry, fout);
         fout.flush();
@@ -141,9 +141,9 @@ public class TestGenerator {
         SpecRegistry registry = new SpecRegistry();
         StaticDefinitionProcessor processor = new StaticDefinitionProcessor();
 
-        DefinitionsSpec miSpec = processor.process(new MiSpec(), registry);
+        DefinitionsSpec miSpec = processor.process(new EtlSpec(), registry);
 
-        DefinitionsSpec macSpec = registry.getDefinitionsSpec("org.example.mac");
+        DefinitionsSpec macSpec = registry.getDefinitionsSpec("org.example.acl");
 
         GenerateDatabaseScript gen = new GenerateHsqlDatabaseScript();
 
@@ -166,9 +166,9 @@ public class TestGenerator {
         SpecRegistry registry = new SpecRegistry();
         StaticDefinitionProcessor processor = new StaticDefinitionProcessor();
 
-        DefinitionsSpec miSpec = processor.process(new MiSpec(), registry);
+        DefinitionsSpec miSpec = processor.process(new EtlSpec(), registry);
 
-        DefinitionsSpec macSpec = registry.getDefinitionsSpec("org.example.mac");
+        DefinitionsSpec macSpec = registry.getDefinitionsSpec("org.example.acl");
 
         GenerateDatabaseScript gen = new GenerateMySqlDatabaseScript();
 
@@ -199,12 +199,12 @@ public class TestGenerator {
 
         DefinitionsSpec macSpec = processor.process(new MacSpec(), registry);
 
-      //  deleteFiles("src/test/java/org/example/mac/model");
+      //  deleteFiles("src/test/java/org/example/acl/model");
 
         GenerateDataModels generateModels = new GenerateDataModels();
         generateModels.generateDataModels("target/generated/src/test/java", macSpec);
 
-      //  deleteFiles("src/test/java/org/example/mac/query");
+      //  deleteFiles("src/test/java/org/example/acl/query");
         GenerateQueryModels generateQueryModels = new GenerateQueryModels();
         generateQueryModels.generateQueryModels("target/generated/src/test/java", macSpec);
 }
@@ -214,13 +214,13 @@ public class TestGenerator {
         SpecRegistry registry = new SpecRegistry();
         StaticDefinitionProcessor processor = new StaticDefinitionProcessor();
 
-        DefinitionsSpec miSpec = processor.process(new MiSpec(), registry);
+        DefinitionsSpec miSpec = processor.process(new EtlSpec(), registry);
 
-      //  deleteFiles("src/test/java/org/example/mi/model");
+      //  deleteFiles("src/test/java/org/example/etl/model");
         GenerateDataModels generateDataModels = new GenerateDataModels();
         generateDataModels.generateDataModels("target/generated/src/test/java", miSpec);
 
-    //    deleteFiles("src/test/java/org/example/mi/query");
+    //    deleteFiles("src/test/java/org/example/etl/query");
         GenerateQueryModels generateQueryModels = new GenerateQueryModels();
         generateQueryModels.generateQueryModels("target/generated/src/test/java", miSpec);
     }
@@ -230,9 +230,9 @@ public class TestGenerator {
         SpecRegistry registry = new SpecRegistry();
         StaticDefinitionProcessor processor = new StaticDefinitionProcessor();
 
-        DefinitionsSpec miSpec = processor.process(new MiSpec(), registry);
+        DefinitionsSpec miSpec = processor.process(new EtlSpec(), registry);
 
-        DefinitionsSpec macSpec = registry.getDefinitionsSpec("org.example.mac");
+        DefinitionsSpec macSpec = registry.getDefinitionsSpec("org.example.acl");
 
         GenerateDatabaseScript gen = new GenerateHsqlDatabaseScript();
 
@@ -254,9 +254,9 @@ public class TestGenerator {
         SpecRegistry registry = new SpecRegistry();
         StaticDefinitionProcessor processor = new StaticDefinitionProcessor();
 
-        DefinitionsSpec miSpec = processor.process(new MiSpec(), registry);
+        DefinitionsSpec miSpec = processor.process(new EtlSpec(), registry);
 
-        DefinitionsSpec macSpec = registry.getDefinitionsSpec("org.example.mac");
+        DefinitionsSpec macSpec = registry.getDefinitionsSpec("org.example.acl");
 
         GenerateDatabaseScript gen = new GenerateHsqlDatabaseScript();
 

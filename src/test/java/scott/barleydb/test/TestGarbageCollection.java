@@ -36,8 +36,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
-import org.example.mi.model.XmlSyntaxModel;
-import org.example.mi.query.QXmlSyntaxModel;
+import org.example.etl.model.XmlSyntaxModel;
+import org.example.etl.query.QXmlSyntaxModel;
 import org.junit.Ignore;
 import org.junit.Test;
 

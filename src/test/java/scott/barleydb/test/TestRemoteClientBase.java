@@ -25,7 +25,7 @@ package scott.barleydb.test;
  * #L%
  */
 
-import org.example.mi.context.MiEntityContext;
+import org.example.etl.context.MiEntityContext;
 
 import scott.barleydb.api.core.Environment;
 import scott.barleydb.api.core.entity.EntityContext;

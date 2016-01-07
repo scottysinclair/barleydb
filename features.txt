@@ -282,13 +282,13 @@ VERIFYING CREATE RIGHT FOR Entity [XMLMapping.id=708]
 ==================================================================================
 Performing inserts...
 
-Executing insert batch for EntityType [ org.example.mi.model.XMLStructure ] of size 1
+Executing insert batch for EntityType [ org.example.etl.model.XMLStructure ] of size 1
 1 rows were modified in total
-Executing insert batch for EntityType [ org.example.mac.model.User ] of size 1
+Executing insert batch for EntityType [ org.example.acl.model.User ] of size 1
 1 rows were modified in total
-Executing insert batch for EntityType [ org.example.mi.model.XMLSyntaxModel ] of size 2
+Executing insert batch for EntityType [ org.example.etl.model.XMLSyntaxModel ] of size 2
 2 rows were modified in total
-Executing insert batch for EntityType [ org.example.mi.model.XMLMapping ] of size 5
+Executing insert batch for EntityType [ org.example.etl.model.XMLMapping ] of size 5
 5 rows were modified in total
 
 ==================================================================================
@@ -392,24 +392,24 @@ Defining the models and relations can be specified in XML or in a Java DSL
 	 - Owns - Owned entities are inserted, updated and deleted with their owners.   
 	  
 
-    <entity interface="org.example.mi.model.XMLSyntaxModel" table="SS_SYNTAX_MODEL" key="id">
+    <entity interface="org.example.etl.model.XMLSyntaxModel" table="SS_SYNTAX_MODEL" key="id">
         <node name="id"   		javaType="LONG"   columnName="ID"   		jdbcType="BIGINT"/>
         <node name="name" 		javaType="STRING" columnName="NAME" 		jdbcType="VARCHAR"/>
         <node name="syntaxType" 				  columnName="SYNTAX_TYPE" 	jdbcType="INT">
-            <enumType>org.example.mi.model.SyntaxType</enumType>
+            <enumType>org.example.etl.model.SyntaxType</enumType>
         </node>
         <node name="structureType" javaType="INTEGER" columnName="STRUCTURE_TYPE" jdbcType="INT">
             <fixedValue xsi:type="xs:int">1</fixedValue>
         </node>
         <node name="user" columnName="USER_ID" jdbcType="BIGINT">
-            <interfaceName>org.example.mac.model.User</interfaceName>
+            <interfaceName>org.example.acl.model.User</interfaceName>
         </node>
         <node name="structure" columnName="STRUCTURE_ID" jdbcType="BIGINT">
-            <interfaceName>org.example.mi.model.XMLStructure</interfaceName>
+            <interfaceName>org.example.etl.model.XMLStructure</interfaceName>
             <relationType>DEPENDS</relationType>
         </node>
         <node name="mappings">
-            <interfaceName>org.example.mi.model.XMLMapping</interfaceName>
+            <interfaceName>org.example.etl.model.XMLMapping</interfaceName>
             <foreignNodeName>syntaxModel</foreignNodeName>
             <relationType>OWNS</relationType>
         </node>
@@ -418,15 +418,15 @@ Defining the models and relations can be specified in XML or in a Java DSL
         </node>
     </entity>
 
-    <entity interface="org.example.mi.model.XMLMapping" table="SS_XML_MAPPING" key="id">
+    <entity interface="org.example.etl.model.XMLMapping" table="SS_XML_MAPPING" key="id">
         <node name="id" 		javaType="LONG" 	columnName="ID" 					jdbcType="BIGINT"/>
         <node name="xpath" 		javaType="STRING" 	columnName="XPATH" 					jdbcType="VARCHAR"/>
         <node name="target" 	javaType="STRING" 	columnName="TARGET_FIELD_NAME" 		jdbcType="VARCHAR"/>
         <node name="syntaxModel" 					columnName="SYNTAX_MODEL_ID" 		jdbcType="BIGINT">
-            <interfaceName>org.example.mi.model.XMLSyntaxModel</interfaceName>
+            <interfaceName>org.example.etl.model.XMLSyntaxModel</interfaceName>
         </node>
         <node name="subSyntaxModel" 				columnName="SUB_SYNTAX_MODEL_ID"	jdbcType="BIGINT">
-            <interfaceName>org.example.mi.model.XMLSyntaxModel</interfaceName>
+            <interfaceName>org.example.etl.model.XMLSyntaxModel</interfaceName>
             <relationType>OWNS</relationType>
         </node>
     </entity>
