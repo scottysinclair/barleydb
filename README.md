@@ -34,6 +34,9 @@ Such a system would allow connecting to a database with an older schema version,
 
 ## Usual ORM Featutres
 BarleyDB also supports the usual ORM features:
+* Generation of DDL databse scripts.
+* Generation of Java Classes.
+* Entity Inheritence with proper class inheritence in the generated classes.
 * Lazy loading of data.
 * Persisting of data to the database.
 * Transactional scope.
@@ -145,3 +148,14 @@ In this respect it is similar to the JPA EntityManager. The entity context howev
 which the EntityManager does not:
 * Automatic garbage collection for a more normal expectation of the Java programmer (can be turned off if desired).
 * Serialization - the EntityContext can be transferred across the wire.
+
+### Specification
+BarleyDB allows the schema to be specified in an XML file or via Java classes. Java classes have the advantage of using  compilation safety to ensure foreign key references between tables.
+
+
+# Getting Started
+The best way to see how BarleyDB works is to look at the test cases.
+* The `scott.barleydb.test.TestQuery` class executes queries using the QueryDSL against an in memory HSQLDB instance.
+* The `scott.barleydb.test.TestPersistence` class executes persist requests saving data into an in memory HSQLDB instance.
+* The `org.example.etl.EtlSpec` defines a schema for an ETL tool which itself references elements from the `org.example.acl.AclSpec`
+
