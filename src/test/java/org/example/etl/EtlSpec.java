@@ -33,9 +33,9 @@ import static scott.barleydb.api.specification.CoreSpec.ownsMany;
 import static scott.barleydb.api.specification.CoreSpec.sortedBy;
 
 import org.example.PlatformSpec;
-import org.example.acl.MacSpec;
-import org.example.acl.MacSpec.TopLevelModel;
-import org.example.acl.MacSpec.User;
+import org.example.acl.AclSpec;
+import org.example.acl.AclSpec.TopLevelModel;
+import org.example.acl.AclSpec.User;
 import org.example.etl.types.StructureType;
 import org.example.etl.types.SyntaxType;
 
@@ -63,7 +63,7 @@ public class EtlSpec extends PlatformSpec {
 
     public EtlSpec() {
         super("org.example.etl");
-        add(new MacSpec());
+        add(new AclSpec());
         excludeForeignKeyConstraint(new StaticRelation(XmlSyntaxModel.structure));
         excludeForeignKeyConstraint(new StaticRelation(CsvSyntaxModel.structure));
         renameForeignKeyConstraint(new StaticRelation(XmlMapping.subSyntax), "FK_XML_MAPPING_SUBSYNTAX_MODEL");

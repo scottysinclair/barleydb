@@ -36,13 +36,13 @@ import scott.barleydb.api.specification.NodeSpec;
 import scott.barleydb.api.specification.constraint.UniqueConstraintSpec;
 import scott.barleydb.build.specification.staticspec.Entity;
 
-public class MacSpec extends PlatformSpec {
+public class AclSpec extends PlatformSpec {
 
-    public MacSpec() {
+    public AclSpec() {
         super("org.example.acl");
     }
 
-    @Entity("MAC_ACCESS_AREA")
+    @Entity("ACL_ACCESS_AREA")
     public static class AccessArea {
         public static NodeSpec id = longPrimaryKey();
 
@@ -58,7 +58,7 @@ public class MacSpec extends PlatformSpec {
 
     }
 
-    @Entity("MAC_USER")
+    @Entity("ACL_USER")
     public static class User implements TopLevelModel {
 
         public static NodeSpec name = name("USER_NAME");
