@@ -158,4 +158,5 @@ The best way to see how BarleyDB works is to look at the test cases.
 * The `scott.barleydb.test.TestQuery` class executes queries using the QueryDSL against an in memory HSQLDB instance.
 * The `scott.barleydb.test.TestPersistence` class executes persist requests saving data into an in memory HSQLDB instance.
 * The `org.example.etl.EtlSpec` defines a schema for an ETL tool which itself references elements from the `org.example.acl.AclSpec`
+* The `scott.barleydb.test.TestGenerator` class generated schema DDL files, QueryDSL classes and Pojo classes for a given schema specification. 
 
