@@ -34,7 +34,7 @@ Such a system would allow connecting to a database with an older schema version,
 
 ## Usual ORM Featutres
 BarleyDB also supports the usual ORM features:
-* Generation of DDL databse scripts.
+* Generation of DDL database scripts.
 * Generation of Java Classes.
 * Entity Inheritence with proper class inheritence in the generated classes.
 * Lazy loading of data.
@@ -152,11 +152,10 @@ which the EntityManager does not:
 ### Specification
 BarleyDB allows the schema to be specified in an XML file or via Java classes. Java classes have the advantage of using  compilation safety to ensure foreign key references between tables.
 
-
 # Getting Started
 The best way to see how BarleyDB works is to look at the test cases.
-* The `scott.barleydb.test.TestQuery` class executes queries using the QueryDSL against an in memory HSQLDB instance.
-* The `scott.barleydb.test.TestPersistence` class executes persist requests saving data into an in memory HSQLDB instance.
-* The `org.example.etl.EtlSpec` defines a schema for an ETL tool which itself references elements from the `org.example.acl.AclSpec`
-* The `scott.barleydb.test.TestGenerator` class generates schema DDL files, QueryDSL classes and Pojo classes for a given schema specification. 
+* The [scott.barleydb.test.TestQuery](https://github.com/scottysinclair/barleydb/blob/master/src/test/java/scott/barleydb/test/TestQuery.java) class executes queries using the QueryDSL against an in memory HSQLDB instance.
+* The [scott.barleydb.test.TestPersistence](https://github.com/scottysinclair/barleydb/blob/master/src/test/java/scott/barleydb/test/TestPersistence.java) class executes persist requests saving data into an in memory HSQLDB instance.
+* The [org.example.etl.EtlSpec](https://github.com/scottysinclair/barleydb/blob/master/src/test/java/org/example/etl/EtlSpec.java) defines a schema for an ETL tool which itself references elements from the [org.example.acl.AclSpec]()
+* The [scott.barleydb.test.TestGenerator](https://github.com/scottysinclair/barleydb/blob/master/src/test/java/scott/barleydb/test/TestGenerator.java) class generates schema DDL files, QueryDSL classes and Pojo classes for a given schema specification. 
 
