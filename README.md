@@ -9,11 +9,11 @@ BarleyDB is a Java ORM library which takes a different approach. Some of the int
 * No bytecode manipulation.
 
 ### Dynamic and Static Nature
-Another key interesting aspect of BarleyDB the fact that **compilation is a completely optional step!**. 
+Another key interesting aspect of BarleyDB the fact that **compilation is a completely optional step!**.
 It is completely possible and valid to import an XML specification outlining the complete **database schema**. 
-You can then use the meta-model to query and persist data. 
+You can then use the meta-model to query and persist data. This is a very unusual and powerfull feature which no other the Java ORM solution offers and it allows BarleyDB to be used in interesting ways.   
 
-It is also possible to generate Java classes which then allow static and compilation safe interaction with the database. 
+It is of course also possible to generate Java classes which then allow static and compilation safe interaction with the database. 
 
 #### Benefits to UI development of dynamic nature
 You could use the schema / meta model to create generic CRUD UI screens in the UI technology of your choice which would allow users to view and edit the database data. This would allow products to ship very early. Custom / fancy UI screens could then be created on an as needed basis.
@@ -43,7 +43,7 @@ BarleyDB also supports the usual ORM features:
 * Querying of data using a QueryDSL, including joins, subqueries etc.
 * Optimistic Locking.
 * Auditing of changes.
-* Access Control for insert, update and delete operations.1
+* Access Control for insert, update and delete operations.
 
 ## Data Structure
 BarleyDB has it's own simple data model for holding database data. It consists of:
@@ -79,8 +79,8 @@ A more complex query eample is as follows:
   //find users with name 'John' who have a primary address with postcode 'KW14' or a seconary address with
   //postcode 'OSA'
   QUser quser = new QUser();
-  QAddress primAddr = quer.existsPrimaryAddress(); //sub-query for primary address
-  QAddress secAddr = quer.existsSecondaryAddress(); //sub-query for secondard address
+  QAddress primAddr = quser.existsPrimaryAddress(); //sub-query for primary address
+  QAddress secAddr = quser.existsSecondaryAddress(); //sub-query for secondard address
   
   //join to the user's department and the department's country so the data is pulled 
   //in as part of the same query.
@@ -126,7 +126,7 @@ ctx.persist( req );
 ```
 The feature set is as follows:
 * Inserting, Updating and deleting various entities in a single transaction.
-* Uses **owning** and **depends-on* relationships to correctly manage dependencies when saving and performing freshness checks.
+* Uses **owning** and **depends-on** and **refers-to** relationships to correctly manage dependencies when saving and performing freshness checks.
 * Plugin sequence generator.
 * Optimistic locking (Timestamp based).
 * Advanced Freshness checks on the optimistic lock (checking if dependent data is also fresh).
