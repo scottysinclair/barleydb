@@ -40,7 +40,7 @@ BarleyDB also supports the usual ORM features:
 * Lazy loading of data.
 * Persisting of data to the database.
 * Transactional scope.
-* Querying of data using a QueryDSL, including joins, subqueries etc.
+* Querying of data using a query DSL, including joins, subqueries etc.
 * Optimistic Locking.
 * Auditing of changes.
 * Access Control for insert, update and delete operations.
