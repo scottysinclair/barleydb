@@ -640,7 +640,18 @@ public class EntityContext implements Serializable {
             add(entity);
         }
         return env.generateProxy(entity);
-	}    
+	}
+	
+	
+	/**
+	 * creates a new entity context which shares the same transaction 
+	 * as the current entity context.
+	 * @return
+	 */
+    public EntityContext newEntityContext() {
+        EntityContext entityContext = new EntityContext(env, namespace);
+        return entityContext;
+    }
 
 	/**
 	 * creates a new entity context which shares the same transaction 
@@ -648,7 +659,7 @@ public class EntityContext implements Serializable {
 	 * @return
 	 */
     public EntityContext newEntityContextSharingTransaction() {
-        EntityContext entityContext = new EntityContext(env, namespace);
+        EntityContext entityContext = newEntityContext();
         env.joinTransaction(entityContext, this);
         return entityContext;
     }
