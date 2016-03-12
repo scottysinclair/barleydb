@@ -70,6 +70,7 @@ import org.example.etl.query.QCsvMapping;
 import org.example.etl.query.QCsvStructure;
 import org.example.etl.query.QCsvStructureField;
 import org.example.etl.query.QCsvSyntaxModel;
+import org.example.etl.query.QRawData;
 import org.example.etl.query.QTemplate;
 import org.example.etl.query.QTemplateBusinessType;
 import org.example.etl.query.QTemplateContent;
@@ -326,7 +327,8 @@ public abstract class TestBase {
                 new QTemplate(),
                 new QTemplateContent(),
                 new QTemplateBusinessType(),
-                new QBusinessType());
+                new QBusinessType(),
+                new QRawData());
 
         env.getDefinitions("org.example.etl").registerProxyFactory(new MiProxyFactory());
 

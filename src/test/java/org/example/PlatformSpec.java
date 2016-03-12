@@ -39,6 +39,7 @@ import scott.barleydb.api.specification.CoreSpec;
 import scott.barleydb.api.specification.DefinitionsSpec;
 import scott.barleydb.api.specification.EntitySpec;
 import scott.barleydb.api.specification.JoinTypeSpec;
+import scott.barleydb.api.specification.KeyGenSpec;
 import scott.barleydb.api.specification.NodeSpec;
 import scott.barleydb.api.specification.RelationSpec;
 import scott.barleydb.api.specification.SuppressionSpec;
@@ -88,6 +89,7 @@ public class PlatformSpec extends StaticDefinitions {
 
     public static NodeSpec longPrimaryKey() {
         NodeSpec spec = mandatoryLongValue();
+        spec.setKeyGenSpec(KeyGenSpec.FRAMEWORK);
         spec.setColumnName("ID");
         spec.setPrimaryKey(true);
         spec.setNullable(Nullable.NOT_NULL);

@@ -23,6 +23,7 @@ package scott.barleydb.server.jdbc.persist;
  */
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -45,6 +46,12 @@ public class OperationGroup implements Serializable {
     private static final Logger LOG = LoggerFactory.getLogger(OperationGroup.class);
 
     private final List<Entity> entities = new LinkedList<>();
+    
+    public OperationGroup() {}
+    
+    public OperationGroup(Collection<Entity> entities) {
+    	this.entities.addAll( entities );
+    }
 
     public OperationGroup reverse() {
         OperationGroup og = new OperationGroup();

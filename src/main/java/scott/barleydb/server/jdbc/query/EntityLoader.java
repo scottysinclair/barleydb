@@ -25,6 +25,7 @@ package scott.barleydb.server.jdbc.query;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -264,7 +265,7 @@ final class EntityLoader {
 				value = converter.convertBackwards(value);
 			} 
         	catch (TypeConversionException e) {
-        		throw new IllegalQueryStateException("Type conversion error", e);
+        		throw new IllegalQueryStateException("Type conversion error for column " + nd.getColumnName(), e);
 			}
         	javaType = converter.getBackwardsJavaType();
         }
@@ -398,6 +399,16 @@ final class EntityLoader {
     }
 
     private Date convertToUtilDate(Object value) {
+        if (value instanceof java.sql.Date) {
+        	//a java.sql.Date IS A java.util.Date, but we create a fresh java.util.Date to avoid 
+        	//any possible side-effects. 
+            return new Date(((java.sql.Date)value).getTime());
+        }
+        if (value instanceof Timestamp) {
+        	//a Timestamp IS A java.util.Date, but we create a fresh java.util.Date to avoid 
+        	//any possible side-effects. 
+            return new Date(((Timestamp)value).getTime());
+        }
         if (value instanceof Date) {
             return (Date)value;
         }

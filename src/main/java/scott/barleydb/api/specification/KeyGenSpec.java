@@ -1,10 +1,13 @@
-package scott.barleydb.api.core.entity;
+package scott.barleydb.api.specification;
 
 /*
  * #%L
  * BarleyDB
+ * $Id:$
+ * $HeadURL:$
  * %%
- * Copyright (C) 2014 Scott Sinclair <scottysinclair@gmail.com>
+ * Copyright (C) 2014 - 2016 Scott Sinclair
+ * 			<scottysinclair@gmail.com>
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -21,10 +24,8 @@ package scott.barleydb.api.core.entity;
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-public enum EntityState {
-    LOADING,
-    NEW, //the entity does not exist in the database
-    LOADED, //the entity was loaded from the back-end
-    NOTLOADED, //the entity is not loaded, but exists in the back end
-    NEW_OR_NOT_LOADED  //the entity is either a new one or it is already in the datbase
+
+public enum KeyGenSpec {
+	CLIENT,
+	FRAMEWORK
 }

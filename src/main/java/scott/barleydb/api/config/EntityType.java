@@ -33,6 +33,7 @@ import java.util.Map;
 
 import scott.barleydb.api.core.util.EnvironmentAccessor;
 import scott.barleydb.api.specification.EntitySpec;
+import scott.barleydb.api.specification.KeyGenSpec;
 import scott.barleydb.api.specification.NodeSpec;
 
 /**
@@ -62,6 +63,8 @@ public class EntityType implements Serializable {
     private String parentTypeName;
 
     private String keyNodeName;
+    
+    private KeyGenSpec keyGenSpec;
 
     private Map<String,NodeType> nodeTypes = new LinkedHashMap<>();
 
@@ -85,6 +88,17 @@ public class EntityType implements Serializable {
             entityType.parentTypeName = entityTypeSpec.getParentEntity().getClassName();
         }
         entityType.keyNodeName = keyNodes.iterator().next().getName();
+        /*
+         * if there is only 1 primary key then we check for the generation policy.
+         * if there is any other number of keys, then we assume it is a business key. 
+         */
+        if (entityTypeSpec.getPrimaryKeyNodes(true).size() == 1) {
+        	entityType.keyGenSpec = entityTypeSpec.getPrimaryKeyNodes(true).iterator().next().getKeyGenSpec();
+        }
+        if (entityType.keyGenSpec == null) {
+        	//we default to framework 
+        	entityType.keyGenSpec = KeyGenSpec.CLIENT;
+        }
         createNodeTypesFromEntitySpec(entityType, entityTypeSpec);
         return entityType;
       }
@@ -142,8 +156,12 @@ public class EntityType implements Serializable {
     public String getInterfaceShortName() {
         return interfaceName.substring(interfaceName.lastIndexOf('.') + 1, interfaceName.length());
     }
+    
+    public KeyGenSpec getKeyGenSpec() {
+		return keyGenSpec;
+	}
 
-    public boolean isAbstract() {
+	public boolean isAbstract() {
         return abstractEntity;
     }
 

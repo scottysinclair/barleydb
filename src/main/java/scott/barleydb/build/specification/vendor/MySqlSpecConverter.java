@@ -33,6 +33,12 @@ public class MySqlSpecConverter {
 
 	/**
 	 * Converts the given spec to work with MySql DB.
+	 * 
+	 * special handling for specs which convert longs to timestamps.
+	 * for mysql we instead convert them to varchars and use a special converter
+	 * 
+	 *  
+	 * 
 	 * @param definitionsSpec
 	 * @return
 	 */

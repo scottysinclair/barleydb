@@ -45,6 +45,9 @@ public class GenerateMySqlDatabaseScript extends GenerateDatabaseScript {
             case TIMESTAMP:
                 sb.append("TIMESTAMP");
                 break;
+            case DATETIME:
+                sb.append("DATETIME");
+                break;
             case DECIMAL:
             	sb.append("DECIMAL");
             	generatePrecisionAndScale(nodeSpec, sb);

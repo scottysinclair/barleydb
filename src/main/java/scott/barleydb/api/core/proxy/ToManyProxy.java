@@ -68,6 +68,7 @@ public class ToManyProxy<R> extends AbstractList<R> implements Serializable {
 
     @Override
     public void add(int index, R element) {
+        fetchIfNeeded();
         ProxyController em = (ProxyController) element;
         Entity e = em.getEntity();
         if (e.getEntityType().equals(toManyNode.getEntityType())) {
@@ -124,14 +125,15 @@ public class ToManyProxy<R> extends AbstractList<R> implements Serializable {
              */
             return;
         }
-        if (toManyNode.getParent().getEntityState() != EntityState.LOADED) {
+        if (toManyNode.getParent().getEntityState() == EntityState.LOADING) {
             /*
-             * our entity is not loaded so we don't fetch
+             * our entity is being loaded, so do not fetch
              */
             return;
         }
         /*
-         * ok, we got here.. if we have not yet been fetched then try it
+         * ok, we got here..
+         * if we have not yet been fetched then try it
          */
         if (!toManyNode.isFetched()) {
             toManyNode.getEntityContext().fetch(toManyNode);

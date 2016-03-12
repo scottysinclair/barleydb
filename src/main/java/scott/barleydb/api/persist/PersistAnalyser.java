@@ -23,7 +23,9 @@ package scott.barleydb.api.persist;
  */
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -34,10 +36,15 @@ import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.entity.EntityContextHelper;
+import scott.barleydb.api.core.entity.EntityState;
 import scott.barleydb.api.core.entity.RefNode;
 import scott.barleydb.api.core.entity.ToManyNode;
+import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.execution.persist.EntityMissingException;
 import scott.barleydb.api.exception.execution.persist.IllegalPersistStateException;
+import scott.barleydb.api.exception.execution.persist.SortPersistException;
+import scott.barleydb.api.exception.execution.query.SortQueryException;
+import scott.barleydb.server.jdbc.persist.DatabaseDataSet;
 import scott.barleydb.server.jdbc.persist.OperationGroup;
 
 public class PersistAnalyser implements Serializable {
@@ -165,9 +172,18 @@ public class PersistAnalyser implements Serializable {
      * @param persistRequest
      * @throws IllegalPersistStateException
      * @throws EntityMissingException
+     * @throws SortServiceProviderException 
      */
-    public void analyse(PersistRequest persistRequest) throws IllegalPersistStateException, EntityMissingException {
+    public void analyse(PersistRequest persistRequest) throws SortPersistException, EntityMissingException {
         try {
+        	
+            setCorrectStateForEntitiesWhichMayOrMayNotBeInTheDatabase(
+            		persistRequest.getToInsert(), 
+            		persistRequest.getToUpdate(),
+            		persistRequest.getToSave(),
+            		persistRequest.getToDelete());
+
+        	
             for (Entity entity : persistRequest.getToInsert()) {
                 /*
                  * top level toInsert entities get analyzed by themselves
@@ -192,6 +208,7 @@ public class PersistAnalyser implements Serializable {
                 }
                 analyseUpdate(entity);
             }
+                        
             for (Entity entity : persistRequest.getToSave()) {
                 /*
                  * top level toSave entities get analyzed by themselves
@@ -201,6 +218,9 @@ public class PersistAnalyser implements Serializable {
 
                 if (entity.getEntityContext() != entityContext) {
                     throw new IllegalPersistStateException("Cannot persist entity from a different context");
+                }
+                if (entity.isPerhapsInDatabase()) {
+                	throw new IllegalPersistStateException("We should know at this point if the entity is new or not: " + entity);
                 }
                 if (entity.isNew()) {
                     analyseCreate(entity);
@@ -220,16 +240,40 @@ public class PersistAnalyser implements Serializable {
         }
     }
 
-    /**
-     *
-     * @param persistRequest
-     * @throws IllegalPersistStateException
-     */
-    public void analysePhase2(PersistRequest persistRequest) throws IllegalPersistStateException {
 
-    }
 
-    private void removeAnalysis(Entity entity) {
+    @SafeVarargs
+	private final void setCorrectStateForEntitiesWhichMayOrMayNotBeInTheDatabase(@SuppressWarnings("unchecked") Collection<Entity> ...collectionOfCollectionOfEntities) throws SortPersistException {
+    	LOG.debug("Setting the correct entity state for entities which may or may not be in the database.");
+    	Collection<Entity> entitiesToCheck = new LinkedList<>();
+    	for (Collection<Entity> entities: collectionOfCollectionOfEntities) {
+	    	for (Entity entity: entities) {
+	    		if (entity.isPerhapsInDatabase()) {
+	    			entitiesToCheck.add( entity );
+	    		}
+	    	}
+    	}
+    	if (entitiesToCheck.isEmpty()) {
+    		return;
+    	}
+    	DatabaseDataSet dds = new DatabaseDataSet(entityContext, true);
+    	try {
+			dds.loadEntities(entitiesToCheck);
+		} catch (SortServiceProviderException | SortQueryException x) {
+			throw new SortPersistException("Error checking which entities are in the database", x);
+		}
+    	for (Entity eToSave: entitiesToCheck) {
+    		if (dds.getEntity(eToSave.getEntityType(), eToSave.getKey().getValue()) != null) {
+    			LOG.debug("Found enity {} in the database.", eToSave);
+    			eToSave.setEntityState(EntityState.LOADED);
+    		}
+    		else {
+    			eToSave.setEntityState(EntityState.NEW);
+    		}
+    	}
+	}
+
+	private void removeAnalysis(Entity entity) {
         if (analysing.remove(entity)) {
             for (OperationGroup og : allGroups) {
                 og.getEntities().remove(entity);
@@ -425,6 +469,14 @@ public class PersistAnalyser implements Serializable {
         }
     }
 
+    /**
+     * Load an entity into our context which may take part in the persist operation.
+     * @param entityContext
+     * @param entityType
+     * @param entityKey
+     * @return
+     * @throws EntityMissingException
+     */
     private Entity getOrLoadForAnalysis(EntityContext entityContext, EntityType entityType, Object entityKey) throws EntityMissingException {
         Entity entity = entityContext.getEntity(entityType, entityKey, false);
         if (entity == null) {
@@ -477,6 +529,9 @@ public class PersistAnalyser implements Serializable {
         }
     }
 
+    /*
+     * todo: for security, perhaps we should load the removed reference from the DB
+     */
     private Object checkForRemovedReference(RefNode refNode) {
         return refNode.getNodeType().isOwns() ? refNode.getRemovedEntityKey() : null;
     }

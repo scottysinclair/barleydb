@@ -1,5 +1,7 @@
 package scott.barleydb.server.jdbc.persist;
 
+import java.util.Collection;
+
 /*
  * #%L
  * BarleyDB
@@ -54,11 +56,21 @@ public class DatabaseDataSet {
 
     private static final Logger LOG = LoggerFactory.getLogger(DatabaseDataSet.class);
 
+    private final boolean loadKeysOnly;
     private final EntityContext myentityContext;
 
     public DatabaseDataSet(EntityContext entityContext) {
+    	this(entityContext, false);
+    }
+
+    /**
+     * @param entityContext the entity context to share a transaction with
+     * @param loadKeysOnly if only the keys should be loaded.
+     */
+    public DatabaseDataSet(EntityContext entityContext, boolean loadKeysOnly) {
         myentityContext = entityContext.newEntityContextSharingTransaction();
         myentityContext.setAllowGarbageCollection(false);
+        this.loadKeysOnly = loadKeysOnly;
     }
 
     public EntityContext getOwnEntityContext() {
@@ -67,6 +79,33 @@ public class DatabaseDataSet {
 
     public Entity getEntity(EntityType entityType, Object key) {
         return myentityContext.getEntity(entityType, key, false);
+    }
+    
+    public void loadEntities(Collection<Entity> toSave) throws SortServiceProviderException, SortQueryException {
+        /*
+         * Build queries to load all of these entites
+         */
+        BatchEntityLoader batchLoader = new BatchEntityLoader();
+
+        /*
+         * We optimize the order for insert, this helps prevent table deadlock
+         * as delete operations would lock in the reverse order.
+         * Note: this only helps prevent deadlock if REPEATABLE_READ is used
+         * since REPEATABLE_READ ensures that read operations also lock rows.
+         */
+        LOG.debug("Reordering entities for database retrival to reduce table deadlock scenarios.");
+        //the dependsOnGroup ordering is the same as for create/update
+        //so merge it first
+        OperationGroup optimized = new OperationGroup(toSave).optimizedForInsertCopy();
+
+        batchLoader.addEntities(optimized.getEntities());
+
+        LOG.debug("-------------------------------");
+        LOG.debug("Performing database load ...");
+        /*
+         * actually perform the queries, loading the entityContext
+         */
+        batchLoader.load();
     }
 
     /**
@@ -180,6 +219,10 @@ public class DatabaseDataSet {
             QueryObject<Object> qo = map.get(entityType);
             if (qo == null) {
                 qo = myentityContext.getUnitQuery(entityType);
+                if (loadKeysOnly) {
+                	QProperty<?> keyProp = new QProperty<>(qo, entityType.getKeyNodeName());
+                	qo.select(keyProp);
+                }
                 map.put(entityType, qo);
             }
             return qo;

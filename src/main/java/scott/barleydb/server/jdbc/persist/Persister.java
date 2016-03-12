@@ -51,6 +51,7 @@ import scott.barleydb.api.exception.execution.persist.PrimaryKeyExistsException;
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
 import scott.barleydb.api.exception.execution.query.SortQueryException;
 import scott.barleydb.api.persist.PersistAnalyser;
+import scott.barleydb.api.specification.KeyGenSpec;
 import scott.barleydb.server.jdbc.JdbcEntityContextServices;
 import scott.barleydb.server.jdbc.persist.audit.AuditInformation;
 import scott.barleydb.server.jdbc.persist.audit.AuditRecord;
@@ -184,10 +185,6 @@ public class Persister {
          * and all of their ToMany refs should be fetched.
          */
         setLoadedAndFetchedForCreatedEntities(analyser.getCreateGroup());
-    }
-
-    public void postCommit() {
-
     }
 
     protected void preJdbcWorkHook() {}
@@ -351,7 +348,7 @@ public class Persister {
     private void setPrimaryKeys(OperationGroup createGroup) throws SortPersistException {
         logStep("Setting primary keys");
         for (Entity entity : createGroup.getEntities()) {
-            if (entity.getKey().getValue() == null) {
+            if (entity.getKey().getValue() == null && entity.getEntityType().getKeyGenSpec() == KeyGenSpec.FRAMEWORK) {
                 Object value = entityContextServices.getSequenceGenerator().getNextKey(entity.getEntityType());
                 LOG.debug("Setting key for " + entity + " to " + value);
                 entity.getKey().setValue(value);

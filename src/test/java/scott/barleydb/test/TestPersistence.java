@@ -65,7 +65,6 @@ import scott.barleydb.server.jdbc.persist.Persister;
 import scott.barleydb.server.jdbc.resources.ConnectionResources;
 import scott.barleydb.test.TestEntityContextServices.PersisterFactory;
 
-@SuppressWarnings("deprecation")
 @RunWith(Parameterized.class)
 public class TestPersistence extends TestRemoteClientBase {
 

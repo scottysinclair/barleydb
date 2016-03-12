@@ -298,7 +298,9 @@ public class JdbcEntityContextServices implements IEntityContextServices {
     @Override
     public PersistAnalyser execute(PersistRequest persistRequest, RuntimeProperties runtimeProperties) throws SortJdbcException, SortPersistException {
         PersistAnalyser analyser = new PersistAnalyser(persistRequest.getEntityContext());
-        analyser.analyse(persistRequest);
+        try (OptionalyClosingResources con = newOptionallyClosingConnection(persistRequest.getEntityContext())) {
+        	analyser.analyse(persistRequest);
+        }
         /*
          * We can optionally copy the data to  be persisted to a new context
          * This way we only apply the changes back if the whole persist succeeds.
@@ -313,14 +315,7 @@ public class JdbcEntityContextServices implements IEntityContextServices {
         Persister persister = newPersister(env, analyser.getEntityContext().getNamespace());
         EntityContext entityContext = analyser.getEntityContext();
 
-        ConnectionResources conRes = ConnectionResources.get(entityContext);
-        boolean returnToPool = false;
-        if (conRes == null) {
-            conRes = newConnectionResources(entityContext, false);
-            returnToPool = true;
-        }
-
-        try (OptionalyClosingResources con = new OptionalyClosingResources(conRes, returnToPool);) {
+        try (OptionalyClosingResources con = newOptionallyClosingConnection(entityContext)) {
             try {
                 persister.persist(analyser);
                 con.getConnection().commit();
@@ -335,6 +330,16 @@ public class JdbcEntityContextServices implements IEntityContextServices {
                 throw x;
             }
         }
+    }
+    
+    private OptionalyClosingResources newOptionallyClosingConnection(EntityContext entityContext) throws SortJdbcException {
+        ConnectionResources conRes = ConnectionResources.get(entityContext);
+        boolean returnToPool = false;
+        if (conRes == null) {
+            conRes = newConnectionResources(entityContext, false);
+            returnToPool = true;
+        }
+        return new OptionalyClosingResources(conRes, returnToPool);
     }
 
     private static void rollback(Connection con, String message) throws SortJdbcException {

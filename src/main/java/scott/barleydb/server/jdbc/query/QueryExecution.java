@@ -315,8 +315,8 @@ public class QueryExecution<T> {
         }
         for (EntityLoader entityLoader : entityLoaders) {
             if (entityLoader.isEntityThere()) {
-                //todo: handle entity nodes which are lazy
-                //current logic sees that the entity exists & is loaded and does nothing
+                //todo: handle entity nodes which are lazy (partially loaded).
+                //current logic sees that the entity exists && is loaded and does nothing
                 //this isNotYetLoaded only makes sense if we are loading into a fresh entity context.
                 if (entityLoader.isNotYetLoaded()) {
                     entityLoader.load();
@@ -325,12 +325,14 @@ public class QueryExecution<T> {
                     /*
                      * The entity is already loaded in our context
                      * so don't update it, and associate the existing entity
-                     * with our loader so that it can be part of the QueryResult
+                     * with our loader so that it can be part of the QueryResult.
+                     * 
+                     * Perhaps we should refresh existing entities by default.
+                     * or perhaps we should make it part of the runtime properties.
                      */
                     entityLoader.associateExistingEntity();
                 }
             }
         }
-        //todo process join table columns
     }
 }

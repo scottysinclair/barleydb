@@ -88,6 +88,9 @@ public class NodeSpec implements Serializable, Cloneable {
     
     @XmlElement
     private String typeConverter;
+    
+    @XmlAttribute
+    private KeyGenSpec keyGenSpec;
 
 
     @XmlAttribute(name="pk")
@@ -103,8 +106,16 @@ public class NodeSpec implements Serializable, Cloneable {
     public boolean isPrimaryKey() {
         return primaryKey;
     }
+    
+    public KeyGenSpec getKeyGenSpec() {
+		return keyGenSpec;
+	}
 
-    @XmlID
+	public void setKeyGenSpec(KeyGenSpec keyGenSpec) {
+		this.keyGenSpec = keyGenSpec;
+	}
+
+	@XmlID
     @XmlElement
     public String getId() {
         return entity.getClassName() + "." +  name;
@@ -261,7 +272,8 @@ public class NodeSpec implements Serializable, Cloneable {
     public String toString() {
         StringBuilder sb = new StringBuilder("NodeSpec [");
         if (primaryKey) {
-            sb.append("\n\tprimaryKey=true");
+            sb.append("\n\tprimaryKey=true, keyGen=");
+            sb.append(keyGenSpec);
         }
         if (name != null) {
             sb.append("\n\tname=");

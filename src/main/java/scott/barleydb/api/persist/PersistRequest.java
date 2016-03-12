@@ -82,7 +82,7 @@ public class PersistRequest implements Serializable {
     }
 
     public boolean isEmpty() {
-        return toSave.isEmpty() && toDelete.isEmpty();
+        return toSave.isEmpty() && toDelete.isEmpty() && toInsert.isEmpty();
     }
 
     public EntityContext getEntityContext() throws IllegalPersistStateException {

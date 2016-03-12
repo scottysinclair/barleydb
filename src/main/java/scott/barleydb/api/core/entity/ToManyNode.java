@@ -233,6 +233,10 @@ public class ToManyNode extends Node {
         if (entity != null) {
             newEntities.remove(entity);
             if (!entity.isNew()) {
+            	//TODO: what about state new-or-not-loaded
+            	//right now it would be added to the removedEntities which seems safest
+            	//as if it was actually not-loaded, then the delete would be required.
+            	//if it was actually new, then the persist may fail.
                 removedEntities.add(entity);
             }
         }

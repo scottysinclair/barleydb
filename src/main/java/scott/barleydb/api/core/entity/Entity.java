@@ -97,11 +97,15 @@ public class Entity implements Serializable {
     }
     
     public boolean isLoadedOrNew() {
-        return isLoaded() || isNew();
+        return isLoaded() || isNew() || isPerhapsInDatabase();
     }
     
     public boolean isNew() {
         return entityState == EntityState.NEW;
+    }
+    
+    public boolean isPerhapsInDatabase() {
+    	return entityState == EntityState.NEW_OR_NOT_LOADED;
     }
 
     public boolean isLoaded() {

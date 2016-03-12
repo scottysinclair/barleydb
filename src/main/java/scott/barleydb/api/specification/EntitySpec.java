@@ -62,7 +62,7 @@ public class EntitySpec implements Serializable {
 
     @XmlAttribute(name="abstract")
     private boolean abstractEntity;
-
+    
     @XmlIDREF
     @XmlElement(name = "parent")
     private EntitySpec parentEntitySpec;
@@ -130,7 +130,7 @@ public class EntitySpec implements Serializable {
     public void setQueryClassName(String queryClassName) {
         this.queryClassName = queryClassName;
     }
-
+    
     public void add(NodeSpec nodeSpec) {
         nodeSpecs.put(nodeSpec.getName(), nodeSpec);
     }

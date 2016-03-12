@@ -322,6 +322,19 @@ public class EntityContext implements Serializable {
     }
 
     /**
+     * Creates a new entity of the given type. The model is either new, or in the database but not loaded.
+     * @param type
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T newOrNotLoadedModel(Class<T> type) {
+        EntityType entityType = definitions.getEntityTypeMatchingInterface(type.getName(), true);
+        Entity entity = new Entity(this, EntityState.NEW_OR_NOT_LOADED, entityType);
+        add(entity);
+        return (T) getProxy(entity);
+    }
+
+    /**
      * Create a new model (not existing in database, with the given key.
      * The entity type + key combination must be new for the entity context
      * 
@@ -337,6 +350,21 @@ public class EntityContext implements Serializable {
     public <T> T newModel(Class<T> type, Object key) {
         EntityType entityType = definitions.getEntityTypeMatchingInterface(type.getName(), true);
         Entity entity = new Entity(this, EntityState.NEW, entityType);
+        entity.getKey().setValueNoEvent( key );
+        add(entity);
+        return (T) getProxy(entity);
+    }
+
+    /**
+     * creates a model with a PK which may be new or may already be in the database.
+     * @param type
+     * @param key
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T newOrNotLoadedModel(Class<T> type, Object key) {
+        EntityType entityType = definitions.getEntityTypeMatchingInterface(type.getName(), true);
+        Entity entity = new Entity(this, EntityState.NEW_OR_NOT_LOADED, entityType);
         entity.getKey().setValueNoEvent( key );
         add(entity);
         return (T) getProxy(entity);
@@ -663,6 +691,22 @@ public class EntityContext implements Serializable {
         env.joinTransaction(entityContext, this);
         return entityContext;
     }
+    
+	public <T> T getOrLazilyLoad(Class<T> type, String key, boolean ensureExistsInDb) throws ProxyCreationException {
+		if (ensureExistsInDb) {
+			T object = getOrLoad(type, key);
+			Entity e = ((ProxyController)object).getEntity();
+			e.unload(false);
+			return object;
+		}
+		else {
+			T object = newModel(type, key);
+			Entity e = ((ProxyController)object).getEntity();
+			e.setEntityState(EntityState.NOTLOADED);
+			return object; 
+		}
+	}
+
 
     /**
      * gets the entity from the context loading it first if required.
@@ -674,7 +718,7 @@ public class EntityContext implements Serializable {
     public <T> T getOrLoad(Class<T> type, Object key) throws ProxyCreationException {
       EntityType entityType = definitions.getEntityTypeForClass(type, true);
       Entity e = getOrLoad(entityType, key);
-      return env.generateProxy(e);
+      return e != null ? (T)env.generateProxy(e) : null;
     }
     
     /**
@@ -1048,6 +1092,5 @@ public class EntityContext implements Serializable {
             throw new IllegalStateException("Could not print xml", x);
         }
     }
-
 
 }

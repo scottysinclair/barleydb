@@ -31,7 +31,7 @@
                 <EntitySpec className="org.example.acl.model.User" tableName="ACL_USER" abstract="false">
                     <queryClass>org.example.acl.query.QUser</queryClass>
                     <NodeSpecs>
-                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" keyGenSpec="FRAMEWORK" pk="true">
                             <suppression>GENERATED_CODE_SETTER</suppression>
                             <id>org.example.acl.model.User.id</id>
                         </NodeSpec>
@@ -58,7 +58,7 @@
                 <EntitySpec className="org.example.acl.model.AccessArea" tableName="ACL_ACCESS_AREA" abstract="false">
                     <queryClass>org.example.acl.query.QAccessArea</queryClass>
                     <NodeSpecs>
-                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" keyGenSpec="FRAMEWORK" pk="true">
                             <suppression>GENERATED_CODE_SETTER</suppression>
                             <id>org.example.acl.model.AccessArea.id</id>
                         </NodeSpec>

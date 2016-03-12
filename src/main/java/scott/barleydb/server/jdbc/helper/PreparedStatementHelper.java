@@ -361,6 +361,15 @@ public abstract class PreparedStatementHelper<PREPARING_EX extends SortException
                     throw newSetValueError("java.sql.Timestamp", x);
                 }
                 break;
+            case DATETIME:
+                try {
+                	//datetime is not in a JDBC type, we map it to java.sql.Timestamp
+                    ps.setTimestamp(index, new java.sql.Timestamp((Long) value.getTime()));
+                }
+                catch (SQLException x) {
+                    throw newSetValueError("java.sql.Timestamp", x);
+                }
+                break;
             case DATE:
                 try {
                     ps.setDate(index, new java.sql.Date(value.getTime()));
@@ -425,6 +434,8 @@ public abstract class PreparedStatementHelper<PREPARING_EX extends SortException
             return java.sql.Types.DECIMAL;
         case CHAR:
             return java.sql.Types.CHAR;
+        case DATETIME:
+            return java.sql.Types.TIMESTAMP;
         default:
             throw newPreparingStatementException("Unsupported jdbctype " + type);
         }
