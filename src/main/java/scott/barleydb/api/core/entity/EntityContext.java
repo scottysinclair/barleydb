@@ -329,7 +329,7 @@ public class EntityContext implements Serializable {
     @SuppressWarnings("unchecked")
     public <T> T newOrNotLoadedModel(Class<T> type) {
         EntityType entityType = definitions.getEntityTypeMatchingInterface(type.getName(), true);
-        Entity entity = new Entity(this, EntityState.NEW_OR_NOT_LOADED, entityType);
+        Entity entity = new Entity(this, EntityState.IS_PERHAPS_IN_DATABASE, entityType);
         add(entity);
         return (T) getProxy(entity);
     }
@@ -364,7 +364,7 @@ public class EntityContext implements Serializable {
     @SuppressWarnings("unchecked")
     public <T> T newOrNotLoadedModel(Class<T> type, Object key) {
         EntityType entityType = definitions.getEntityTypeMatchingInterface(type.getName(), true);
-        Entity entity = new Entity(this, EntityState.NEW_OR_NOT_LOADED, entityType);
+        Entity entity = new Entity(this, EntityState.IS_PERHAPS_IN_DATABASE, entityType);
         entity.getKey().setValueNoEvent( key );
         add(entity);
         return (T) getProxy(entity);

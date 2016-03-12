@@ -105,7 +105,7 @@ public class Entity implements Serializable {
     }
     
     public boolean isPerhapsInDatabase() {
-    	return entityState == EntityState.NEW_OR_NOT_LOADED;
+    	return entityState == EntityState.IS_PERHAPS_IN_DATABASE;
     }
 
     public boolean isLoaded() {

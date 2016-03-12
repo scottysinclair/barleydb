@@ -24,7 +24,7 @@ package scott.barleydb.api.core.entity;
 public enum EntityState {
     LOADING,
     NEW, //the entity does not exist in the database
-    LOADED, //the entity was loaded from the back-end
-    NOTLOADED, //the entity is not loaded, but exists in the back end
-    NEW_OR_NOT_LOADED  //the entity is either a new one or it is already in the datbase
+    LOADED, //the entity was loaded from the database
+    NOTLOADED, //the entity is not loaded, but exists in the database
+    IS_PERHAPS_IN_DATABASE  //the entity is either a new one or it is already in the database, but we are not sure.
 }
