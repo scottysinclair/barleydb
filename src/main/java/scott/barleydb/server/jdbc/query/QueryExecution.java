@@ -79,14 +79,14 @@ public class QueryExecution<T> {
     private QueryGenerator qGen;
 
     public QueryExecution(JdbcEntityContextServices jdbcEntityContextServices, EntityContext entityContext, QueryObject<T> query, Definitions definitions) throws QueryConnectionRequiredException {
-    	this.jdbcEntityContextServices = jdbcEntityContextServices;
+        this.jdbcEntityContextServices = jdbcEntityContextServices;
         this.entityContext = entityContext;
         this.query = query;
         this.definitions = definitions;
         this.projection = new Projection(definitions);
         this.database = ConnectionResources.getMandatoryForQuery(entityContext).getDatabase();
         projection.build(query);
-        queryResult = new QueryResult<>(entityContext, query.getTypeClass());
+        queryResult = new QueryResult<>(entityContext);
     }
 
     public String getSql(List<Param> queryParameters) throws IllegalQueryStateException, ForUpdateNotSupportedException {
@@ -95,7 +95,7 @@ public class QueryExecution<T> {
     }
 
     public String getPrimaryTableName() {
-        EntityType entityType = definitions.getEntityTypeMatchingInterface(query.getTypeClass().getName(), true);
+        EntityType entityType = definitions.getEntityTypeMatchingInterface(query.getTypeName(), true);
         return entityType.getTableName();
     }
 
@@ -326,7 +326,7 @@ public class QueryExecution<T> {
                      * The entity is already loaded in our context
                      * so don't update it, and associate the existing entity
                      * with our loader so that it can be part of the QueryResult.
-                     * 
+                     *
                      * Perhaps we should refresh existing entities by default.
                      * or perhaps we should make it part of the runtime properties.
                      */

@@ -121,7 +121,7 @@ public class DatabaseDataSet {
         BatchEntityLoader batchLoader = new BatchEntityLoader();
 
         /*
-         * We optimize the order for insert, this helps prevent table deadlock
+         * We optimise the order for insert, this helps prevent table deadlock
          * as delete operations would lock in the reverse order.
          * Note: this only helps prevent deadlock if REPEATABLE_READ is used
          * since REPEATABLE_READ ensures that read operations also lock rows.

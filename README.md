@@ -10,10 +10,10 @@ BarleyDB is a Java ORM library which takes a different approach. Some of the int
 
 ### Dynamic and Static Nature
 Another key interesting aspect of BarleyDB the fact that **compilation is a completely optional step!**.
-It is completely possible and valid to import an XML specification outlining the complete **database schema**. 
-You can then use the meta-model to query and persist data. This is a very unusual and powerfull feature which no other the Java ORM solution offers and it allows BarleyDB to be used in interesting ways.   
+It is completely possible and valid to import an XML specification outlining the complete **database schema**.
+You can then use the meta-model to query and persist data. This is a very unusual and powerfull feature which no other the Java ORM solution offers and it allows BarleyDB to be used in interesting ways.
 
-It is of course also possible to generate Java classes which then allow static and compilation safe interaction with the database. 
+It is of course also possible to generate Java classes which then allow static and compilation safe interaction with the database.
 
 #### Benefits to UI development of dynamic nature
 You could use the schema / meta model to create generic CRUD UI screens in the UI technology of your choice which would allow users to view and edit the database data. This would allow products to ship very early. Custom / fancy UI screens could then be created on an as needed basis.
@@ -48,7 +48,7 @@ BarleyDB also supports the usual ORM features:
 ## Data Structure
 BarleyDB has it's own simple data model for holding database data. It consists of:
 * Entity - a data record from a table, an entity contains one or more of...
-  * ValueNode - A data value. 
+  * ValueNode - A data value.
   * RefNode - A 1:1 foreign key reference to another entity.
   * ToManyNode - A 1:N reference to many entities.
 * EntityContext - A container of entities and scope for transactions.
@@ -68,8 +68,8 @@ BarleyDB also generates a domain specific query DSL which can be used to query f
   for (User user: ctx.performQuery( quser ).getList()) {
      System.out.println(user.getName() + " - " + user.getAge());
   }
-```  
-  
+```
+
 ## A more detailed look...
 The following features are supported by BarleyDB
 
@@ -81,28 +81,28 @@ A more complex query eample is as follows:
   QUser quser = new QUser();
   QAddress primAddr = quser.existsPrimaryAddress(); //sub-query for primary address
   QAddress secAddr = quser.existsSecondaryAddress(); //sub-query for secondard address
-  
-  //join to the user's department and the department's country so the data is pulled 
+
+  //join to the user's department and the department's country so the data is pulled
   //in as part of the same query.
   quser.joinToDepartment().joinToCountry();
-  
+
   quser.where( quser.name().equal("John") )
        .andExists( primAddr.where( primAddr.postCode().like("KW14") ) )
-       .orExists ( secAddr.where( primAddr.postCode().like("OSA") ) ); 
+       .orExists ( secAddr.where( primAddr.postCode().like("OSA") ) );
 
   //execute the query and process the results.
   for (User user: ctx.performQuery( quser ).getList()) {
      System.out.println(user.getName() + " - " + user.getDepartment().getCountry().getName());
   }
-```  
+```
 The feature set is as follows:
-* Eager loading via inner joins or outer joins. 
+* Eager loading via inner joins or outer joins.
 * Flexible lazy loading
   * The queries used to perform fetching can changed at any time to control how much data is fetched.
   * Lazy loading of individual columns.
 * SubQueries, Sub-SubQueries...
 * And, or, exists, not, equals, greater-than, greater-than-or-equal,less-than,less-than-or-equal, like.
-* Batching - executing multiple queries in one go (in a single statement if the database supports multiple result sets). 
+* Batching - executing multiple queries in one go (in a single statement if the database supports multiple result sets).
 * Configuration of the JDBC scroll type, Concurrency and fetch size.
 
 ### Persisting
@@ -122,7 +122,7 @@ user.setDepartment( dept );
 //Save the user. The user has a FK reference to the department so the department is saved too.
 PeristRequest req = new PeristRequest();
 req.save( user );
-ctx.persist( req ); 
+ctx.persist( req );
 ```
 The feature set is as follows:
 * Inserting, Updating and deleting various entities in a single transaction.
@@ -140,8 +140,8 @@ BarleyDB supports sending queries and data over the wire allowing for:
 * BarleyDB queries to be sent to a server and for the query results to be sent back.
 * Persist requests to be sent to a server to persist data to the database.
 * Smart serialization ensures that only the relevant data is serialized over the wire.
-* Transactions are not maintained between across client calls, therefore optimistic locking should be used as provided by BarleyDB. 
-  
+* Transactions are not maintained between across client calls, therefore optimistic locking should be used as provided by BarleyDB.
+
 ### Entity Context
 The entity context functions as the executer of queries and persist-requests. It also holds all of the entites.
 In this respect it is similar to the JPA EntityManager. The entity context however supports some extra features
@@ -157,5 +157,9 @@ The best way to see how BarleyDB works is to look at the test cases.
 * The [scott.barleydb.test.TestQuery](https://github.com/scottysinclair/barleydb/blob/master/src/test/java/scott/barleydb/test/TestQuery.java) class executes queries using the query DSL against an in memory HSQLDB instance.
 * The [scott.barleydb.test.TestPersistence](https://github.com/scottysinclair/barleydb/blob/master/src/test/java/scott/barleydb/test/TestPersistence.java) class executes persist requests saving data into an in memory HSQLDB instance.
 * The [org.example.etl.EtlSpec](https://github.com/scottysinclair/barleydb/blob/master/src/test/java/org/example/etl/EtlSpec.java) defines a schema for an ETL tool which itself references elements from the [org.example.acl.AclSpec]()
-* The [scott.barleydb.test.TestGenerator](https://github.com/scottysinclair/barleydb/blob/master/src/test/java/scott/barleydb/test/TestGenerator.java) class generates schema DDL files, query DSL classes and pojo classes for a given schema specification. 
+* The [scott.barleydb.test.TestGenerator](https://github.com/scottysinclair/barleydb/blob/master/src/test/java/scott/barleydb/test/TestGenerator.java) class generates schema DDL files, query DSL classes and pojo classes for a given schema specification.
 
+
+#Future Features
+* Autogeneration of UUIDs
+* Streaming of large result-sets.

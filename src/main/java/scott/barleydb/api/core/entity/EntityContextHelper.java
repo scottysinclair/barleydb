@@ -24,6 +24,7 @@ package scott.barleydb.api.core.entity;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -34,6 +35,76 @@ import scott.barleydb.api.core.entity.RefNode;
 import scott.barleydb.api.core.entity.ToManyNode;
 
 public class EntityContextHelper {
+
+    public interface Predicate {
+        boolean matches(Entity entity);
+    }
+
+    @SafeVarargs
+    public static Collection<Entity> flatten(Collection<Entity> ...colColEntities) {
+        LinkedHashSet<Entity> result = new LinkedHashSet<>();
+        for (Collection<Entity>  col: colColEntities) {
+          result.addAll(col);
+        }
+        return result;
+    }
+
+    /**
+     * Navigates the object graph for each entity in the collection of entities.  returns the entities which match the predicate.
+     * @param entities the collection of entities to navigate
+     * @param includeRemovedEntities also include entities which have been removed from RefNodes and ToManyRefs
+     * @param predicate he predicate
+     * @return
+     */
+    public static LinkedHashSet<Entity> findEntites(Collection<Entity> entities, boolean includeRemovedEntities, Predicate predicate) {
+        LinkedHashSet<Entity> matches = new LinkedHashSet<>();
+        HashSet<Entity> checked = new HashSet<>();
+        for (Entity entity: entities) {
+            findEntites(matches, checked, entity, includeRemovedEntities, predicate);
+        }
+        return matches;
+    }
+
+    /**
+     * Finds all entities by navigating the object graph from entity which match the given predicate.<br/>
+     *
+     * @param matches
+     * @param checked
+     * @param entity
+     * @param includeRemovedEntities also include entities which have been removed from RefNodes and ToManyRefs
+     * @param predicate
+     * @return
+     */
+    public static LinkedHashSet<Entity> findEntites(LinkedHashSet<Entity> matches, HashSet<Entity> checked, Entity entity, boolean includeRemovedEntities, Predicate predicate) {
+        if (!checked.add( entity )) {
+            return matches;
+        }
+        if (predicate.matches( entity )) {
+            matches.add(entity);
+        }
+        for (RefNode refNode: entity.getChildren(RefNode.class)) {
+            Entity e = refNode.getReference();
+            if (e != null) {
+                findEntites(matches, checked, e, includeRemovedEntities, predicate);
+            }
+            Object key = refNode.getRemovedEntityKey();
+            if (key != null) {
+                Entity removedE = e.getEntityContext().getEntity(refNode.getEntityType(), key, false);
+                findEntites(matches, checked, removedE, includeRemovedEntities, predicate);
+            }
+        }
+        for (ToManyNode toManyNode: entity.getChildren(ToManyNode.class)) {
+            for (Entity e: toManyNode.getList()) {
+                if (e != null) {
+                    findEntites(matches, checked, e, includeRemovedEntities, predicate);
+                }
+            }
+            for (Entity e: toManyNode.getRemovedEntities()) {
+                findEntites(matches, checked, e, includeRemovedEntities, predicate);
+            }
+        }
+        return matches;
+    }
 
     public static int countLoaded(Collection<Entity> entities) {
         int count = 0;

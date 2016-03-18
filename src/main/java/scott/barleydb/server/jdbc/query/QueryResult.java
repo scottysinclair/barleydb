@@ -49,18 +49,31 @@ public class QueryResult<T> implements Serializable {
     private static final Logger LOG = LoggerFactory.getLogger(QueryResult.class);
 
     private final EntityContext entityContext;
-    private final Class<T> resultType;
+//    private final Class<T> resultType;
     private final List<Entity> entities = new LinkedList<Entity>();
     private final QueryResultList<T> result;
 
-    public QueryResult(EntityContext entityContext, Class<T> resultType) {
+    public QueryResult(EntityContext entityContext) {
         this.entityContext = entityContext;
-        this.resultType = resultType;
         this.result = new QueryResultList<T>(entityContext, entities);
     }
 
+    /**
+     * Gets the result list
+     * @return
+     */
     public List<T> getList() {
         return result;
+    }
+
+    /**
+     * Provides access to the list of entities directly.
+     * The entities in the list correspond to the proxies which are returned
+     * by {@link #getList()}
+     * @return
+     */
+    public List<Entity> getEntityList() {
+        return entities;
     }
 
     public T getSingleResult() {
@@ -68,10 +81,6 @@ public class QueryResult<T> implements Serializable {
             throw new IllegalStateException("Too much data returned");
         }
         return result.size() == 1 ? result.get(0) : null;
-    }
-
-    public Class<T> getResultType() {
-        return resultType;
     }
 
     public EntityContext getEntityContext() {
@@ -90,7 +99,7 @@ public class QueryResult<T> implements Serializable {
         entityContext.beginLoading();
         newEntityContext.beginLoading();
         try {
-            QueryResult<T> result = new QueryResult<T>(newEntityContext, resultType);
+            QueryResult<T> result = new QueryResult<T>(newEntityContext);
             List<Entity> copied = EntityContextHelper.addEntities(entityContext.getEntities(), newEntityContext);
             EntityContextHelper.copyRefStates(entityContext, newEntityContext, copied, new EntityContextHelper.EntityFilter() {
                 @Override

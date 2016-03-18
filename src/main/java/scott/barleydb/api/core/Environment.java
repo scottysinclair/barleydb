@@ -22,8 +22,6 @@ package scott.barleydb.api.core;
  * #L%
  */
 
-import java.util.Map;
-
 import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
@@ -38,7 +36,6 @@ import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.model.ProxyCreationException;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.query.RuntimeProperties;
-import scott.barleydb.server.jdbc.converter.TypeConverter;
 import scott.barleydb.server.jdbc.query.QueryPreProcessor;
 import scott.barleydb.api.core.Environment;
 import scott.barleydb.api.core.IEntityContextServices;
@@ -53,7 +50,7 @@ public final class Environment {
 
     @SuppressWarnings("unused")
     private static final Logger LOG = LoggerFactory.getLogger(Environment.class);
-    
+
     private final DefinitionsSet definitionsSet;
 
     private QueryPreProcessor queryPreProcessor;

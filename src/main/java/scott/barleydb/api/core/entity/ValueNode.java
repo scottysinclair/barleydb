@@ -57,6 +57,10 @@ public class ValueNode extends Node {
         return (T) value;
     }
 
+    public boolean isLoaded() {
+        return value != NotLoaded.VALUE;
+    }
+
     public void setValueNoEvent(Object value) {
         checkParentFetched();
         this.value = value;

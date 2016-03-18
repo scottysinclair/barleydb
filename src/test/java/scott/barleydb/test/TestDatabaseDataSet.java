@@ -34,14 +34,14 @@ import org.junit.Test;
 
 import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityContext;
+import scott.barleydb.api.core.entity.ValueNode;
 import scott.barleydb.api.persist.PersistAnalyser;
 import scott.barleydb.api.persist.PersistRequest;
 import scott.barleydb.server.jdbc.persist.DatabaseDataSet;
 
 public class TestDatabaseDataSet extends TestBase {
 
-    @Test
-    public void testDatabaseDataSet() throws Exception {
+    private PersistAnalyser persistModel() throws Exception {
         AccessArea root = serverEntityContext.newModel(AccessArea.class);
         root.setName("root");
         XmlSyntaxModel syntaxModel = serverEntityContext.newModel(XmlSyntaxModel.class);
@@ -117,10 +117,26 @@ public class TestDatabaseDataSet extends TestBase {
         PersistAnalyser analyser = new PersistAnalyser(serverEntityContext);
         analyser.analyse(request);
         printAnalysis(analyser);
+        return analyser;
+    }
 
+    @Test
+    public void testDatabaseDataSetLoadsFullEntities() throws Exception {
+        PersistAnalyser analyser = persistModel();
         DatabaseDataSet databaseDataSet = new DatabaseDataSet(serverEntityContext);
         databaseDataSet.loadEntities(analyser.getUpdateGroup(), analyser.getDeleteGroup(), analyser.getDependsOnGroup());
         assertEquals(8, countLoadedEntities(databaseDataSet.getOwnEntityContext()));
+        assertEquals(0, countEntitiesWithLazyFields(databaseDataSet.getOwnEntityContext()));
+    }
+
+    @Test
+    public void testDatabaseDataSetLoadsMinimalEntities() throws Exception {
+        PersistAnalyser analyser = persistModel();
+        DatabaseDataSet databaseDataSet = new DatabaseDataSet(serverEntityContext, true);
+        databaseDataSet.loadEntities(analyser.getUpdateGroup(), analyser.getDeleteGroup(), analyser.getDependsOnGroup());
+        System.out.println( databaseDataSet.getOwnEntityContext().printXml() );
+        assertEquals(8, countLoadedEntities(databaseDataSet.getOwnEntityContext()));
+        assertEquals(8, countEntitiesWithLazyFields(databaseDataSet.getOwnEntityContext()));
     }
 
     private int countLoadedEntities(EntityContext entityContext) {
@@ -132,4 +148,18 @@ public class TestDatabaseDataSet extends TestBase {
         }
         return count;
     }
+
+    private int countEntitiesWithLazyFields(EntityContext entityContext) {
+        int count = 0;
+        for (Entity entity : entityContext.getEntities()) {
+            for (ValueNode node: entity.getChildren(ValueNode.class)) {
+                if (!node.isLoaded()) {
+                    count++;
+                    break;
+                }
+            }
+        }
+        return count;
+    }
+
 }

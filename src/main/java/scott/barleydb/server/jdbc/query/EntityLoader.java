@@ -10,12 +10,12 @@ package scott.barleydb.server.jdbc.query;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -245,31 +245,31 @@ final class EntityLoader {
         if  (value == null) {
             return null;
         }
-        
+
         /*
          * If we have a configured type conversion
          * then use it first
          */
         TypeConverter converter;
-		try {
-			converter = getTypeConverter( nd );
-		} 
-		catch (TypeConverterNotFoundException e) {
-			throw new IllegalQueryStateException("Type converter " + nd.getTypeConverterFqn() + " missing");
-		}
-        if (converter != null) {
-        	/*
-        	 * We convert backwards when getting data from the database
-        	 */
-        	try {
-				value = converter.convertBackwards(value);
-			} 
-        	catch (TypeConversionException e) {
-        		throw new IllegalQueryStateException("Type conversion error for column " + nd.getColumnName(), e);
-			}
-        	javaType = converter.getBackwardsJavaType();
+        try {
+            converter = getTypeConverter( nd );
         }
-        
+        catch (TypeConverterNotFoundException e) {
+            throw new IllegalQueryStateException("Type converter " + nd.getTypeConverterFqn() + " missing");
+        }
+        if (converter != null) {
+            /*
+             * We convert backwards when getting data from the database
+             */
+            try {
+                value = converter.convertBackwards(value);
+            }
+            catch (TypeConversionException e) {
+                throw new IllegalQueryStateException("Type conversion error for column " + nd.getColumnName(), e);
+            }
+            javaType = converter.getBackwardsJavaType();
+        }
+
         Object result = null;
         if (nd.getEnumType() != null) {
             result = convertToEnum(nd, value);
@@ -283,6 +283,12 @@ final class EntityLoader {
                     result = convertToBoolean(value);
                     break;
                 case ENUM:
+                    /*
+                     * it looks like we should add fallback
+                     * for when the enum classes do not exist, so that
+                     * everything can work in a fully dynamic way..
+                     */
+                    //result = convertToInteger(value);
                     break;
                 case INTEGER:
                     result = convertToInteger(value);
@@ -316,18 +322,18 @@ final class EntityLoader {
     }
 
     private TypeConverter getTypeConverter(NodeType nd) throws TypeConverterNotFoundException  {
-    	String typeConverterFqn = nd.getTypeConverterFqn();
-    	if (typeConverterFqn == null) {
-    		return null;
-    	}
-    	TypeConverter tc = entityLoaders.getTypeConverter(typeConverterFqn);
-    	if (tc == null) {
-    		throw new TypeConverterNotFoundException("Could not find type converter '" + typeConverterFqn + "'");
-    	}
-    	return tc;
-	}
+        String typeConverterFqn = nd.getTypeConverterFqn();
+        if (typeConverterFqn == null) {
+            return null;
+        }
+        TypeConverter tc = entityLoaders.getTypeConverter(typeConverterFqn);
+        if (tc == null) {
+            throw new TypeConverterNotFoundException("Could not find type converter '" + typeConverterFqn + "'");
+        }
+        return tc;
+    }
 
-	private BigDecimal convertToBigDecimal(Object value) {
+    private BigDecimal convertToBigDecimal(Object value) {
         if (value instanceof BigDecimal) {
             return (BigDecimal)value;
         }
@@ -400,13 +406,13 @@ final class EntityLoader {
 
     private Date convertToUtilDate(Object value) {
         if (value instanceof java.sql.Date) {
-        	//a java.sql.Date IS A java.util.Date, but we create a fresh java.util.Date to avoid 
-        	//any possible side-effects. 
+            //a java.sql.Date IS A java.util.Date, but we create a fresh java.util.Date to avoid
+            //any possible side-effects.
             return new Date(((java.sql.Date)value).getTime());
         }
         if (value instanceof Timestamp) {
-        	//a Timestamp IS A java.util.Date, but we create a fresh java.util.Date to avoid 
-        	//any possible side-effects. 
+            //a Timestamp IS A java.util.Date, but we create a fresh java.util.Date to avoid
+            //any possible side-effects.
             return new Date(((Timestamp)value).getTime());
         }
         if (value instanceof Date) {

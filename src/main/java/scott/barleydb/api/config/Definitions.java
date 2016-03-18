@@ -43,6 +43,9 @@ public class Definitions implements Serializable {
 
     private List<String> references = new LinkedList<>();
 
+    /**
+     * entities by class FQN (perhaps the class need not exist??)
+     */
     private Map<String, EntityType> entities = new HashMap<String, EntityType>();
 
     private ProxyFactory proxyFactory;
@@ -104,6 +107,12 @@ public class Definitions implements Serializable {
         return getEntityTypeMatchingInterface(type.getName(), mustExist);
     }
 
+    /**
+     * gets the entity type which matches an interface FQN
+     * @param interfaceName
+     * @param mustExist
+     * @return
+     */
     public EntityType getEntityTypeMatchingInterface(String interfaceName, boolean mustExist) {
         EntityType et = entities.get(interfaceName);
         if (et != null) {

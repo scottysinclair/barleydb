@@ -53,7 +53,7 @@ public class QueryObject<R> implements Serializable {
     @SuppressWarnings("unused")
     private static final Logger LOG = LoggerFactory.getLogger(QueryObject.class);
 
-    private final Class<R> typeClass;
+    //private final Class<R> typeClass;
     private final String typeName;
     private final QueryObject<?> parent;
 
@@ -80,15 +80,18 @@ public class QueryObject<R> implements Serializable {
     private QForUpdate forUpdate;
 
     public QueryObject(Class<R> type) {
-        this(type, type.getName(), null);
+        this(type.getName(), null);
+    }
+
+    public QueryObject(String typeName) {
+        this(typeName, null);
     }
 
     public QueryObject(Class<R> type, QueryObject<?> parent) {
-        this(type, type.getName(), parent);
+        this(type.getName(), null);
     }
 
-    public QueryObject(Class<R> typeClass, String typeName, QueryObject<?> parent) {
-        this.typeClass = typeClass;
+    public QueryObject(String typeName, QueryObject<?> parent) {
         this.typeName = typeName;
         this.parent = parent;
         this.projectedProperties = new HashSet<>();
@@ -139,10 +142,6 @@ public class QueryObject<R> implements Serializable {
 
     public String getTypeName() {
         return typeName;
-    }
-
-    public Class<R> getTypeClass() {
-        return typeClass;
     }
 
     public boolean isProjected(String propertyName) {

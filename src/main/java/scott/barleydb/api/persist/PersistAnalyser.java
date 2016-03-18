@@ -25,7 +25,7 @@ package scott.barleydb.api.persist;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.LinkedList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -36,6 +36,7 @@ import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.entity.EntityContextHelper;
+import scott.barleydb.api.core.entity.EntityContextHelper.Predicate;
 import scott.barleydb.api.core.entity.EntityState;
 import scott.barleydb.api.core.entity.RefNode;
 import scott.barleydb.api.core.entity.ToManyNode;
@@ -46,6 +47,9 @@ import scott.barleydb.api.exception.execution.persist.SortPersistException;
 import scott.barleydb.api.exception.execution.query.SortQueryException;
 import scott.barleydb.server.jdbc.persist.DatabaseDataSet;
 import scott.barleydb.server.jdbc.persist.OperationGroup;
+
+import static scott.barleydb.api.core.entity.EntityContextHelper.findEntites;
+import static scott.barleydb.api.core.entity.EntityContextHelper.flatten;
 
 public class PersistAnalyser implements Serializable {
 
@@ -172,18 +176,18 @@ public class PersistAnalyser implements Serializable {
      * @param persistRequest
      * @throws IllegalPersistStateException
      * @throws EntityMissingException
-     * @throws SortServiceProviderException 
+     * @throws SortServiceProviderException
      */
     public void analyse(PersistRequest persistRequest) throws SortPersistException, EntityMissingException {
         try {
-        	
-            setCorrectStateForEntitiesWhichMayOrMayNotBeInTheDatabase(
-            		persistRequest.getToInsert(), 
-            		persistRequest.getToUpdate(),
-            		persistRequest.getToSave(),
-            		persistRequest.getToDelete());
 
-        	
+            setCorrectStateForEntitiesWhichMayOrMayNotBeInTheDatabase(
+                    persistRequest.getToInsert(),
+                    persistRequest.getToUpdate(),
+                    persistRequest.getToSave(),
+                    persistRequest.getToDelete());
+
+
             for (Entity entity : persistRequest.getToInsert()) {
                 /*
                  * top level toInsert entities get analyzed by themselves
@@ -208,7 +212,7 @@ public class PersistAnalyser implements Serializable {
                 }
                 analyseUpdate(entity);
             }
-                        
+
             for (Entity entity : persistRequest.getToSave()) {
                 /*
                  * top level toSave entities get analyzed by themselves
@@ -220,7 +224,7 @@ public class PersistAnalyser implements Serializable {
                     throw new IllegalPersistStateException("Cannot persist entity from a different context");
                 }
                 if (entity.isPerhapsInDatabase()) {
-                	throw new IllegalPersistStateException("We should know at this point if the entity is new or not: " + entity);
+                    throw new IllegalPersistStateException("We should know at this point if the entity is new or not: " + entity);
                 }
                 if (entity.isNew()) {
                     analyseCreate(entity);
@@ -243,37 +247,34 @@ public class PersistAnalyser implements Serializable {
 
 
     @SafeVarargs
-	private final void setCorrectStateForEntitiesWhichMayOrMayNotBeInTheDatabase(@SuppressWarnings("unchecked") Collection<Entity> ...collectionOfCollectionOfEntities) throws SortPersistException {
-    	LOG.debug("Setting the correct entity state for entities which may or may not be in the database.");
-    	Collection<Entity> entitiesToCheck = new LinkedList<>();
-    	for (Collection<Entity> entities: collectionOfCollectionOfEntities) {
-	    	for (Entity entity: entities) {
-	    		if (entity.isPerhapsInDatabase()) {
-	    			entitiesToCheck.add( entity );
-	    		}
-	    	}
-    	}
-    	if (entitiesToCheck.isEmpty()) {
-    		return;
-    	}
-    	DatabaseDataSet dds = new DatabaseDataSet(entityContext, true);
-    	try {
-			dds.loadEntities(entitiesToCheck);
-		} catch (SortServiceProviderException | SortQueryException x) {
-			throw new SortPersistException("Error checking which entities are in the database", x);
-		}
-    	for (Entity eToSave: entitiesToCheck) {
-    		if (dds.getEntity(eToSave.getEntityType(), eToSave.getKey().getValue()) != null) {
-    			LOG.debug("Found enity {} in the database.", eToSave);
-    			eToSave.setEntityState(EntityState.LOADED);
-    		}
-    		else {
-    			eToSave.setEntityState(EntityState.NEW);
-    		}
-    	}
-	}
+    private final void setCorrectStateForEntitiesWhichMayOrMayNotBeInTheDatabase(Collection<Entity> ...collectionOfCollectionOfEntities) throws SortPersistException {
+        LOG.debug("Setting the correct entity state for entities which may or may not be in the database.");
 
-	private void removeAnalysis(Entity entity) {
+        LinkedHashSet<Entity> matches = findEntites(flatten(collectionOfCollectionOfEntities), true, new Predicate() {
+                    @Override
+                    public boolean matches(Entity entity) {
+                        return entity.isPerhapsInDatabase();
+                    }
+                });
+
+        DatabaseDataSet dds = new DatabaseDataSet(entityContext, true);
+        try {
+            dds.loadEntities(matches);
+        } catch (SortServiceProviderException | SortQueryException x) {
+            throw new SortPersistException("Error checking which entities are in the database", x);
+        }
+        for (Entity eToSave: matches) {
+            if (dds.getEntity(eToSave.getEntityType(), eToSave.getKey().getValue()) != null) {
+                LOG.debug("Found enity {} in the database.", eToSave);
+                eToSave.setEntityState(EntityState.LOADED);
+            }
+            else {
+                eToSave.setEntityState(EntityState.NEW);
+            }
+        }
+    }
+
+    private void removeAnalysis(Entity entity) {
         if (analysing.remove(entity)) {
             for (OperationGroup og : allGroups) {
                 og.getEntities().remove(entity);
@@ -304,9 +305,9 @@ public class PersistAnalyser implements Serializable {
          */
         for (ToManyNode toManyNode : entity.getChildren(ToManyNode.class)) {
             for (Entity refEntity : toManyNode.getList()) {
-            	if (!refEntity.isNew()) {
-            		LOG.error("A new entity has a tomany node containing entities which exist in the database, the data model is incorrect...");
-            	}
+                if (!refEntity.isNew()) {
+                    LOG.error("A new entity has a tomany node containing entities which exist in the database, the data model is incorrect...");
+                }
                 analyseCreate(refEntity);
             }
         }
@@ -354,23 +355,25 @@ public class PersistAnalyser implements Serializable {
                     analyseUpdate(refEntity);
                 }
                 else if (toManyNode.getNodeType().isDependsOn()) {
-                	analyseDependsOn(refEntity);
+                    analyseDependsOn(refEntity);
                 }
             }
             for (Entity refEntity : toManyNode.getRemovedEntities()) {
                 if (refEntity.isNew()) {
-                	LOG.error("Found remove entity in ToManyNode which is new, this makes no sense, and indicates a bug.");
+                    LOG.error("Found remove entity in ToManyNode which is new, this makes no sense" +
+                    ", and indicates a bug, or perhaps the client programmer is using entity sate PERHAPS_IN_DATABASE" +
+                    " then added an entity to a list and removed it again.");
                 }
-            	else if (toManyNode.getNodeType().isRefers()) {
-            		LOG.error("TODO: an entity for update has a deleted tomany entity which it doesn't own");
-            	}
+                else if (toManyNode.getNodeType().isRefers()) {
+                    LOG.error("TODO: an entity for update has a deleted tomany entity which it doesn't own");
+                }
                 else if (toManyNode.getNodeType().isOwns()) {
-                	analyseDelete(refEntity);
-            	}
-            	else if (toManyNode.getNodeType().isDependsOn()) {
-            		LOG.error("TODO: an entity for update has a deleted tomany entity which it doesn't own");
-            		analyseDependsOn(refEntity);
-            	}
+                    analyseDelete(refEntity);
+                }
+                else if (toManyNode.getNodeType().isDependsOn()) {
+                    LOG.error("TODO: an entity for update has a deleted tomany entity which it doesn't own");
+                    analyseDependsOn(refEntity);
+                }
             }
         }
     }
@@ -386,10 +389,10 @@ public class PersistAnalyser implements Serializable {
         for (ToManyNode toManyNode : entity.getChildren(ToManyNode.class)) {
             /*
              * we only delete the many side if we own it.
-             * todo: how should it work for a ref then? 
+             * todo: how should it work for a ref then?
              * If a syntax only referred to a mapping and the syntax got deleted, then
              * the mapping's fk relation to syntax would have to be set to null.
-             * this means that the entity would have to be updated so that it's FK gets set to null, 
+             * this means that the entity would have to be updated so that it's FK gets set to null,
              * unless we knew that cascade delete was used.
              */
             if (!toManyNode.getNodeType().isOwns()) {
@@ -405,8 +408,8 @@ public class PersistAnalyser implements Serializable {
                 LOG.debug("Fetching 1:N relation as part of delete analysis");
                 entityContext.fetchSingle(toManyNode, true);
                 for (Entity fetchedEntity: toManyNode.getList()) {
-                	//we track the entites which were loaded during analysis, so we don't sync them back
-                	//to the original context after persist.
+                    //we track the entites which were loaded during analysis, so we don't sync them back
+                    //to the original context after persist.
                     loadedDuringAnalysis.add(fetchedEntity);
                 }
             }
@@ -414,20 +417,20 @@ public class PersistAnalyser implements Serializable {
              *  schedule any many entities which exist in the database for deletion.
              */
             for (Entity refEntity : toManyNode.getList()) {
-            	/*
-            	 * the list really can contain new entities added by the user.
-            	 */
+                /*
+                 * the list really can contain new entities added by the user.
+                 */
                 if (!refEntity.isNew()) {
                     analyseDelete(refEntity);
                 }
             }
             for (Entity refEntity : toManyNode.getRemovedEntities()) {
-            	if (!refEntity.isNew()) {
-            		analyseDelete(refEntity);
-            	}
-            	else {
-            		LOG.error("Found a new entity in the list of removed entities, this makes no sense!");
-            	}
+                if (!refEntity.isNew()) {
+                    analyseDelete(refEntity);
+                }
+                else {
+                    LOG.error("Found a new entity in the list of removed entities, this makes no sense!");
+                }
             }
         }
         /*
@@ -537,7 +540,7 @@ public class PersistAnalyser implements Serializable {
     }
 
     /**
-     * 
+     *
      * @param entity
      * @param updateOwnedRefs if references that the entity own's should be updated.
      * @throws EntityMissingException
@@ -556,7 +559,7 @@ public class PersistAnalyser implements Serializable {
                  * we are referring to an entity which is not yet created, process it first
                  */
                 analyseCreate(refEntity);
-            } 
+            }
             else if (updateOwnedRefs && refNode.getNodeType().isOwns() && !refEntity.isFetchRequired()) {
                 /*
                  * the refEntity already exists in the database, but we own it so we are also going to perform an update.
