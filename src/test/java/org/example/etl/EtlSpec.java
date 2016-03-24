@@ -31,17 +31,20 @@ import static scott.barleydb.api.specification.CoreSpec.optionallyOwns;
 import static scott.barleydb.api.specification.CoreSpec.optionallyRefersTo;
 import static scott.barleydb.api.specification.CoreSpec.ownsMany;
 import static scott.barleydb.api.specification.CoreSpec.sortedBy;
+import static scott.barleydb.api.specification.CoreSpec.mandatoryEnum;
+import static scott.barleydb.api.specification.CoreSpec.mandatoryFixedEnum;
+
 
 import org.example.PlatformSpec;
 import org.example.acl.AclSpec;
 import org.example.acl.AclSpec.TopLevelModel;
 import org.example.acl.AclSpec.User;
-import org.example.etl.types.StructureType;
-import org.example.etl.types.SyntaxType;
 
+import scott.barleydb.api.core.types.JdbcType;
 import scott.barleydb.api.specification.NodeSpec;
 import scott.barleydb.build.specification.staticspec.AbstractEntity;
 import scott.barleydb.build.specification.staticspec.Entity;
+import scott.barleydb.build.specification.staticspec.Enumeration;
 import scott.barleydb.build.specification.staticspec.ExtendsEntity;
 import scott.barleydb.build.specification.staticspec.SuppressFromGeneratedCode;
 
@@ -72,6 +75,8 @@ public class EtlSpec extends PlatformSpec {
     @Override
     public Class<?>[] getOrder() {
         return new Class[]{
+                StructureType.class,
+                SyntaxType.class,
                 SyntaxModel.class,
                 XmlSyntaxModel.class,
                 XmlStructure.class,
@@ -88,6 +93,29 @@ public class EtlSpec extends PlatformSpec {
         };
     }
 
+    /**
+     * defines an enum specification mapping NAMES to values
+     * and with a JDBC type
+     * @author scott
+     */
+    @Enumeration(JdbcType.INT)
+    public static class StructureType {
+        public static int CSV = 0;
+        public static int XML = 1;
+        public static int SWIFT = 2;
+    }
+
+    /**
+     * defines an enum specification mapping NAMES to values
+     * and with a JDBC type
+     * @author scott
+     */
+    @Enumeration(JdbcType.INT)
+    public static class SyntaxType {
+        public static int ROOT = 0;
+        public static int SUBSYNTAX = 1;
+    }
+
     @AbstractEntity("SS_SYNTAX_MODEL")
     public static class SyntaxModel implements TopLevelModel {
 
@@ -99,7 +127,7 @@ public class EtlSpec extends PlatformSpec {
 
         /**
          * We don't have a getter or setter for this because the subclass will have the correct methods
-         * for the real association. 
+         * for the real association.
          */
         @SuppressFromGeneratedCode
         public static final NodeSpec structure = mandatoryLongValue("STRUCTURE_ID");
@@ -112,7 +140,7 @@ public class EtlSpec extends PlatformSpec {
     @ExtendsEntity
     public static class XmlSyntaxModel extends SyntaxModel {
 
-        public static final NodeSpec structureType = mandatoryFixedEnum(StructureType.XML);
+        public static final NodeSpec structureType = mandatoryFixedEnum(StructureType.class, StructureType.XML);
 
         public static final NodeSpec structure = dependsOn(XmlStructure.class, "STRUCTURE_ID");
 
@@ -136,7 +164,7 @@ public class EtlSpec extends PlatformSpec {
     @ExtendsEntity
     public static class CsvSyntaxModel extends SyntaxModel {
 
-        public static final NodeSpec structureType = mandatoryFixedEnum(StructureType.CSV);
+        public static final NodeSpec structureType = mandatoryFixedEnum(StructureType.class, StructureType.CSV);
 
         public static final NodeSpec structure = dependsOn(CsvStructure.class, "STRUCTURE_ID");
 

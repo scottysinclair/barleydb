@@ -214,15 +214,18 @@ public class GenerateDataModels extends GenerateModelsHelper {
                     out.write(";\n");
                 }
             }
-            if (nodeSpec.getEnumType() != null) {
+            /*
+             * enums are now in the same package as data models.
+            if (nodeSpec.getEnumSpec().getClassName() != null) {
                 if (!writtenFirstNewLine) {
                     out.write("\n");
                     writtenFirstNewLine = true;
                 }
                 out.write("import ");
-                out.write(nodeSpec.getEnumType().getName());
+                out.write(nodeSpec.getEnumSpec().getClassName());
                 out.write(";\n");
             }
+            */
             if (nodeSpec.getJavaType() != null && nodeSpec.getJavaType().getJavaTypeClass() != null) {
                 if (!nodeSpec.getJavaType().getJavaTypeClass().getName().startsWith("java.lang")) {
                     if (!nodeSpec.getJavaType().getJavaTypeClass().isArray()) {

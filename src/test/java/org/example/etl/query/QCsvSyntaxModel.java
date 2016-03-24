@@ -7,7 +7,7 @@ package org.example.etl.query;
  * $HeadURL:$
  * %%
  * Copyright (C) 2014 - 2016 Scott Sinclair
- * 			<scottysinclair@gmail.com>
+ *       <scottysinclair@gmail.com>
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -29,7 +29,7 @@ import scott.barleydb.api.query.JoinType;
 import scott.barleydb.api.query.QProperty;
 import scott.barleydb.api.query.QueryObject;
 import org.example.etl.model.CsvSyntaxModel;
-import org.example.etl.types.StructureType;
+import org.example.etl.model.StructureType;
 import org.example.etl.query.QCsvStructure;
 import org.example.etl.query.QCsvMapping;
 
@@ -49,8 +49,8 @@ public class QCsvSyntaxModel extends QAbstractSyntaxModel<CsvSyntaxModel, QCsvSy
   }
 
 
-  public QProperty<StructureType> structureType() {
-    return new QProperty<StructureType>(this, "structureType");
+  public QProperty<org.example.etl.model.StructureType> structureType() {
+    return new QProperty<org.example.etl.model.StructureType>(this, "structureType");
   }
 
   public QCsvStructure joinToStructure() {

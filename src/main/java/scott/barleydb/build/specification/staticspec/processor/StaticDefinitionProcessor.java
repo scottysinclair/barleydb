@@ -28,11 +28,14 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import scott.barleydb.api.specification.DefinitionsSpec;
 import scott.barleydb.api.specification.EntitySpec;
+import scott.barleydb.api.specification.EnumSpec;
+import scott.barleydb.api.specification.EnumValueSpec;
 import scott.barleydb.api.specification.NodeSpec;
 import scott.barleydb.api.specification.RelationSpec;
 import scott.barleydb.api.specification.SpecRegistry;
@@ -40,6 +43,7 @@ import scott.barleydb.api.specification.SuppressionSpec;
 import scott.barleydb.api.specification.constraint.UniqueConstraintSpec;
 import scott.barleydb.build.specification.staticspec.AbstractEntity;
 import scott.barleydb.build.specification.staticspec.Entity;
+import scott.barleydb.build.specification.staticspec.Enumeration;
 import scott.barleydb.build.specification.staticspec.ExtendsEntity;
 import scott.barleydb.build.specification.staticspec.StaticDefinitions;
 import scott.barleydb.build.specification.staticspec.SuppressFromGeneratedCode;
@@ -63,6 +67,12 @@ public class StaticDefinitionProcessor {
          * We will add any definitions we create to it.
          */
         private SpecRegistry registry;
+
+        /**
+         * A map of lookup objects to EnumSpecs.
+         * The relations initially refer to EnumSpecs via the lookup objects.
+         */
+        private final Map<Object, EnumSpec> enumSpecByStaticKey = new HashMap<>();
 
         /**
          * A map of lookup objects to EntitySpecs.
@@ -106,6 +116,11 @@ public class StaticDefinitionProcessor {
                 definitionsSpec.addImport( dependency.getNamespace() );
             }
 
+            for (Class<?> innerClass: staticDefs.getOrder()) {
+                if (definesEnum( innerClass )) {
+                    definitionsSpec.add( buildEnumSpec(staticDefs, innerClass ) );
+                }
+            }
             for (Class<?> innerClass: staticDefs.getOrder()) {
                 if (definesEntity( innerClass )) {
                     definitionsSpec.add( buildEntitySpec(staticDefs, innerClass ) );
@@ -177,6 +192,26 @@ public class StaticDefinitionProcessor {
             }
         }
 
+        private EnumSpec buildEnumSpec(StaticDefinitions staticDefs, Class<?> enumDefinitionClass) {
+            EnumSpec enumSpec = new EnumSpec();
+            enumSpec.setClassName( staticDefs.createFullyQualifiedEnumClassName( enumDefinitionClass ));
+            List<EnumValueSpec> enumValues = new LinkedList<>();
+            for (Field f: enumDefinitionClass.getFields()) {
+                EnumValueSpec enumValue;
+                try {
+                    enumValue = new EnumValueSpec((int)f.get(null), f.getName());
+                } catch (IllegalArgumentException | IllegalAccessException e) {
+                    throw new IllegalStateException("Could not create enum value for field " + f.getName());
+                }
+                enumValues.add( enumValue );
+            }
+            enumSpec.setEnumValues(enumValues);
+            /*
+             * refer to enumSpecs by their defining class, for later lookup.
+             */
+            enumSpecByStaticKey.put(enumDefinitionClass, enumSpec);
+            return enumSpec;
+        }
 
         /**
          * Processes an entity definition returning a full EntitySpec
@@ -341,31 +376,42 @@ public class StaticDefinitionProcessor {
             }
             return superSpec;
         }
-    }
 
-    private void processNodeSpecAndAddToEntity(StaticDefinitions staticDefs, EntitySpec entitySpec, NodeSpec nodeSpec, Field field) {
-        if (nodeSpec.getName() == null) {
-            nodeSpec.setName( field.getName() );
-        }
-        if (field.getAnnotation(SuppressFromGeneratedCode.class) != null) {
-            nodeSpec.setSuppression(SuppressionSpec.GENERATED_CODE);
-        }
-        if (field.getAnnotation(SuppressSetter.class) != null) {
-            nodeSpec.setSuppression(SuppressionSpec.GENERATED_CODE_SETTER);
-        }
-        if (nodeSpec.getColumnName() == null) {
-            /*
-             * If the node is a FK relation, then we try and calculate the name
-             * after the relation is resolved, not now..
-             */
-            if (nodeSpec.getRelationSpec() == null) {
-                nodeSpec.setColumnName( staticDefs.createColumnName( nodeSpec ) );
+        private void processNodeSpecAndAddToEntity(StaticDefinitions staticDefs, EntitySpec entitySpec, NodeSpec nodeSpec, Field field) {
+            if (nodeSpec.getName() == null) {
+                nodeSpec.setName( field.getName() );
             }
+            if (field.getAnnotation(SuppressFromGeneratedCode.class) != null) {
+                nodeSpec.setSuppression(SuppressionSpec.GENERATED_CODE);
+            }
+            if (field.getAnnotation(SuppressSetter.class) != null) {
+                nodeSpec.setSuppression(SuppressionSpec.GENERATED_CODE_SETTER);
+            }
+            if (nodeSpec.getColumnName() == null) {
+                /*
+                 * If the node is a FK relation, then we try and calculate the name
+                 * after the relation is resolved, not now..
+                 */
+                if (nodeSpec.getRelationSpec() == null) {
+                    nodeSpec.setColumnName( staticDefs.createColumnName( nodeSpec ) );
+                }
+            }
+            if (nodeSpec.getEnumSpecIdentifier() != null && nodeSpec.getEnumSpec() == null) {
+                EnumSpec enumSpec = enumSpecByStaticKey.get( nodeSpec.getEnumSpecIdentifier() );
+                if (enumSpec == null) {
+                    throw new IllegalStateException("Could not resolve enum id " + nodeSpec.getEnumSpecIdentifier());
+                }
+                nodeSpec.setEnumSpec( enumSpec );
+            }
+            entitySpec.add(nodeSpec);
+            nodeSpec.setEntity(entitySpec);
         }
-        entitySpec.add(nodeSpec);
-        nodeSpec.setEntity(entitySpec);
+
     }
 
+    private boolean definesEnum(Class<?> type) {
+        return type.getAnnotation(Enumeration.class) != null;
+    }
     /**
      * Checks if the given class defines an entity.
      * @param type

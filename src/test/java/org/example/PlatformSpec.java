@@ -83,6 +83,11 @@ public class PlatformSpec extends StaticDefinitions {
     }
 
     @Override
+    public String createFullyQualifiedEnumClassName(Class<?> enumDefinition) {
+        return namespace + ".model." + enumDefinition.getSimpleName();
+    }
+
+    @Override
     public JoinTypeSpec getJoinType(EntitySpec entitySpec, RelationSpec relationSpec) {
         return JoinTypeSpec.LEFT_OUTER_JOIN;
     }
@@ -148,14 +153,6 @@ public class PlatformSpec extends StaticDefinitions {
         spec.setJdbcType(JdbcType.BLOB);
         spec.setNullable(Nullable.NOT_NULL);
         return spec;
-    }
-
-    public static <E extends Enum<E>> NodeSpec mandatoryEnum(Class<E> type) {
-        return CoreSpec.mandatoryEnum(type, JdbcType.INT);
-    }
-
-    public static <E extends Enum<E>> NodeSpec mandatoryFixedEnum(E value) {
-        return CoreSpec.mandatoryFixedEnum(value, JdbcType.INT);
     }
 
     public static NodeSpec varchar(int length, Nullable nullable) {

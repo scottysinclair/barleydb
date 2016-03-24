@@ -29,6 +29,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlID;
+import javax.xml.bind.annotation.XmlIDREF;
 import javax.xml.bind.annotation.XmlTransient;
 
 import scott.barleydb.api.core.types.JavaType;
@@ -54,8 +55,9 @@ public class NodeSpec implements Serializable, Cloneable {
     @XmlAttribute
     private JavaType javaType;
 
-    @XmlAttribute
-    private Class<? extends Enum<?>> enumType;
+    @XmlIDREF
+    @XmlElement
+    private EnumSpec enumSpec = null;
 
     private RelationSpec relation;
 
@@ -73,10 +75,10 @@ public class NodeSpec implements Serializable, Cloneable {
 
     @XmlAttribute
     private Integer length;
-    
+
     @XmlAttribute
     private Integer precision;
-    
+
     @XmlAttribute
     private Integer scale;
 
@@ -85,12 +87,17 @@ public class NodeSpec implements Serializable, Cloneable {
 
     @XmlElement
     private SuppressionSpec suppression;
-    
+
     @XmlElement
     private String typeConverter;
-    
+
     @XmlAttribute
     private KeyGenSpec keyGenSpec;
+
+    /**
+     * key used to lookup the enumSpec, only required by static definition processing.
+     */
+    private transient Object enumSpecIdentifier;
 
 
     @XmlAttribute(name="pk")
@@ -106,16 +113,16 @@ public class NodeSpec implements Serializable, Cloneable {
     public boolean isPrimaryKey() {
         return primaryKey;
     }
-    
+
     public KeyGenSpec getKeyGenSpec() {
-		return keyGenSpec;
-	}
+        return keyGenSpec;
+    }
 
-	public void setKeyGenSpec(KeyGenSpec keyGenSpec) {
-		this.keyGenSpec = keyGenSpec;
-	}
+    public void setKeyGenSpec(KeyGenSpec keyGenSpec) {
+        this.keyGenSpec = keyGenSpec;
+    }
 
-	@XmlID
+    @XmlID
     @XmlElement
     public String getId() {
         return entity.getClassName() + "." +  name;
@@ -132,16 +139,16 @@ public class NodeSpec implements Serializable, Cloneable {
     public void setEntity(EntitySpec entity) {
         this.entity = entity;
     }
-    
+
     public String getTypeConverter() {
-		return typeConverter;
-	}
+        return typeConverter;
+    }
 
-	public void setTypeConverter(String typeConverter) {
-		this.typeConverter = typeConverter;
-	}
+    public void setTypeConverter(String typeConverter) {
+        this.typeConverter = typeConverter;
+    }
 
-	public String getName() {
+    public String getName() {
         return name;
     }
 
@@ -165,12 +172,20 @@ public class NodeSpec implements Serializable, Cloneable {
         this.jdbcType = jdbcType;
     }
 
-    public Class<? extends Enum<?>> getEnumType() {
-        return enumType;
+    public EnumSpec getEnumSpec() {
+        return enumSpec;
     }
 
-    public void setEnumType(Class<? extends Enum<?>> enumType) {
-        this.enumType = enumType;
+    public void setEnumSpec(EnumSpec enumSpec) {
+        this.enumSpec = enumSpec;
+    }
+
+    public void setEnumSpecIdentifier(Class<?> enumSpecIdentifier) {
+        this.enumSpecIdentifier = enumSpecIdentifier;
+    }
+
+    public Object getEnumSpecIdentifier() {
+        return enumSpecIdentifier;
     }
 
     @XmlElement(name="relation")
@@ -215,30 +230,30 @@ public class NodeSpec implements Serializable, Cloneable {
     }
 
     public RelationSpec getRelation() {
-		return relation;
-	}
+        return relation;
+    }
 
-	public void setRelation(RelationSpec relation) {
-		this.relation = relation;
-	}
+    public void setRelation(RelationSpec relation) {
+        this.relation = relation;
+    }
 
-	public Integer getPrecision() {
-		return precision;
-	}
+    public Integer getPrecision() {
+        return precision;
+    }
 
-	public void setPrecision(Integer precision) {
-		this.precision = precision;
-	}
+    public void setPrecision(Integer precision) {
+        this.precision = precision;
+    }
 
-	public Integer getScale() {
-		return scale;
-	}
+    public Integer getScale() {
+        return scale;
+    }
 
-	public void setScale(Integer scale) {
-		this.scale = scale;
-	}
+    public void setScale(Integer scale) {
+        this.scale = scale;
+    }
 
-	public boolean isOptimisticLock() {
+    public boolean isOptimisticLock() {
         return optimisticLock;
     }
 
@@ -283,9 +298,9 @@ public class NodeSpec implements Serializable, Cloneable {
             sb.append("\n\tjavaType=");
             sb.append(javaType);
         }
-        if (enumType != null) {
-            sb.append("\n\tenumType=");
-            sb.append(enumType);
+        if (enumSpec != null) {
+            sb.append("\n\tenumSpec=");
+            sb.append(enumSpec);
         }
         if (relation != null) {
             sb.append("\n\trelation=");

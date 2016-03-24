@@ -30,7 +30,7 @@ import org.example.acl.model.User;
 import org.example.etl.model.XmlMapping;
 import org.example.etl.model.XmlStructure;
 import org.example.etl.model.XmlSyntaxModel;
-import org.example.etl.types.SyntaxType;
+import org.example.etl.model.SyntaxType;
 import org.junit.Test;
 
 import scott.barleydb.api.persist.PersistAnalyser;

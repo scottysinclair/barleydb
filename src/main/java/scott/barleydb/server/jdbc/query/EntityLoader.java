@@ -10,12 +10,12 @@ package scott.barleydb.server.jdbc.query;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- *
+ * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -271,7 +271,7 @@ final class EntityLoader {
         }
 
         Object result = null;
-        if (nd.getEnumType() != null) {
+        if (nd.getEnumSpec() != null) {
             result = convertToEnum(nd, value);
         }
         else {
@@ -316,7 +316,12 @@ final class EntityLoader {
                }
         }
         if (result == null) {
-            throw new ResultDataConversionException("Could not convert value " + value + " of type " + value.getClass().getName() + " to " + javaType);
+            if (nd.getEnumSpec() == null) {
+                throw new ResultDataConversionException("Could not convert value " + value + " of type " + value.getClass().getName() + " to " + javaType);
+            }
+            else {
+                throw new ResultDataConversionException("Could not convert value " + value + " of type " + value.getClass().getName() + " to " + nd.getEnumSpec().getClassName());
+            }
         }
         return result;
     }
@@ -350,17 +355,22 @@ final class EntityLoader {
         return null;
     }
 
-    @SuppressWarnings("unchecked")
+    /**
+     * Converts to an enum value if the enum class exists
+     * otherwise converts to a string representation of the enum value.
+     * This way enums are supported with and without generated classes.
+     *
+     * @param nd
+     * @param value
+     * @return
+     * @throws IllegalQueryStateException
+     */
     private <E extends Enum<E>> Object convertToEnum(NodeType nd, Object value) throws IllegalQueryStateException {
-        if (value instanceof Number) {
-            for (Enum<E> e : java.util.EnumSet.allOf((Class<E>) nd.getEnumType())) {
-                if (((Integer) e.ordinal()).equals(((Number)value).intValue())) {
-                    LOG.debug("Converted " + value + " to " + e);
-                    return e;
-                }
-            }
+        Object result = NodeType.convertToEnum(nd, value);
+        if (result != null) {
+            return result;
         }
-        throw new IllegalQueryStateException("Could not convert from enum");
+        throw new IllegalQueryStateException("Could not convert value '" + value + " to enum of type " + nd.getEnumSpec().getClassName());
     }
 
     private Integer convertToInteger(Object value) {

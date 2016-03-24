@@ -48,7 +48,7 @@ public class RelationSpec implements Serializable, Cloneable {
      * An initial EntitySpec identifier allowing the real EntitySpec
      * to be resolved at a later time.
      */
-    private Object entitySpecIdentifier;
+    private transient Object entitySpecIdentifier;
 
     /**
      * entitySpec is usually set in a second pass when loading / defining specs
@@ -75,7 +75,7 @@ public class RelationSpec implements Serializable, Cloneable {
     @XmlIDREF
     @XmlAttribute
     private NodeSpec sortNode;
-    
+
 
     /**
      * For reference to a join table
@@ -110,7 +110,7 @@ public class RelationSpec implements Serializable, Cloneable {
     public void setJoinType(JoinTypeSpec joinType) {
         this.joinType = joinType;
     }
-    
+
     public NodeSpec getSortNode() {
         return sortNode;
     }

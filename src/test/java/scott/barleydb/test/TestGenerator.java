@@ -42,10 +42,9 @@ import javax.xml.bind.Unmarshaller;
 
 import org.example.acl.AclSpec;
 import org.example.etl.EtlSpec;
-import org.example.etl.types.StructureType;
-import org.example.etl.types.SyntaxType;
+import org.example.etl.model.StructureType;
+import org.example.etl.model.SyntaxType;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import scott.barleydb.api.specification.DefinitionsSpec;
@@ -55,6 +54,7 @@ import scott.barleydb.build.specification.ddlgen.GenerateHsqlDatabaseScript;
 import scott.barleydb.build.specification.ddlgen.GenerateMySqlDatabaseScript;
 import scott.barleydb.build.specification.ddlgen.GenerateOracleDatabaseScript;
 import scott.barleydb.build.specification.modelgen.GenerateDataModels;
+import scott.barleydb.build.specification.modelgen.GenerateEnums;
 import scott.barleydb.build.specification.modelgen.GenerateQueryModels;
 import scott.barleydb.build.specification.staticspec.processor.StaticDefinitionProcessor;
 import scott.barleydb.build.specification.vendor.MySqlSpecConverter;
@@ -65,16 +65,16 @@ import scott.barleydb.build.specification.vendor.MySqlSpecConverter;
  *
  */
 public class TestGenerator {
-	
-	@Before
-	public void setup() {
+
+    @Before
+    public void setup() {
         File file = new File("target/generated/src/test/java/org/example/etl");
         file.mkdirs();
         file = new File("target/generated/src/test/java/org/example/acl");
         file.mkdirs();
         file = new File("target/generated/src/test/resources/");
         file.mkdirs();
-	}
+    }
 
     @Test
     public void testgenerateAclXmlSpec() throws Exception {
@@ -114,7 +114,7 @@ public class TestGenerator {
         @SuppressWarnings("unused")
         DefinitionsSpec etlSpec = processor.process(new EtlSpec(), registry);
 
-        JAXBContext jc = JAXBContext.newInstance(SpecRegistry.class, StructureType.class, SyntaxType.class, EtlSpec.class);
+        JAXBContext jc = JAXBContext.newInstance(SpecRegistry.class);
         Marshaller marshaller = jc.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 
@@ -223,12 +223,12 @@ public class TestGenerator {
 
         DefinitionsSpec aclSpec = processor.process(new AclSpec(), registry);
 
-      //  deleteFiles("src/test/java/org/example/acl/model");
+        GenerateEnums generateEnums = new GenerateEnums();
+        generateEnums.generateEnums("target/generated/src/test/java", aclSpec);
 
         GenerateDataModels generateModels = new GenerateDataModels();
         generateModels.generateDataModels("target/generated/src/test/java", aclSpec);
 
-      //  deleteFiles("src/test/java/org/example/acl/query");
         GenerateQueryModels generateQueryModels = new GenerateQueryModels();
         generateQueryModels.generateQueryModels("target/generated/src/test/java", aclSpec);
 }
@@ -240,11 +240,12 @@ public class TestGenerator {
 
         DefinitionsSpec etlSpec = processor.process(new EtlSpec(), registry);
 
-      //  deleteFiles("src/test/java/org/example/etl/model");
+        GenerateEnums generateEnums = new GenerateEnums();
+        generateEnums.generateEnums("target/generated/src/test/java", etlSpec);
+
         GenerateDataModels generateDataModels = new GenerateDataModels();
         generateDataModels.generateDataModels("target/generated/src/test/java", etlSpec);
 
-    //    deleteFiles("src/test/java/org/example/etl/query");
         GenerateQueryModels generateQueryModels = new GenerateQueryModels();
         generateQueryModels.generateQueryModels("target/generated/src/test/java", etlSpec);
     }

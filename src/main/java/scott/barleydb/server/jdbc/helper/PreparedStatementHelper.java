@@ -26,6 +26,7 @@ import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Date;
+import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,18 +42,20 @@ import scott.barleydb.api.core.types.JdbcType;
 import scott.barleydb.api.exception.SortException;
 import scott.barleydb.api.exception.execution.TypeConversionException;
 import scott.barleydb.api.exception.execution.TypeConverterNotFoundException;
+import scott.barleydb.api.specification.EnumSpec;
+import scott.barleydb.api.specification.EnumValueSpec;
 import scott.barleydb.server.jdbc.JdbcEntityContextServices;
 import scott.barleydb.server.jdbc.converter.TypeConverter;
 
 public abstract class PreparedStatementHelper<PREPARING_EX extends SortException> {
 
-	private static final Logger LOG = LoggerFactory.getLogger(PreparedStatementHelper.class);
-	
-	private final JdbcEntityContextServices entityContextServices;
+    private static final Logger LOG = LoggerFactory.getLogger(PreparedStatementHelper.class);
+
+    private final JdbcEntityContextServices entityContextServices;
     private final Definitions definitions;
 
     public PreparedStatementHelper(JdbcEntityContextServices entityContextServices, Definitions definitions) {
-    	this.entityContextServices = entityContextServices;
+        this.entityContextServices = entityContextServices;
         this.definitions = definitions;
     }
 
@@ -81,41 +84,41 @@ public abstract class PreparedStatementHelper<PREPARING_EX extends SortException
         JavaType javaType = getJavaType(nd);
         JdbcType jdbcType = getJdbcType(nd);
         TypeConverter converter;
-		try {
-			converter = getTypeConverter( nd );
-		} 
-		catch (TypeConverterNotFoundException e) {
-			throw newPreparingStatementException("Could not find type converter '" + nd.getTypeConverterFqn() + "'");
-		}
-        if (converter != null) {
-        	/*
-        	 * Perform the configured conversion before setting the JDBC parameter
-        	 */
-        	try {
-        		Object oldValue = value;
-				value = converter.convertForwards(value);
-	        	LOG.debug("Performing type conversion {} from {} to {}", new Object[]{nd.getTypeConverterFqn(), oldValue, value});
-			} catch (TypeConversionException e) {
-				throw newPreparingStatementException("Error during type conversion", e);
-			}
-        	javaType = converter.getForwardsJavaType();
+        try {
+            converter = getTypeConverter( nd );
         }
-        setValue(ps, index, javaType, jdbcType, value);
+        catch (TypeConverterNotFoundException e) {
+            throw newPreparingStatementException("Could not find type converter '" + nd.getTypeConverterFqn() + "'");
+        }
+        if (converter != null) {
+            /*
+             * Perform the configured conversion before setting the JDBC parameter
+             */
+            try {
+                Object oldValue = value;
+                value = converter.convertForwards(value);
+                LOG.debug("Performing type conversion {} from {} to {}", new Object[]{nd.getTypeConverterFqn(), oldValue, value});
+            } catch (TypeConversionException e) {
+                throw newPreparingStatementException("Error during type conversion", e);
+            }
+            javaType = converter.getForwardsJavaType();
+        }
+        setValue(ps, index, nd.getEnumSpec(), javaType, jdbcType, value);
     }
 
     private TypeConverter getTypeConverter(NodeType nd) throws TypeConverterNotFoundException {
-    	String typeConverterFqn = nd.getTypeConverterFqn();
-    	if (typeConverterFqn == null) {
-    		return null;
-    	}
-    	TypeConverter tc = entityContextServices.getTypeConverter(typeConverterFqn);
-    	if (tc == null) {
-    		throw new TypeConverterNotFoundException("Could not find type converter '" + typeConverterFqn + "'");
-    	}
-    	return tc;
-	}
+        String typeConverterFqn = nd.getTypeConverterFqn();
+        if (typeConverterFqn == null) {
+            return null;
+        }
+        TypeConverter tc = entityContextServices.getTypeConverter(typeConverterFqn);
+        if (tc == null) {
+            throw new TypeConverterNotFoundException("Could not find type converter '" + typeConverterFqn + "'");
+        }
+        return tc;
+    }
 
-	private JavaType getJavaType(NodeType nd) throws PREPARING_EX {
+    private JavaType getJavaType(NodeType nd) throws PREPARING_EX {
         if (nd.getJavaType() != null) {
             return nd.getJavaType();
         }
@@ -150,13 +153,20 @@ public abstract class PreparedStatementHelper<PREPARING_EX extends SortException
         return newPreparingStatementException("Error seting value of type " + type + " on prepared statement", cause);
     }
 
-    private final void setValue(PreparedStatement ps, int index, JavaType javaType, JdbcType jdbcType, Object value) throws PREPARING_EX  {
+    private final void setValue(PreparedStatement ps, int index, EnumSpec enumSpec, JavaType javaType, JdbcType jdbcType, Object value) throws PREPARING_EX  {
         switch (javaType) {
         case ENUM:
-            @SuppressWarnings("unchecked")
-            Enum<? extends Enum<?>> eValue = (Enum<? extends Enum<?>>)value;
-            setEnum(ps, index, jdbcType, eValue);
-            return;
+            if (value instanceof Enum) {
+                @SuppressWarnings("unchecked")
+                Enum<? extends Enum<?>> eValue = (Enum<? extends Enum<?>>)value;
+                setEnumValue(ps, index, enumSpec, jdbcType, eValue.name());
+                return;
+            }
+            else if (value instanceof String) {
+                setEnumValue(ps, index, enumSpec, jdbcType, (String)value);
+                return;
+            }
+            throw newPreparingStatementException("Cannot convert value '" + value + "' to an Enum id");
         case BIGDECIMAL:
             setBigDecimal(ps, index, jdbcType, (BigDecimal) value);
             return;
@@ -186,7 +196,28 @@ public abstract class PreparedStatementHelper<PREPARING_EX extends SortException
         }
     }
 
-    private void setEnum(PreparedStatement ps, int index, JdbcType jdbcType, Enum<? extends Enum<?>> value) throws PREPARING_EX {
+    private void setEnumValue(PreparedStatement ps, int index, EnumSpec enumSpec, JdbcType jdbcType, String value) throws PREPARING_EX {
+        Object enumId = getEnumId(enumSpec, value);
+        if (enumId instanceof Integer) {
+          setInteger(ps, index, jdbcType, (Integer)enumId);
+        }
+        else if (enumId instanceof String) {
+          setString(ps, index, jdbcType, (String)value);
+        }
+        else {
+            throw newPreparingStatementException("Do not support enum Ids of type '" + value.getClass().getSimpleName() + "' in enumSpec '" + enumSpec.getClassName() + "'");    }
+        }
+
+    private Object getEnumId(EnumSpec enumSpec, String value) throws PREPARING_EX {
+        for (EnumValueSpec valueEl: enumSpec.getEnumValues()) {
+            if (valueEl.getName().equals( value )) {
+                return valueEl.getId();
+            }
+        }
+        throw newPreparingStatementException("Could not find enum value '" + value + "' in enumSpec '" + enumSpec.getClassName() + "'");
+    }
+
+    private void sxxssx(PreparedStatement ps, int index, JdbcType jdbcType, Enum<? extends Enum<?>> value) throws PREPARING_EX {
         switch (jdbcType) {
         case INT:
             try {
@@ -363,7 +394,7 @@ public abstract class PreparedStatementHelper<PREPARING_EX extends SortException
                 break;
             case DATETIME:
                 try {
-                	//datetime is not in a JDBC type, we map it to java.sql.Timestamp
+                    //datetime is not in a JDBC type, we map it to java.sql.Timestamp
                     ps.setTimestamp(index, new java.sql.Timestamp((Long) value.getTime()));
                 }
                 catch (SQLException x) {

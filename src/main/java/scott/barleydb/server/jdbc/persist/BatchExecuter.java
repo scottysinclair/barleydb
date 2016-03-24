@@ -157,6 +157,12 @@ abstract class BatchExecuter {
 
     protected abstract void handleFailure(Entity entity, Throwable throwable) throws SortPersistException;
 
+    /**
+     * handles the fact that an insert update or delete operation performed no action.
+     * @param entity
+     * @param throwable
+     * @throws SortPersistException
+     */
     protected abstract void handleNoop(Entity entity, Throwable throwable) throws SortPersistException;
 
     protected abstract PreparedStatement prepareStatement(PreparedStatementPersistCache psCache, Entity entity) throws SortPersistException;

@@ -54,6 +54,10 @@ public class DefinitionsSpec implements Serializable {
     @XmlElement(name="import")
     private final Set<String> imports = new HashSet<>();
 
+    @XmlJavaTypeAdapter(EnumSpecAdapter.class)
+    @XmlElement(name="EnumSpecs")
+    private final LinkedHashMap<String,EnumSpec> enumSpecs = new LinkedHashMap<>();
+
     @XmlJavaTypeAdapter(EntitySpecAdapter.class)
     @XmlElement(name="EntitySpecs")
     private final LinkedHashMap<String,EntitySpec> entitySpecs = new LinkedHashMap<>();
@@ -74,12 +78,20 @@ public class DefinitionsSpec implements Serializable {
         imports.add( namespace );
     }
 
+    public void add(EnumSpec enumSpec) {
+        enumSpecs.put(enumSpec.getClassName(), enumSpec);
+    }
+
     public void add(EntitySpec entitySpec) {
         entitySpecs.put(entitySpec.getClassName(), entitySpec);
     }
 
     public Collection<EntitySpec> getEntitySpecs() {
         return Collections.unmodifiableCollection( entitySpecs.values() );
+    }
+
+    public Collection<EnumSpec> getEnumSpecs() {
+        return Collections.unmodifiableCollection( enumSpecs.values() );
     }
 
     public void verify() {
@@ -113,16 +125,39 @@ public class DefinitionsSpec implements Serializable {
         return sb.toString();
     }
 
+    public static class EnumsList {
+        @XmlElement(name="EnumSpec")
+        private final List<EnumSpec> data = new LinkedList<>();
+    }
+
     public static class EntitiesList {
         @XmlElement(name="EntitySpec")
         private final List<EntitySpec> data = new LinkedList<>();
     }
 
+    public static class EnumSpecAdapter extends XmlAdapter<EnumsList, LinkedHashMap<String,EnumSpec>> {
+        @Override
+        public LinkedHashMap<String, EnumSpec> unmarshal(EnumsList enumSpecs) throws Exception {
+            LinkedHashMap<String, EnumSpec> map = new LinkedHashMap<String, EnumSpec>();
+            for (EnumSpec spec: enumSpecs.data) {
+                map.put(spec.getClassName(), spec);
+            }
+            return map;
+        }
+
+        @Override
+        public EnumsList marshal(LinkedHashMap<String, EnumSpec> enumSpecs) throws Exception {
+            EnumsList list = new EnumsList();
+            list.data.addAll( enumSpecs.values() );
+            return list;
+        }
+    }
+
     public static class EntitySpecAdapter extends XmlAdapter<EntitiesList, LinkedHashMap<String,EntitySpec>> {
         @Override
-        public LinkedHashMap<String, EntitySpec> unmarshal(EntitiesList nodeSpecs) throws Exception {
+        public LinkedHashMap<String, EntitySpec> unmarshal(EntitiesList entitySpecs) throws Exception {
             LinkedHashMap<String, EntitySpec> map = new LinkedHashMap<String, EntitySpec>();
-            for (EntitySpec spec: nodeSpecs.data) {
+            for (EntitySpec spec: entitySpecs.data) {
                 map.put(spec.getClassName(), spec);
             }
             return map;

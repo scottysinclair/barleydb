@@ -1,10 +1,13 @@
-package org.example.etl.types;
+package org.example.etl.model;
 
 /*
  * #%L
  * BarleyDB
+ * $Id:$
+ * $HeadURL:$
  * %%
- * Copyright (C) 2014 Scott Sinclair <scottysinclair@gmail.com>
+ * Copyright (C) 2014 - 2016 Scott Sinclair
+ *       <scottysinclair@gmail.com>
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -22,8 +25,13 @@ package org.example.etl.types;
  * #L%
  */
 
-
-public enum SyntaxType {
-    ROOT,
-    SUBSYNTAX
+/**
+ * Generated from Entity Specification
+ *
+ * @author scott
+ */
+public enum StructureType {
+  CSV, //has database key 0
+  XML, //has database key 1
+  SWIFT //has database key 2
 }

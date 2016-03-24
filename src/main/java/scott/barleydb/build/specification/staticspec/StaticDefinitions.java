@@ -108,6 +108,8 @@ public abstract class StaticDefinitions {
 
     public abstract String createFullyQualifiedQueryClassName(Class<?> entityDefinition);
 
+    public abstract String createFullyQualifiedEnumClassName(Class<?> enumDefinition);
+
     /**
      * Creates a DB column name for the given NodeSpec.
      * @param nodeSpec

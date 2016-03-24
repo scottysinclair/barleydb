@@ -7,7 +7,7 @@ package org.example.etl.query;
  * $HeadURL:$
  * %%
  * Copyright (C) 2014 - 2016 Scott Sinclair
- * 			<scottysinclair@gmail.com>
+ *       <scottysinclair@gmail.com>
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -30,8 +30,8 @@ import scott.barleydb.api.query.QProperty;
 import scott.barleydb.api.query.QueryObject;
 import org.example.etl.model.SyntaxModel;
 import org.example.acl.query.QAccessArea;
-import org.example.etl.types.StructureType;
-import org.example.etl.types.SyntaxType;
+import org.example.etl.model.StructureType;
+import org.example.etl.model.SyntaxType;
 import org.example.acl.query.QUser;
 
 /**
@@ -82,12 +82,12 @@ class QAbstractSyntaxModel<T extends SyntaxModel, CHILD extends QAbstractSyntaxM
     return new QProperty<String>(this, "name");
   }
 
-  public QProperty<StructureType> structureType() {
-    return new QProperty<StructureType>(this, "structureType");
+  public QProperty<org.example.etl.model.StructureType> structureType() {
+    return new QProperty<org.example.etl.model.StructureType>(this, "structureType");
   }
 
-  public QProperty<SyntaxType> syntaxType() {
-    return new QProperty<SyntaxType>(this, "syntaxType");
+  public QProperty<org.example.etl.model.SyntaxType> syntaxType() {
+    return new QProperty<org.example.etl.model.SyntaxType>(this, "syntaxType");
   }
 
   public QUser joinToUser() {

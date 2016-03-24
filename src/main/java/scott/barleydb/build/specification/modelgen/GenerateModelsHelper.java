@@ -54,8 +54,8 @@ public class GenerateModelsHelper {
                 out.write(">");
             }
         }
-        else if (nodeSpec.getEnumType() != null) {
-            out.write(nodeSpec.getEnumType().getSimpleName());
+        else if (nodeSpec.getEnumSpec() != null) {
+            out.write(nodeSpec.getEnumSpec().getClassName());
         }
         else {
             out.write(nodeSpec.getJavaType().getJavaTypeClass().getSimpleName());

@@ -1,5 +1,8 @@
 package scott.barleydb.api.specification;
 
+import java.util.LinkedList;
+import java.util.List;
+
 /*
  * #%L
  * BarleyDB
@@ -24,9 +27,9 @@ package scott.barleydb.api.specification;
 
 import scott.barleydb.api.config.RelationType;
 import scott.barleydb.api.core.types.JavaType;
-import scott.barleydb.api.core.types.JdbcType;
 import scott.barleydb.api.core.types.Nullable;
 import scott.barleydb.api.specification.constraint.UniqueConstraintSpec;
+import scott.barleydb.build.specification.staticspec.Enumeration;
 
 /**
  * Provides scott.barleydb.definitions data type specifications required by the framework.
@@ -39,25 +42,33 @@ public class CoreSpec {
         return Character.toLowerCase(value.charAt(0)) + value.substring(1);
     }
 
-    public static <E extends Enum<E>> NodeSpec mandatoryEnum(Class<E> type, JdbcType jdbcType) {
-        return enumValue(null, type, jdbcType, Nullable.NOT_NULL);
+    public static NodeSpec mandatoryEnum(Class<?> enumSpec) {
+        return enumSpec(enumSpec, Nullable.NOT_NULL);
     }
 
-    public static <E extends Enum<E>> NodeSpec enumValue(String name, Class<E> type, JdbcType jdbcType, Nullable nullable) {
+    public static NodeSpec enumSpec(Class<?> enumSpecClass, Nullable nullable) {
         NodeSpec spec = new NodeSpec();
-        spec.setName( name );
         spec.setJavaType(JavaType.ENUM);
-        spec.setJdbcType(jdbcType);
-        spec.setEnumType(type);
+        Enumeration enumSpecAnno = enumSpecClass.getAnnotation(Enumeration.class);
+        spec.setJdbcType( enumSpecAnno.value() );
+        spec.setEnumSpecIdentifier( enumSpecClass );
         spec.setNullable( nullable );
         return spec;
     }
 
-    public static <E extends Enum<E>> NodeSpec mandatoryFixedEnum(E value, JdbcType jdbcType) {
-        @SuppressWarnings("unchecked")
-        NodeSpec spec = mandatoryEnum(value.getClass(), jdbcType);
-        spec.setFixedValue(value);
+    public static NodeSpec mandatoryFixedEnum(Class<?> enumSpec, Object enumValue) {
+        NodeSpec spec = mandatoryEnum(enumSpec);
+        spec.setFixedValue( enumValue );
         return spec;
+    }
+
+    public static List<EnumValueSpec> enumValuesStartingFrom(int startId, String ...names) {
+        List<EnumValueSpec> values = new LinkedList<>();
+        int id = startId;
+        for (String name: names) {
+            values.add(new EnumValueSpec(id++, name));
+        }
+        return values;
     }
 
     public static NodeSpec optionallyRefersTo(Class<?> type) {
@@ -143,7 +154,7 @@ public class CoreSpec {
     public static NodeSpec refersToMany(Class<?> type, NodeSpec nodeType) {
         return manyRelation(RelationType.REFERS, type, nodeType, null);
     }
-    
+
     public static NodeSpec sortedBy(NodeSpec byMe, NodeSpec nodeSpec) {
         nodeSpec.getRelationSpec().setSortNode(byMe);
         return nodeSpec;

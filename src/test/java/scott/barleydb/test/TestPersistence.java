@@ -23,6 +23,7 @@ package scott.barleydb.test;
  */
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -46,7 +47,7 @@ import org.example.etl.model.XmlSyntaxModel;
 import org.example.etl.query.QRawData;
 import org.example.etl.query.QTemplate;
 import org.example.etl.query.QXmlSyntaxModel;
-import org.example.etl.types.SyntaxType;
+import org.example.etl.model.SyntaxType;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -58,6 +59,7 @@ import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.entity.EntityContextHelper;
 import scott.barleydb.api.core.entity.ProxyController;
+import scott.barleydb.api.exception.SortException;
 import scott.barleydb.api.exception.execution.persist.EntityMissingException;
 import scott.barleydb.api.exception.execution.persist.OptimisticLockMismatchException;
 import scott.barleydb.api.persist.PersistRequest;
@@ -83,6 +85,10 @@ public class TestPersistence extends TestRemoteClientBase {
     public TestPersistence(EntityContextGetter getter) {
         this.getter = getter;
     }
+
+//    public TestPersistence() {
+//        this.getter = new EntityContextGetter(false);;
+//    }
 
     @Override
     public void setup() throws Exception {
@@ -799,4 +805,114 @@ public class TestPersistence extends TestRemoteClientBase {
             System.out.println(r.getCharacterEncoding());
         }
    }
+
+    @Test
+    public void testSaveSyntaxWithMappingWhichIsPerhapsInTheDatabaseAndIsNot() throws SortException {
+        //first create a syntax with 2 mappings
+        XmlSyntaxModel syntax = theEntityContext.newModel(XmlSyntaxModel.class);
+        syntax.setUser( theEntityContext.newModel(User.class) );
+        syntax.setAccessArea( theEntityContext.newModel(AccessArea.class) );
+        syntax.setName("whatever");
+        syntax.setUuid("");
+        syntax.setSyntaxType(SyntaxType.ROOT);
+        syntax.setStructure( theEntityContext.newModel(XmlStructure.class));
+
+        syntax.getAccessArea().setName("root");
+        syntax.getUser().setName("fred");
+        syntax.getUser().setAccessArea(syntax.getAccessArea());
+        syntax.getUser().setUuid("");
+        syntax.getStructure().setName("struct");
+        syntax.getStructure().setAccessArea(syntax.getAccessArea());
+        syntax.getStructure().setUuid("");
+
+        XmlMapping m1 = theEntityContext.newModel(XmlMapping.class);
+        m1.setSyntax(syntax);
+        m1.setXpath("/root");
+        m1.setTargetFieldName("root");
+        syntax.getMappings().add(m1);
+
+        theEntityContext.persist(new PersistRequest().save(syntax));
+
+        /*
+         * now we do something 'stupid' we add an XmlMapping entity to the entity context with key 100
+         * and we say we don't know if it already exists or not.
+         *
+         * We then add it to the syntax and persist the syntax, we expect it to work.
+         * In the real world this would not be a good idea if the PK is framework generated, ie the
+         * PK could be in use.
+         */
+        XmlMapping m2PerhapsInDb = theEntityContext.newOrNotLoadedModel(XmlMapping.class, 100L);
+        m2PerhapsInDb.setSyntax(syntax);
+        m2PerhapsInDb.setXpath("/root");
+        m2PerhapsInDb.setTargetFieldName("root");
+        syntax.getMappings().add(m2PerhapsInDb);
+
+        assertEquals((Long)100L, m2PerhapsInDb.getId());
+        assertTrue(m2PerhapsInDb.getEntity().isPerhapsInDatabase());
+
+        theEntityContext.persist(new PersistRequest().save(syntax));
+        assertFalse(m2PerhapsInDb.getEntity().isPerhapsInDatabase());
+        assertTrue(m2PerhapsInDb.getEntity().isLoaded());
+        assertEquals((Long)100L, m2PerhapsInDb.getId());
+    }
+
+    @Test
+    public void testSaveSyntaxWithDeletedMappingWhichIsPerhapsInTheDatabaseAndIsNot() throws SortException {
+        //first create a syntax with 2 mappings
+        XmlSyntaxModel syntax = theEntityContext.newModel(XmlSyntaxModel.class);
+        syntax.setUser( theEntityContext.newModel(User.class) );
+        syntax.setAccessArea( theEntityContext.newModel(AccessArea.class) );
+        syntax.setName("whatever");
+        syntax.setUuid("");
+        syntax.setSyntaxType(SyntaxType.ROOT);
+        syntax.setStructure( theEntityContext.newModel(XmlStructure.class));
+
+        syntax.getAccessArea().setName("root");
+        syntax.getUser().setName("fred");
+        syntax.getUser().setAccessArea(syntax.getAccessArea());
+        syntax.getUser().setUuid("");
+        syntax.getStructure().setName("struct");
+        syntax.getStructure().setAccessArea(syntax.getAccessArea());
+        syntax.getStructure().setUuid("");
+
+        XmlMapping m1 = theEntityContext.newModel(XmlMapping.class);
+        m1.setSyntax(syntax);
+        m1.setXpath("/root");
+        m1.setTargetFieldName("root");
+        syntax.getMappings().add(m1);
+
+        theEntityContext.persist(new PersistRequest().save(syntax));
+
+        /*
+         * now we do something 'stupid' we add an XmlMapping entity to the entity context with key 100
+         * and we say we don't know if it already exists or not.
+         *
+         * We then add it to the syntax and persist the syntax, we expect it to work.
+         * In the real world this would not be a good idea if the PK is framework generated, ie the
+         * PK could be in use.
+         */
+        XmlMapping m2PerhapsInDb = theEntityContext.newOrNotLoadedModel(XmlMapping.class, 100L);
+        m2PerhapsInDb.setSyntax(syntax);
+        m2PerhapsInDb.setXpath("/root");
+        m2PerhapsInDb.setTargetFieldName("root");
+        syntax.getMappings().add(m2PerhapsInDb);
+
+        assertEquals((Long)100L, m2PerhapsInDb.getId());
+        assertTrue(m2PerhapsInDb.getEntity().isPerhapsInDatabase());
+
+        syntax.getMappings().remove(m2PerhapsInDb);
+
+        /*
+         * the following persist should be a noop.
+         */
+        theEntityContext.persist(new PersistRequest().save(syntax));
+        /*
+         * the persist attempt figured out that m2PerhapsInDb is new and so adjusted the EntityState
+         * accordingly. (wow)
+         */
+        assertTrue(m2PerhapsInDb.getEntity().isNew());
+        assertEquals((Long)100L, m2PerhapsInDb.getId());
+    }
+
+
 }

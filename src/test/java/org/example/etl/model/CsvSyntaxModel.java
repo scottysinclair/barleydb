@@ -7,7 +7,7 @@ package org.example.etl.model;
  * $HeadURL:$
  * %%
  * Copyright (C) 2014 - 2016 Scott Sinclair
- * 			<scottysinclair@gmail.com>
+ *       <scottysinclair@gmail.com>
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -34,8 +34,6 @@ import scott.barleydb.api.core.proxy.RefNodeProxyHelper;
 import scott.barleydb.api.core.entity.ToManyNode;
 import scott.barleydb.api.core.proxy.ToManyNodeProxyHelper;
 
-import org.example.etl.types.StructureType;
-
 /**
  * Generated from Entity Specification
  *
@@ -55,11 +53,11 @@ public class CsvSyntaxModel extends SyntaxModel {
     mappings = new ToManyNodeProxyHelper(entity.getChild("mappings", ToManyNode.class, true));
   }
 
-  public StructureType getStructureType() {
+  public org.example.etl.model.StructureType getStructureType() {
     return structureType.getValue();
   }
 
-  public void setStructureType(StructureType structureType) {
+  public void setStructureType(org.example.etl.model.StructureType structureType) {
     this.structureType.setValue(structureType);
   }
 

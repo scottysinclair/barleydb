@@ -42,7 +42,7 @@ import org.example.etl.query.QSyntaxModel;
 import org.example.etl.query.QTemplate;
 import org.example.etl.query.QXmlMapping;
 import org.example.etl.query.QXmlSyntaxModel;
-import org.example.etl.types.SyntaxType;
+import org.example.etl.model.SyntaxType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -65,31 +65,31 @@ import scott.barleydb.server.jdbc.resources.ConnectionResources;
  *
  */
 @SuppressWarnings({ "deprecation", "unused" })
-@RunWith(Parameterized.class)
+//@RunWith(Parameterized.class)
 public class TestQuery extends TestRemoteClientBase {
 
-    @Parameters
-    public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][] {
-                {new EntityContextGetter(false), false },
-                {new EntityContextGetter(false), true },
-                {new EntityContextGetter(true), false }
-           });
-    }
+//    @Parameters
+//    public static Collection<Object[]> data() {
+//        return Arrays.asList(new Object[][] {
+//                {new EntityContextGetter(false), false },
+//                {new EntityContextGetter(false), true },
+//                {new EntityContextGetter(true), false }
+//           });
+//    }
 
     private EntityContextGetter getter;
     private EntityContext theEntityContext;
 
-    public TestQuery(EntityContextGetter getter, boolean autoCommitMode) {
-        this.getter = getter;
-        this.autoCommitMode = autoCommitMode;
-    }
-/*
+//    public TestQuery(EntityContextGetter getter, boolean autoCommitMode) {
+//        this.getter = getter;
+//        this.autoCommitMode = autoCommitMode;
+//    }
+
     public TestQuery() {
-    	getter = new EntityContextGetter(false);
-    	autoCommitMode = false;
+        getter = new EntityContextGetter(false);
+        autoCommitMode = false;
     }
-    */
+
     @Override
     protected void prepareData() throws Exception {
         super.prepareData();

@@ -1,4 +1,4 @@
-package org.example.etl.query;
+package scott.barleydb.build.specification.staticspec;
 
 /*
  * #%L
@@ -25,36 +25,15 @@ package org.example.etl.query;
  * #L%
  */
 
-import scott.barleydb.api.query.JoinType;
-import scott.barleydb.api.query.QProperty;
-import scott.barleydb.api.query.QueryObject;
-import org.example.etl.model.RawData;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-/**
- * Generated from Entity Specification
- *
- * @author scott
- */
-public class QRawData extends QueryObject<RawData> {
-  private static final long serialVersionUID = 1L;
-  public QRawData() {
-    super(RawData.class);
-  }
+import scott.barleydb.api.core.types.JdbcType;
 
-  public QRawData(QueryObject<?> parent) {
-    super(RawData.class, parent);
-  }
-
-
-  public QProperty<Long> id() {
-    return new QProperty<Long>(this, "id");
-  }
-
-  public QProperty<byte[]> data() {
-    return new QProperty<byte[]>(this, "data");
-  }
-
-  public QProperty<String> characterEncoding() {
-    return new QProperty<String>(this, "characterEncoding");
-  }
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Enumeration {
+    JdbcType value();
 }

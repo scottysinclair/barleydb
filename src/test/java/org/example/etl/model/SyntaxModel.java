@@ -7,7 +7,7 @@ package org.example.etl.model;
  * $HeadURL:$
  * %%
  * Copyright (C) 2014 - 2016 Scott Sinclair
- * 			<scottysinclair@gmail.com>
+ *       <scottysinclair@gmail.com>
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -32,8 +32,6 @@ import scott.barleydb.api.core.entity.RefNode;
 import scott.barleydb.api.core.proxy.RefNodeProxyHelper;
 
 import org.example.acl.model.AccessArea;
-import org.example.etl.types.StructureType;
-import org.example.etl.types.SyntaxType;
 import org.example.acl.model.User;
 
 /**
@@ -101,19 +99,19 @@ public class SyntaxModel extends AbstractCustomEntityProxy {
     this.name.setValue(name);
   }
 
-  public StructureType getStructureType() {
+  public org.example.etl.model.StructureType getStructureType() {
     return structureType.getValue();
   }
 
-  public void setStructureType(StructureType structureType) {
+  public void setStructureType(org.example.etl.model.StructureType structureType) {
     this.structureType.setValue(structureType);
   }
 
-  public SyntaxType getSyntaxType() {
+  public org.example.etl.model.SyntaxType getSyntaxType() {
     return syntaxType.getValue();
   }
 
-  public void setSyntaxType(SyntaxType syntaxType) {
+  public void setSyntaxType(org.example.etl.model.SyntaxType syntaxType) {
     this.syntaxType.setValue(syntaxType);
   }
 
