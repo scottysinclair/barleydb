@@ -167,6 +167,9 @@ final class EntityLoader {
                     node.setValue(NotLoaded.VALUE);
                 }
             }
+            for (RefNode node : entity.getChildren(RefNode.class)) {
+                node.setEntityKey(NotLoaded.VALUE);
+            }
         }
         entity.setEntityState(EntityState.LOADING);
         for (ProjectionColumn column : myProjectionCols) {

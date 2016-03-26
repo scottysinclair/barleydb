@@ -89,10 +89,12 @@ public class Projection implements Iterable<ProjectionColumn> {
         if (nd.isOptimisticLock()) {
             /*
              * We always project optimistic locks
+             * Persisting an entity with a lazily loaded optimistic lock
+             * would be very problematic..
              */
             return true;
         }
-        else if (nd.getFixedValue() != null) {
+        if (nd.getFixedValue() != null) {
             /*
              * We always project fixed values which are used in parent / child relationship analysis
              */
@@ -100,9 +102,13 @@ public class Projection implements Iterable<ProjectionColumn> {
         }
         else if (nd.getRelationInterfaceName() != null) {
             /*
-             * We are a FK relation so we always include it
+             * We are a FK relation and we are joined in the query then we require it.
              */
-            return true;
+            for (QJoin join: query.getJoins()) {
+                if (join.getFkeyProperty().equals( nd.getName() )) {
+                    return true;
+                }
+            }
         }
         return query.isProjected(nd.getName());
     }

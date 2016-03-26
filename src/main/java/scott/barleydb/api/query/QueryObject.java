@@ -34,7 +34,6 @@ import org.slf4j.LoggerFactory;
 
 import scott.barleydb.api.exception.model.QPropertyInvalidException;
 import scott.barleydb.api.exception.model.QPropertyMissingException;
-import scott.barleydb.api.exception.model.SortQueryModelRuntimeException;
 
 /**
  *
@@ -57,10 +56,6 @@ public class QueryObject<R> implements Serializable {
     private final String typeName;
     private final QueryObject<?> parent;
 
-    /**
-     * Allows QProperty objects to be looked up based on name.
-     */
-    private final QPropertyLookup propertyLookup;
 
     /**
      * The set of entity properties returned by the query
@@ -98,21 +93,19 @@ public class QueryObject<R> implements Serializable {
         this.joins = new LinkedList<QJoin>();
         this.exists = new LinkedList<QJoin>();
         this.orderBy = new LinkedList<QOrderBy>();
-        try {
-            /*
-             * Letting 'this' escape is ok, QPropertyLookup only looks at the static class info.
-             */
-            this.propertyLookup = new QPropertyLookup(this);
-        } catch (QPropertyInvalidException x) {
-            /*
-             * We wrap the checked exception with a runtime exception as this will
-             * a) rarely occur and the client programmer should not always have to check for it
-             * b) will be throw when setting up the definitions at startup so the client programmer code would not be reached anyway.
-             */
-            throw new SortQueryModelRuntimeException("Class " + getClass().getName() + " has an invalid query property", x);
-        }
     }
 
+    /**
+     * A way of adding projection properties to query piece by piece
+     * @param properties
+     * @return
+     */
+    public QueryObject<R> andSelect(QProperty<?> ...properties) {
+        for (QProperty<?> property: properties) {
+            property.getQueryObject().projectedProperties.add(property.getName());
+        }
+        return this;
+    }
     /**
      * The select clause defines what columns are selected for.<br/>
      *<br/>
@@ -288,7 +281,7 @@ public class QueryObject<R> implements Serializable {
     }
 
     public QProperty<?> getMandatoryQProperty(String propertyName) throws QPropertyMissingException, QPropertyInvalidException {
-        return propertyLookup.getProperty(propertyName);
+        return new QProperty<>(this, propertyName);
     }
 
     private QExists exists(QueryObject<?> queryObject) {

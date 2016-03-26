@@ -80,11 +80,30 @@ public final class RefNode extends Node {
         this.entityType = entityType;
     }
 
+    private void checkFetched() {
+        getParent().checkFetched();
+        //perhaps the entity was fetched, but this column was lazy
+        if (entityKey == NotLoaded.VALUE) {
+            //will only fetch if not in internal mode
+            //we assume this fetch will fix the value
+            getEntityContext().fetch(getParent(), false, true, true, getName());
+        }
+        if (entityKey == NotLoaded.VALUE) {
+            LOG.warn("RefNode entity key still not loaded for entity {}", getParent());
+        }
+    }
+
     /**
      * Called when setting the entity to null or to an entity which has a key
      * @param newEntityKey
      */
     public void setEntityKey(Object newEntityKey) {
+        if (newEntityKey == NotLoaded.VALUE) {
+            this.entityKey = newEntityKey;
+            clear();
+            return;
+        }
+
         if (Objects.equals(entityKey, newEntityKey)) {
             /*
              * Same key, do nothing
@@ -92,10 +111,16 @@ public final class RefNode extends Node {
             return;
         }
         /*
+         * Force ourselves to get fetched so that we will have the correct
+         * initial state before changing the reference, so that removedEntityKey can be set.
+         */
+        checkFetched();
+
+        /*
          * We were referring to an entity already so we need to remove this
          * reference from the entity context tracking.
          */
-        if (entityKey != null) {
+        if (entityKey != null && entityKey != NotLoaded.VALUE) {
             getEntityContext().removeReference(this, getReference());
         }
 
@@ -113,7 +138,9 @@ public final class RefNode extends Node {
                  * TODO: we have to make sure that removedEntityKey can only point to
                  * the original database entity
                  */
-                removedEntityKey = entityKey;
+                if (entityKey != NotLoaded.VALUE) {
+                    removedEntityKey = entityKey;
+                }
             } else if (removedEntityKey.equals(newEntityKey)) {
                 /*
                  * the removedEntityKey was restored by this operation.
@@ -138,10 +165,6 @@ public final class RefNode extends Node {
         }
     }
 
-    public boolean refersTo(EntityType entityType, Object key) {
-        return entityType.equals(this.entityType) && entityKey != null && entityKey.equals(key);
-    }
-
     public void setRemovedEntityKey(Object removedEntityKey) {
         this.removedEntityKey = removedEntityKey;
     }
@@ -163,11 +186,11 @@ public final class RefNode extends Node {
      * reference key and reference, more like a reset really
      */
     public void clear() {
-    	@SuppressWarnings("unused")
-		Entity holdTheRef = reference; //we hold the ref to prevent garbage collection of the reference
+        @SuppressWarnings("unused")
+        Entity holdTheRef = reference; //we hold the ref to prevent garbage collection of the reference
         reference = null;
         removedEntityKey = null;
-        if (entityKey != null) {
+        if (entityKey != null && entityKey != NotLoaded.VALUE) {
             //get or create the corresponding entity in the context
             reference = getEntityContext().getOrCreate(entityType, entityKey);
         }
@@ -189,7 +212,7 @@ public final class RefNode extends Node {
          * Force ourselves to get fetched so that we will have the correct
          * initial state before changing the reference, so that removedEntityKey can be set.
          */
-        getParent().checkFetched();
+        checkFetched();
 
         /*
          * If the the entity matches our current reference then do nothing.
@@ -253,10 +276,19 @@ public final class RefNode extends Node {
      * which by definition must exist if we have an entityKey
      */
     public Entity getReference() {
+        return getReference(true);
+    }
+    public Entity getReference(boolean checkFetch) {
         if (reference != null) {
             return reference;
-        } else if (entityKey != null) {
-            return reference = getEntityContext().getEntity(entityType, entityKey, true);
+        } else if (entityKey != null && entityKey == NotLoaded.VALUE) {
+            if (checkFetch) {
+                checkFetched();
+            }
+            //entityKey may be null after fetching, this is perfectly possible!
+            if (entityKey != null && entityKey != NotLoaded.VALUE) {
+                return reference = getEntityContext().getEntity(entityType, entityKey, true);
+            }
         }
         return null;
     }
@@ -270,7 +302,7 @@ public final class RefNode extends Node {
     public Element toXml(Document doc) {
         Element element = doc.createElement(getName());
         element.setAttribute("key", String.valueOf(entityKey));
-        Entity ref = getReference();
+        Entity ref = getReference(false);
         if (ref != null) {
             if (removedEntityKey != null) {
                 element.setAttribute("updated", "true");

@@ -38,7 +38,6 @@ import scott.barleydb.api.exception.execution.jdbc.SortJdbcException;
 import scott.barleydb.api.exception.execution.persist.PreparingPersistStatementException;
 import scott.barleydb.api.exception.execution.query.ForUpdateNotSupportedException;
 import scott.barleydb.api.exception.execution.query.IllegalQueryStateException;
-import scott.barleydb.api.exception.execution.query.PreparingQueryStatementException;
 import scott.barleydb.api.exception.execution.query.SortQueryException;
 import scott.barleydb.api.query.RuntimeProperties;
 import scott.barleydb.server.jdbc.JdbcEntityContextServices;
@@ -69,7 +68,7 @@ public class QueryExecuter {
     private final RuntimeProperties runtimeProperties;
 
     public QueryExecuter(JdbcEntityContextServices jdbcEntityContextServices, Database database, Connection connection, EntityContext entityContext, RuntimeProperties runtimeProperties)  {
-    	this.jdbcEntityContextServices = jdbcEntityContextServices;
+        this.jdbcEntityContextServices = jdbcEntityContextServices;
         this.database = database;
         this.connection = connection;
         this.entityContext = entityContext;

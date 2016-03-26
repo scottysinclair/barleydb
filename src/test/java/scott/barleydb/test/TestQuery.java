@@ -65,30 +65,30 @@ import scott.barleydb.server.jdbc.resources.ConnectionResources;
  *
  */
 @SuppressWarnings({ "deprecation", "unused" })
-//@RunWith(Parameterized.class)
+@RunWith(Parameterized.class)
 public class TestQuery extends TestRemoteClientBase {
 
-//    @Parameters
-//    public static Collection<Object[]> data() {
-//        return Arrays.asList(new Object[][] {
-//                {new EntityContextGetter(false), false },
-//                {new EntityContextGetter(false), true },
-//                {new EntityContextGetter(true), false }
-//           });
-//    }
+    @Parameters
+    public static Collection<Object[]> data() {
+        return Arrays.asList(new Object[][] {
+                {new EntityContextGetter(false), false },
+                {new EntityContextGetter(false), true },
+                {new EntityContextGetter(true), false }
+           });
+    }
 
     private EntityContextGetter getter;
     private EntityContext theEntityContext;
 
-//    public TestQuery(EntityContextGetter getter, boolean autoCommitMode) {
-//        this.getter = getter;
-//        this.autoCommitMode = autoCommitMode;
-//    }
-
-    public TestQuery() {
-        getter = new EntityContextGetter(false);
-        autoCommitMode = false;
+    public TestQuery(EntityContextGetter getter, boolean autoCommitMode) {
+        this.getter = getter;
+        this.autoCommitMode = autoCommitMode;
     }
+
+//    public TestQuery() {
+//        getter = new EntityContextGetter(false);
+//        autoCommitMode = false;
+//    }
 
     @Override
     protected void prepareData() throws Exception {
