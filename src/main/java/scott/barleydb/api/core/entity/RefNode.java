@@ -81,6 +81,9 @@ public final class RefNode extends Node {
     }
 
     private void checkFetched() {
+        if (getParent().getEntityState() == EntityState.LOADING) {
+            return;
+        }
         getParent().checkFetched();
         //perhaps the entity was fetched, but this column was lazy
         if (entityKey == NotLoaded.VALUE) {

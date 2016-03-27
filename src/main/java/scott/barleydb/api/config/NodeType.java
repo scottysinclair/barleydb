@@ -26,13 +26,12 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.Objects;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import scott.barleydb.api.core.types.JavaType;
 import scott.barleydb.api.core.types.JdbcType;
+import scott.barleydb.api.core.types.Nullable;
 import scott.barleydb.api.core.util.EnvironmentAccessor;
 import scott.barleydb.api.specification.EnumSpec;
 import scott.barleydb.api.specification.EnumValueSpec;
@@ -60,6 +59,12 @@ public class NodeType implements Serializable, Cloneable {
 
     private Boolean optimisticLock;
 
+    /**
+
+     * if this node type is required to have a value.
+     */
+    private boolean mandatory;
+
     private Class<?> enumType;
     private EnumSpec enumSpec;
 
@@ -83,6 +88,7 @@ public class NodeType implements Serializable, Cloneable {
         }
         nodeType.columnName = nodeSpec.getColumnName();
         nodeType.jdbcType = nodeSpec.getJdbcType();
+        nodeType.mandatory = nodeSpec.getNullable() == Nullable.NOT_NULL;
         nodeType.optimisticLock = nodeSpec.isOptimisticLock();
         nodeType.enumSpec = nodeSpec.getEnumSpec();
         if (nodeType.getEnumSpec() != null) {
@@ -176,6 +182,10 @@ public class NodeType implements Serializable, Cloneable {
     @SuppressWarnings("unchecked")
     public <E extends Enum<E>> Class<E> getEnumType() {
         return (Class<E>)enumType;
+    }
+
+    public boolean isMandatory() {
+        return mandatory;
     }
 
     public EnumSpec getEnumSpec() {
