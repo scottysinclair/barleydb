@@ -104,11 +104,17 @@ public abstract class StaticDefinitions {
      * @param entityDefinition the class defining the entity.
      * @return
      */
-    public abstract String createFullyQualifiedModelClassName(Class<?> entityDefinition);
+    public String createFullyQualifiedModelClassName(Class<?> entityDefinition) {
+        return namespace + ".model." + entityDefinition.getSimpleName();
+    }
 
-    public abstract String createFullyQualifiedQueryClassName(Class<?> entityDefinition);
+    public String createFullyQualifiedQueryClassName(Class<?> entityDefinition) {
+        return namespace + ".query.Q" + entityDefinition.getSimpleName();
+    }
 
-    public abstract String createFullyQualifiedEnumClassName(Class<?> enumDefinition);
+    public String createFullyQualifiedEnumClassName(Class<?> enumDefinition) {
+        return namespace + ".model." + enumDefinition.getSimpleName();
+    }
 
     /**
      * Creates a DB column name for the given NodeSpec.

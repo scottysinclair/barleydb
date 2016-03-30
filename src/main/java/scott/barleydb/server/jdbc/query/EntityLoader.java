@@ -156,7 +156,7 @@ final class EntityLoader {
     }
 
     public Entity load() throws SortQueryException, SortJdbcException {
-        Entity entity = entityContext.getOrCreate(getEntityType(), getEntityKey(true));
+        Entity entity = entityContext.getOrCreateBasedOnKeyGenSpec(getEntityType(), getEntityKey(true));
         /*
          * If the entity state is NOTLOADED, then the entityContext just created it.
          * Therefore we can pre-init each ValueNode to NOTLOADED

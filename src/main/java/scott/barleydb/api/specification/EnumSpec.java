@@ -1,6 +1,7 @@
 package scott.barleydb.api.specification;
 
 import java.io.Serializable;
+import java.util.Collections;
 
 /*
  * #%L
@@ -56,7 +57,7 @@ public class EnumSpec implements Serializable {
     }
 
     public List<EnumValueSpec> getEnumValues() {
-        return enumValues;
+        return Collections.unmodifiableList( enumValues );
     }
 
     public void setEnumValues(List<EnumValueSpec> enumValues) {

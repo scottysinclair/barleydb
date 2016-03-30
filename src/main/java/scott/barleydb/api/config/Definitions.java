@@ -24,6 +24,7 @@ package scott.barleydb.api.config;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -131,6 +132,10 @@ public class Definitions implements Serializable {
             throw new IllegalStateException("EntityType '" + interfaceName + "' must exist");
         }
         return null;
+    }
+
+    public Collection<EntityType> getEntityTypes() {
+        return Collections.unmodifiableCollection( entities.values() );
     }
 
     public List<EntityType> getEntityTypesExtending(EntityType parentEntityType) {

@@ -160,7 +160,7 @@ public final class RefNode extends Node {
             /*
              * Create the entity in the context if it is not there yet.
              */
-            reference = getEntityContext().getOrCreate(entityType, entityKey);
+            reference = getEntityContext().getOrCreateBasedOnKeyGenSpec(entityType, entityKey);
             /*
              * add the tracking to the entity context.
              */
@@ -195,7 +195,7 @@ public final class RefNode extends Node {
         removedEntityKey = null;
         if (entityKey != null && entityKey != NotLoaded.VALUE) {
             //get or create the corresponding entity in the context
-            reference = getEntityContext().getOrCreate(entityType, entityKey);
+            reference = getEntityContext().getOrCreateBasedOnKeyGenSpec(entityType, entityKey);
         }
     }
 
@@ -244,13 +244,32 @@ public final class RefNode extends Node {
         if (origKey != null && origKey == newKey) {
             return;
         }
+
+        entityKey = newKey;
         /*
          * Check if the reference is being set back to it's original one from the database.
          */
         if (newKey != null && newKey.equals(removedEntityKey)) {
-            entityKey = removedEntityKey;
             removedEntityKey = null;
         }
+        else if (getEntityContext().isUser()){
+            /*
+             * If we are in user mode then the model is being manipulated by
+             * the user code and so we track the previous entityKey
+             * so that we know what has been changed
+             */
+            if (removedEntityKey == null) {
+                /*
+                 * Once the removedEntityKey is set we never have to set it again
+                 * because we are tracking the original entity which was removed from this reference.
+                 *
+                 * TODO: we have to make sure that removedEntityKey can only point to
+                 * the original database entity
+                 */
+                removedEntityKey = origKey;
+            }
+        }
+
         /*
          * set the reference to the new entity
          */

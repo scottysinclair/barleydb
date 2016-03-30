@@ -111,7 +111,7 @@ public class JdbcEnvironmentBootstrap {
 
         connection.close();
 
-        services.setSequenceGenerator(new QuickHackSequenceGenerator(env, "scott.picdb"));
+        services.setSequenceGenerator(new QuickHackSequenceGenerator(env, topNamespace));
         services.register(new LongToStringTimestampConverter());
 
         for (String specXmlFile: specXmlFiles){

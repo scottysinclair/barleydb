@@ -95,24 +95,24 @@ public class Entity implements Serializable {
         }
         this.uuid = uuid;
     }
-    
+
     public boolean isLoadedOrNew() {
         return isLoaded() || isNew() || isPerhapsInDatabase();
     }
-    
+
     public boolean isNew() {
         return entityState == EntityState.NEW;
     }
-    
+
     public boolean isPerhapsInDatabase() {
-    	return entityState == EntityState.IS_PERHAPS_IN_DATABASE;
+        return entityState == EntityState.IS_PERHAPS_IN_DATABASE;
     }
 
     public boolean isLoaded() {
         //loaded meaning no fetch required
         return entityState == EntityState.LOADED;
     }
-    
+
     public boolean isFetchRequired() {
         return entityState == EntityState.NOTLOADED;
     }
@@ -130,21 +130,21 @@ public class Entity implements Serializable {
                     ((ValueNode) node).setValueNoEvent(NotLoaded.VALUE);
                 }
                 else if (node instanceof RefNode) {
-                	if (includeOwnedEntities && node.getNodeType().isOwns()) {
-	                	RefNode refNode = (RefNode) node;
-                		Entity reffedEntity = refNode.getReference();
-                		reffedEntity.unload(includeOwnedEntities);
-	                	refNode.setEntityKey(null);
-                	}
+                    if (includeOwnedEntities && node.getNodeType().isOwns()) {
+                        RefNode refNode = (RefNode) node;
+                        Entity reffedEntity = refNode.getReference();
+                        reffedEntity.unload(includeOwnedEntities);
+                        refNode.setEntityKey(null);
+                    }
                 }
                 else if (node instanceof ToManyNode) {
-                	if (includeOwnedEntities && node.getNodeType().isOwns()) {
-                		ToManyNode toMany = (ToManyNode)node;
-                		for (Entity e: toMany.getList()) {
-                			e.unload(includeOwnedEntities);
-                		}
-                		toMany.unloadAndClear();
-                	}
+                    if (includeOwnedEntities && node.getNodeType().isOwns()) {
+                        ToManyNode toMany = (ToManyNode)node;
+                        for (Entity e: toMany.getList()) {
+                            e.unload(includeOwnedEntities);
+                        }
+                        toMany.unloadAndClear();
+                    }
                 }
             }
         }
@@ -161,8 +161,8 @@ public class Entity implements Serializable {
                 ((RefNode) node).clear();
             }
             else if (node instanceof ToManyNode) {
-            	//the refresh call checks the entity state of added or removed entities
-            	//and corrects accordingly.
+                //the refresh call checks the entity state of added or removed entities
+                //and corrects accordingly.
                 ((ToManyNode) node).refresh();
             }
         }
@@ -201,6 +201,10 @@ public class Entity implements Serializable {
 
     public void setValueNode(String name, Object value) {
         getChild(name, ValueNode.class).setValue(value);
+    }
+
+    public Node getChild(String name) {
+        return children.get(name);
     }
 
     @SuppressWarnings("unchecked")
@@ -341,8 +345,18 @@ public class Entity implements Serializable {
     }
 
     public void checkFetched() {
-        if (entityState == EntityState.NOTLOADED && getKey().getValue() != null) {
-            entityContext.fetch(this);
+        if (getKey().getValue() != null) {
+            switch(entityState) {
+                case NOTLOADED:
+                    entityContext.fetch(this); break;
+                /*
+                 * do nothing for the rest.
+                 */
+                case IS_PERHAPS_IN_DATABASE:
+                case LOADED:
+                case LOADING:
+                case NEW:
+            }
         }
     }
 

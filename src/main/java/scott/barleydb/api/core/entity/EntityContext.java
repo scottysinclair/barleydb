@@ -73,6 +73,7 @@ import scott.barleydb.api.persist.PersistRequest;
 import scott.barleydb.api.query.QProperty;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.query.RuntimeProperties;
+import scott.barleydb.api.specification.KeyGenSpec;
 import scott.barleydb.server.jdbc.query.QueryResult;
 import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityContext;
@@ -309,16 +310,40 @@ public class EntityContext implements Serializable {
     }
 
     /**
-     * Creates a new entity of the given type.
+     * Creates a new entity of the given type which has state NEW, ie not yet existing in the DB
      * @param type
      * @return
      */
     @SuppressWarnings("unchecked")
     public <T> T newModel(Class<T> type) {
         EntityType entityType = definitions.getEntityTypeMatchingInterface(type.getName(), true);
+        Entity entity = newEntity(entityType);
+        return (T) getProxy(entity);
+    }
+
+    /**
+     * Creates a new entity of the given type which has state NEW, ie not yet existing in the DB
+     * @param entityType
+     * @return
+     */
+    public Entity newEntity(EntityType entityType) {
         Entity entity = new Entity(this, EntityState.NEW, entityType);
         add(entity);
-        return (T) getProxy(entity);
+        return entity;
+    }
+
+    /**
+     * Creates a new entity of the given type which has state LOADED, ie existing in the database.<br/>
+     * NOTE: this entity is FAKE LOADED, so the entity context see it as having values from the database
+     * and that any persist operation will require an update.
+     * @param entityType
+     * @return
+     */
+    public Entity newFakeLoadedEntity(EntityType entityType, Object key) {
+        Entity entity = new Entity(this, EntityState.LOADED, entityType);
+        entity.getKey().setValueNoEvent(key);
+        add(entity);
+        return entity;
     }
 
     /**
@@ -327,11 +352,40 @@ public class EntityContext implements Serializable {
      * @return
      */
     @SuppressWarnings("unchecked")
-    public <T> T newOrNotLoadedModel(Class<T> type) {
+    public <T> T newPerhapsInDatabaseModel(Class<T> type) {
         EntityType entityType = definitions.getEntityTypeMatchingInterface(type.getName(), true);
         Entity entity = new Entity(this, EntityState.IS_PERHAPS_IN_DATABASE, entityType);
         add(entity);
         return (T) getProxy(entity);
+    }
+
+    /**
+     * creates a model with a PK which may be new or may already be in the database.
+     * @param type
+     * @param key
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T newPerhapsInDatabaseModel(Class<T> type, Object key) {
+        EntityType entityType = definitions.getEntityTypeMatchingInterface(type.getName(), true);
+        Entity entity = new Entity(this, EntityState.IS_PERHAPS_IN_DATABASE, entityType);
+        entity.getKey().setValueNoEvent( key );
+        add(entity);
+        return (T) getProxy(entity);
+    }
+
+    /**
+     * creates an entity with a PK which may be new or may already be in the database.
+     * @param type
+     * @param key
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public Entity newPerhapsInDatabaseEntity(EntityType entityType, Object key) {
+        Entity entity = new Entity(this, EntityState.IS_PERHAPS_IN_DATABASE, entityType);
+        entity.getKey().setValueNoEvent( key );
+        add(entity);
+        return entity;
     }
 
     /**
@@ -350,21 +404,6 @@ public class EntityContext implements Serializable {
     public <T> T newModel(Class<T> type, Object key) {
         EntityType entityType = definitions.getEntityTypeMatchingInterface(type.getName(), true);
         Entity entity = new Entity(this, EntityState.NEW, entityType);
-        entity.getKey().setValueNoEvent( key );
-        add(entity);
-        return (T) getProxy(entity);
-    }
-
-    /**
-     * creates a model with a PK which may be new or may already be in the database.
-     * @param type
-     * @param key
-     * @return
-     */
-    @SuppressWarnings("unchecked")
-    public <T> T newOrNotLoadedModel(Class<T> type, Object key) {
-        EntityType entityType = definitions.getEntityTypeMatchingInterface(type.getName(), true);
-        Entity entity = new Entity(this, EntityState.IS_PERHAPS_IN_DATABASE, entityType);
         entity.getKey().setValueNoEvent( key );
         add(entity);
         return (T) getProxy(entity);
@@ -598,7 +637,12 @@ public class EntityContext implements Serializable {
 
     /**
      * Copies a single entity into our context
-     * If the entity already exists, then the values and the fk refs are updated accordingly
+     * If the entity already exists, then the values and the fk refs are updated accordingly, the
+     * state of any ToMany nodes is left untouched, which is correct
+     * as we do not load any to many relations.
+     *
+     *
+     *
      * @param entity
      *            return the new entity
      */
@@ -635,18 +679,33 @@ public class EntityContext implements Serializable {
     }
 
     /**
-     * Gets the entity if it exists or creates a non-loaded entity
-     * in the context.<br/>
+     * Gets the entity if it exists or it in the context.<br/>
+     * <br/>
+     * Uses the KeyGenSpec to set the EntityState.<br/>
      *
-     * This means that the caller is expecting the entity to exist in the datasase already.
+     * <p>If the Entity has FRAMEWORK generated keys then we know if a key exists then
+     * the entity is already in the database, because the framework provides the keys during persistence.
+     * This means that the EntityState will be NOTLOADED and fetching will be performed if it's values are accessed.</p>
+     *
+     * <p>If the Entity has CLIENT generated keys then this is not clear and the entity state will be
+     * IS_PERHAPS_IN_DATABASE</p>
+     *
      *
      * @return the entity
      */
-    public Entity getOrCreate(EntityType entityType, Object key) {
+    public Entity getOrCreateBasedOnKeyGenSpec(EntityType entityType, Object key) {
         Entity entity = getEntity(entityType, key, false);
         if (entity == null) {
             entity = new Entity(this, entityType, key);
-            entity.setEntityState(EntityState.NOTLOADED);
+            switch(entityType.getKeyGenSpec()) {
+                case FRAMEWORK: {
+                    entity.setEntityState(EntityState.NOTLOADED); break;
+                }
+                case CLIENT: {
+                    entity.setEntityState(EntityState.IS_PERHAPS_IN_DATABASE); break;
+                }
+            }
+
             add(entity);
         }
         return entity;

@@ -60,7 +60,7 @@ public class DatabaseDataSet {
     private final EntityContext myentityContext;
 
     public DatabaseDataSet(EntityContext entityContext) {
-    	this(entityContext, false);
+        this(entityContext, false);
     }
 
     /**
@@ -80,7 +80,7 @@ public class DatabaseDataSet {
     public Entity getEntity(EntityType entityType, Object key) {
         return myentityContext.getEntity(entityType, key, false);
     }
-    
+
     public void loadEntities(Collection<Entity> toSave) throws SortServiceProviderException, SortQueryException {
         /*
          * Build queries to load all of these entites
@@ -218,10 +218,10 @@ public class DatabaseDataSet {
         private QueryObject<Object> getQueryForEntityType(EntityType entityType) {
             QueryObject<Object> qo = map.get(entityType);
             if (qo == null) {
-                qo = myentityContext.getUnitQuery(entityType);
+                qo = new QueryObject<>(entityType.getInterfaceName());
                 if (loadKeysOnly) {
-                	QProperty<?> keyProp = new QProperty<>(qo, entityType.getKeyNodeName());
-                	qo.select(keyProp);
+                    QProperty<?> keyProp = new QProperty<>(qo, entityType.getKeyNodeName());
+                    qo.select(keyProp);
                 }
                 map.put(entityType, qo);
             }

@@ -23,6 +23,7 @@ package scott.barleydb.api.config;
  */
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -58,6 +59,10 @@ public class DefinitionsSet implements Serializable {
             throw new IllegalStateException("Definitions with namespace '" + namespace + "' not found");
         }
         return d;
+    }
+
+    public Iterable<Definitions> getDefinitions() {
+        return Collections.unmodifiableCollection( definitionsByNamespace.values() );
     }
 
 }
