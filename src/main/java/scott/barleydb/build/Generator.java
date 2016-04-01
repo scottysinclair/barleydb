@@ -41,7 +41,7 @@ public class Generator {
         Marshaller marshaller = jc.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 
-        String basePackagePath = playSpec.getNamespace().replace('/', '.');
+        String basePackagePath = playSpec.getNamespace().replace('.', '/');
 
         File file = new File(resourcesBasePath + "/" + basePackagePath + "/schema/" + name + "-spec.xml");
         file.getParentFile().mkdirs();
