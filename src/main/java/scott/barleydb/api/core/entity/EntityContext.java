@@ -868,15 +868,11 @@ public class EntityContext implements Serializable {
         //get the name of the node/property which we need to filter on to get the correct entities back on the many side
         final String foreignNodeName = toManyDef.getForeignNodeName();
         if (foreignNodeName != null) {
-            final QueryObject<Object> qo = getQuery(toManyNode.getEntityType(), fetchInternal);
-            if (qo == null) {
-                throw new IllegalStateException("No query registered for '" + toManyNode.getEntityType().getInterfaceName() + "'");
-            }
+            final QueryObject<Object> qo = new QueryObject<Object>(toManyNode.getEntityType().getInterfaceName());
 
             final QProperty<Object> manyFk = new QProperty<Object>(qo, foreignNodeName);
             final Object primaryKeyOfOneSide = toManyNode.getParent().getKey().getValue();
             qo.where(manyFk.equal(primaryKeyOfOneSide));
-
             /*
              * If a user call is causing a fetch to a "join entity"
              * then join from the join entity to the referenced entity.
@@ -893,7 +889,7 @@ public class EntityContext implements Serializable {
             if (!fetchInternal && toManyDef.getJoinProperty() != null) {
                 NodeType datatypeNodeType = toManyNode.getEntityType().getNodeType(toManyDef.getJoinProperty(), true);
                 EntityType datatype = definitions.getEntityTypeMatchingInterface(datatypeNodeType.getRelationInterfaceName(), true);
-                QueryObject<Object> qdatatype = getQuery(datatype, fetchInternal);
+                QueryObject<Object> qdatatype = new QueryObject<Object>(datatype.getInterfaceName());
                 //TODO: if the tomany relation has a non-key sort column, then make sure that column is also fetched
                 qo.addLeftOuterJoin(qdatatype, datatypeNodeType.getName());
             }
@@ -955,10 +951,7 @@ public class EntityContext implements Serializable {
         if (!evenIfLoaded && entity.getEntityState() == EntityState.LOADED) {
             return;
         }
-        final QueryObject<Object> qo = getQuery(entity.getEntityType(), fetchInternal);
-        if (qo == null) {
-            throw new IllegalStateException("No query registered for loading " + entity.getEntityType());
-        }
+        final QueryObject<Object> qo = new QueryObject<Object>(entity.getEntityType().getInterfaceName());
 
         final QProperty<Object> pk = new QProperty<Object>(qo, entity.getEntityType().getKeyNodeName());
         qo.where(pk.equal(entity.getKey().getValue()));
