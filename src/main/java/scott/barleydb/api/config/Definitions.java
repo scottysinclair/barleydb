@@ -167,15 +167,23 @@ public class Definitions implements Serializable {
     }
 
     public QueryObject<Object> getQuery(EntityType entityType) {
-        return this.<Object> getQuery(entityType.getInterfaceName());
+        return getQuery(entityType, true);
+    }
+
+    public QueryObject<Object> getQuery(EntityType entityType, boolean mustExist) {
+        return this.<Object> getQuery(entityType.getInterfaceName(), mustExist);
     }
 
     public <T> QueryObject<T> getQuery(Class<T> clazz) {
-        return this.<T> getQuery(clazz.getName());
+        return getQuery(clazz, true);
+    }
+
+    public <T> QueryObject<T> getQuery(Class<T> clazz, boolean mustExist) {
+        return this.<T> getQuery(clazz.getName(), mustExist);
     }
 
     @SuppressWarnings("unchecked")
-    public <T> QueryObject<T> getQuery(String interfaceName) {
+    public <T> QueryObject<T> getQuery(String interfaceName, boolean mustExist) {
         QueryObject<Object> qo = internalQueryRegistry.getQuery(interfaceName);
         if (qo != null) {
             return (QueryObject<T>) qo;
@@ -183,13 +191,16 @@ public class Definitions implements Serializable {
         if (definitionsSet != null) {
             for (String namespace : references) {
                 Definitions d = definitionsSet.getDefinitions(namespace);
-                qo = d.getQuery(interfaceName);
+                qo = d.getQuery(interfaceName, mustExist);
                 if (qo != null) {
                     return (QueryObject<T>) qo;
                 }
             }
         }
-        throw new IllegalStateException("Query for entity type '" + interfaceName + "' does not exist.");
+        if (mustExist) {
+            throw new IllegalStateException("Query for entity type '" + interfaceName + "' does not exist.");
+        }
+        return null;
     }
 
 }
