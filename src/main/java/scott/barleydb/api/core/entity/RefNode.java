@@ -180,6 +180,10 @@ public final class RefNode extends Node {
         return entityType;
     }
 
+    public Object getLoadedEntityKey() {
+        return (entityKey == null || entityKey == NotLoaded.VALUE) ? null : entityKey;
+    }
+
     public Object getEntityKey() {
         return entityKey;
     }

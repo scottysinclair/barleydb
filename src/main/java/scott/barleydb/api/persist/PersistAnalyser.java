@@ -341,7 +341,7 @@ public class PersistAnalyser implements Serializable {
          * Look at the to many relations, some items may have been added, updated or deleted
          */
         for (ToManyNode toManyNode : entity.getChildren(ToManyNode.class)) {
-            if (!toManyNode.isFetched()) {
+            if (toManyNode.getList().isEmpty() && !toManyNode.isFetched()) {
                 /*
                  * if the many relation was never fetched, then nothing was changed, skip.
                  */

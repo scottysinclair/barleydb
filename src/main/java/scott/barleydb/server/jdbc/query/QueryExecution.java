@@ -256,9 +256,16 @@ public class QueryExecution<T> {
             List<RefNode> refNodes = e.getChildren(RefNode.class);
             for (RefNode refNode : refNodes) {
                 QJoin join = findJoin(refNode.getName(), queryObject);
-                if (refNode.getEntityKey() != null && join != null) {
-                    if (refNode.getReference() == null) {
-                        throw new IllegalQueryStateException("Joined FK key was not loaded: " + refNode);
+                if (refNode.getLoadedEntityKey() != null) {
+                    if (join != null) {
+                        if (refNode.getReference() == null) {
+                            throw new IllegalQueryStateException("Joined FK key was not loaded: " + refNode);
+                        }
+                    }
+                    else {
+                        if (refNode.getReference().getEntityState() == EntityState.IS_PERHAPS_IN_DATABASE) {
+                            refNode.getReference().setEntityState(EntityState.NOTLOADED);
+                        }
                     }
                 }
             }

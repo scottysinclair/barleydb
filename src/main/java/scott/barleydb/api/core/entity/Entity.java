@@ -348,11 +348,15 @@ public class Entity implements Serializable {
         if (getKey().getValue() != null) {
             switch(entityState) {
                 case NOTLOADED:
+                /*
+                 * how should we really handle this PERHAPS_IN_DATABASE state
+                 * perhaps we should get rid of it
+                 */
+                case IS_PERHAPS_IN_DATABASE:
                     entityContext.fetch(this); break;
                 /*
                  * do nothing for the rest.
                  */
-                case IS_PERHAPS_IN_DATABASE:
                 case LOADED:
                 case LOADING:
                 case NEW:
