@@ -1,12 +1,13 @@
-package scott.barleydb.api.core.entity;
+package scott.barleydb.api.exception;
 
-import scott.barleydb.api.core.entity.Node;
-
-/*
+/*-
  * #%L
  * BarleyDB
+ * $Id:$
+ * $HeadURL:$
  * %%
- * Copyright (C) 2014 Scott Sinclair <scottysinclair@gmail.com>
+ * Copyright (C) 2014 - 2016 Scott Sinclair
+ *       <scottysinclair@gmail.com>
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -24,24 +25,14 @@ import scott.barleydb.api.core.entity.Node;
  * #L%
  */
 
-public class NodeEvent {
-    public static enum Type {
-        KEYSET
+import scott.barleydb.api.core.entity.Entity;
+
+public class EntityMustExistInDBException extends SortRuntimeException {
+
+    private static final long serialVersionUID = 1L;
+
+    public EntityMustExistInDBException(Entity entity) {
+        super("Entity " + entity + " must exist in the database");
     }
 
-    private final Node source;
-    private final Type type;
-
-    public NodeEvent(Node source, Type type) {
-        this.source = source;
-        this.type = type;
-    }
-
-    public Node getSource() {
-        return source;
-    }
-
-    public Type getType() {
-        return type;
-    }
 }

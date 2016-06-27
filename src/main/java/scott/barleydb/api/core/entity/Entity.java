@@ -46,7 +46,6 @@ import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.entity.EntityContextState;
 import scott.barleydb.api.core.entity.EntityState;
 import scott.barleydb.api.core.entity.Node;
-import scott.barleydb.api.core.entity.NodeEvent;
 import scott.barleydb.api.core.entity.NotLoaded;
 import scott.barleydb.api.core.entity.RefNode;
 import scott.barleydb.api.core.entity.ToManyNode;
@@ -60,6 +59,7 @@ public class Entity implements Serializable {
     private EntityContext entityContext;
     private EntityType entityType;
     private TreeMap<String, Node> children;
+    private EntityConstraint constraints;
     private EntityState entityState;
     private UUID uuid;
 
@@ -69,26 +69,37 @@ public class Entity implements Serializable {
      * @param toCopy
      */
     public Entity(EntityContext context, Entity toCopy) {
-        this(context, EntityState.NOTLOADED, toCopy.getEntityType(), toCopy.getKey().getValue(), toCopy.getUuid());
+        this(context, EntityState.NOTLOADED, toCopy.getEntityType(), toCopy.getKey().getValue(), toCopy.getUuid(), toCopy.getConstraints());
     }
 
     public Entity(EntityContext context, EntityType entityType) {
-        this(context, EntityState.NOTLOADED, entityType, null, UUID.randomUUID());
+        this(context, EntityState.NOTLOADED, entityType, null, UUID.randomUUID(), null);
     }
 
     public Entity(EntityContext context, EntityState entityState, EntityType entityType) {
-        this(context, entityState, entityType, null, UUID.randomUUID());
+        this(context, entityState, entityType, null, UUID.randomUUID(), null);
     }
 
     public Entity(EntityContext context, EntityType entityType, Object key) {
-        this(context, EntityState.NOTLOADED, entityType, key, UUID.randomUUID());
+        this(context, EntityState.NOTLOADED, entityType, key, UUID.randomUUID(), EntityConstraint.noConstraints());
     }
 
-    public Entity(EntityContext context, EntityState entityState, EntityType entityType, Object key, UUID uuid) {
+    public Entity(EntityContext context, EntityType entityType, Object key, EntityConstraint constraints) {
+        this(context, EntityState.NOTLOADED, entityType, key, UUID.randomUUID(), constraints);
+    }
+
+    private Entity(EntityContext context, EntityState entityState, EntityType entityType, Object key, UUID uuid, EntityConstraint constraints) {
         this.entityContext = context;
         this.entityType = entityType;
         this.children = new TreeMap<String, Node>();
+        this.constraints = constraints != null ? constraints : new EntityConstraint(false, false);
         this.entityState = entityState;
+        if (constraints.isMustExistInDatabase()) {
+            entityState = EntityState.NOTLOADED;
+        }
+        else if (constraints.isMustNotExistInDatabase()) {
+            entityState = EntityState.NOT_IN_DB;
+        }
         initNodes();
         if (key != null) {
             getKey().setValueNoEvent(key);
@@ -97,60 +108,34 @@ public class Entity implements Serializable {
     }
 
     public boolean isLoadedOrNew() {
-        return isLoaded() || isNew() || isPerhapsInDatabase();
+        return isLoaded() || isNew();
     }
 
     public boolean isNew() {
-        return entityState == EntityState.NEW;
+        return entityState == EntityState.NOT_IN_DB;
     }
 
-    public boolean isPerhapsInDatabase() {
-        return entityState == EntityState.IS_PERHAPS_IN_DATABASE;
-    }
 
     public boolean isLoaded() {
         //loaded meaning no fetch required
         return entityState == EntityState.LOADED;
     }
 
+    public boolean isPerhapsInDatabase() {
+        return entityState == EntityState.NOTLOADED && constraints.noDatabaseExistenceConstraints();
+    }
+
     public boolean isFetchRequired() {
+        if (constraints.isMustNotExistInDatabase()) {
+            return false;
+        }
         return entityState == EntityState.NOTLOADED;
     }
 
-    /**
-     * Sets the nodes state to unloaded
-     * Any entities owned by this one will also be unloaded.
-     * Means only the key has a value and everything else
-     * must be fetched
-     */
-    public void unload(boolean includeOwnedEntities) {
-        for (Node node : getChildren()) {
-            if (node != getKey()) {
-                if (node instanceof ValueNode) {
-                    ((ValueNode) node).setValueNoEvent(NotLoaded.VALUE);
-                }
-                else if (node instanceof RefNode) {
-                    if (includeOwnedEntities && node.getNodeType().isOwns()) {
-                        RefNode refNode = (RefNode) node;
-                        Entity reffedEntity = refNode.getReference();
-                        reffedEntity.unload(includeOwnedEntities);
-                        refNode.setEntityKey(null);
-                    }
-                }
-                else if (node instanceof ToManyNode) {
-                    if (includeOwnedEntities && node.getNodeType().isOwns()) {
-                        ToManyNode toMany = (ToManyNode)node;
-                        for (Entity e: toMany.getList()) {
-                            e.unload(includeOwnedEntities);
-                        }
-                        toMany.unloadAndClear();
-                    }
-                }
-            }
-        }
-        setEntityState(EntityState.NOTLOADED);
-        clear();
+    public EntityConstraint getConstraints() {
+        return constraints;
     }
+
 
     /**
      * Clears any changes to RefNodes and ToManyNodes
@@ -348,18 +333,13 @@ public class Entity implements Serializable {
         if (getKey().getValue() != null) {
             switch(entityState) {
                 case NOTLOADED:
-                /*
-                 * how should we really handle this PERHAPS_IN_DATABASE state
-                 * perhaps we should get rid of it
-                 */
-                case IS_PERHAPS_IN_DATABASE:
                     entityContext.fetch(this); break;
                 /*
                  * do nothing for the rest.
                  */
                 case LOADED:
                 case LOADING:
-                case NEW:
+                case NOT_IN_DB:
             }
         }
     }
@@ -383,8 +363,8 @@ public class Entity implements Serializable {
         return entityContext;
     }
 
-    public void handleEvent(NodeEvent event) {
-        entityContext.handleEvent(event);
+    public void handleKeySet(Object oldKey) {
+        entityContext.handleKeySet(this, oldKey, getKey().getValue());
     }
 
     public String getName() {
@@ -395,6 +375,7 @@ public class Entity implements Serializable {
         LOG.trace("Serializing entity {}", this);
         oos.writeObject(entityContext);
         oos.writeObject(entityState);
+        oos.writeObject(constraints);
         oos.writeUTF(entityType.getInterfaceName());
         oos.writeObject(uuid);
         oos.writeObject(getKey().getValue());
@@ -408,6 +389,7 @@ public class Entity implements Serializable {
          */
         entityContext = (EntityContext)ois.readObject();
         entityState = (EntityState)ois.readObject();
+        constraints = (EntityConstraint)ois.readObject();
         entityType = entityContext.getDefinitions().getEntityTypeMatchingInterface( ois.readUTF(), true);
         uuid = (UUID)ois.readObject();
         /*

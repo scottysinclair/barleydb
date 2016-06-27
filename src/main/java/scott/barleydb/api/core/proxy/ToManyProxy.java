@@ -33,6 +33,7 @@ import scott.barleydb.api.config.Definitions;
 import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.config.NodeType;
 import scott.barleydb.api.core.entity.Entity;
+import scott.barleydb.api.core.entity.EntityConstraint;
 import scott.barleydb.api.core.entity.EntityState;
 import scott.barleydb.api.core.entity.ProxyController;
 import scott.barleydb.api.core.entity.RefNode;
@@ -83,9 +84,8 @@ public class ToManyProxy<R> extends AbstractList<R> implements Serializable {
             EntityType joinEntityType = defs.getEntityTypeMatchingInterface(nd.getRelationInterfaceName(), true);
             String typePastJoin = joinEntityType.getNodeType(joinProperty, true).getRelationInterfaceName();
             if (e.getEntityType().getInterfaceName().equals(typePastJoin)) {
-            	//an entity is being added to a n:m relation, the join table entity must therefore have state new.
-                Entity joinEntity = new Entity(e.getEntityContext(), EntityState.NEW, joinEntityType);
-                e.getEntityContext().add(joinEntity);
+                //an entity is being added to a n:m relation, the join table entity must therefore have state new.
+                Entity joinEntity = e.getEntityContext().newEntity(joinEntityType, null, EntityConstraint.mustNotExistInDatabase());
                 NodeType nodeTypeReferringBack = joinEntityType.getNodeTypeWithRelationTo(toManyNode.getParent().getEntityType().getInterfaceName());
                 joinEntity.getChild(nodeTypeReferringBack.getName(), RefNode.class, true).setReference(toManyNode.getParent());
                 NodeType nodeTypeReferringForward = joinEntityType.getNodeTypeWithRelationTo(e.getEntityType().getInterfaceName());

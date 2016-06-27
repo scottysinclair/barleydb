@@ -843,7 +843,7 @@ public class TestPersistence extends TestRemoteClientBase {
          * In the real world this would not be a good idea if the PK is framework generated, ie the
          * PK could be in use.
          */
-        XmlMapping m2PerhapsInDb = theEntityContext.newPerhapsInDatabaseModel(XmlMapping.class, 100L);
+        XmlMapping m2PerhapsInDb = theEntityContext.newModel(XmlMapping.class, 100L);
         m2PerhapsInDb.setSyntax(syntax);
         m2PerhapsInDb.setXpath("/root");
         m2PerhapsInDb.setTargetFieldName("root");
@@ -894,7 +894,7 @@ public class TestPersistence extends TestRemoteClientBase {
          * In the real world this would not be a good idea if the PK is framework generated, ie the
          * PK could be in use.
          */
-        XmlMapping m2PerhapsInDb = theEntityContext.newPerhapsInDatabaseModel(XmlMapping.class, 100L);
+        XmlMapping m2PerhapsInDb = theEntityContext.newModel(XmlMapping.class, 100L);
         m2PerhapsInDb.setSyntax(syntax);
         m2PerhapsInDb.setXpath("/root");
         m2PerhapsInDb.setTargetFieldName("root");

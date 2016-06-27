@@ -10,12 +10,12 @@ package scott.barleydb.server.jdbc.query;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- *
+ * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.config.NodeType;
 import scott.barleydb.api.core.entity.Entity;
+import scott.barleydb.api.core.entity.EntityConstraint;
 import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.entity.EntityState;
 import scott.barleydb.api.core.entity.Node;
@@ -48,6 +49,8 @@ import scott.barleydb.api.core.entity.RefNode;
 import scott.barleydb.api.core.entity.ValueNode;
 import scott.barleydb.api.core.types.JavaType;
 import scott.barleydb.api.core.types.JdbcType;
+import scott.barleydb.api.exception.EntityMustExistInDBException;
+import scott.barleydb.api.exception.EntityMustNotExistInDBException;
 import scott.barleydb.api.exception.execution.TypeConversionException;
 import scott.barleydb.api.exception.execution.TypeConverterNotFoundException;
 import scott.barleydb.api.exception.execution.jdbc.SortJdbcException;
@@ -156,12 +159,35 @@ final class EntityLoader {
     }
 
     public Entity load() throws SortQueryException, SortJdbcException {
-        Entity entity = entityContext.getOrCreateBasedOnKeyGenSpec(getEntityType(), getEntityKey(true));
+        final EntityType entityType = getEntityType();
+        final Object entityKey = getEntityKey(true);
+        Entity entity = entityContext.getEntity(entityType, entityKey, false);
+
+        if (entity != null) {
+            if (entity.getConstraints().isMustNotExistInDatabase()) {
+                /*
+                 * oops we actually have this entity in our context already, and it is defined that
+                 * the entity MUST NOT exist in the database
+                 */
+                throw new EntityMustNotExistInDBException(entity);
+            }
+            /*
+             * because we are loading the entity, we can update it's constraint
+             */
+            entity.getConstraints().setMustExistInDatabase();
+        }
+        else {
+            /*
+             * we can set the must exist in database constraint because we are loading it.
+             */
+            entity = entityContext.newEntity(entityType, entityKey, EntityConstraint.mustExistInDatabase());
+        }
+
         /*
          * If the entity state is NOTLOADED, then the entityContext just created it.
          * Therefore we can pre-init each ValueNode to NOTLOADED
          */
-        if (entity.getEntityState() == EntityState.NOTLOADED || entity.getEntityState() == EntityState.IS_PERHAPS_IN_DATABASE) {
+        if (entity.getEntityState() == EntityState.NOTLOADED) {
             for (ValueNode node : entity.getChildren(ValueNode.class)) {
                 if (entity.getKey() != node) {
                     node.setValue(NotLoaded.VALUE);

@@ -1,10 +1,13 @@
-package scott.barleydb.api.core.entity;
+package scott.barleydb.api.exception;
 
-/*
+/*-
  * #%L
  * BarleyDB
+ * $Id:$
+ * $HeadURL:$
  * %%
- * Copyright (C) 2014 Scott Sinclair <scottysinclair@gmail.com>
+ * Copyright (C) 2014 - 2016 Scott Sinclair
+ *       <scottysinclair@gmail.com>
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -21,9 +24,15 @@ package scott.barleydb.api.core.entity;
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-public enum EntityState {
-    LOADING,
-    LOADED, //the entity was loaded from the database
-    NOTLOADED, //the entity was not loaded from the database
-    NOT_IN_DB, //the entity is not in the database
+
+import scott.barleydb.api.core.entity.Entity;
+import scott.barleydb.api.core.entity.EntityConstraint;
+
+public class EntityConstraintMismatchException extends SortRuntimeException  {
+
+    private static final long serialVersionUID = 1L;
+
+    public EntityConstraintMismatchException(Entity entity, EntityConstraint expected, EntityConstraint actual) {
+        super("entity " + entity + " expected constraint " + expected + " actual constraint " + actual);
+    }
 }

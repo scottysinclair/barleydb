@@ -28,7 +28,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import scott.barleydb.api.core.entity.Entity;
-import scott.barleydb.api.core.entity.KeySetEvent;
 import scott.barleydb.api.core.entity.Node;
 import scott.barleydb.api.core.entity.NotLoaded;
 import scott.barleydb.api.core.entity.ValueNode;
@@ -70,7 +69,7 @@ public class ValueNode extends Node {
         Object origValue = this.value;
         setValueNoEvent(value);
         if (getParent().getKey() == this && !Objects.equals(origValue, value)) {
-            getParent().handleEvent(new KeySetEvent(this, origValue));
+            getParent().handleKeySet(origValue);
         }
     }
 

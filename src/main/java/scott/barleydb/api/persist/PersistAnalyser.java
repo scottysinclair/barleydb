@@ -40,6 +40,7 @@ import scott.barleydb.api.core.entity.EntityContextHelper.Predicate;
 import scott.barleydb.api.core.entity.EntityState;
 import scott.barleydb.api.core.entity.RefNode;
 import scott.barleydb.api.core.entity.ToManyNode;
+import scott.barleydb.api.exception.EntityMustExistInDBException;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.execution.persist.EntityMissingException;
 import scott.barleydb.api.exception.execution.persist.IllegalPersistStateException;
@@ -269,7 +270,7 @@ public class PersistAnalyser implements Serializable {
                 eToSave.setEntityState(EntityState.LOADED);
             }
             else {
-                eToSave.setEntityState(EntityState.NEW);
+                eToSave.setEntityState(EntityState.NOT_IN_DB);
             }
         }
     }
@@ -483,7 +484,7 @@ public class PersistAnalyser implements Serializable {
     private Entity getOrLoadForAnalysis(EntityContext entityContext, EntityType entityType, Object entityKey) throws EntityMissingException {
         Entity entity = entityContext.getEntity(entityType, entityKey, false);
         if (entity == null) {
-            entity = entityContext.getOrLoad(entityType, entityKey);
+            entity = entityContext.getOrLoad(entityType, entityKey, false);
             if (entity != null) {
                 loadedDuringAnalysis.add(entity);
             }
@@ -587,11 +588,7 @@ public class PersistAnalyser implements Serializable {
     }
 
     private void copyInto(Entity entity, EntityContext newContext, OperationGroup toGroup) {
-        Entity copy = new Entity(newContext, entity);
-        newContext.add(copy);
-        copy.setEntityState(entity.getEntityState());
-        copy.copyValueNodesToMe(entity);
-        toGroup.add(copy);
+        toGroup.add( newContext.copyInto( entity ) );
     }
 
     public void applyChanges(EntityContext otherContext) {

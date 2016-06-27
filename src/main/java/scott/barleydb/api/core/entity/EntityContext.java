@@ -1,28 +1,29 @@
 package scott.barleydb.api.core.entity;
 
-/*
+/*-
  * #%L
  * BarleyDB
+ * $Id:$
+ * $HeadURL:$
  * %%
- * Copyright (C) 2014 Scott Sinclair <scottysinclair@gmail.com>
+ * Copyright (C) 2014 - 2016 Scott Sinclair
+ *       <scottysinclair@gmail.com>
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- *
+ * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-
-import static scott.barleydb.api.core.entity.EntityContextHelper.toParents;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -63,6 +64,8 @@ import scott.barleydb.api.core.entity.context.Entities;
 import scott.barleydb.api.core.entity.context.EntityInfo;
 import scott.barleydb.api.core.proxy.ProxyList;
 import scott.barleydb.api.core.util.EnvironmentAccessor;
+import scott.barleydb.api.exception.EntityConstraintMismatchException;
+import scott.barleydb.api.exception.EntityMustExistInDBException;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.execution.persist.OptimisticLockMismatchException;
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
@@ -73,18 +76,7 @@ import scott.barleydb.api.persist.PersistRequest;
 import scott.barleydb.api.query.QProperty;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.query.RuntimeProperties;
-import scott.barleydb.api.specification.KeyGenSpec;
 import scott.barleydb.server.jdbc.query.QueryResult;
-import scott.barleydb.api.core.entity.Entity;
-import scott.barleydb.api.core.entity.EntityContext;
-import scott.barleydb.api.core.entity.EntityContextState;
-import scott.barleydb.api.core.entity.EntityState;
-import scott.barleydb.api.core.entity.KeySetEvent;
-import scott.barleydb.api.core.entity.NodeEvent;
-import scott.barleydb.api.core.entity.ProxyController;
-import scott.barleydb.api.core.entity.RefNode;
-import scott.barleydb.api.core.entity.ToManyNode;
-import scott.barleydb.api.core.entity.ValueNode;
 
 /**
  * Contains a set of entities.<br/>
@@ -233,12 +225,6 @@ public class EntityContext implements Serializable {
         return entities.safe();
     }
 
-    public void unload(Object object, boolean includeOwnedEntities) {
-        if (object instanceof ProxyController) {
-            ProxyController pc = (ProxyController)object;
-            pc.getEntity().unload( includeOwnedEntities );
-        }
-    }
 
     public void clear() {
         entities.clear();
@@ -280,184 +266,7 @@ public class EntityContext implements Serializable {
         }
     }
 
-    /**
-     * Handles events in the underlying entity model, like PKs being set.
-     * @param event
-     */
-    public void handleEvent(NodeEvent event) {
-        EntityContextState prev = entityContextState;
-        try {
-            entityContextState = EntityContextState.INTERNAL;
-            if (event.getType() == NodeEvent.Type.KEYSET) {
 
-                final Entity entity = (Entity) event.getSource().getParent();
-
-                final EntityInfo entityInfo = entities.keyChanged(entity, ((KeySetEvent) event).getOriginalKey());
-                if (entityInfo == null) {
-                    throw new IllegalStateException("Could not find entity, to change the key: " + entity.getUuid());
-                }
-
-                /*
-                 * update any matching refs
-                 */
-                for (RefNode refNode : entityInfo.getFkReferences()) {
-                    refNode.handleEvent(event);
-                }
-            }
-        } finally {
-            entityContextState = prev;
-        }
-    }
-
-    /**
-     * Creates a new entity of the given type which has state NEW, ie not yet existing in the DB
-     * @param type
-     * @return
-     */
-    @SuppressWarnings("unchecked")
-    public <T> T newModel(Class<T> type) {
-        EntityType entityType = definitions.getEntityTypeMatchingInterface(type.getName(), true);
-        Entity entity = newEntity(entityType);
-        return (T) getProxy(entity);
-    }
-
-    /**
-     * Creates a new entity of the given type which has state NEW, ie not yet existing in the DB
-     * @param entityType
-     * @return
-     */
-    public Entity newEntity(EntityType entityType) {
-        Entity entity = new Entity(this, EntityState.NEW, entityType);
-        add(entity);
-        return entity;
-    }
-
-    /**
-     * Creates a new entity of the given type which has state LOADED, ie existing in the database.<br/>
-     * NOTE: this entity is FAKE LOADED, so the entity context see it as having values from the database
-     * and that any persist operation will require an update.
-     * @param entityType
-     * @return
-     */
-    public Entity newFakeLoadedEntity(EntityType entityType, Object key) {
-        Entity entity = new Entity(this, EntityState.LOADED, entityType);
-        entity.getKey().setValueNoEvent(key);
-        add(entity);
-        return entity;
-    }
-
-    /**
-     * Creates a new entity of the given type. The model is either new, or in the database but not loaded.
-     * @param type
-     * @return
-     */
-    @SuppressWarnings("unchecked")
-    public <T> T newPerhapsInDatabaseModel(Class<T> type) {
-        EntityType entityType = definitions.getEntityTypeMatchingInterface(type.getName(), true);
-        Entity entity = new Entity(this, EntityState.IS_PERHAPS_IN_DATABASE, entityType);
-        add(entity);
-        return (T) getProxy(entity);
-    }
-
-    /**
-     * creates a model with a PK which may be new or may already be in the database.
-     * @param type
-     * @param key
-     * @return
-     */
-    @SuppressWarnings("unchecked")
-    public <T> T newPerhapsInDatabaseModel(Class<T> type, Object key) {
-        EntityType entityType = definitions.getEntityTypeMatchingInterface(type.getName(), true);
-        Entity entity = new Entity(this, EntityState.IS_PERHAPS_IN_DATABASE, entityType);
-        entity.getKey().setValueNoEvent( key );
-        add(entity);
-        return (T) getProxy(entity);
-    }
-
-    /**
-     * creates an entity with a PK which may be new or may already be in the database.
-     * @param type
-     * @param key
-     * @return
-     */
-    @SuppressWarnings("unchecked")
-    public Entity newPerhapsInDatabaseEntity(EntityType entityType, Object key) {
-        Entity entity = new Entity(this, EntityState.IS_PERHAPS_IN_DATABASE, entityType);
-        entity.getKey().setValueNoEvent( key );
-        add(entity);
-        return entity;
-    }
-
-    /**
-     * Create a new model (not existing in database, with the given key.
-     * The entity type + key combination must be new for the entity context
-     *
-     * If the key is not autogenerated and known upfront then this is the preferred method  of creating
-     * the new entity, to prevent duplicate entities with the same PK in the same context
-     *
-     * @param type
-     * @param key
-     * @throws IllegalStateException if an entity with the given key already exists
-     * @return
-     */
-    @SuppressWarnings("unchecked")
-    public <T> T newModel(Class<T> type, Object key) {
-        EntityType entityType = definitions.getEntityTypeMatchingInterface(type.getName(), true);
-        Entity entity = new Entity(this, EntityState.NEW, entityType);
-        entity.getKey().setValueNoEvent( key );
-        add(entity);
-        return (T) getProxy(entity);
-    }
-
-    /**
-     * Removes all entities of the given type
-     * todo: should support base types as well (syntax removes xml and csv syntax)
-     * @param javaType
-     */
-    public void removeAll(Class<?> javaType) {
-        final String typeName = javaType.getName();
-        for (Entity entity : getEntitiesSafeIterable()) {
-            if (entity.getEntityType().getInterfaceName().equals(typeName)) {
-                remove(entity);
-            }
-        }
-    }
-
-    public void remove(Entity entity) {
-        remove(entity, Collections.<Entity> emptyList());
-    }
-
-    public void remove(Object object) {
-        if (object instanceof ProxyController) {
-            ProxyController pc = (ProxyController)object;
-            remove(pc.getEntity());
-        }
-    }
-
-    public void remove(List<Entity> allEntitiesToBeRemoved) {
-        for (Entity e : allEntitiesToBeRemoved) {
-            remove(e, allEntitiesToBeRemoved);
-        }
-    }
-
-    private void remove(Entity entity, List<Entity> allEntitiesToBeRemoved) {
-        EntityInfo entityInfo = entities.getByUuid(entity.getUuid(), true);
-        Collection<RefNode> refNodes = entityInfo.getFkReferences();
-        if (!refNodes.isEmpty() && !allEntitiesToBeRemoved.containsAll(toParents(refNodes))) {
-            entity.unload(false);
-            LOG.debug("Unloaded entity " + entity + " " + entity.getUuid());
-        }
-        else {
-            for (RefNode refNode: entity.getChildren(RefNode.class)) {
-                if (refNode.getReference(false) != null) {
-                    removeReference(refNode, refNode.getReference(false));
-                }
-            }
-            entities.remove(entity);
-            proxies.remove(entity.getUuid());
-            LOG.debug("Removed from entityContext " + entity + " " + entity.getUuid());
-        }
-    }
 
     /**
      * gets a proxy for the given entity, creating it if required.
@@ -521,6 +330,218 @@ public class EntityContext implements Serializable {
 
     public void endDeleting() {
         this.entityContextState = EntityContextState.USER;
+    }
+
+
+    /*
+     * =====================================================================
+     *  BEGIN ENTITY OPERATIONS
+     * =====================================================================
+     */
+    public Entity newEntity(EntityType entityType, Object key) {
+        return newEntity(entityType, key, EntityConstraint.noConstraints());
+    }
+
+    public Entity newEntity(EntityType entityType, Object key, EntityConstraint constraints) {
+        if (key != null) {
+            /*
+             * the entity must be new to the context
+             * we don't care if it exists in the database or not
+             */
+            Entity entity = getEntity(entityType, key, false);
+            if (entity != null) {
+                throw new IllegalStateException("Entity with key '" + entity.getKey().getValue() + "' already exists.");
+            }
+        }
+
+        Entity entity = new Entity(this, entityType, key, constraints);
+        add(entity);
+        return entity;
+    }
+
+    /**
+     * Gets an existing entity from the context, or creates a new entity to be inserted into the database
+     * @param class1
+     * @param key
+     * @return
+     * @throws ProxyCreationException
+     * @throws EntityConstraintMismatchException
+     */
+    public Entity getEntityOrNewEntity(EntityType entityType, Object key, EntityConstraint constraints)  {
+        Entity entity = getEntity(entityType, key, false);
+        if (entity == null) {
+            entity = new Entity(this, entityType, key, constraints);
+            add(entity);
+        }
+        else  if (!Objects.equals(entity.getConstraints(), constraints)) {
+            throw new EntityConstraintMismatchException(entity, constraints, entity.getConstraints());
+        }
+        return entity;
+    }
+
+    /**
+     * Returns the entity from the context, loading it first if required.
+     * @param entityType
+     * @param key
+     * @return the entity of null if it does not exist in the context or database
+     */
+    public Entity getOrLoad(EntityType entityType, Object key, boolean mustExist) {
+        Entity entity = getEntity(entityType, key, false);
+        if (entity != null) {
+            return entity;
+        }
+        /*
+         * capture the must exist constraint so we can apply it to the entity
+         * before we fetch.
+         */
+        EntityConstraint constraint = new EntityConstraint(mustExist, false);
+        EntityContext tmp = newEntityContextSharingTransaction();
+        entity = new Entity(tmp, entityType, key, constraint);
+        tmp.add(entity);
+        /*
+         * fetching will fail, if the entity must exist but does not.
+         */
+        tmp.fetchSingle(entity, true);
+        if (entity.isLoaded()) {
+            return copyInto(entity);
+        }
+        return null;
+    }
+
+    /**
+     * Returns the entity from the context if it exists
+     * Otherwise loads it
+     * Otherwise creates it
+     *
+     * @param entityType
+     * @param key
+     * @return the entity of null if it does not exist in the context or database
+     */
+    public Entity getOrLoadOrCreate(EntityType entityType, Object key, EntityConstraint constraints) {
+        Entity entity = getOrLoad(entityType, key, false);
+        if (entity == null) {
+            entity = new Entity(this, entityType, key, constraints);
+        }
+        return entity;
+    }
+
+
+    void add(Entity entity) {
+        if (getEntityByUuid(entity.getUuid(), false) != null) {
+            throw new IllegalStateException("Entity with uuid '" + entity.getUuid() + "' already exists.");
+        }
+        if (entity.getKey().getValue() != null && getEntity(entity.getEntityType(), entity.getKey().getValue(), false) != null) {
+            throw new IllegalStateException("Entity with key '" + entity.getKey().getValue() + "' already exists.");
+        }
+        entities.add(entity);
+        LOG.debug("Added to entityContext " + entity);
+    }
+
+    /**
+     * Copies a single entity into our context
+     * If the entity already exists, then the values and the fk refs are updated accordingly, the
+     * state of any ToMany nodes is left untouched, which is correct
+     * as we do not load any to many relations.
+     *
+     * @param entity
+     *            return the new entity
+     */
+    public Entity copyInto(Entity entity) {
+        beginLoading();
+        entity.getEntityContext().beginLoading();
+        try {
+            if (entity.getEntityContext() == this) {
+                throw new IllegalStateException("Cannot copy entity into same context");
+            }
+            Entity ours = null;
+            if (entity.getUuid() != null) {
+                ours = getEntityByUuid(entity.getUuid(), false);
+            }
+            if (ours == null && entity.getKey().getValue() != null) {
+                ours = getEntity(entity.getEntityType(), entity.getKey().getValue(), false);
+            }
+            if (ours == null) {
+                ours = new Entity(this, entity);
+                add(ours);
+                ours.setEntityState(entity.getEntityState());
+            }
+            for (ValueNode valueNode : entity.getChildren(ValueNode.class)) {
+                ours.getChild(valueNode.getName(), ValueNode.class).setValueNoEvent(valueNode.getValue());
+            }
+            for (RefNode refNode : entity.getChildren(RefNode.class)) {
+                ours.getChild(refNode.getName(), RefNode.class).setEntityKey(refNode.getEntityKey());
+            }
+            return ours;
+        } finally {
+            entity.getEntityContext().endLoading();
+            endLoading();
+        }
+    }
+
+    /**
+     * Creates a new entity of the given type with no constraints
+     * @param type
+     * @return
+     */
+    public <T> T newModel(Class<T> type) {
+        return newModel(type, EntityConstraint.noConstraints());
+    }
+
+    /**
+     * Creates a new entity of the given type with the given constraints
+     * @param type
+     * @return
+     */
+    public <T> T newModel(Class<T> type, EntityConstraint constraints) {
+        return newModel(type, null, constraints);
+    }
+
+    /**
+     * Creates a new entity of the given type with the given key
+     * @param type
+     * @return
+     */
+    public <T> T newModel(Class<T> type, Object key) {
+        return  newModel(type, key, EntityConstraint.noConstraints());
+    }
+
+    /**
+     * Creates a new entity of the given type with the given key and constraints
+     * @param type
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T newModel(Class<T> type, Object key, EntityConstraint constraints) {
+        EntityType entityType = definitions.getEntityTypeMatchingInterface(type.getName(), true);
+        Entity entity = newEntity(entityType, key, constraints);
+        return (T) getProxy(entity);
+    }
+
+
+    /*
+     * =====================================================================
+     *  END ENTITY OPERATIONS
+     * =====================================================================
+     */
+
+    public void handleKeySet(Entity entity, Object originalKey, Object newKey) {
+         EntityContextState prev = entityContextState;
+         try {
+             entityContextState = EntityContextState.INTERNAL;
+             final EntityInfo entityInfo = entities.keyChanged(entity, originalKey);
+             if (entityInfo == null) {
+                 throw new IllegalStateException("Could not find entity, to change the key: " + entity.getUuid());
+             }
+            /*
+             * update any matching refs
+             */
+            for (RefNode refNode : entityInfo.getFkReferences()) {
+                refNode.handleKeySet(entity, newKey);
+            }
+         }
+         finally {
+             entityContextState = prev;
+         }
     }
 
     public <T> void performQueries(QueryBatcher queryBatcher) throws SortServiceProviderException, SortQueryException {
@@ -624,111 +645,6 @@ public class EntityContext implements Serializable {
         return false;
     }
 
-    public void add(Entity entity) {
-        if (getEntityByUuid(entity.getUuid(), false) != null) {
-            throw new IllegalStateException("Entity with uuid '" + entity.getUuid() + "' already exists.");
-        }
-        if (entity.getKey().getValue() != null && getEntity(entity.getEntityType(), entity.getKey().getValue(), false) != null) {
-            throw new IllegalStateException("Entity with key '" + entity.getKey().getValue() + "' already exists.");
-        }
-        entities.add(entity);
-        LOG.debug("Added to entityContext " + entity);
-    }
-
-    /**
-     * Copies a single entity into our context
-     * If the entity already exists, then the values and the fk refs are updated accordingly, the
-     * state of any ToMany nodes is left untouched, which is correct
-     * as we do not load any to many relations.
-     *
-     *
-     *
-     * @param entity
-     *            return the new entity
-     */
-    public Entity copyInto(Entity entity) {
-        beginLoading();
-        entity.getEntityContext().beginLoading();
-        try {
-            if (entity.getEntityContext() == this) {
-                throw new IllegalStateException("Cannot copy entity into same context");
-            }
-            Entity ours = null;
-            if (entity.getUuid() != null) {
-                ours = getEntityByUuid(entity.getUuid(), false);
-            }
-            if (ours == null && entity.getKey().getValue() != null) {
-                ours = getEntity(entity.getEntityType(), entity.getKey().getValue(), false);
-            }
-            if (ours == null) {
-                ours = new Entity(this, entity);
-                add(ours);
-                ours.setEntityState(entity.getEntityState());
-            }
-            for (ValueNode valueNode : entity.getChildren(ValueNode.class)) {
-                ours.getChild(valueNode.getName(), ValueNode.class).setValueNoEvent(valueNode.getValue());
-            }
-            for (RefNode refNode : entity.getChildren(RefNode.class)) {
-                ours.getChild(refNode.getName(), RefNode.class).setEntityKey(refNode.getEntityKey());
-            }
-            return ours;
-        } finally {
-            entity.getEntityContext().endLoading();
-            endLoading();
-        }
-    }
-
-    /**
-     * Gets the entity if it exists or it in the context.<br/>
-     * <br/>
-     * Uses the KeyGenSpec to set the EntityState.<br/>
-     *
-     * <p>If the Entity has FRAMEWORK generated keys then we know if a key exists then
-     * the entity is already in the database, because the framework provides the keys during persistence.
-     * This means that the EntityState will be NOTLOADED and fetching will be performed if it's values are accessed.</p>
-     *
-     * <p>If the Entity has CLIENT generated keys then this is not clear and the entity state will be
-     * IS_PERHAPS_IN_DATABASE</p>
-     *
-     *
-     * @return the entity
-     */
-    public Entity getOrCreateBasedOnKeyGenSpec(EntityType entityType, Object key) {
-        Entity entity = getEntity(entityType, key, false);
-        if (entity == null) {
-            entity = new Entity(this, entityType, key);
-            switch(entityType.getKeyGenSpec()) {
-                case FRAMEWORK: {
-                    entity.setEntityState(EntityState.NOTLOADED); break;
-                }
-                case CLIENT: {
-                    entity.setEntityState(EntityState.IS_PERHAPS_IN_DATABASE); break;
-                }
-            }
-
-            add(entity);
-        }
-        return entity;
-    }
-
-    /**
-     * Gets an entity from the context, or creates a new one with state NEW
-     * @param class1
-     * @param key
-     * @return
-     * @throws ProxyCreationException
-     */
-    public <T> T getOrCreateAsNew(Class<T> class1, Object key) throws ProxyCreationException {
-        EntityType entityType = getDefinitions().getEntityTypeForClass(class1, true);
-        Entity entity = getEntity(entityType, key, false);
-        if (entity == null) {
-            entity = new Entity(this, entityType, key);
-            entity.setEntityState(EntityState.NEW);
-            add(entity);
-        }
-        return env.generateProxy(entity);
-    }
-
 
     /**
      * creates a new entity context which shares the same transaction
@@ -751,64 +667,7 @@ public class EntityContext implements Serializable {
         return entityContext;
     }
 
-    /**
-     * gets the entity from the context or lazily loads it into
-     * the context if it does not exist.
-     * @param type
-     * @param key
-     * @param ensureExistsInDb actually query the database, to confirm it exists.
-     * @return
-     * @throws ProxyCreationException
-     */
-    public <T> T getOrLazilyLoad(Class<T> type, String key, boolean ensureExistsInDb) throws ProxyCreationException {
-        if (ensureExistsInDb) {
-            T object = getOrLoad(type, key);
-            Entity e = ((ProxyController)object).getEntity();
-            e.unload(false);
-            return object;
-        }
-        else {
-            T object = newModel(type, key);
-            Entity e = ((ProxyController)object).getEntity();
-            e.setEntityState(EntityState.NOTLOADED);
-            return object;
-        }
-    }
 
-
-    /**
-     * gets the entity from the context loading it first if required.
-     * @param type
-     * @param key
-     * @return
-     * @throws ProxyCreationException
-     */
-    public <T> T getOrLoad(Class<T> type, Object key) throws ProxyCreationException {
-      EntityType entityType = definitions.getEntityTypeForClass(type, true);
-      Entity e = getOrLoad(entityType, key);
-      return e != null ? (T)env.generateProxy(e) : null;
-    }
-
-    /**
-     * Returns the entity from the context, loading it first if required.
-     * @param entityType
-     * @param key
-     * @return the entity of null if it does not exist in the context or database
-     */
-    public Entity getOrLoad(EntityType entityType, Object key) {
-        Entity entity = getEntity(entityType, key, false);
-        if (entity != null) {
-            return entity;
-        }
-        EntityContext tmp = newEntityContextSharingTransaction();
-        entity = new Entity(tmp, entityType, key);
-        tmp.add(entity);
-        tmp.fetchSingle(entity, true);
-        if (entity.isLoaded()) {
-            return copyInto(entity);
-        }
-        return null;
-    }
 
     public <T> QueryObject<T> getQuery(Class<T> clazz) {
         return userQueryRegistry.getQuery(clazz);
@@ -977,11 +836,16 @@ public class EntityContext implements Serializable {
              * but we set the state to LOADING ourselves
              * so check the result, and manually set the entity state
              */
-            if (!result.getList().isEmpty()) {
-                entity.setEntityState(EntityState.LOADED);
+            if (result.getList().isEmpty()) {
+                if (entity.getConstraints().isMustExistInDatabase()) {
+                    throw new EntityMustExistInDBException(entity);
+                }
+                else {
+                    entity.setEntityState(EntityState.NOTLOADED);
+                }
             }
-            else {
-                entity.setEntityState(EntityState.NOTLOADED);
+            else  {
+                entity.setEntityState(EntityState.LOADED);
             }
         } catch (Exception x) {
             throw new IllegalStateException("Error performing fetch", x);

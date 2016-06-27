@@ -35,7 +35,6 @@ import org.w3c.dom.Element;
 import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.Node;
-import scott.barleydb.api.core.entity.NodeEvent;
 import scott.barleydb.api.core.entity.RefNode;
 import scott.barleydb.api.core.entity.ValueNode;
 
@@ -160,7 +159,7 @@ public final class RefNode extends Node {
             /*
              * Create the entity in the context if it is not there yet.
              */
-            reference = getEntityContext().getOrCreateBasedOnKeyGenSpec(entityType, entityKey);
+            reference = getEntityContext().getEntityOrNewEntity(entityType, entityKey, EntityConstraint.mustExistInDatabase());
             /*
              * add the tracking to the entity context.
              */
@@ -199,7 +198,7 @@ public final class RefNode extends Node {
         removedEntityKey = null;
         if (entityKey != null && entityKey != NotLoaded.VALUE) {
             //get or create the corresponding entity in the context
-            reference = getEntityContext().getOrCreateBasedOnKeyGenSpec(entityType, entityKey);
+            reference = getEntityContext().getEntityOrNewEntity(entityType, entityKey, EntityConstraint.mustExistInDatabase());
         }
     }
 
@@ -283,17 +282,11 @@ public final class RefNode extends Node {
         }
     }
 
-    @Override
-    public void handleEvent(NodeEvent event) {
-        if (event.getType() == NodeEvent.Type.KEYSET) {
-            final Entity reference = getReference();
-            if (reference != null && reference.getKey() == event.getSource()) {
-                this.entityKey = ((ValueNode) event.getSource()).getValue();
-                LOG.debug(getName() + " FK set to " + this.entityKey + " for " + getParent().getEntityType().getInterfaceShortName() + " with key " + getParent().getKey() + " and uuid " + getParent().getUuid());
-            }
-            else {
-                LOG.debug("WHY WAS I CALLED");
-            }
+    public void handleKeySet(Entity entity, Object keyValue) {
+        final Entity reference = getReference();
+        if (reference == entity) {
+            this.entityKey = keyValue;
+            LOG.debug(getName() + " FK set to " + this.entityKey + " for " + getParent().getEntityType().getInterfaceShortName() + " with key " + getParent().getKey() + " and uuid " + getParent().getUuid());
         }
     }
 

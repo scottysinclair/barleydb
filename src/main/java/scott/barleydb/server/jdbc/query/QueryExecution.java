@@ -262,11 +262,6 @@ public class QueryExecution<T> {
                             throw new IllegalQueryStateException("Joined FK key was not loaded: " + refNode);
                         }
                     }
-                    else {
-                        if (refNode.getReference().getEntityState() == EntityState.IS_PERHAPS_IN_DATABASE) {
-                            refNode.getReference().setEntityState(EntityState.NOTLOADED);
-                        }
-                    }
                 }
             }
         }

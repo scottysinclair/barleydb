@@ -30,7 +30,6 @@ import org.w3c.dom.Element;
 import scott.barleydb.api.config.NodeType;
 import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityContext;
-import scott.barleydb.api.core.entity.NodeEvent;
 
 public abstract class Node implements Serializable {
 
@@ -55,12 +54,6 @@ public abstract class Node implements Serializable {
 
     public Entity getParent() {
         return parent;
-    }
-
-    public void handleEvent(NodeEvent event) {
-        if (parent != null) {
-            parent.handleEvent(event);
-        }
     }
 
     public NodeType getNodeType() {

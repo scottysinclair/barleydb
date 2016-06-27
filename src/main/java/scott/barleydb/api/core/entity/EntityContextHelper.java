@@ -183,6 +183,7 @@ public class EntityContextHelper {
             }
             Entity e = newContext.getEntityByUuidOrKey(entity.getUuid(), entity.getEntityType(), entity.getKey().getValue(), true);
             e.copyValueNodesToMe(entity);
+            e.getConstraints().set( entity.getConstraints() );
             e.setEntityState(entity.getEntityState());
             newEntities.add(e);
         }
