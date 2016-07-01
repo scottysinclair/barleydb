@@ -83,7 +83,7 @@ public final class RefNode extends Node {
         if (getParent().getEntityState() == EntityState.LOADING) {
             return;
         }
-        getParent().checkFetched();
+        getParent().fetchIfRequiredAndAllowed();
         //perhaps the entity was fetched, but this column was lazy
         if (entityKey == NotLoaded.VALUE) {
             //will only fetch if not in internal mode

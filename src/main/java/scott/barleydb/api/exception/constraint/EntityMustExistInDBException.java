@@ -1,4 +1,4 @@
-package scott.barleydb.api.exception;
+package scott.barleydb.api.exception.constraint;
 
 /*-
  * #%L
@@ -26,6 +26,7 @@ package scott.barleydb.api.exception;
  */
 
 import scott.barleydb.api.core.entity.Entity;
+import scott.barleydb.api.exception.SortRuntimeException;
 
 public class EntityMustExistInDBException extends SortRuntimeException {
 

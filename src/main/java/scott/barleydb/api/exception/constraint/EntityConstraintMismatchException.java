@@ -1,4 +1,4 @@
-package scott.barleydb.api.exception;
+package scott.barleydb.api.exception.constraint;
 
 /*-
  * #%L
@@ -26,13 +26,14 @@ package scott.barleydb.api.exception;
  */
 
 import scott.barleydb.api.core.entity.Entity;
+import scott.barleydb.api.core.entity.EntityConstraint;
+import scott.barleydb.api.exception.SortRuntimeException;
 
-public class EntityMustNotExistInDBException extends SortRuntimeException {
+public class EntityConstraintMismatchException extends SortRuntimeException  {
 
     private static final long serialVersionUID = 1L;
 
-    public EntityMustNotExistInDBException(Entity entity) {
-        super("Entity " + entity + " must not exist in the database");
+    public EntityConstraintMismatchException(Entity entity, EntityConstraint expected, EntityConstraint actual) {
+        super("entity " + entity + " expected constraint " + expected + " actual constraint " + actual);
     }
-
 }

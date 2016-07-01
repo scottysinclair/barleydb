@@ -10,12 +10,12 @@ package scott.barleydb.api.core.entity;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -126,6 +126,9 @@ public class Entity implements Serializable {
     }
 
     public boolean isFetchRequired() {
+        if (constraints.isNeverFetch()) {
+            return false;
+        }
         if (constraints.isMustNotExistInDatabase()) {
             return false;
         }
@@ -329,7 +332,11 @@ public class Entity implements Serializable {
         return newNodes;
     }
 
-    public void checkFetched() {
+
+    public void fetchIfRequiredAndAllowed() {
+        if (constraints.isNeverFetch()) {
+            return;
+        }
         if (getKey().getValue() != null) {
             switch(entityState) {
                 case NOTLOADED:
@@ -369,6 +376,38 @@ public class Entity implements Serializable {
 
     public String getName() {
         return getEntityType().getInterfaceShortName() + "." + getKey();
+    }
+
+    /**
+     * Sets the nodes state to unloaded Any entities owned by this one will also
+     * be unloaded. Means only the key has a value and everything else must be
+     * fetched
+     */
+    public void unload(boolean includeOwnedEntities) {
+        for (Node node : getChildren()) {
+            if (node != getKey()) {
+                if (node instanceof ValueNode) {
+                    ((ValueNode) node).setValueNoEvent(NotLoaded.VALUE);
+                } else if (node instanceof RefNode) {
+                    if (includeOwnedEntities && node.getNodeType().isOwns()) {
+                        RefNode refNode = (RefNode) node;
+                        Entity reffedEntity = refNode.getReference();
+                        reffedEntity.unload(includeOwnedEntities);
+                        refNode.setEntityKey(null);
+                    }
+                } else if (node instanceof ToManyNode) {
+                    if (includeOwnedEntities && node.getNodeType().isOwns()) {
+                        ToManyNode toMany = (ToManyNode) node;
+                        for (Entity e : toMany.getList()) {
+                            e.unload(includeOwnedEntities);
+                        }
+                        toMany.unloadAndClear();
+                    }
+                }
+            }
+        }
+        setEntityState(EntityState.NOTLOADED);
+        clear();
     }
 
     private void writeObject(ObjectOutputStream oos) throws IOException {

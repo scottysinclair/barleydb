@@ -13,12 +13,12 @@ package scott.barleydb.api.core.entity;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -64,8 +64,8 @@ import scott.barleydb.api.core.entity.context.Entities;
 import scott.barleydb.api.core.entity.context.EntityInfo;
 import scott.barleydb.api.core.proxy.ProxyList;
 import scott.barleydb.api.core.util.EnvironmentAccessor;
-import scott.barleydb.api.exception.EntityConstraintMismatchException;
-import scott.barleydb.api.exception.EntityMustExistInDBException;
+import scott.barleydb.api.exception.constraint.EntityConstraintMismatchException;
+import scott.barleydb.api.exception.constraint.EntityMustExistInDBException;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.execution.persist.OptimisticLockMismatchException;
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
@@ -77,6 +77,8 @@ import scott.barleydb.api.query.QProperty;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.query.RuntimeProperties;
 import scott.barleydb.server.jdbc.query.QueryResult;
+
+import static scott.barleydb.api.core.entity.EntityContextHelper.toParents;
 
 /**
  * Contains a set of entities.<br/>
@@ -338,6 +340,10 @@ public class EntityContext implements Serializable {
      *  BEGIN ENTITY OPERATIONS
      * =====================================================================
      */
+    public Entity newEntity(EntityType entityType) {
+        return newEntity(entityType, null, EntityConstraint.noConstraints());
+    }
+
     public Entity newEntity(EntityType entityType, Object key) {
         return newEntity(entityType, key, EntityConstraint.noConstraints());
     }
@@ -385,7 +391,7 @@ public class EntityContext implements Serializable {
      * @param key
      * @return the entity of null if it does not exist in the context or database
      */
-    public Entity getOrLoad(EntityType entityType, Object key, boolean mustExist) {
+    public Entity getEntityOrLoadEntity(EntityType entityType, Object key, boolean mustExist) {
         Entity entity = getEntity(entityType, key, false);
         if (entity != null) {
             return entity;
@@ -417,12 +423,39 @@ public class EntityContext implements Serializable {
      * @param key
      * @return the entity of null if it does not exist in the context or database
      */
-    public Entity getOrLoadOrCreate(EntityType entityType, Object key, EntityConstraint constraints) {
-        Entity entity = getOrLoad(entityType, key, false);
+    public Entity getEntityOrLoadEntityOrNewEntity(EntityType entityType, Object key, EntityConstraint constraints) {
+        Entity entity = getEntityOrLoadEntity(entityType, key, false);
         if (entity == null) {
             entity = new Entity(this, entityType, key, constraints);
         }
         return entity;
+    }
+
+    public <T> T getModel(Class<T> type, Object key, boolean mustExist)  {
+        EntityType entityType = definitions.getEntityTypeForClass(type, true);
+        Entity entity = getEntity(entityType, key, mustExist);
+        return entity != null ? (T) getProxy(entity) : null;
+    }
+
+    public <T> T getModelOrLoadModel(Class<T> type, Object key, boolean mustExist) {
+        EntityType entityType = definitions.getEntityTypeForClass(type, true);
+        Entity entity = getEntityOrLoadEntity(entityType, key, mustExist);
+        return (entity != null) ? (T)getProxy(entity) : null;
+    }
+
+    public <T> T getModelOrNewModel(Class<T> type, Object key)  {
+        //hmm, if we have no constrants, perhaps we don't care if the entity is already
+        //existing with constraints
+        //we will find out if we are getting too many exceptions around this.....
+        return getModelOrNewModel(type, key, EntityConstraint.noConstraints());
+    }
+    public <T> T getModelOrNewModel(Class<T> type, Object key, EntityConstraint constraints)  {
+        EntityType entityType = definitions.getEntityTypeForClass(type, true);
+        Entity entity = getEntityOrNewEntity(entityType, key, constraints);
+        if (entity != null) {
+            return (T)getProxy(entity);
+        }
+        return null;
     }
 
 
@@ -497,7 +530,9 @@ public class EntityContext implements Serializable {
     }
 
     /**
-     * Creates a new entity of the given type with the given key
+     * Creates a new entity of the given type with the given key with no constraints.
+     * <br/>
+     * This means that it may or may not exist in the database
      * @param type
      * @return
      */
@@ -517,6 +552,34 @@ public class EntityContext implements Serializable {
         return (T) getProxy(entity);
     }
 
+    public void remove(Entity entity) {
+       remove(entity, Collections.<Entity> emptyList());
+    }
+
+    private void remove(Entity entity, List<Entity> allEntitiesToBeRemoved) {
+        EntityInfo entityInfo = entities.getByUuid(entity.getUuid(), true);
+        Collection<RefNode> refNodes = entityInfo.getFkReferences();
+        if (!refNodes.isEmpty() && !allEntitiesToBeRemoved.containsAll(toParents(refNodes))) {
+            entity.unload(false);
+            LOG.debug("Unloaded entity " + entity + " " + entity.getUuid());
+        } else {
+            for (RefNode refNode : entity.getChildren(RefNode.class)) {
+                if (refNode.getReference(false) != null) {
+                    removeReference(refNode, refNode.getReference(false));
+                }
+            }
+            entities.remove(entity);
+            proxies.remove(entity.getUuid());
+            LOG.debug("Removed from entityContext " + entity + " " + entity.getUuid());
+        }
+    }
+
+    public void unload(Object object, boolean includeOwnedEntities) {
+        if (object instanceof ProxyController) {
+            ProxyController pc = (ProxyController) object;
+            pc.getEntity().unload(includeOwnedEntities);
+        }
+    }
 
     /*
      * =====================================================================

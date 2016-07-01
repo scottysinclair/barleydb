@@ -43,13 +43,16 @@ public class ValueNode extends Node {
 
     @SuppressWarnings("unchecked")
     public <T> T getValue() {
-        checkParentFetched();
+        fetchParentIfRequiredAndAllowed();
         if (value == NotLoaded.VALUE) {
             if (getParent().getKey().getValue() != null) {
                 //will only fetch if not in internal mode
                 getEntityContext().fetch(getParent(), false, true, true, getName());
             }
             else {
+                //if value == NotLoaded.VALUE it implies that a value can be loaded, therefore it must have
+                //a PK and must exist in the database
+                //so we fail here to show that we are in an illogical state.
                 throw new IllegalStateException("Value not loaded, but entity has no key.");
             }
         }
@@ -61,7 +64,7 @@ public class ValueNode extends Node {
     }
 
     public void setValueNoEvent(Object value) {
-        checkParentFetched();
+        fetchParentIfRequiredAndAllowed();
         this.value = value;
     }
 
@@ -95,9 +98,9 @@ public class ValueNode extends Node {
         return String.valueOf(value);
     }
 
-    private void checkParentFetched() {
+    private void fetchParentIfRequiredAndAllowed() {
         if (getParent().getKey() != this) {
-            getParent().checkFetched();
+            getParent().fetchIfRequiredAndAllowed();
         }
     }
 

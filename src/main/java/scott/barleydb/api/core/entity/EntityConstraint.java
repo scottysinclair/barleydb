@@ -13,12 +13,12 @@ package scott.barleydb.api.core.entity;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -36,16 +36,25 @@ import java.io.Serializable;
 public class EntityConstraint implements Serializable {
 
     public static EntityConstraint mustExistInDatabase() {
-        return new EntityConstraint(true, false);
+        return new EntityConstraint(true, false, false);
     }
 
     public static EntityConstraint mustNotExistInDatabase() {
-        return new EntityConstraint(false, true);
+        return new EntityConstraint(false, true, false);
     }
 
     public static EntityConstraint noConstraints() {
-        return new EntityConstraint(false, false);
+        return new EntityConstraint(false, false, false);
     }
+
+    public static EntityConstraint mustExistAndDontFetch() {
+        return new EntityConstraint(true, false, true);
+    }
+
+    public static EntityConstraint dontFetch() {
+        return new EntityConstraint(false, false, true);
+    }
+
 
     private static final long serialVersionUID = 1L;
 
@@ -53,12 +62,18 @@ public class EntityConstraint implements Serializable {
 
     private boolean mustNotExistInDatabase;
 
+    private boolean neverFetch;
+
     public EntityConstraint(boolean mustExistInDatabase, boolean mustNotExistInDatabase) {
+        this(mustExistInDatabase, mustNotExistInDatabase, false);
+    }
+    public EntityConstraint(boolean mustExistInDatabase, boolean mustNotExistInDatabase, boolean neverFetch) {
         this.mustExistInDatabase = mustExistInDatabase;
         this.mustNotExistInDatabase = mustNotExistInDatabase;
         if (mustExistInDatabase && mustNotExistInDatabase) {
             throw new IllegalArgumentException("Invalid constraint");
         }
+        this.neverFetch = neverFetch;
     }
 
     public boolean isMustExistInDatabase() {
@@ -83,10 +98,16 @@ public class EntityConstraint implements Serializable {
         this.mustNotExistInDatabase = true;
     }
 
+    public boolean isNeverFetch() {
+        return neverFetch;
+    }
+
     public void set(EntityConstraint constraints) {
         this.mustExistInDatabase = constraints.mustExistInDatabase;
         this.mustNotExistInDatabase = constraints.mustNotExistInDatabase;
+        this.neverFetch = constraints.neverFetch;
     }
+
 
     @Override
     public int hashCode() {
@@ -94,6 +115,7 @@ public class EntityConstraint implements Serializable {
         int result = 1;
         result = prime * result + (mustExistInDatabase ? 1231 : 1237);
         result = prime * result + (mustNotExistInDatabase ? 1231 : 1237);
+        result = prime * result + (neverFetch ? 1231 : 1237);
         return result;
     }
 
@@ -110,18 +132,21 @@ public class EntityConstraint implements Serializable {
             return false;
         if (mustNotExistInDatabase != other.mustNotExistInDatabase)
             return false;
+        if (neverFetch != other.neverFetch)
+            return false;
         return true;
     }
 
     @Override
     public String toString() {
         if (mustExistInDatabase) {
-            return "MustExist";
+            return  "MustExist" + (neverFetch ? " + NeverFetch" : "") ;
         }
         else if (mustNotExistInDatabase) {
-            return "MustNotExist";
+            return "MustNotExist" + (neverFetch ? " + NeverFetch" : "");
         }
-        return "N/A";
+        return "N/A" + (neverFetch ? " + NeverFetch" : "");
     }
+
 
 }
