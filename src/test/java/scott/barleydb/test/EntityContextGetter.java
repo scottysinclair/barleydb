@@ -28,7 +28,7 @@ package scott.barleydb.test;
 import scott.barleydb.api.core.entity.EntityContext;
 
 public class EntityContextGetter {
-    private final boolean client;
+    public final boolean client;
     /**
      *
      * @param client true for client context execution

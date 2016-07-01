@@ -64,7 +64,6 @@ public class ValueNode extends Node {
     }
 
     public void setValueNoEvent(Object value) {
-        fetchParentIfRequiredAndAllowed();
         this.value = value;
     }
 

@@ -54,9 +54,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import scott.barleydb.api.core.Environment;
 import scott.barleydb.api.core.entity.Entity;
+import scott.barleydb.api.core.entity.EntityConstraint;
 import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.entity.EntityContextHelper;
 import scott.barleydb.api.core.entity.ProxyController;
@@ -70,6 +73,8 @@ import scott.barleydb.test.TestEntityContextServices.PersisterFactory;
 
 @RunWith(Parameterized.class)
 public class TestPersistence extends TestRemoteClientBase {
+
+    private static final Logger LOG = LoggerFactory.getLogger(TestPersistence.class);
 
     @Parameters
     public static Collection<Object[]> data() {
@@ -833,7 +838,9 @@ public class TestPersistence extends TestRemoteClientBase {
         m1.setTargetFieldName("root");
         syntax.getMappings().add(m1);
 
+        LOG.debug("--------------------------- PERSISTING THE ORIGINAL SYNTAX START -----------------------");
         theEntityContext.persist(new PersistRequest().save(syntax));
+        LOG.debug("--------------------------- PERSISTING THE ORIGINAL SYNTAX END -----------------------");
 
         /*
          * now we do something 'stupid' we add an XmlMapping entity to the entity context with key 100
@@ -844,21 +851,31 @@ public class TestPersistence extends TestRemoteClientBase {
          * PK could be in use.
          */
         XmlMapping m2PerhapsInDb = theEntityContext.newModel(XmlMapping.class, 100L);
+        assertEquals((Long)100L, m2PerhapsInDb.getId());
+        assertTrue(m2PerhapsInDb.getEntity().isUnclearIfInDatabase());
+        assertFalse(m2PerhapsInDb.getEntity().isClearlyNotInDatabase());
+        /*
+         * currently, setting a value to a NOTLOADED entity with a key
+         * will cause a fetch attempt. This is required because we currently track
+         * old references which require deleteing, once this is no longer needed
+         * then we can remove the fetch for set logic
+         */
         m2PerhapsInDb.setSyntax(syntax);
+        assertTrue(m2PerhapsInDb.getEntity().isClearlyNotInDatabase());
+        assertFalse(m2PerhapsInDb.getEntity().isUnclearIfInDatabase());
         m2PerhapsInDb.setXpath("/root");
         m2PerhapsInDb.setTargetFieldName("root");
         syntax.getMappings().add(m2PerhapsInDb);
 
-        assertEquals((Long)100L, m2PerhapsInDb.getId());
-        assertTrue(m2PerhapsInDb.getEntity().isPerhapsInDatabase());
 
+        LOG.debug("--------------------------- PERSISTING THE UPDATED SYNTAX START -----------------------");
         theEntityContext.persist(new PersistRequest().save(syntax));
-        assertFalse(m2PerhapsInDb.getEntity().isPerhapsInDatabase());
+        LOG.debug("--------------------------- PERSISTING THE UPDATED SYNTAX END -----------------------");
+        assertFalse(m2PerhapsInDb.getEntity().isUnclearIfInDatabase());
         assertTrue(m2PerhapsInDb.getEntity().isLoaded());
         assertEquals((Long)100L, m2PerhapsInDb.getId());
     }
 
-    @Ignore
     @Test
     public void testSaveSyntaxWithDeletedMappingWhichIsPerhapsInTheDatabaseAndIsNot() throws SortException {
         //first create a syntax with 2 mappings
@@ -884,6 +901,9 @@ public class TestPersistence extends TestRemoteClientBase {
         m1.setTargetFieldName("root");
         syntax.getMappings().add(m1);
 
+
+
+        LOG.debug("--------------------------- PERSISTING THE ORIGINAL SYNTAX -----------------------");
         theEntityContext.persist(new PersistRequest().save(syntax));
 
         /*
@@ -895,25 +915,39 @@ public class TestPersistence extends TestRemoteClientBase {
          * PK could be in use.
          */
         XmlMapping m2PerhapsInDb = theEntityContext.newModel(XmlMapping.class, 100L);
+        assertTrue(m2PerhapsInDb.getEntity().isUnclearIfInDatabase());
+        assertFalse(m2PerhapsInDb.getEntity().isClearlyNotInDatabase());
+        /*
+         * currently, setting a value to a NOTLOADED entity with a key
+         * will cause a fetch attempt. This is required because we currently track
+         * old references which require deleteing, once this is no longer needed
+         * then we can remove the fetch for set logic
+         */
+
         m2PerhapsInDb.setSyntax(syntax);
+        assertTrue(m2PerhapsInDb.getEntity().isClearlyNotInDatabase());
+        assertFalse(m2PerhapsInDb.getEntity().isUnclearIfInDatabase());
         m2PerhapsInDb.setXpath("/root");
         m2PerhapsInDb.setTargetFieldName("root");
         syntax.getMappings().add(m2PerhapsInDb);
 
         assertEquals((Long)100L, m2PerhapsInDb.getId());
-        assertTrue(m2PerhapsInDb.getEntity().isPerhapsInDatabase());
 
         syntax.getMappings().remove(m2PerhapsInDb);
 
         /*
          * the following persist should be a noop.
+         * because the mapping which was added and then deleted, was never actually in the database.
+         * The PersistAnalyser has to realize that no operation is necessary
+         *
          */
+        LOG.debug("--------------------------- PERSISTING THE SYNTAX AGAIN (NOOP) -----------------------");
         theEntityContext.persist(new PersistRequest().save(syntax));
         /*
          * the persist attempt figured out that m2PerhapsInDb is new and so adjusted the EntityState
          * accordingly. (wow)
          */
-        assertTrue(m2PerhapsInDb.getEntity().isNew());
+        assertTrue(m2PerhapsInDb.getEntity().isClearlyNotInDatabase());
         assertEquals((Long)100L, m2PerhapsInDb.getId());
     }
 

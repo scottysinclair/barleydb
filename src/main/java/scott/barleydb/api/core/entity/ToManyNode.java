@@ -133,7 +133,7 @@ public class ToManyNode extends Node {
          */
         for (Iterator<Entity> i = newEntities.iterator(); i.hasNext();) {
         	Entity e = i.next();
-            if (!e.isNew()) {
+            if (!e.isClearlyNotInDatabase()) {
             	LOG.trace("ToManyNode {} has new entity {} which is now saved, removing from newEntities list", this, e);
                 i.remove();
             }
@@ -144,7 +144,7 @@ public class ToManyNode extends Node {
          */
         for (Iterator<Entity> i = removedEntities.iterator(); i.hasNext();) {
             Entity e = i.next();
-            if (e.isNew()) {
+            if (e.isClearlyNotInDatabase()) {
             	LOG.trace("ToManyNode {} has deleted entity {} which is now new, removing from removedEntities list", this, e);                
             	i.remove();
             }
@@ -205,7 +205,7 @@ public class ToManyNode extends Node {
         if (entity.getEntityType() != entityType) {
             throw new IllegalStateException("Cannot add " + entity.getEntityType() + " to " + getParent() + "." + getName());
         }
-        if (entity.isNew()) {
+        if (entity.isClearlyNotInDatabase()) {
             newEntities.add(entity);
         }
         entities.add(index, entity);
@@ -218,7 +218,7 @@ public class ToManyNode extends Node {
         if (entity.getEntityType() != entityType) {
             throw new IllegalStateException("Cannot add " + entity.getEntityType() + " to " + getParent() + "." + getName());
         }
-        if (entity.isNew()) {
+        if (entity.isClearlyNotInDatabase()) {
             newEntities.add(entity);
         }
         entities.add(entity);
@@ -232,7 +232,7 @@ public class ToManyNode extends Node {
         Entity entity = entities.remove(index);
         if (entity != null) {
             newEntities.remove(entity);
-            if (!entity.isNew()) {
+            if (!entity.isClearlyNotInDatabase()) {
             	//TODO: what about state new-or-not-loaded
             	//right now it would be added to the removedEntities which seems safest
             	//as if it was actually not-loaded, then the delete would be required.

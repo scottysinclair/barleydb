@@ -129,7 +129,7 @@ public class EntityContextHelper {
     public static int countNew(Collection<Entity> entities) {
         int count = 0;
         for (Entity e: entities) {
-            if (e.isNew()) {
+            if (e.isClearlyNotInDatabase()) {
                 count++;
             }
         }

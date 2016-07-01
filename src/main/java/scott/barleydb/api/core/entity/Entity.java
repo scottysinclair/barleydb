@@ -10,12 +10,12 @@ package scott.barleydb.api.core.entity;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- *
+ * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -46,7 +46,6 @@ import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.entity.EntityContextState;
 import scott.barleydb.api.core.entity.EntityState;
 import scott.barleydb.api.core.entity.Node;
-import scott.barleydb.api.core.entity.NotLoaded;
 import scott.barleydb.api.core.entity.RefNode;
 import scott.barleydb.api.core.entity.ToManyNode;
 import scott.barleydb.api.core.entity.ValueNode;
@@ -107,22 +106,24 @@ public class Entity implements Serializable {
         this.uuid = uuid;
     }
 
-    public boolean isLoadedOrNew() {
-        return isLoaded() || isNew();
+    public boolean isClearlyUnderstoodIfInDatabaseOrNot() {
+        return isLoaded() || isClearlyNotInDatabase();
     }
 
-    public boolean isNew() {
-        return entityState == EntityState.NOT_IN_DB;
+    public boolean isClearlyNotInDatabase() {
+        return getKey().getValue() == null || constraints.isMustNotExistInDatabase() || entityState == EntityState.NOT_IN_DB;
     }
 
-
+    /**
+     * The entity was loaded from the database
+     * @return
+     */
     public boolean isLoaded() {
-        //loaded meaning no fetch required
         return entityState == EntityState.LOADED;
     }
 
-    public boolean isPerhapsInDatabase() {
-        return entityState == EntityState.NOTLOADED && constraints.noDatabaseExistenceConstraints();
+    public boolean isUnclearIfInDatabase() {
+        return getKey().getValue() != null &&  entityState == EntityState.NOTLOADED && constraints.noDatabaseExistenceConstraints();
     }
 
     public boolean isFetchRequired() {

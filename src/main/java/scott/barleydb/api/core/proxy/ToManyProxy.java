@@ -119,7 +119,7 @@ public class ToManyProxy<R> extends AbstractList<R> implements Serializable {
     }
 
     private void fetchIfNeeded() {
-        if (toManyNode.getParent().isNew()) {
+        if (toManyNode.getParent().isClearlyNotInDatabase()) {
             /*
              * the syntax is not in the database, so how can we load it's mappings
              */

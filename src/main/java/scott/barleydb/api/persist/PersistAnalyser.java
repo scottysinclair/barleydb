@@ -10,12 +10,12 @@ package scott.barleydb.api.persist;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- *
+ * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -224,10 +224,10 @@ public class PersistAnalyser implements Serializable {
                 if (entity.getEntityContext() != entityContext) {
                     throw new IllegalPersistStateException("Cannot persist entity from a different context");
                 }
-                if (entity.isPerhapsInDatabase()) {
+                if (entity.isUnclearIfInDatabase()) {
                     throw new IllegalPersistStateException("We should know at this point if the entity is new or not: " + entity);
                 }
-                if (entity.isNew()) {
+                if (entity.isClearlyNotInDatabase()) {
                     analyseCreate(entity);
                 } else {
                     analyseUpdate(entity);
@@ -254,10 +254,13 @@ public class PersistAnalyser implements Serializable {
         LinkedHashSet<Entity> matches = findEntites(flatten(collectionOfCollectionOfEntities), true, new Predicate() {
                     @Override
                     public boolean matches(Entity entity) {
-                        return entity.isPerhapsInDatabase();
+                        return entity.isUnclearIfInDatabase();
                     }
                 });
 
+        if (matches.isEmpty()) {
+            return;
+        }
         DatabaseDataSet dds = new DatabaseDataSet(entityContext, true);
         try {
             dds.loadEntities(matches);
@@ -306,7 +309,7 @@ public class PersistAnalyser implements Serializable {
          */
         for (ToManyNode toManyNode : entity.getChildren(ToManyNode.class)) {
             for (Entity refEntity : toManyNode.getList()) {
-                if (!refEntity.isNew()) {
+                if (!refEntity.isClearlyNotInDatabase()) {
                     LOG.error("A new entity has a tomany node containing entities which exist in the database, the data model is incorrect...");
                 }
                 analyseCreate(refEntity);
@@ -349,7 +352,7 @@ public class PersistAnalyser implements Serializable {
                 continue;
             }
             for (Entity refEntity : toManyNode.getList()) {
-                if (refEntity.isNew()) {
+                if (refEntity.isClearlyNotInDatabase()) {
                     analyseCreate(refEntity);
                 }
                 else if (toManyNode.getNodeType().isOwns()) {
@@ -360,7 +363,7 @@ public class PersistAnalyser implements Serializable {
                 }
             }
             for (Entity refEntity : toManyNode.getRemovedEntities()) {
-                if (refEntity.isNew()) {
+                if (refEntity.isClearlyNotInDatabase()) {
                     LOG.error("Found remove entity in ToManyNode which is new, this makes no sense" +
                     ", and indicates a bug, or perhaps the client programmer is using entity sate PERHAPS_IN_DATABASE" +
                     " then added an entity to a list and removed it again.");
@@ -421,12 +424,12 @@ public class PersistAnalyser implements Serializable {
                 /*
                  * the list really can contain new entities added by the user.
                  */
-                if (!refEntity.isNew()) {
+                if (!refEntity.isClearlyNotInDatabase()) {
                     analyseDelete(refEntity);
                 }
             }
             for (Entity refEntity : toManyNode.getRemovedEntities()) {
-                if (!refEntity.isNew()) {
+                if (!refEntity.isClearlyNotInDatabase()) {
                     analyseDelete(refEntity);
                 }
                 else {
@@ -555,7 +558,7 @@ public class PersistAnalyser implements Serializable {
             if (refEntity == null) {
                 continue;
             }
-            if (refEntity.isNew()) {
+            if (refEntity.isClearlyNotInDatabase()) {
                 /*
                  * we are referring to an entity which is not yet created, process it first
                  */
