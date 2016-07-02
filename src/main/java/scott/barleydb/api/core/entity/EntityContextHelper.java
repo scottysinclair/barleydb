@@ -29,12 +29,17 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.entity.RefNode;
 import scott.barleydb.api.core.entity.ToManyNode;
 
 public class EntityContextHelper {
+
+    private static final Logger LOG = LoggerFactory.getLogger(EntityContextHelper.class);
 
     public interface Predicate {
         boolean matches(Entity entity);
@@ -169,9 +174,11 @@ public class EntityContextHelper {
         List<Entity> newEntities = new LinkedList<Entity>();
         for (Entity entity : entities) {
             if (!filter.includesEntity(entity)) {
+                LOG.trace("Entity {} filtered out from changes being applied to the other context", entity);
                 continue;
             }
             Entity e = newContext.getEntityByUuidOrKey(entity.getUuid(), entity.getEntityType(), entity.getKey().getValue(), true);
+            LOG.trace("Copying entity values for {}", e);
             e.copyValueNodesToMe(entity);
             e.getConstraints().set( entity.getConstraints() );
             e.setEntityState(entity.getEntityState());
@@ -196,6 +203,7 @@ public class EntityContextHelper {
         for (Entity entity : newEntities) {
             Entity orig = entityContext.getEntityByUuidOrKey(entity.getUuid(), entity.getEntityType(), entity.getKey().getValue(), true);
             for (RefNode refNode : entity.getChildren(RefNode.class)) {
+                LOG.trace("Copying ref state for {}.{}", entity, refNode.getName());
                 RefNode origRefNode = orig.getChild(refNode.getName(), RefNode.class);
                 if (!refNode.getEntityType().equals(origRefNode.getEntityType())) {
                     throw new IllegalStateException("CopyRefStatesFailed: entity " + origRefNode.getParent() + " has ref " + origRefNode.getName() + " with the wrong entity type: " + origRefNode.getEntityType());
@@ -215,6 +223,7 @@ public class EntityContextHelper {
         for (Entity entity : newEntities) {
             Entity orig = entityContext.getEntityByUuidOrKey(entity.getUuid(), entity.getEntityType(), entity.getKey().getValue(), true);
             for (ToManyNode toManyNode : entity.getChildren(ToManyNode.class)) {
+                LOG.trace("Copying tomanynode state for {}.{}", entity, toManyNode.getName());
                 ToManyNode origToManyNode = orig.getChild(toManyNode.getName(), ToManyNode.class);
                 /*
                                 LOG.debug(" ------------------------------------------- ");

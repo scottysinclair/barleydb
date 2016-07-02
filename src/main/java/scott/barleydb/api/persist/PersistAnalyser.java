@@ -108,6 +108,7 @@ public class PersistAnalyser implements Serializable {
      * @return
      */
     public PersistAnalyser deepCopy() {
+        LOG.debug("Performing a deep copy of the PersistAnalyser");
         EntityContext newContext = entityContext.newEntityContextSharingTransaction();
         newContext.beginSaving();
         PersistAnalyser copyAnalyser = new PersistAnalyser(newContext);
@@ -604,18 +605,31 @@ public class PersistAnalyser implements Serializable {
         toGroup.add( newContext.copyInto( entity ) );
     }
 
-    public void applyChanges(EntityContext otherContext) {
-        LOG.debug("APPLYING CHANGES -------------------------");
+    public void applyChanges(final EntityContext otherContext) {
+        LOG.debug("applying changes to other entity context");
         OperationGroup changed = createGroup.mergedCopy(updateGroup).mergedCopy(deleteGroup);
 
         EntityContextHelper.EntityFilter filter = new EntityContextHelper.EntityFilter() {
             @Override
             public boolean includesEntity(Entity entity) {
              // everything gets copied back apart from entities loaded during analysis.
-                return !loadedDuringAnalysis.contains(entity);
+                return otherContextHasEntity(entity);
+            }
+
+            private boolean otherContextHasEntity(Entity entity) {
+                Entity e2 = otherContext.getEntityByUuid(entity.getUuid(), false);
+                if (e2 != null) {
+                    return true;
+                }
+                Object key = entity.getKey().getValue();
+                return key != null && otherContext.getEntity(entity.getEntityType(), key, false) != null;
             }
         };
 
+        /*
+         * We have to allow for the fact that not all the entities which were part of our analysis should be copied back
+         * for example entities which were deleted server side, but never part of the client context
+         */
         List<Entity> otherEntities = EntityContextHelper.applyChanges(changed.getEntities(), otherContext, filter);
         EntityContextHelper.copyRefStates(entityContext, otherContext, otherEntities, filter);
     }
@@ -628,6 +642,7 @@ public class PersistAnalyser implements Serializable {
         if (cached != null) {
             return cached;
         }
+        LOG.debug("Querying for original tomanynode value for {}.{}", toManyNode.getEntityType().getInterfaceShortName(), toManyNode.getNodeType().getName());
         QueryObject<Object> query = new QueryObject<>(toManyNode.getEntityType().getInterfaceName());
 
         QProperty<Object> fkCol = new QProperty<>(query, toManyNode.getNodeType().getForeignNodeName());
@@ -662,6 +677,7 @@ public class PersistAnalyser implements Serializable {
             if (cachedKey != null) {
                 return cachedKey;
             }
+            LOG.debug("Querying for original refnode value for {}.{}", refNode.getParent().getEntityType().getInterfaceShortName(), refNode.getNodeType().getName());
             EntityContext tmp = entityContext.newEntityContext();
             QueryObject<Object> query = new QueryObject<>(refNode.getParent().getEntityType().getInterfaceName());
             QProperty<Object> pkCol = new QProperty<>(query, refNode.getParent().getEntityType().getKeyNodeName());

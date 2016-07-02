@@ -46,11 +46,11 @@ public class OperationGroup implements Serializable {
     private static final Logger LOG = LoggerFactory.getLogger(OperationGroup.class);
 
     private final List<Entity> entities = new LinkedList<>();
-    
+
     public OperationGroup() {}
-    
+
     public OperationGroup(Collection<Entity> entities) {
-    	this.entities.addAll( entities );
+        this.entities.addAll( entities );
     }
 
     public OperationGroup reverse() {
@@ -68,6 +68,10 @@ public class OperationGroup implements Serializable {
 
     public List<Entity> getEntities() {
         return entities;
+    }
+
+    public boolean containsEntity(Entity entity) {
+        return entities.contains(entity);
     }
 
     public OperationGroup mergedCopy(OperationGroup... ogs) {

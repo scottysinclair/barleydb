@@ -39,6 +39,7 @@ import org.example.acl.query.QAccessArea;
 import org.example.etl.context.MiEntityContext;
 import org.example.etl.model.BusinessType;
 import org.example.etl.model.RawData;
+import org.example.etl.model.SyntaxModel;
 import org.example.etl.model.Template;
 import org.example.etl.model.TemplateContent;
 import org.example.etl.model.XmlMapping;
@@ -647,7 +648,7 @@ public class TestPersistence extends TestRemoteClientBase {
     }
 
     @Test
-    public void testDeleteSyntax() throws Exception {
+    public void testDeleteSyntax1() throws Exception {
         /*
          * insert a new full model
          */
@@ -655,7 +656,7 @@ public class TestPersistence extends TestRemoteClientBase {
         theEntityContext.persist(new PersistRequest().save(syntaxModel));
 
         /*
-         * Then delete it.
+         * Then delete the full model (including sub-syntax).
          */
         theEntityContext.persist(new PersistRequest().delete(syntaxModel));
 
@@ -669,6 +670,39 @@ public class TestPersistence extends TestRemoteClientBase {
         assertEquals(1, EntityContextHelper.countLoaded( theEntityContext.getEntitiesByType(AccessArea.class) ) );
         assertEquals(2, EntityContextHelper.countNew( theEntityContext.getEntitiesByType(XmlSyntaxModel.class) ) );
         assertEquals(5, EntityContextHelper.countNew( theEntityContext.getEntitiesByType(XmlMapping.class) ) );
+        assertEquals(1, EntityContextHelper.countLoaded( theEntityContext.getEntitiesByType(XmlStructure.class) ) );
+        assertEquals(1, EntityContextHelper.countLoaded( theEntityContext.getEntitiesByType(User.class) ) );
+    }
+
+    @Test
+    public void testDeleteSyntax2() throws Exception {
+        /*
+         * insert a new full model
+         */
+        XmlSyntaxModel syntaxModel = buildSyntax();
+        theEntityContext.persist(new PersistRequest().save(syntaxModel));
+
+
+        /*
+         * Then delete the subsyntax model, by clearing the owning reference.
+         */
+        //hold a reference to the subsyntax so it is not GCd
+        SyntaxModel subSyntax = syntaxModel.getMappings().get(1).getSubSyntax();
+        syntaxModel.getMappings().get(1).setSubSyntax(null);
+        theEntityContext.persist(new PersistRequest().save(syntaxModel));
+
+        printEntityContext(theEntityContext);
+
+        /*
+         * verify that the syntax was removed
+         */
+        assertEquals(1, theEntityContext.performQuery(new QXmlSyntaxModel()).getList().size());
+        assertEquals(10, theEntityContext.size());
+        assertEquals(1, EntityContextHelper.countLoaded( theEntityContext.getEntitiesByType(AccessArea.class) ) );
+        assertEquals(1, EntityContextHelper.countLoaded( theEntityContext.getEntitiesByType(XmlSyntaxModel.class) ) );
+        assertEquals(1, EntityContextHelper.countNew( theEntityContext.getEntitiesByType(XmlSyntaxModel.class) ) );
+        assertEquals(3, EntityContextHelper.countLoaded( theEntityContext.getEntitiesByType(XmlMapping.class) ) );
+        assertEquals(2, EntityContextHelper.countNew( theEntityContext.getEntitiesByType(XmlMapping.class) ) );
         assertEquals(1, EntityContextHelper.countLoaded( theEntityContext.getEntitiesByType(XmlStructure.class) ) );
         assertEquals(1, EntityContextHelper.countLoaded( theEntityContext.getEntitiesByType(User.class) ) );
     }
