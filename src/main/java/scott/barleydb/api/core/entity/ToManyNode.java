@@ -49,10 +49,10 @@ import scott.barleydb.api.core.entity.ValueNode;
  * To look up matching entities in the node context we need
  * the entity type which we are referring to and the primary key of the entity which we belong to.
  * For example for the syntax.mappings ToManyNode this translates to the Mappings entityType and the syntax id.
- * 
+ *
  * The ToMany node also tracks which entities have been deleted from the list and which new entities have been added to the list.
- * 
- * 
+ *
+ *
  */
 public class ToManyNode extends Node {
 
@@ -73,10 +73,7 @@ public class ToManyNode extends Node {
      * only refers to new entities
      */
     private List<Entity> newEntities;
-    /*
-     * tracks entities which have been removed
-     */
-    private List<Entity> removedEntities;
+
     private boolean fetched;
 
     public ToManyNode(Entity parent, String name, EntityType entityType) {
@@ -84,7 +81,6 @@ public class ToManyNode extends Node {
         this.entityType = entityType;
         this.entities = new LinkedList<Entity>();
         this.newEntities = new LinkedList<Entity>();
-        this.removedEntities = new LinkedList<Entity>();
     }
 
     @Override
@@ -107,12 +103,11 @@ public class ToManyNode extends Node {
     public boolean isFetched() {
         return fetched;
     }
-    
+
     public void unloadAndClear() {
-    	entities.clear();
-    	newEntities.clear();
-    	removedEntities.clear();
-    	fetched = false;
+        entities.clear();
+        newEntities.clear();
+        fetched = false;
     }
 
     public void setFetched(boolean fetched) {
@@ -125,30 +120,17 @@ public class ToManyNode extends Node {
             return;
         }
 
-    	List<Entity> preventGc = new LinkedList<Entity>(entities);
-    	preventGc.addAll(removedEntities);
-
         /*
          * remove entities from the newEntities list which are no longer new.
          */
         for (Iterator<Entity> i = newEntities.iterator(); i.hasNext();) {
-        	Entity e = i.next();
+            Entity e = i.next();
             if (!e.isClearlyNotInDatabase()) {
-            	LOG.trace("ToManyNode {} has new entity {} which is now saved, removing from newEntities list", this, e);
+                LOG.trace("ToManyNode {} has new entity {} which is now saved, removing from newEntities list", this, e);
                 i.remove();
             }
         }
-        /*
-         * if the removed entities have state "new" then remove them from our removedEntities list
-         * as this means that they have been deleted.
-         */
-        for (Iterator<Entity> i = removedEntities.iterator(); i.hasNext();) {
-            Entity e = i.next();
-            if (e.isClearlyNotInDatabase()) {
-            	LOG.trace("ToManyNode {} has deleted entity {} which is now new, removing from removedEntities list", this, e);                
-            	i.remove();
-            }
-        }
+
         /*
          * do the refresh
          */
@@ -161,7 +143,6 @@ public class ToManyNode extends Node {
                         getParent().getEntityType(),
                         getParent().getKey().getValue());
 
-                result.removeAll(removedEntities);
             }
 
             /*
@@ -191,10 +172,15 @@ public class ToManyNode extends Node {
             }
         }
     }
-   
+
+
+    public boolean contains(Entity entity) {
+        return entities.contains(entity);
+    }
+
     /**
      * We are adding an entity to this list.
-     * 
+     *
      * @param index
      * @param entity
      */
@@ -232,23 +218,12 @@ public class ToManyNode extends Node {
         Entity entity = entities.remove(index);
         if (entity != null) {
             newEntities.remove(entity);
-            if (!entity.isClearlyNotInDatabase()) {
-            	//TODO: what about state new-or-not-loaded
-            	//right now it would be added to the removedEntities which seems safest
-            	//as if it was actually not-loaded, then the delete would be required.
-            	//if it was actually new, then the persist may fail.
-                removedEntities.add(entity);
-            }
         }
         return entity;
     }
 
     public List<Entity> getNewEntities() {
         return newEntities;
-    }
-
-    public List<Entity> getRemovedEntities() {
-        return removedEntities;
     }
 
     @Override
@@ -273,7 +248,6 @@ public class ToManyNode extends Node {
         this.fetched = other.fetched;
         this.entities = new LinkedList<Entity>(other.entities);
         this.newEntities = new LinkedList<Entity>(other.newEntities);
-        this.removedEntities = new LinkedList<Entity>(other.removedEntities);
     }
 
     private void writeObject(ObjectOutputStream oos) throws IOException {
@@ -282,7 +256,6 @@ public class ToManyNode extends Node {
         oos.writeBoolean(fetched);
         oos.writeObject(entities);
         oos.writeObject(newEntities);
-        oos.writeObject(removedEntities);
     }
 
     @SuppressWarnings("unchecked")
@@ -292,7 +265,6 @@ public class ToManyNode extends Node {
         fetched = ois.readBoolean();
         entities = (List<Entity>)ois.readObject();
         newEntities = (List<Entity>)ois.readObject();
-        removedEntities = (List<Entity>)ois.readObject();
         //trace at end once object is constructed
         LOG.trace("Deserialized many references {}", this);
    }
@@ -304,11 +276,11 @@ public class ToManyNode extends Node {
      */
     private final class MyComparator implements Comparator<Entity> {
         private final String sortNodeName;
-        
+
         public MyComparator(String sortNodeName) {
-        	if (LOG.isTraceEnabled()) {
-        		LOG.trace("Comparing entities for {} according to {}", getNodeType().getShortId(), sortNodeName);
-        	}
+            if (LOG.isTraceEnabled()) {
+                LOG.trace("Comparing entities for {} according to {}", getNodeType().getShortId(), sortNodeName);
+            }
             this.sortNodeName = sortNodeName;
         }
 
@@ -324,7 +296,7 @@ public class ToManyNode extends Node {
             else if (value2 == null) return 0;
             else return -1;
         }
-        
+
         private Object getValue(Entity entity, String sortNodeName) {
             Node node = entity.getChild(sortNodeName, Node.class);
             if (node instanceof ValueNode) {
@@ -338,6 +310,6 @@ public class ToManyNode extends Node {
             }
         }
     }
-    
+
 }
 

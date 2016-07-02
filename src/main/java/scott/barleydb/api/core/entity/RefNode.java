@@ -36,7 +36,6 @@ import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.Node;
 import scott.barleydb.api.core.entity.RefNode;
-import scott.barleydb.api.core.entity.ValueNode;
 
 /**
  * A Node which refers to an EntityNode by it's EntityType and key *
@@ -62,11 +61,6 @@ public final class RefNode extends Node {
      * The key of the saved/loaded entity we are associated to.
      */
     private Object entityKey;
-
-    /**
-     * Holds the existing (in database) entity key which was removed by changing the reference.
-     */
-    private Object removedEntityKey;
 
     /**
      * The actual reference which this node returns.
@@ -126,31 +120,6 @@ public final class RefNode extends Node {
             getEntityContext().removeReference(this, getReference());
         }
 
-        if (getEntityContext().isUser()) {
-            /*
-             * If we are in user mode then the model is being manipulated by
-             * the user code and so we track the previous entityKey
-             * so that we know what has been changed
-             */
-            if (removedEntityKey == null) {
-                /*
-                 * Once the removedEntityKey is set we never have to set it again
-                 * because we are tracking the original entity which was removed from this reference.
-                 *
-                 * TODO: we have to make sure that removedEntityKey can only point to
-                 * the original database entity
-                 */
-                if (entityKey != NotLoaded.VALUE) {
-                    removedEntityKey = entityKey;
-                }
-            } else if (removedEntityKey.equals(newEntityKey)) {
-                /*
-                 * the removedEntityKey was restored by this operation.
-                 */
-                removedEntityKey = null;
-            }
-        }
-
         /*
          * Set the new key
          */
@@ -165,14 +134,6 @@ public final class RefNode extends Node {
              */
             getEntityContext().addReference(this, reference);
         }
-    }
-
-    public void setRemovedEntityKey(Object removedEntityKey) {
-        this.removedEntityKey = removedEntityKey;
-    }
-
-    public Object getRemovedEntityKey() {
-        return this.removedEntityKey;
     }
 
     public EntityType getEntityType() {
@@ -195,7 +156,6 @@ public final class RefNode extends Node {
         @SuppressWarnings("unused")
         Entity holdTheRef = reference; //we hold the ref to prevent garbage collection of the reference
         reference = null;
-        removedEntityKey = null;
         if (entityKey != null && entityKey != NotLoaded.VALUE) {
             //get or create the corresponding entity in the context
             reference = getEntityContext().getEntityOrNewEntity(entityType, entityKey, EntityConstraint.mustExistInDatabase());
@@ -250,30 +210,6 @@ public final class RefNode extends Node {
 
         entityKey = newKey;
         /*
-         * Check if the reference is being set back to it's original one from the database.
-         */
-        if (newKey != null && newKey.equals(removedEntityKey)) {
-            removedEntityKey = null;
-        }
-        else if (getEntityContext().isUser()){
-            /*
-             * If we are in user mode then the model is being manipulated by
-             * the user code and so we track the previous entityKey
-             * so that we know what has been changed
-             */
-            if (removedEntityKey == null) {
-                /*
-                 * Once the removedEntityKey is set we never have to set it again
-                 * because we are tracking the original entity which was removed from this reference.
-                 *
-                 * TODO: we have to make sure that removedEntityKey can only point to
-                 * the original database entity
-                 */
-                removedEntityKey = origKey;
-            }
-        }
-
-        /*
          * set the reference to the new entity
          */
         this.reference = entity;
@@ -323,9 +259,6 @@ public final class RefNode extends Node {
         element.setAttribute("key", String.valueOf(entityKey));
         Entity ref = getReference(false);
         if (ref != null) {
-            if (removedEntityKey != null) {
-                element.setAttribute("updated", "true");
-            }
             if (ref.getUuid() != null) {
                 element.setAttribute("uuid", ref.getUuid().toString());
             }
@@ -338,7 +271,6 @@ public final class RefNode extends Node {
         oos.writeObject(entityKey);
         oos.writeUTF(entityType.getInterfaceName());
         oos.writeObject(reference);
-        oos.writeObject(removedEntityKey);
     }
 
     private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException {
@@ -346,7 +278,6 @@ public final class RefNode extends Node {
         String interfaceName = ois.readUTF();
         entityType = getParent().getEntityContext().getDefinitions().getEntityTypeMatchingInterface(interfaceName, true);
         reference = (Entity)ois.readObject();
-        removedEntityKey = ois.readObject();
         //trace at end once object is constructed
         LOG.trace("Deserialized reference to {}", this);
     }
@@ -354,7 +285,6 @@ public final class RefNode extends Node {
     public void copyFrom(RefNode other) {
         this.entityKey = other.entityKey;
         this.reference = other.reference;
-        this.removedEntityKey = other.removedEntityKey;
         if (this.reference  != null) {
             getEntityContext().addReference(this, this.reference);
         }

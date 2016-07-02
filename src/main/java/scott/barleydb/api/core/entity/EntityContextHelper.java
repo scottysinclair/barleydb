@@ -52,15 +52,14 @@ public class EntityContextHelper {
     /**
      * Navigates the object graph for each entity in the collection of entities.  returns the entities which match the predicate.
      * @param entities the collection of entities to navigate
-     * @param includeRemovedEntities also include entities which have been removed from RefNodes and ToManyRefs
      * @param predicate he predicate
      * @return
      */
-    public static LinkedHashSet<Entity> findEntites(Collection<Entity> entities, boolean includeRemovedEntities, Predicate predicate) {
+    public static LinkedHashSet<Entity> findEntites(Collection<Entity> entities, Predicate predicate) {
         LinkedHashSet<Entity> matches = new LinkedHashSet<>();
         HashSet<Entity> checked = new HashSet<>();
         for (Entity entity: entities) {
-            findEntites(matches, checked, entity, includeRemovedEntities, predicate);
+            findEntites(matches, checked, entity, predicate);
         }
         return matches;
     }
@@ -71,11 +70,10 @@ public class EntityContextHelper {
      * @param matches
      * @param checked
      * @param entity
-     * @param includeRemovedEntities also include entities which have been removed from RefNodes and ToManyRefs
      * @param predicate
      * @return
      */
-    public static LinkedHashSet<Entity> findEntites(LinkedHashSet<Entity> matches, HashSet<Entity> checked, Entity entity, boolean includeRemovedEntities, Predicate predicate) {
+    public static LinkedHashSet<Entity> findEntites(LinkedHashSet<Entity> matches, HashSet<Entity> checked, Entity entity, Predicate predicate) {
         if (!checked.add( entity )) {
             return matches;
         }
@@ -85,22 +83,14 @@ public class EntityContextHelper {
         for (RefNode refNode: entity.getChildren(RefNode.class)) {
             Entity e = refNode.getReference();
             if (e != null) {
-                findEntites(matches, checked, e, includeRemovedEntities, predicate);
-            }
-            Object key = refNode.getRemovedEntityKey();
-            if (key != null) {
-                Entity removedE = e.getEntityContext().getEntity(refNode.getEntityType(), key, false);
-                findEntites(matches, checked, removedE, includeRemovedEntities, predicate);
+                findEntites(matches, checked, e, predicate);
             }
         }
         for (ToManyNode toManyNode: entity.getChildren(ToManyNode.class)) {
             for (Entity e: toManyNode.getList()) {
                 if (e != null) {
-                    findEntites(matches, checked, e, includeRemovedEntities, predicate);
+                    findEntites(matches, checked, e, predicate);
                 }
-            }
-            for (Entity e: toManyNode.getRemovedEntities()) {
-                findEntites(matches, checked, e, includeRemovedEntities, predicate);
             }
         }
         return matches;
@@ -212,7 +202,6 @@ public class EntityContextHelper {
                 }
 
                 refNode.setEntityKey(origRefNode.getEntityKey());
-                refNode.setRemovedEntityKey(origRefNode.getRemovedEntityKey());
                 /*
                  * If we have an actual entity on the reference then set it on refNode if it is included.
                  */
@@ -256,24 +245,13 @@ public class EntityContextHelper {
                         if (!processed.add(e)) {
                             continue;
                         }
-                        toManyNode.add(newContext.getEntityByUuidOrKey(e.getUuid(), e.getEntityType(), e.getKey().getValue(), true));
+                        Entity e2 = newContext.getEntityByUuidOrKey(e.getUuid(), e.getEntityType(), e.getKey().getValue(), true);
+                        if (!toManyNode.contains( e2 )) {
+                            toManyNode.add(e2);
+                        }
                     }
                 }
 
-                /*
-                 * Add any remove entities to the destination ToManyRef
-                 */
-                if (containsIncludedRemovedRefs(origToManyNode, entityFilter)) {
-                    for (Entity e : origToManyNode.getRemovedEntities()) {
-                        if (!processed.add(e)) {
-                            continue;
-                        }
-                        if (!entityFilter.includesEntity(e)) {
-                            throw new IllegalStateException("Cannot copy over a removed entity in a ToMany node, the removed entity is not included in the copy");
-                        }
-                        toManyNode.getRemovedEntities().add(newContext.getEntityByUuidOrKey(e.getUuid(), e.getEntityType(), e.getKey().getValue(), true));
-                    }
-                }
                 //looks up the entities in  it's own context
                 toManyNode.refresh();
             }
@@ -283,22 +261,6 @@ public class EntityContextHelper {
     private static boolean containsIncludedNewRefs(ToManyNode toManyNode, EntityFilter entityFilter) {
         int countIncludes = 0, countExcludes = 0;
         for (Entity e : toManyNode.getNewEntities()) {
-            if (entityFilter.includesEntity(e)) {
-                countIncludes++;
-            }
-            else {
-                countExcludes++;
-            }
-        }
-        if (countExcludes > 0 && countIncludes > 0) {
-            throw new IllegalStateException("A ToMany nodes references must all be included or all excluded '" + toManyNode + "'");
-        }
-        return countIncludes > 0;
-    }
-
-    private static boolean containsIncludedRemovedRefs(ToManyNode toManyNode, EntityFilter entityFilter) {
-        int countIncludes = 0, countExcludes = 0;
-        for (Entity e : toManyNode.getRemovedEntities()) {
             if (entityFilter.includesEntity(e)) {
                 countIncludes++;
             }

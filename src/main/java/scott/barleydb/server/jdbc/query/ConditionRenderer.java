@@ -67,6 +67,10 @@ public class ConditionRenderer implements ConditionVisitor {
             sb.append(" = ");
             break;
         }
+        case NOT_EQ: {
+            sb.append(" != ");
+            break;
+        }
         case LIKE: {
             sb.append(" like ");
             break;

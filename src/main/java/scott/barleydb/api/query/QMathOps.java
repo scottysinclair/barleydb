@@ -24,6 +24,7 @@ package scott.barleydb.api.query;
 
 public enum QMathOps {
     EQ,
+    NOT_EQ,
     LIKE,
     GREATER_THAN,
     GREATER_THAN_OR_EQUAL,

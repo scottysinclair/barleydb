@@ -24,10 +24,15 @@ package scott.barleydb.api.persist;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import javax.management.Query;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,8 +51,11 @@ import scott.barleydb.api.exception.execution.persist.EntityMissingException;
 import scott.barleydb.api.exception.execution.persist.IllegalPersistStateException;
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
 import scott.barleydb.api.exception.execution.query.SortQueryException;
+import scott.barleydb.api.query.QProperty;
+import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.server.jdbc.persist.DatabaseDataSet;
 import scott.barleydb.server.jdbc.persist.OperationGroup;
+import scott.barleydb.server.jdbc.query.QueryResult;
 
 import static scott.barleydb.api.core.entity.EntityContextHelper.findEntites;
 import static scott.barleydb.api.core.entity.EntityContextHelper.flatten;
@@ -73,6 +81,10 @@ public class PersistAnalyser implements Serializable {
     private final Set<Entity> loadedDuringAnalysis = new HashSet<>();
 
     private final Set<Entity> analysing = new HashSet<>();
+
+    private final transient Map<ToManyNode,Collection<Entity>> deletedEntitiesOfToManyNodes = new HashMap<>();
+
+    private final transient Map<RefNode, Object> deletedKeysOfRefNodes = new HashMap<>();
 
     public PersistAnalyser(EntityContext entityContext) {
         this(entityContext, new OperationGroup(), new OperationGroup(), new OperationGroup(), new OperationGroup());
@@ -251,7 +263,7 @@ public class PersistAnalyser implements Serializable {
     private final void setCorrectStateForEntitiesWhichMayOrMayNotBeInTheDatabase(Collection<Entity> ...collectionOfCollectionOfEntities) throws SortPersistException {
         LOG.debug("Setting the correct entity state for entities which may or may not be in the database.");
 
-        LinkedHashSet<Entity> matches = findEntites(flatten(collectionOfCollectionOfEntities), true, new Predicate() {
+        LinkedHashSet<Entity> matches = findEntites(flatten(collectionOfCollectionOfEntities), new Predicate() {
                     @Override
                     public boolean matches(Entity entity) {
                         return entity.isUnclearIfInDatabase();
@@ -283,12 +295,10 @@ public class PersistAnalyser implements Serializable {
             for (OperationGroup og : allGroups) {
                 og.getEntities().remove(entity);
             }
-
         }
-
     }
 
-    private void analyseCreate(Entity entity) throws EntityMissingException {
+    private void analyseCreate(Entity entity) throws SortPersistException {
         if (!analysing.add(entity)) {
             return;
         }
@@ -317,7 +327,7 @@ public class PersistAnalyser implements Serializable {
         }
     }
 
-    private void analyseUpdate(Entity entity) throws EntityMissingException {
+    private void analyseUpdate(Entity entity) throws SortPersistException {
         if (!analysing.add(entity)) {
             return;
         }
@@ -362,7 +372,7 @@ public class PersistAnalyser implements Serializable {
                     analyseDependsOn(refEntity);
                 }
             }
-            for (Entity refEntity : toManyNode.getRemovedEntities()) {
+            for (Entity refEntity : getRemovedEntities(toManyNode)) {
                 if (refEntity.isClearlyNotInDatabase()) {
                     LOG.error("Found remove entity in ToManyNode which is new, this makes no sense" +
                     ", and indicates a bug, or perhaps the client programmer is using entity sate PERHAPS_IN_DATABASE" +
@@ -382,7 +392,7 @@ public class PersistAnalyser implements Serializable {
         }
     }
 
-    private void analyseDelete(Entity entity) throws EntityMissingException {
+    private void analyseDelete(Entity entity) throws SortPersistException {
         if (!analysing.add(entity)) {
             return;
         }
@@ -428,7 +438,7 @@ public class PersistAnalyser implements Serializable {
                     analyseDelete(refEntity);
                 }
             }
-            for (Entity refEntity : toManyNode.getRemovedEntities()) {
+            for (Entity refEntity : getRemovedEntities(toManyNode)) {
                 if (!refEntity.isClearlyNotInDatabase()) {
                     analyseDelete(refEntity);
                 }
@@ -498,7 +508,7 @@ public class PersistAnalyser implements Serializable {
         return entity;
     }
 
-    private void analyseDependsOn(Entity entity) throws EntityMissingException {
+    private void analyseDependsOn(Entity entity) throws SortPersistException {
         if (!analysing.add(entity)) {
             return;
         }
@@ -530,7 +540,7 @@ public class PersistAnalyser implements Serializable {
             for (Entity refEntity : toManyNode.getList()) {
                 analyseDependsOn(refEntity);
             }
-            for (Entity refEntity : toManyNode.getRemovedEntities()) {
+            for (Entity refEntity : getRemovedEntities(toManyNode)) {
                 analyseDependsOn(refEntity);
             }
         }
@@ -539,17 +549,17 @@ public class PersistAnalyser implements Serializable {
     /*
      * todo: for security, perhaps we should load the removed reference from the DB
      */
-    private Object checkForRemovedReference(RefNode refNode) {
-        return refNode.getNodeType().isOwns() ? refNode.getRemovedEntityKey() : null;
+    private Object checkForRemovedReference(RefNode refNode) throws SortPersistException {
+        return refNode.getNodeType().isOwns() ? getRemovedEntityKey(refNode) : null;
     }
 
     /**
      *
      * @param entity
      * @param updateOwnedRefs if references that the entity own's should be updated.
-     * @throws EntityMissingException
+     * @throws SortPersistException
      */
-    private void analyseRefNodes(Entity entity, boolean updateOwnedRefs) throws EntityMissingException {
+    private void analyseRefNodes(Entity entity, boolean updateOwnedRefs) throws SortPersistException {
         for (RefNode refNode : entity.getChildren(RefNode.class)) {
             final Entity refEntity = refNode.getReference();
             /*
@@ -608,6 +618,66 @@ public class PersistAnalyser implements Serializable {
 
         List<Entity> otherEntities = EntityContextHelper.applyChanges(changed.getEntities(), otherContext, filter);
         EntityContextHelper.copyRefStates(entityContext, otherContext, otherEntities, filter);
+    }
+
+    private Collection<Entity> getRemovedEntities(ToManyNode toManyNode) throws SortPersistException {
+        if (toManyNode.getParent().getKey().getValue() == null) {
+            return Collections.emptyList();
+        }
+        Collection<Entity> cached  = deletedEntitiesOfToManyNodes.get(toManyNode);
+        if (cached != null) {
+            return cached;
+        }
+        QueryObject<Object> query = new QueryObject<>(toManyNode.getEntityType().getInterfaceName());
+
+        QProperty<Object> fkCol = new QProperty<>(query, toManyNode.getNodeType().getForeignNodeName());
+        query.where(fkCol.equal(toManyNode.getParent().getKey().getValue()));
+
+        QProperty<Object> pkCol = new QProperty<>(query, toManyNode.getEntityType().getKeyNodeName());
+        for (Entity entity : toManyNode.getList()) {
+            if (entity.getKey().getValue() != null) {
+                query.and(pkCol.notEqual(entity.getKey().getValue()));
+            }
+        }
+        try {
+            QueryResult<Object> result = entityContext.performQuery(query);
+            if (result.getEntityList().isEmpty()) {
+                return Collections.emptyList();
+            }
+            deletedEntitiesOfToManyNodes.put(toManyNode, result.getEntityList());
+            loadedDuringAnalysis.addAll( result.getEntityList() );
+            return result.getEntityList();
+        }
+        catch (SortServiceProviderException | SortQueryException x) {
+            throw new SortPersistException("Error querying for removed entities from tomany node " + toManyNode);
+        }
+    }
+
+    private Object getRemovedEntityKey(RefNode refNode) throws SortPersistException {
+        if (refNode.getParent().getKey().getValue() == null) {
+            return null;
+        }
+        try {
+            Object cachedKey = deletedKeysOfRefNodes.get(refNode);
+            if (cachedKey != null) {
+                return cachedKey;
+            }
+            EntityContext tmp = entityContext.newEntityContext();
+            QueryObject<Object> query = new QueryObject<>(refNode.getParent().getEntityType().getInterfaceName());
+            QProperty<Object> pkCol = new QProperty<>(query, refNode.getParent().getEntityType().getKeyNodeName());
+            query.where(pkCol.equal( refNode.getParent().getKey().getValue() ));
+            QueryResult<Object> result = tmp.performQuery(query);
+            if (result.getList().isEmpty()) {
+                return null;
+            }
+            Entity entity = result.getEntityList().get(0);
+            Object deletedKey = entity.getChild(refNode.getName(), RefNode.class).getEntityKey();
+            deletedKeysOfRefNodes.put(refNode, deletedKey);
+            return deletedKey;
+        }
+        catch (SortServiceProviderException | SortQueryException x) {
+            throw new SortPersistException("Error querying for removed entities from refnode " + refNode);
+        }
     }
 
 }
