@@ -51,6 +51,7 @@ import scott.barleydb.api.exception.execution.jdbc.RollbackException;
 import scott.barleydb.api.exception.execution.jdbc.RollbackWithoutTransactionException;
 import scott.barleydb.api.exception.execution.jdbc.SetAutoCommitException;
 import scott.barleydb.api.exception.execution.jdbc.SortJdbcException;
+import scott.barleydb.api.exception.execution.persist.IllegalPersistStateException;
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
 import scott.barleydb.api.exception.execution.query.SortQueryException;
 import scott.barleydb.api.persist.PersistAnalyser;
@@ -299,7 +300,7 @@ public class JdbcEntityContextServices implements IEntityContextServices {
     public PersistAnalyser execute(PersistRequest persistRequest, RuntimeProperties runtimeProperties) throws SortJdbcException, SortPersistException {
         PersistAnalyser analyser = new PersistAnalyser(persistRequest.getEntityContext());
         try (OptionalyClosingResources con = newOptionallyClosingConnection(persistRequest.getEntityContext())) {
-        	analyser.analyse(persistRequest);
+            analyser.analyse(persistRequest);
         }
         /*
          * We can optionally copy the data to  be persisted to a new context
@@ -309,11 +310,14 @@ public class JdbcEntityContextServices implements IEntityContextServices {
             analyser = analyser.deepCopy();
         }
         if (LOG.isDebugEnabled()) {
-        	LOG.debug("Persist Analysis Results: \n{}", analyser.report());
+            LOG.debug("Persist Analysis Results: \n{}", analyser.report());
         }
 
         Persister persister = newPersister(env, analyser.getEntityContext().getNamespace());
         EntityContext entityContext = analyser.getEntityContext();
+        if (entityContext.isUser()) {
+            throw new IllegalPersistStateException("EntityContext must be set to internal.");
+        }
 
         try (OptionalyClosingResources con = newOptionallyClosingConnection(entityContext)) {
             try {
@@ -331,7 +335,7 @@ public class JdbcEntityContextServices implements IEntityContextServices {
             }
         }
     }
-    
+
     private OptionalyClosingResources newOptionallyClosingConnection(EntityContext entityContext) throws SortJdbcException {
         ConnectionResources conRes = ConnectionResources.get(entityContext);
         boolean returnToPool = false;

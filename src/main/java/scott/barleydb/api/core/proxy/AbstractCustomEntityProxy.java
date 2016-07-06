@@ -82,12 +82,10 @@ public abstract class AbstractCustomEntityProxy implements ProxyController, Seri
     protected final void setToRefNode(RefNode node, Object object) {
         ProxyController entityModel = (ProxyController) object;
         if (entityModel == null) {
-            node.setEntityKey(null);
             node.setReference(null);
         }
         else {
             Entity en = entityModel.getEntity();
-            node.setEntityKey(en.getKey().getValue());
             node.setReference(en);
         }
     }

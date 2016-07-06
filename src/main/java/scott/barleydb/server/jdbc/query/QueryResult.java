@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.entity.EntityContextHelper;
+import scott.barleydb.api.core.entity.EntityContextState;
 import scott.barleydb.server.jdbc.query.QueryResult;
 import scott.barleydb.server.jdbc.query.QueryResultList;
 
@@ -96,11 +97,11 @@ public class QueryResult<T> implements Serializable {
             return this;
         }
         LOG.debug("=== COPYING DATA ACROSS =======");
-        entityContext.beginLoading();
-        newEntityContext.beginLoading();
+        EntityContextState ecs1 = entityContext.beginLoading();
+        EntityContextState ecs2 = newEntityContext.beginLoading();
         try {
             QueryResult<T> result = new QueryResult<T>(newEntityContext);
-            List<Entity> copied = EntityContextHelper.addEntities(entityContext.getEntities(), newEntityContext);
+            List<Entity> copied = EntityContextHelper.addEntities(entityContext.getEntities(), newEntityContext, true);
             EntityContextHelper.copyRefStates(entityContext, newEntityContext, copied, new EntityContextHelper.EntityFilter() {
                 @Override
                 public boolean includesEntity(Entity entity) {
@@ -113,8 +114,8 @@ public class QueryResult<T> implements Serializable {
 
             return result;
         } finally {
-            newEntityContext.endLoading();
-            entityContext.endLoading();
+            newEntityContext.endLoading(ecs2);
+            entityContext.endLoading(ecs1);
         }
     }
 }

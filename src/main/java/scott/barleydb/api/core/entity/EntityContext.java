@@ -309,13 +309,15 @@ public class EntityContext implements Serializable {
         return entityContextState == EntityContextState.INTERNAL;
     }
 
-    public void beginLoading() {
+    public EntityContextState beginLoading() {
+        EntityContextState prev = this.entityContextState;
         this.entityContextState = EntityContextState.INTERNAL;
+        return prev;
     }
 
-    public void endLoading() {
+    public void endLoading(EntityContextState restore) {
         setAllLoadingEntitiesToLoaded();
-        this.entityContextState = EntityContextState.USER;
+        this.entityContextState = restore;
     }
 
     public void beginSaving() {
@@ -480,8 +482,8 @@ public class EntityContext implements Serializable {
      *            return the new entity
      */
     public Entity copyInto(Entity entity) {
-        beginLoading();
-        entity.getEntityContext().beginLoading();
+        EntityContextState ecs1 = beginLoading();
+        EntityContextState ecs2 = entity.getEntityContext().beginLoading();
         try {
             if (entity.getEntityContext() == this) {
                 throw new IllegalStateException("Cannot copy entity into same context");
@@ -502,12 +504,20 @@ public class EntityContext implements Serializable {
                 ours.getChild(valueNode.getName(), ValueNode.class).setValueNoEvent(valueNode.getValue());
             }
             for (RefNode refNode : entity.getChildren(RefNode.class)) {
-                ours.getChild(refNode.getName(), RefNode.class).setEntityKey(refNode.getEntityKey());
+                Entity refEntity = refNode.getReference();
+                if (refEntity.getKey().getValue() != null) {
+                    Entity ourRefEntity = getEntity(refNode.getEntityType(), refEntity.getKey().getValue(), false);
+                    if (ourRefEntity == null) {
+                        //copy the constraints from the original entity's referenced entity
+                        ourRefEntity = newEntity(refNode.getEntityType(), refEntity.getKey().getValue(), refEntity.getConstraints());
+                    }
+                    ours.getChild(refNode.getName(), RefNode.class).setReference( ourRefEntity );
+                }
             }
             return ours;
         } finally {
-            entity.getEntityContext().endLoading();
-            endLoading();
+            entity.getEntityContext().endLoading(ecs2);
+            endLoading(ecs1);
         }
     }
 
@@ -873,13 +883,13 @@ public class EntityContext implements Serializable {
     }
 
     public void fetch(Entity entity, boolean force, boolean fetchInternal, boolean evenIfLoaded, String singlePropertyName) {
-        LOG.debug("Fetching {}" , entity);
         if (!force && entity.getEntityContext().isInternal()) {
             return;
         }
         if (!evenIfLoaded && entity.getEntityState() == EntityState.LOADED) {
             return;
         }
+        LOG.debug("Fetching {}" , entity);
         QueryObject<Object> qo = getQuery(entity.getEntityType(), fetchInternal);
         if (qo == null) {
             qo = new QueryObject<Object>(entity.getEntityType().getInterfaceName());

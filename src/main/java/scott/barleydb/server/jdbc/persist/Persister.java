@@ -74,6 +74,9 @@ public class Persister {
     }
 
     public void persist(PersistAnalyser analyser) throws SortPersistException {
+        if (analyser.getEntityContext().isUser()) {
+            throw new IllegalPersistStateException("EntityContext must be set to internal.");
+        }
         Database database = ConnectionResources.getMandatoryForPersist(analyser.getEntityContext()).getDatabase();
         DatabaseDataSet databaseDataSet = new DatabaseDataSet(analyser.getEntityContext());
         try {

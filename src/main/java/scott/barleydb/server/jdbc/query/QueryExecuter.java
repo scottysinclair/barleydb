@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import scott.barleydb.api.core.entity.EntityContext;
+import scott.barleydb.api.core.entity.EntityContextState;
 import scott.barleydb.api.exception.execution.jdbc.SortJdbcException;
 import scott.barleydb.api.exception.execution.persist.PreparingPersistStatementException;
 import scott.barleydb.api.exception.execution.query.ForUpdateNotSupportedException;
@@ -86,7 +87,7 @@ public class QueryExecuter {
      * @throws Exception
      */
     public void execute(QueryExecution<?>... queryExecutions) throws SortJdbcException, SortQueryException  {
-        entityContext.beginLoading();
+        EntityContextState ecs = entityContext.beginLoading();
         try {
             performExecute(queryExecutions);
         }
@@ -94,7 +95,7 @@ public class QueryExecuter {
             throw new SortQueryException("Error preparing query statement", x);
         }
         finally {
-            entityContext.endLoading();
+            entityContext.endLoading(ecs);
         }
     }
 

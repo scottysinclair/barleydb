@@ -33,6 +33,7 @@ import scott.barleydb.api.config.Definitions;
 import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.config.NodeType;
 import scott.barleydb.api.core.entity.Entity;
+import scott.barleydb.api.core.entity.EntityConstraint;
 import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.entity.EntityState;
 import scott.barleydb.api.core.entity.RefNode;
@@ -165,7 +166,7 @@ public class QueryExecution<T> {
         if (entityType == null) {
             throw new DowncastEntityException("No suitable type for downcast for entity '" + entity + "'");
         }
-        entity.downcast(entityType);
+        entity.downcast(entityType, EntityConstraint.mustExistInDatabase());
     }
 
     /**

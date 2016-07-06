@@ -111,12 +111,10 @@ public class EntityProxy implements InvocationHandler, Serializable {
             if (set) {
                 ProxyController entityModel = (ProxyController) args[0];
                 if (entityModel == null) {
-                    ((RefNode) node).setEntityKey(null);
                     ((RefNode) node).setReference(null);
                 }
                 else {
                     Entity en = entityModel.getEntity();
-                    ((RefNode) node).setEntityKey(en.getKey().getValue());
                     ((RefNode) node).setReference(en);
                 }
                 return null;

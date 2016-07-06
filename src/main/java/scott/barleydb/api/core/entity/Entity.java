@@ -158,13 +158,8 @@ public class Entity implements Serializable {
     }
 
     public void refresh() {
-        for (Node node : getChildren()) {
-            if (node instanceof RefNode) {
-                ((RefNode) node).refresh();
-            }
-            else if (node instanceof ToManyNode) {
-                ((ToManyNode) node).refresh();
-            }
+        for (ToManyNode node : getChildren(ToManyNode.class)) {
+            node.refresh();
         }
     }
 
@@ -224,7 +219,7 @@ public class Entity implements Serializable {
         return result;
     }
 
-    public void downcast(EntityType newEntityType) {
+    public void downcast(EntityType newEntityType, EntityConstraint constrainsForCreatedRefs) {
         LOG.debug("Downcasting entity {} to type {}", this, newEntityType);
         List<Node> toAdd = new LinkedList<Node>();
         for (Iterator<Node> i = children.values().iterator(); i.hasNext();) {
@@ -240,7 +235,14 @@ public class Entity implements Serializable {
                     LOG.debug("Converting ValueNode to RefNode for {}", ndNew.getName());
                     EntityType refNodeType = entityContext.getDefinitions().getEntityTypeMatchingInterface(ndNew.getRelationInterfaceName(), true);
                     RefNode refNode = new RefNode(this, ndNew.getName(), refNodeType);
-                    refNode.setEntityKey(((ValueNode) existing).getValue());
+                    final Object key = ((ValueNode) existing).getValue();
+                    if (key != null) {
+                        Entity e = entityContext.getEntity(refNodeType, key, false);
+                        if (e == null) {
+                            e = entityContext.newEntity(refNodeType, key, constrainsForCreatedRefs);
+                        }
+                        refNode.setReference( e );
+                    }
                     toAdd.add(refNode);
                 }
             }
@@ -394,7 +396,7 @@ public class Entity implements Serializable {
                         RefNode refNode = (RefNode) node;
                         Entity reffedEntity = refNode.getReference();
                         reffedEntity.unload(includeOwnedEntities);
-                        refNode.setEntityKey(null);
+                        refNode.setReference(null);
                     }
                 } else if (node instanceof ToManyNode) {
                     if (includeOwnedEntities && node.getNodeType().isOwns()) {

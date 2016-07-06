@@ -89,51 +89,8 @@ public final class RefNode extends Node {
         }
     }
 
-    /**
-     * Called when setting the entity to null or to an entity which has a key
-     * @param newEntityKey
-     */
-    public void setEntityKey(Object newEntityKey) {
-        if (newEntityKey == NotLoaded.VALUE) {
-            this.entityKey = newEntityKey;
-            clear();
-            return;
-        }
-
-        if (Objects.equals(entityKey, newEntityKey)) {
-            /*
-             * Same key, do nothing
-             */
-            return;
-        }
-        /*
-         * Force ourselves to get fetched so that we will have the correct
-         * initial state before changing the reference, so that removedEntityKey can be set.
-         */
-        checkFetched();
-
-        /*
-         * We were referring to an entity already so we need to remove this
-         * reference from the entity context tracking.
-         */
-        if (entityKey != null && entityKey != NotLoaded.VALUE) {
-            getEntityContext().removeReference(this, getReference());
-        }
-
-        /*
-         * Set the new key
-         */
-        entityKey = newEntityKey;
-        if (entityKey != null) {
-            /*
-             * Create the entity in the context if it is not there yet.
-             */
-            reference = getEntityContext().getEntityOrNewEntity(entityType, entityKey, EntityConstraint.mustExistInDatabase());
-            /*
-             * add the tracking to the entity context.
-             */
-            getEntityContext().addReference(this, reference);
-        }
+    public void setNotLoaded() {
+        this.entityKey = NotLoaded.VALUE;
     }
 
     public EntityType getEntityType() {
@@ -163,12 +120,6 @@ public final class RefNode extends Node {
     }
 
     /**
-     * Refresh the entity reference.
-     */
-    public void refresh() {
-    }
-
-    /**
      * The reference is being set, it can be either an entity which
      * exists in the database or a new entity
      * @param entity
@@ -189,14 +140,6 @@ public final class RefNode extends Node {
         }
 
         /*
-         * If we have a current reference then stop tracking it in the context.
-         */
-        if (origReference != null) {
-            getEntityContext().removeReference(this, origReference);
-        }
-
-
-        /*
          * Get the key of our original reference.
          */
         final Object origKey = origReference != null ? origReference.getKey().getValue() : null;
@@ -206,6 +149,13 @@ public final class RefNode extends Node {
         final Object newKey = entity != null ? entity.getKey().getValue() : null;
         if (origKey != null && origKey == newKey) {
             return;
+        }
+
+        /*
+         * If we have a current reference then stop tracking it in the context.
+         */
+        if (origReference != null) {
+            getEntityContext().removeReference(this, origReference);
         }
 
         entityKey = newKey;

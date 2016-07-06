@@ -10,12 +10,12 @@ package scott.barleydb.test;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -275,7 +275,6 @@ public class TestPersistence extends TestRemoteClientBase {
 
         theEntityContext.clear();
         XmlSyntaxModel syntax = theEntityContext.performQuery(qsyntax).getList().get(0);
-        System.out.println(theEntityContext.printXml());
         print("", syntax);
         System.out.println(theEntityContext.printXml());
         assertNotNull(((ProxyController) syntax).getEntity().getOptimisticLock().getValue());
@@ -291,6 +290,7 @@ public class TestPersistence extends TestRemoteClientBase {
         subSyntax.getMappings().get(0).setXpath("updated-submapping");
 
         System.out.println("-------------- CALLING PERSIST TO UPDATE CHANGES ------------------");
+        System.out.println(theEntityContext.printXml());
         theEntityContext.persist(new PersistRequest().save(syntax));
 
         System.out.println("-------------- RELOADING FROM SCRATCH TO OUTPUT THE REAL DATABASE DATA ------------------");
