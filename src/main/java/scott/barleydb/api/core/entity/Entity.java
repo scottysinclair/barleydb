@@ -122,6 +122,16 @@ public class Entity implements Serializable {
         return entityState == EntityState.LOADED;
     }
 
+    /**
+     * The entity is in the database and is not loaded.
+     *
+     * Note this is not the negation of isLoaded()
+     * @return
+     */
+    public boolean isNotLoaded() {
+        return entityState == EntityState.NOTLOADED;
+    }
+
     public boolean isUnclearIfInDatabase() {
         return getKey().getValue() != null &&  entityState == EntityState.NOTLOADED && constraints.noDatabaseExistenceConstraints();
     }
