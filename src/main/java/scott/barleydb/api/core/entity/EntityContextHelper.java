@@ -211,9 +211,7 @@ public class EntityContextHelper {
 
                 LOG.trace("BEFORE SrcRef: {} DstRef {}", origRefNode.getReference(), refNode.getReference());
 
-                if (origRefNode.getEntityKey() == NotLoaded.VALUE) {
-                    refNode.setNotLoaded();
-                }
+                refNode.setLoaded( origRefNode.isLoaded() );
                 /*
                  * If we have an actual entity on the reference then set it on refNode if it is included.
                  */

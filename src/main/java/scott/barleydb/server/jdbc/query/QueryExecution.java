@@ -126,7 +126,6 @@ public class QueryExecution<T> {
             downcastAbstractEntities(query);
             processToManyRelations(query);
             setEntityStateToLoadedAndRefresh();
-            verifyAllFetchedDataIsLinked();
             prepareQueryResult();
             LOG.debug("Finished query execution.");
         }
@@ -224,52 +223,11 @@ public class QueryExecution<T> {
         }
     }
 
-    private void verifyAllFetchedDataIsLinked() throws IllegalQueryStateException {
-        verifyRefs(query);
-
-        /*
-        * todo: add back in some kind of ToMany validation
-
-        for (LoadedToMany loadedToMany: loadedToManys) {
-          loadedToMany.validate();
-        }
-        */
-    }
-
     private void prepareQueryResult() throws IllegalQueryStateException {
         //get the entities from the top level query object
         List<Entity> loadedEntities = entityLoaders.getEntitiesForQueryObject(query);
         //add them to the result
         queryResult.addEntities(loadedEntities);
-    }
-
-    /**
-     * Verifies that all joined refs with a FK value were loaded
-     * @param queryObject
-     * @throws IllegalQueryStateException
-     */
-    private void verifyRefs(QueryObject<?> queryObject) throws IllegalQueryStateException {
-        List<Entity> loadedEntities = entityLoaders.getEntitiesForQueryObject(queryObject);
-        if (loadedEntities.isEmpty()) {
-            return;
-        }
-        for (Entity e : loadedEntities) {
-            List<RefNode> refNodes = e.getChildren(RefNode.class);
-            for (RefNode refNode : refNodes) {
-                QJoin join = findJoin(refNode.getName(), queryObject);
-                if (refNode.getLoadedEntityKey() != null) {
-                    if (join != null) {
-                        if (refNode.getReference() == null) {
-                            throw new IllegalQueryStateException("Joined FK key was not loaded: " + refNode);
-                        }
-                    }
-                }
-            }
-        }
-        //repeat the process for refs relations in the joined queryobjects
-        for (QJoin join : queryObject.getJoins()) {
-            verifyRefs(join.getTo());
-        }
     }
 
     /**

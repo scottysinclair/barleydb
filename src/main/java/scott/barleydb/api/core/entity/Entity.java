@@ -142,14 +142,12 @@ public class Entity implements Serializable {
 
 
     /**
-     * Clears any changes to RefNodes and ToManyNodes
+     * Clears any change tracking
+     * (the new entities list in tomany nodes)
      */
     public void clear() {
         for (Node node : getChildren()) {
-            if (node instanceof RefNode) {
-                ((RefNode) node).clear();
-            }
-            else if (node instanceof ToManyNode) {
+            if (node instanceof ToManyNode) {
                 //the refresh call checks the entity state of added or removed entities
                 //and corrects accordingly.
                 ((ToManyNode) node).refresh();
@@ -284,6 +282,10 @@ public class Entity implements Serializable {
         this.entityState = entityState;
     }
 
+    public void handleKeySet(Object oldKey) {
+        entityContext.handleKeySet(this, oldKey, getKey().getValue());
+    }
+
     public int compareOptimisticLocks(Entity other) {
         if (other.getEntityType() != entityType) {
             throw new IllegalStateException("Invalid optimistic lock comparison, different entity types.");
@@ -371,10 +373,6 @@ public class Entity implements Serializable {
 
     public EntityContext getEntityContext() {
         return entityContext;
-    }
-
-    public void handleKeySet(Object oldKey) {
-        entityContext.handleKeySet(this, oldKey, getKey().getValue());
     }
 
     public String getName() {

@@ -605,12 +605,6 @@ public class EntityContext implements Serializable {
              if (entityInfo == null) {
                  throw new IllegalStateException("Could not find entity, to change the key: " + entity.getUuid());
              }
-            /*
-             * update any matching refs
-             */
-            for (RefNode refNode : entityInfo.getFkReferences()) {
-                refNode.handleKeySet(entity, newKey);
-            }
          }
          finally {
              entityContextState = prev;

@@ -25,8 +25,6 @@ package scott.barleydb.api.core.entity;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.Objects;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -57,20 +55,22 @@ public final class RefNode extends Node {
      */
     private EntityType entityType;
 
-    /**
-     * The key of the saved/loaded entity we are associated to.
-     */
-    private Object entityKey;
 
     /**
      * The actual reference which this node returns.
      */
     private Entity reference;
 
+    private boolean loaded = true;
+
 
     public RefNode(Entity parent, String name, EntityType entityType) {
         super(parent, name);
         this.entityType = entityType;
+    }
+
+    public Object getEntityKey() {
+        return reference != null ? reference.getKey().getValue() : null;
     }
 
     private void checkFetched() {
@@ -79,44 +79,26 @@ public final class RefNode extends Node {
         }
         getParent().fetchIfRequiredAndAllowed();
         //perhaps the entity was fetched, but this column was lazy
-        if (entityKey == NotLoaded.VALUE) {
+        if (!loaded) {
             //will only fetch if not in internal mode
             //we assume this fetch will fix the value
             getEntityContext().fetch(getParent(), false, true, true, getName());
         }
-        if (entityKey == NotLoaded.VALUE) {
+        if (!loaded) {
             LOG.warn("RefNode entity key still not loaded for entity {}", getParent());
         }
     }
 
-    public void setNotLoaded() {
-        this.entityKey = NotLoaded.VALUE;
+    public void setLoaded(boolean loaded) {
+        this.loaded = loaded;
+    }
+
+    public boolean isLoaded() {
+        return loaded;
     }
 
     public EntityType getEntityType() {
         return entityType;
-    }
-
-    public Object getLoadedEntityKey() {
-        return (entityKey == null || entityKey == NotLoaded.VALUE) ? null : entityKey;
-    }
-
-    public Object getEntityKey() {
-        return entityKey;
-    }
-
-    /**
-     * clears any state just leaving the
-     * reference key and reference, more like a reset really
-     */
-    public void clear() {
-        @SuppressWarnings("unused")
-        Entity holdTheRef = reference; //we hold the ref to prevent garbage collection of the reference
-        reference = null;
-        if (entityKey != null && entityKey != NotLoaded.VALUE) {
-            //get or create the corresponding entity in the context
-            reference = getEntityContext().getEntityOrNewEntity(entityType, entityKey, EntityConstraint.mustExistInDatabase());
-        }
     }
 
     /**
@@ -140,39 +122,18 @@ public final class RefNode extends Node {
         }
 
         /*
-         * Get the key of our original reference.
-         */
-        final Object origKey = origReference != null ? origReference.getKey().getValue() : null;
-        /*
-         * Get the key of our new reference.
-         */
-        final Object newKey = entity != null ? entity.getKey().getValue() : null;
-        if (origKey != null && origKey == newKey) {
-            return;
-        }
-
-        /*
          * If we have a current reference then stop tracking it in the context.
          */
         if (origReference != null) {
             getEntityContext().removeReference(this, origReference);
         }
 
-        entityKey = newKey;
         /*
          * set the reference to the new entity
          */
         this.reference = entity;
         if (reference != null) {
             getEntityContext().addReference(this, reference);
-        }
-    }
-
-    public void handleKeySet(Entity entity, Object keyValue) {
-        final Entity reference = getReference();
-        if (reference == entity) {
-            this.entityKey = keyValue;
-            LOG.debug(getName() + " FK set to " + this.entityKey + " for " + getParent().getEntityType().getInterfaceShortName() + " with key " + getParent().getKey() + " and uuid " + getParent().getUuid());
         }
     }
 
@@ -183,19 +144,12 @@ public final class RefNode extends Node {
     public Entity getReference() {
         return getReference(true);
     }
+
     public Entity getReference(boolean checkFetch) {
-        if (reference != null) {
-            return reference;
-        } else if (entityKey != null && entityKey == NotLoaded.VALUE) {
-            if (checkFetch) {
-                checkFetched();
-            }
-            //entityKey may be null after fetching, this is perfectly possible!
-            if (entityKey != null && entityKey != NotLoaded.VALUE) {
-                return reference = getEntityContext().getEntity(entityType, entityKey, true);
-            }
+        if (checkFetch) {
+            checkFetched();
         }
-        return null;
+        return reference;
     }
 
     @Override
@@ -206,10 +160,15 @@ public final class RefNode extends Node {
     @Override
     public Element toXml(Document doc) {
         Element element = doc.createElement(getName());
-        element.setAttribute("key", String.valueOf(entityKey));
         Entity ref = getReference(false);
+        if (!loaded) {
+            element.setAttribute("loaded", "false");
+        }
         if (ref != null) {
-            if (ref.getUuid() != null) {
+            if (ref.getKey().getValue() != null) {
+                element.setAttribute("key", String.valueOf( ref.getKey().getValue() ));
+            }
+            else if (ref.getUuid() != null) {
                 element.setAttribute("uuid", ref.getUuid().toString());
             }
         }
@@ -218,22 +177,21 @@ public final class RefNode extends Node {
 
     private void writeObject(ObjectOutputStream oos) throws IOException {
         LOG.trace("Serializing reference to {}", this);
-        oos.writeObject(entityKey);
         oos.writeUTF(entityType.getInterfaceName());
+        oos.writeBoolean(loaded);
         oos.writeObject(reference);
     }
 
     private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException {
-        entityKey = ois.readObject();
         String interfaceName = ois.readUTF();
         entityType = getParent().getEntityContext().getDefinitions().getEntityTypeMatchingInterface(interfaceName, true);
+        loaded = ois.readBoolean();
         reference = (Entity)ois.readObject();
         //trace at end once object is constructed
         LOG.trace("Deserialized reference to {}", this);
     }
 
     public void copyFrom(RefNode other) {
-        this.entityKey = other.entityKey;
         this.reference = other.reference;
         if (this.reference  != null) {
             getEntityContext().addReference(this, this.reference);
