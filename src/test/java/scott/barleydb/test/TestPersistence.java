@@ -10,12 +10,12 @@ package scott.barleydb.test;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- *
+ * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -889,14 +889,11 @@ public class TestPersistence extends TestRemoteClientBase {
         assertTrue(m2PerhapsInDb.getEntity().isUnclearIfInDatabase());
         assertFalse(m2PerhapsInDb.getEntity().isClearlyNotInDatabase());
         /*
-         * currently, setting a value to a NOTLOADED entity with a key
-         * will cause a fetch attempt. This is required because we currently track
-         * old references which require deleteing, once this is no longer needed
-         * then we can remove the fetch for set logic
+         * setting the reference no longer forces loading.
          */
         m2PerhapsInDb.setSyntax(syntax);
-        assertTrue(m2PerhapsInDb.getEntity().isClearlyNotInDatabase());
-        assertFalse(m2PerhapsInDb.getEntity().isUnclearIfInDatabase());
+        assertTrue(m2PerhapsInDb.getEntity().isUnclearIfInDatabase());
+        assertFalse(m2PerhapsInDb.getEntity().isClearlyNotInDatabase());
         m2PerhapsInDb.setXpath("/root");
         m2PerhapsInDb.setTargetFieldName("root");
         syntax.getMappings().add(m2PerhapsInDb);
@@ -910,6 +907,10 @@ public class TestPersistence extends TestRemoteClientBase {
         assertEquals((Long)100L, m2PerhapsInDb.getId());
     }
 
+    /**
+     * since we no longer track the deleted entries in tomanynodes, this test no longer makes sense.
+     * @throws SortException
+     */
     @Test
     public void testSaveSyntaxWithDeletedMappingWhichIsPerhapsInTheDatabaseAndIsNot() throws SortException {
         //first create a syntax with 2 mappings
@@ -935,8 +936,6 @@ public class TestPersistence extends TestRemoteClientBase {
         m1.setTargetFieldName("root");
         syntax.getMappings().add(m1);
 
-
-
         LOG.debug("--------------------------- PERSISTING THE ORIGINAL SYNTAX -----------------------");
         theEntityContext.persist(new PersistRequest().save(syntax));
 
@@ -951,16 +950,13 @@ public class TestPersistence extends TestRemoteClientBase {
         XmlMapping m2PerhapsInDb = theEntityContext.newModel(XmlMapping.class, 100L);
         assertTrue(m2PerhapsInDb.getEntity().isUnclearIfInDatabase());
         assertFalse(m2PerhapsInDb.getEntity().isClearlyNotInDatabase());
-        /*
-         * currently, setting a value to a NOTLOADED entity with a key
-         * will cause a fetch attempt. This is required because we currently track
-         * old references which require deleteing, once this is no longer needed
-         * then we can remove the fetch for set logic
-         */
 
+        /*
+         * setting the reference no longer forces loading.
+         */
         m2PerhapsInDb.setSyntax(syntax);
-        assertTrue(m2PerhapsInDb.getEntity().isClearlyNotInDatabase());
-        assertFalse(m2PerhapsInDb.getEntity().isUnclearIfInDatabase());
+        assertTrue(m2PerhapsInDb.getEntity().isUnclearIfInDatabase());
+        assertFalse(m2PerhapsInDb.getEntity().isClearlyNotInDatabase());
         m2PerhapsInDb.setXpath("/root");
         m2PerhapsInDb.setTargetFieldName("root");
         syntax.getMappings().add(m2PerhapsInDb);
@@ -981,7 +977,8 @@ public class TestPersistence extends TestRemoteClientBase {
          * the persist attempt figured out that m2PerhapsInDb is new and so adjusted the EntityState
          * accordingly. (wow)
          */
-        assertTrue(m2PerhapsInDb.getEntity().isClearlyNotInDatabase());
+        assertTrue(m2PerhapsInDb.getEntity().isUnclearIfInDatabase());
+        assertFalse(m2PerhapsInDb.getEntity().isClearlyNotInDatabase());
         assertEquals((Long)100L, m2PerhapsInDb.getId());
     }
 

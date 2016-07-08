@@ -108,15 +108,9 @@ public final class RefNode extends Node {
      */
     public void setReference(Entity entity) {
         /*
-         * Force ourselves to get fetched so that we will have the correct
-         * initial state before changing the reference, so that removedEntityKey can be set.
-         */
-        checkFetched();
-
-        /*
          * If the the entity matches our current reference then do nothing.
          */
-        Entity origReference = getReference();
+        Entity origReference = this.reference;
         if (origReference == entity) {
             return;
         }
@@ -131,7 +125,7 @@ public final class RefNode extends Node {
         /*
          * set the reference to the new entity
          */
-        this.reference = entity;
+        reference = entity;
         if (reference != null) {
             getEntityContext().addReference(this, reference);
         }
