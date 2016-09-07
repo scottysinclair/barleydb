@@ -687,9 +687,13 @@ public class PersistAnalyser implements Serializable {
                 return null;
             }
             Entity entity = result.getEntityList().get(0);
-            Object deletedKey = entity.getChild(refNode.getName(), RefNode.class).getEntityKey();
-            deletedKeysOfRefNodes.put(refNode, deletedKey);
-            return deletedKey;
+            Object origKey = entity.getChild(refNode.getName(), RefNode.class).getEntityKey();
+            if (origKey != null && !origKey.equals( refNode.getEntityKey() )) {
+                deletedKeysOfRefNodes.put(refNode, origKey);
+                return origKey;
+
+            }
+            return null;
         }
         catch (SortServiceProviderException | SortQueryException x) {
             throw new SortPersistException("Error querying for removed entities from refnode " + refNode);
