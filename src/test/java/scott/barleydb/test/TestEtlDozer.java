@@ -55,6 +55,7 @@ import org.example.etl.model.XmlMapping;
 import org.example.etl.model.XmlStructure;
 import org.example.etl.model.XmlSyntaxModel;
 import org.example.etl.query.QXmlMapping;
+import org.example.etl.query.QXmlStructure;
 import org.example.etl.query.QXmlSyntaxModel;
 import org.junit.Before;
 import org.junit.Test;
@@ -98,17 +99,66 @@ public class TestEtlDozer extends TestBase {
         ctxSource = new MiEntityContext(env);
         ctxDest = new MiEntityContext(env);
         cfg = new EtlDozerConfiguration(ctxDest);
-    }
 
-    @Test
-    public void testEtlXmlSyntax() throws SortException {
+        System.out.println("==============================================================");
+        System.out.println("==================  MAPPING TABLE                =============");
+        System.out.println("==============================================================");
         System.out.println(cfg);
-        EtlDozerExecution exec = new EtlDozerExecution(cfg, ctxSource, ctxDest, XmlSyntaxModel.class, CXmlSyntaxModel.class);
-        exec.executeLeftToRight(new QXmlSyntaxModel());
+        System.out.println();
+        System.out.println();
     }
 
     @Test
-    public void testEtlXmlMapping() throws SortException {
+    public void testEtlXmlSyntax0() throws SortException {
+        /*
+         * ETL a whole syntax and structure across with lazy loading during walking the source bean graph
+         */
+        EtlDozerExecution<XmlSyntaxModel, CXmlSyntaxModel> exec = new EtlDozerExecution<>(cfg, ctxSource, ctxDest, XmlSyntaxModel.class, CXmlSyntaxModel.class);
+
+        QXmlSyntaxModel query = new QXmlSyntaxModel();
+
+        exec.executeLeftToRight( query );
+    }
+
+    @Test
+    public void testEtlXmlSyntax1() throws SortException {
+        /*
+         * ETL a whole syntax and structure across with no lazy loading
+         */
+        EtlDozerExecution<XmlSyntaxModel, CXmlSyntaxModel> exec = new EtlDozerExecution<>(cfg, ctxSource, ctxDest, XmlSyntaxModel.class, CXmlSyntaxModel.class);
+
+        QXmlSyntaxModel query = new QXmlSyntaxModel();
+        query.joinToAccessArea().joinToParent();
+        query.joinToUser();
+        query.joinToMappings().joinToSubSyntax().joinToMappings();
+        query.joinToStructure();
+
+        exec.executeLeftToRight( query );
+    }
+
+    @Test
+    public void testEtlXmlSyntax2() throws SortException {
+        /*
+         * first ETL the structures, then the syntaxes
+         */
+        System.out.println("==============================================================");
+        System.out.println("==================  FIRST STRUCTURES             =============");
+        System.out.println("==============================================================");
+        EtlDozerExecution<XmlStructure, CXmlStructure> exec1 = new EtlDozerExecution<>(cfg, ctxSource, ctxDest, XmlStructure.class, CXmlStructure.class);
+        exec1.executeLeftToRight( new QXmlStructure() );
+
+        System.out.println("==============================================================");
+        System.out.println("==================  NOW SYNTAXES                 =============");
+        System.out.println("==============================================================");
+        /*
+         * then ETL the sytaxes and their mappings
+         */
+        EtlDozerExecution<XmlSyntaxModel, CXmlSyntaxModel> exec2 = new EtlDozerExecution<>(cfg, ctxSource, ctxDest, XmlSyntaxModel.class, CXmlSyntaxModel.class);
+        QXmlSyntaxModel query = new QXmlSyntaxModel();
+        query.joinToAccessArea().joinToParent();
+        query.joinToUser();
+        query.joinToMappings().joinToSubSyntax().joinToMappings();
+        exec2.executeLeftToRight( query );
     }
 
 
