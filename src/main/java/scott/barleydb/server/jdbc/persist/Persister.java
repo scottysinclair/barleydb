@@ -10,12 +10,12 @@ package scott.barleydb.server.jdbc.persist;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -255,7 +255,7 @@ public class Persister {
                 }
             }
             if (auditRecord != null) {
-                LOG.debug("Changes found for " + entity);
+                LOG.debug("Create changes found for " + entity);
                 records.add(auditRecord);
             }
         }
@@ -302,10 +302,10 @@ public class Persister {
             }
             if (auditRecord != null) {
                 records.add(auditRecord);
-                LOG.debug("Changes found for " + entity);
+                LOG.debug("Update changes found for " + entity);
             }
             else {
-                LOG.debug("No changes found for " + entity);
+                LOG.debug("No update changes found for " + entity);
             }
         }
         return records;
@@ -341,7 +341,7 @@ public class Persister {
                 }
             }
             if (auditRecord != null) {
-                LOG.debug("Changes found for " + entity);
+                LOG.debug("Delete changes found for " + entity);
                 records.add(auditRecord);
             }
         }
@@ -467,11 +467,19 @@ public class Persister {
     }
 
     private void setNewOptimisticLockOnAuditRecords(AuditInformation audit, OperationGroup createGroup, OperationGroup updateGroup, Long newOptimisticLockTime) {
-        for (Entity entity : createGroup.mergedCopy(updateGroup).getEntities()) {
+        for (Entity entity : createGroup.getEntities()) {
             if (entity.getEntityType().supportsOptimisticLocking()) {
                 AuditRecord auditRecord = audit.getOrCreateRecord(entity);
                 if (auditRecord != null) {
-                    auditRecord.setOptimisticLock(entity, newOptimisticLockTime);
+                    auditRecord.setOptimisticLock(entity, newOptimisticLockTime, true);
+                }
+            }
+        }
+        for (Entity entity : updateGroup.getEntities()) {
+            if (entity.getEntityType().supportsOptimisticLocking()) {
+                AuditRecord auditRecord = audit.getOrCreateRecord(entity);
+                if (auditRecord != null) {
+                    auditRecord.setOptimisticLock(entity, newOptimisticLockTime, false);
                 }
             }
         }
