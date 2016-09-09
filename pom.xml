@@ -19,6 +19,32 @@
   <dependencies>
 
     <dependency>
+      <groupId>net.sf.dozer</groupId>
+      <artifactId>dozer</artifactId>
+      <version>5.5.1</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.2.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-beanutils</groupId>
+      <artifactId>commons-beanutils</artifactId>
+      <version>1.9.1</version>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+
+    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-log4j12</artifactId>
       <version>1.7.7</version>
@@ -151,71 +177,6 @@
   <!-- ================================================ -->
 
   <repositories>
-    <repository>
-      <id>msource</id>
-      <url>http://source.mysema.com/maven2/releases/</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-
-
-    <repository>
-      <id>swt-repo</id>
-      <url>https://swt-repo.googlecode.com/svn/repo/</url>
-    </repository>
-
-
-    <repository>
-      <id>myrepo2</id>
-      <name>blah2</name>
-      <url>http://maven.alfresco.com/nexus/content/repositories/public-snapshots</url>
-    </repository>
-
-
-
-    <repository>
-      <id>apache.m2.incubator</id>
-      <name>Apache M2 Incubator Repository</name>
-      <url>http://people.apache.org/repo/m2-incubating-repository/</url>
-    </repository>
-    <repository>
-      <id>eclipse-repository</id>
-      <name>Eclipse Repository</name>
-      <url>http://repo1.maven.org/eclipse/</url>
-    </repository>
-    <repository>
-      <id>safehaus-repository</id>
-      <name>Safehaus Repository</name>
-      <url>http://m2.safehaus.org</url>
-    </repository>
-    <repository>
-      <id>spring-ext</id>
-      <name>Spring External Dependencies Repository</name>
-      <url>
-        https://springframework.svn.sourceforge.net/svnroot/springframework/repos/repo-ext/
-      </url>
-    </repository>
-
-
-    <repository>
-      <id>i21-s3-osgi-repo</id>
-      <name>i21 osgi artifacts repo</name>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-      <url>http://s3.amazonaws.com/maven.springframework.org/osgi</url>
-    </repository>
-
-
-    <repository>
-      <id>i21-s3-maven-repo</id>
-      <name>i21 S3 milestone repo</name>
-      <url>http://s3.amazonaws.com/maven.springframework.org/milestone</url>
-    </repository>
 
   </repositories>
 
