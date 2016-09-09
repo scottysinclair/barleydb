@@ -10,12 +10,12 @@ package scott.barleydb.build.specification.modelgen;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -300,6 +300,10 @@ public class GenerateDataModels extends GenerateModelsHelper {
             case "ToManyNode":
                 out.write("\n");
                 writeNodeGetter(out, definitions, nodeSpec);
+                if (nodeSpec.getSuppression() != SuppressionSpec.GENERATED_CODE_SETTER) {
+                    out.write("\n");
+                    writeNodeSetter(out, nodeSpec);
+                }
                 break;
              default:
                  out.write("\n");
@@ -344,6 +348,20 @@ public class GenerateDataModels extends GenerateModelsHelper {
             out.write("  }\n");
             break;
         case "ToManyNode":
+            out.write("  public void ");
+            out.write(toSetterName(nodeSpec));
+            out.write("(");
+            writeJavaType(out, nodeSpec);
+            out.write(" ");
+            out.write(nodeSpec.getName());
+            out.write(") {\n");
+            out.write("    this.");
+            out.write(nodeSpec.getName());
+            out.write(".toManyNode.clear();\n");
+            out.write("     for (" + nodeSpec.getRelationSpec().getEntitySpec().getClassName() + " item: " + nodeSpec.getName() + ") {\n");
+            out.write("          super.getListProxy(this." + nodeSpec.getName() + ".toManyNode).add( item );\n");
+            out.write("     }\n");
+            out.write("  }\n");
             break;
         }
     }

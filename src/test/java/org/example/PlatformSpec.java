@@ -98,7 +98,7 @@ public class PlatformSpec extends StaticDefinitions {
         spec.setColumnName("ID");
         spec.setPrimaryKey(true);
         spec.setNullable(Nullable.NOT_NULL);
-        spec.setSuppression(SuppressionSpec.GENERATED_CODE_SETTER);
+        //spec.setSuppression(SuppressionSpec.GENERATED_CODE_SETTER);
         return spec;
     }
 

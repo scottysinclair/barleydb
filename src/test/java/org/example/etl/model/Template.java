@@ -1,30 +1,5 @@
 package org.example.etl.model;
 
-/*
- * #%L
- * BarleyDB
- * $Id:$
- * $HeadURL:$
- * %%
- * Copyright (C) 2014 - 2016 Scott Sinclair
- *       <scottysinclair@gmail.com>
- * %%
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Lesser Public License for more details.
- * 
- * You should have received a copy of the GNU General Lesser Public
- * License along with this program.  If not, see
- * <http://www.gnu.org/licenses/lgpl-3.0.html>.
- * #L%
- */
-
 import java.util.List;
 
 import scott.barleydb.api.core.entity.Entity;
@@ -68,6 +43,10 @@ public class Template extends AbstractCustomEntityProxy {
     return id.getValue();
   }
 
+  public void setId(Long id) {
+    this.id.setValue(id);
+  }
+
   public AccessArea getAccessArea() {
     return super.getFromRefNode(accessArea.refNode);
   }
@@ -104,7 +83,17 @@ public class Template extends AbstractCustomEntityProxy {
     return super.getListProxy(contents.toManyNode);
   }
 
+  public void setContents(List<TemplateContent> contents) {
+    this.contents.toManyNode.clear();
+     for (org.example.etl.model.TemplateContent item: contents) {
+          super.getListProxy(this.contents.toManyNode).add( item );
+     }
+  }
+
   public List<BusinessType> getBusinessTypes() {
     return super.getListProxy(businessTypes.toManyNode);
+  }
+
+  public void setBusinessTypes(List<BusinessType> businessTypes) {
   }
 }

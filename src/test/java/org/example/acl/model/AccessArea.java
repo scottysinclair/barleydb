@@ -1,30 +1,5 @@
 package org.example.acl.model;
 
-/*
- * #%L
- * BarleyDB
- * $Id:$
- * $HeadURL:$
- * %%
- * Copyright (C) 2014 - 2016 Scott Sinclair
- * 			<scottysinclair@gmail.com>
- * %%
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Lesser Public License for more details.
- * 
- * You should have received a copy of the GNU General Lesser Public
- * License along with this program.  If not, see
- * <http://www.gnu.org/licenses/lgpl-3.0.html>.
- * #L%
- */
-
 import java.util.List;
 
 import scott.barleydb.api.core.entity.Entity;
@@ -62,6 +37,10 @@ public class AccessArea extends AbstractCustomEntityProxy {
     return id.getValue();
   }
 
+  public void setId(Long id) {
+    this.id.setValue(id);
+  }
+
   public String getName() {
     return name.getValue();
   }
@@ -88,5 +67,12 @@ public class AccessArea extends AbstractCustomEntityProxy {
 
   public List<AccessArea> getChildren() {
     return super.getListProxy(children.toManyNode);
+  }
+
+  public void setChildren(List<AccessArea> children) {
+    this.children.toManyNode.clear();
+     for (org.example.acl.model.AccessArea item: children) {
+          super.getListProxy(this.children.toManyNode).add( item );
+     }
   }
 }

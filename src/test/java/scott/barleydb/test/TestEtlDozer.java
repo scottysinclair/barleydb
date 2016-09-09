@@ -181,12 +181,10 @@ class EtlDozerExecution<LEFT,RIGHT> {
 
     public void executeLeftToRight(QueryObject<LEFT> query) throws SortException  {
         PersistRequest pr = new PersistRequest();
-        QueryResult<LEFT>result  = ctxSource.performQuery(query);
-//        EntityContextState state = ctxDest.beginLoading();
+        System.out.println("=============== QUERY STARTING");
+       QueryResult<LEFT>result  = ctxSource.performQuery(query);
+        EntityContextState state = ctxDest.beginLoading();
         try {
-            System.out.println("");
-            System.out.println("");
-            System.out.println("=============== QUERY FINISHED");
             System.out.println("");
             System.out.println("");
             System.out.println("=============== TRANSFORM STARTED");
@@ -196,18 +194,20 @@ class EtlDozerExecution<LEFT,RIGHT> {
             System.out.println("");
             System.out.println("");
             System.out.println("=============== TRANSFORM FINISHED");
-            if (!pr.isEmpty()) {
-                System.out.println("");
-                System.out.println("");
-                System.out.println("=============== PERIST STARTED ");
-                ctxDest.persist(pr);
-                System.out.println("");
-                System.out.println("");
-                System.out.println("=============== PERIST FINISHED");
-            }
         }
         finally {
-  //          ctxDest.setEntityContextState(state);
+           ctxDest.setEntityContextState(state);
+           ctxDest.refresh();
+        }
+
+        if (!pr.isEmpty()) {
+            System.out.println("");
+            System.out.println("");
+            System.out.println("=============== PERIST STARTED ");
+            ctxDest.persist(pr);
+            System.out.println("");
+            System.out.println("");
+            System.out.println("=============== PERIST FINISHED");
         }
     }
 
