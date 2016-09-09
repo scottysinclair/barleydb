@@ -2,14 +2,18 @@ package scott.barleydb.test;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.dozer.BeanFactory;
+import org.dozer.CustomFieldMapper;
 import org.dozer.DozerBeanMapper;
+import org.dozer.classmap.ClassMap;
 import org.dozer.classmap.MappingFileData;
+import org.dozer.fieldmap.FieldMap;
 import org.dozer.loader.api.BeanMappingBuilder;
 import org.dozer.loader.api.TypeMappingOption;
 import org.dozer.loader.api.TypeMappingOptions;
@@ -72,6 +76,10 @@ import scott.barleydb.server.jdbc.query.QueryResult;
  *   - report on mappings
  *
  *
+ * problems:
+ *  - dozer does not handle object references properly when copying, if a reference is shared in the source object graph, then there will be multiple versions of it in the target object graph
+ *  -
+ *
  * @author scott
  *
  */
@@ -130,11 +138,40 @@ class EtlDozerConfiguration {
         mapper.addMapping(builder);
         Map<String, BeanFactory> facs = new HashMap<String,BeanFactory>();
 
+        final Map<Object,Object> factoryCache = new IdentityHashMap<>();
+        final Map<Object,Object> alreadyMapped = new IdentityHashMap<>();
+
+        /*
+         * do not remap objects which have been mapped before
+         */
+        mapper.setCustomFieldMapper(new CustomFieldMapper() {
+            @Override
+            public boolean mapField(Object source, Object destination, Object sourceFieldValue, ClassMap classMap, FieldMap fieldMapping) {
+                //false means, treat as normal
+                return alreadyMapped.containsKey(source);
+            }
+        });
+
+
+        /*
+         * the bean factory handles references correctly
+         */
         final BeanFactory bf = new BeanFactory() {
             @Override
             public Object createBean(Object source, Class<?> sourceClass, String targetBeanId) {
                 try {
-                    return ctx.newModel(Class.forName(targetBeanId), EntityConstraint.dontFetch());
+                    Object dest = factoryCache.get(source);
+                    if (dest != null) {
+                        //if we already return an existing one, then we don't need to map it again
+                        //so we track here
+                        alreadyMapped.put(source, dest);
+                        return dest;
+                    }
+                    else {
+                        dest = ctx.newModel(Class.forName(targetBeanId), EntityConstraint.dontFetch());
+                        factoryCache.put(source, dest);
+                        return dest;
+                    }
                 } catch (ClassNotFoundException x) {
                     throw new IllegalStateException("Could not load class " + targetBeanId);
                 }
