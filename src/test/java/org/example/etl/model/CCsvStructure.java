@@ -17,7 +17,7 @@ import org.example.acl.model.AccessArea;
  *
  * @author scott
  */
-public class Template extends AbstractCustomEntityProxy {
+public class CCsvStructure extends AbstractCustomEntityProxy {
   private static final long serialVersionUID = 1L;
 
   private final ValueNode id;
@@ -25,18 +25,18 @@ public class Template extends AbstractCustomEntityProxy {
   private final ValueNode uuid;
   private final ValueNode modifiedAt;
   private final ValueNode name;
-  private final ToManyNodeProxyHelper contents;
-  private final ToManyNodeProxyHelper businessTypes;
+  private final ValueNode headerBasedMapping;
+  private final ToManyNodeProxyHelper fields;
 
-  public Template(Entity entity) {
+  public CCsvStructure(Entity entity) {
     super(entity);
     id = entity.getChild("id", ValueNode.class, true);
     accessArea = new RefNodeProxyHelper(entity.getChild("accessArea", RefNode.class, true));
     uuid = entity.getChild("uuid", ValueNode.class, true);
     modifiedAt = entity.getChild("modifiedAt", ValueNode.class, true);
     name = entity.getChild("name", ValueNode.class, true);
-    contents = new ToManyNodeProxyHelper(entity.getChild("contents", ToManyNode.class, true));
-    businessTypes = new ToManyNodeProxyHelper(entity.getChild("businessTypes", ToManyNode.class, true));
+    headerBasedMapping = entity.getChild("headerBasedMapping", ValueNode.class, true);
+    fields = new ToManyNodeProxyHelper(entity.getChild("fields", ToManyNode.class, true));
   }
 
   public Long getId() {
@@ -79,25 +79,22 @@ public class Template extends AbstractCustomEntityProxy {
     this.name.setValue(name);
   }
 
-  public List<TemplateContent> getContents() {
-    return super.getListProxy(contents.toManyNode);
+  public Boolean getHeaderBasedMapping() {
+    return headerBasedMapping.getValue();
   }
 
-  public void setContents(List<TemplateContent> contents) {
-    this.contents.toManyNode.clear();
-     for (org.example.etl.model.TemplateContent item: contents) {
-          super.getListProxy(this.contents.toManyNode).add( item );
+  public void setHeaderBasedMapping(Boolean headerBasedMapping) {
+    this.headerBasedMapping.setValue(headerBasedMapping);
+  }
+
+  public List<CCsvStructureField> getFields() {
+    return super.getListProxy(fields.toManyNode);
+  }
+
+  public void setFields(List<CCsvStructureField> fields) {
+    this.fields.toManyNode.clear();
+     for (org.example.etl.model.CCsvStructureField item: fields) {
+          super.getListProxy(this.fields.toManyNode).add( item );
      }
-  }
-
-  public List<BusinessType> getBusinessTypes() {
-    return super.getListProxy(businessTypes.toManyNode);
-  }
-
-  public void setBusinessTypes(List<BusinessType> businessTypes) {
-//    this.businessTypes.toManyNode.clear();
-//     for (org.example.etl.model.TemplateBusinessType item: businessTypes) {
-//          super.getListProxy(this.businessTypes.toManyNode).add( item );
-//     }
   }
 }

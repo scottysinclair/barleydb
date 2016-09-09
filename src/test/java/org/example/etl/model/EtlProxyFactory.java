@@ -48,6 +48,45 @@ public class EtlProxyFactory implements ProxyFactory {
     if (entity.getEntityType().getInterfaceName().equals(RawData.class.getName())) {
       return (T) new RawData(entity);
     }
+    if (entity.getEntityType().getInterfaceName().equals(CSyntaxModel.class.getName())) {
+      return (T) new CSyntaxModel(entity);
+    }
+    if (entity.getEntityType().getInterfaceName().equals(CXmlSyntaxModel.class.getName())) {
+      return (T) new CXmlSyntaxModel(entity);
+    }
+    if (entity.getEntityType().getInterfaceName().equals(CXmlStructure.class.getName())) {
+      return (T) new CXmlStructure(entity);
+    }
+    if (entity.getEntityType().getInterfaceName().equals(CXmlMapping.class.getName())) {
+      return (T) new CXmlMapping(entity);
+    }
+    if (entity.getEntityType().getInterfaceName().equals(CCsvSyntaxModel.class.getName())) {
+      return (T) new CCsvSyntaxModel(entity);
+    }
+    if (entity.getEntityType().getInterfaceName().equals(CCsvStructure.class.getName())) {
+      return (T) new CCsvStructure(entity);
+    }
+    if (entity.getEntityType().getInterfaceName().equals(CCsvStructureField.class.getName())) {
+      return (T) new CCsvStructureField(entity);
+    }
+    if (entity.getEntityType().getInterfaceName().equals(CCsvMapping.class.getName())) {
+      return (T) new CCsvMapping(entity);
+    }
+    if (entity.getEntityType().getInterfaceName().equals(CTemplate.class.getName())) {
+      return (T) new CTemplate(entity);
+    }
+    if (entity.getEntityType().getInterfaceName().equals(CTemplateContent.class.getName())) {
+      return (T) new CTemplateContent(entity);
+    }
+    if (entity.getEntityType().getInterfaceName().equals(CBusinessType.class.getName())) {
+      return (T) new CBusinessType(entity);
+    }
+    if (entity.getEntityType().getInterfaceName().equals(CTemplateBusinessType.class.getName())) {
+      return (T) new CTemplateBusinessType(entity);
+    }
+    if (entity.getEntityType().getInterfaceName().equals(CRawData.class.getName())) {
+      return (T) new CRawData(entity);
+    }
     return null;
   }
 }

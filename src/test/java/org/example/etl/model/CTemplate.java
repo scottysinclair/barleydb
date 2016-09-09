@@ -17,7 +17,7 @@ import org.example.acl.model.AccessArea;
  *
  * @author scott
  */
-public class Template extends AbstractCustomEntityProxy {
+public class CTemplate extends AbstractCustomEntityProxy {
   private static final long serialVersionUID = 1L;
 
   private final ValueNode id;
@@ -28,7 +28,7 @@ public class Template extends AbstractCustomEntityProxy {
   private final ToManyNodeProxyHelper contents;
   private final ToManyNodeProxyHelper businessTypes;
 
-  public Template(Entity entity) {
+  public CTemplate(Entity entity) {
     super(entity);
     id = entity.getChild("id", ValueNode.class, true);
     accessArea = new RefNodeProxyHelper(entity.getChild("accessArea", RefNode.class, true));
@@ -79,24 +79,24 @@ public class Template extends AbstractCustomEntityProxy {
     this.name.setValue(name);
   }
 
-  public List<TemplateContent> getContents() {
+  public List<CTemplateContent> getContents() {
     return super.getListProxy(contents.toManyNode);
   }
 
-  public void setContents(List<TemplateContent> contents) {
+  public void setContents(List<CTemplateContent> contents) {
     this.contents.toManyNode.clear();
-     for (org.example.etl.model.TemplateContent item: contents) {
+     for (org.example.etl.model.CTemplateContent item: contents) {
           super.getListProxy(this.contents.toManyNode).add( item );
      }
   }
 
-  public List<BusinessType> getBusinessTypes() {
+  public List<CBusinessType> getBusinessTypes() {
     return super.getListProxy(businessTypes.toManyNode);
   }
 
-  public void setBusinessTypes(List<BusinessType> businessTypes) {
+  public void setBusinessTypes(List<CBusinessType> businessTypes) {
 //    this.businessTypes.toManyNode.clear();
-//     for (org.example.etl.model.TemplateBusinessType item: businessTypes) {
+//     for (org.example.etl.model.CTemplateBusinessType item: businessTypes) {
 //          super.getListProxy(this.businessTypes.toManyNode).add( item );
 //     }
   }

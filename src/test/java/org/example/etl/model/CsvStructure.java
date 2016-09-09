@@ -1,5 +1,6 @@
 package org.example.etl.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import scott.barleydb.api.core.entity.Entity;
@@ -92,8 +93,9 @@ public class CsvStructure extends AbstractCustomEntityProxy {
   }
 
   public void setFields(List<CsvStructureField> fields) {
+    List<CsvStructureField> copy = new ArrayList<>(fields);
     this.fields.toManyNode.clear();
-     for (org.example.etl.model.CsvStructureField item: fields) {
+     for (org.example.etl.model.CsvStructureField item: copy) {
           super.getListProxy(this.fields.toManyNode).add( item );
      }
   }

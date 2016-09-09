@@ -48,6 +48,9 @@ import org.example.acl.model.User;
  */
 
 import org.example.etl.context.MiEntityContext;
+import org.example.etl.model.CXmlMapping;
+import org.example.etl.model.CXmlStructure;
+import org.example.etl.model.CXmlSyntaxModel;
 import org.example.etl.model.XmlMapping;
 import org.example.etl.model.XmlStructure;
 import org.example.etl.model.XmlSyntaxModel;
@@ -100,7 +103,7 @@ public class TestEtlDozer extends TestBase {
     @Test
     public void testEtlXmlSyntax() throws SortException {
         System.out.println(cfg);
-        EtlDozerExecution exec = new EtlDozerExecution(cfg, ctxSource, ctxDest, XmlSyntaxModel.class, XmlSyntaxModel.class);
+        EtlDozerExecution exec = new EtlDozerExecution(cfg, ctxSource, ctxDest, XmlSyntaxModel.class, CXmlSyntaxModel.class);
         exec.executeLeftToRight(new QXmlSyntaxModel());
     }
 
@@ -125,11 +128,11 @@ class EtlDozerConfiguration {
     public EtlDozerConfiguration(final EntityContext ctx) {
         builder = new BeanMappingBuilder() {
               protected void configure() {
-                mapping(XmlSyntaxModel.class, XmlSyntaxModel.class, TypeMappingOptions.beanFactory("MYBF"));
-                mapping(XmlStructure.class, XmlStructure.class, TypeMappingOptions.beanFactory("MYBF"));
+                mapping(XmlSyntaxModel.class, CXmlSyntaxModel.class, TypeMappingOptions.beanFactory("MYBF"));
+                mapping(XmlStructure.class, CXmlStructure.class, TypeMappingOptions.beanFactory("MYBF"));
                 mapping(AccessArea.class, AccessArea.class, TypeMappingOptions.beanFactory("MYBF"));
                 mapping(User.class, User.class, TypeMappingOptions.beanFactory("MYBF"));
-                mapping(XmlMapping.class, XmlMapping.class, TypeMappingOptions.beanFactory("MYBF"));
+                mapping(XmlMapping.class, CXmlMapping.class, TypeMappingOptions.beanFactory("MYBF"));
               }
         };
         builder.build();

@@ -420,6 +420,344 @@
                         <PrimaryKey name="PK_RAWDATA" nodes="org.example.etl.model.RawData.id"/>
                     </Constraints>
                 </EntitySpec>
+                <EntitySpec className="org.example.etl.model.CSyntaxModel" tableName="XSS_XSYNTAX_MODEL" abstract="true">
+                    <queryClass>org.example.etl.query.QCSyntaxModel</queryClass>
+                    <NodeSpecs>
+                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" keyGenSpec="FRAMEWORK" pk="true">
+                            <id>org.example.etl.model.CSyntaxModel.id</id>
+                        </NodeSpec>
+                        <NodeSpec name="accessArea" jdbcType="BIGINT" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>org.example.etl.model.CSyntaxModel.accessArea</id>
+                            <relation type="REFERS" entitySpec="org.example.acl.model.AccessArea" joinType="LEFT_OUTER_JOIN"/>
+                        </NodeSpec>
+                        <NodeSpec name="uuid" javaType="STRING" jdbcType="CHAR" columnName="UUID" nullable="NOT_NULL" length="60" optimisticLock="false">
+                            <id>org.example.etl.model.CSyntaxModel.uuid</id>
+                        </NodeSpec>
+                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" length="50" optimisticLock="true">
+                            <id>org.example.etl.model.CSyntaxModel.modifiedAt</id>
+                        </NodeSpec>
+                        <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
+                            <id>org.example.etl.model.CSyntaxModel.name</id>
+                        </NodeSpec>
+                        <NodeSpec name="structureType" javaType="ENUM" jdbcType="INT" columnName="STRUCTURE_TYPE" nullable="NOT_NULL" optimisticLock="false">
+                            <enumSpec>org.example.etl.model.StructureType</enumSpec>
+                            <id>org.example.etl.model.CSyntaxModel.structureType</id>
+                        </NodeSpec>
+                        <NodeSpec name="syntaxType" javaType="ENUM" jdbcType="INT" columnName="SYNTAX_TYPE" nullable="NOT_NULL" optimisticLock="false">
+                            <enumSpec>org.example.etl.model.SyntaxType</enumSpec>
+                            <id>org.example.etl.model.CSyntaxModel.syntaxType</id>
+                        </NodeSpec>
+                        <NodeSpec name="user" jdbcType="BIGINT" columnName="USER_ID" nullable="NULL" optimisticLock="false">
+                            <id>org.example.etl.model.CSyntaxModel.user</id>
+                            <relation type="REFERS" entitySpec="org.example.acl.model.User" joinType="LEFT_OUTER_JOIN"/>
+                        </NodeSpec>
+                        <NodeSpec name="structure" javaType="LONG" jdbcType="BIGINT" columnName="STRUCTURE_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <suppression>GENERATED_CODE</suppression>
+                            <id>org.example.etl.model.CSyntaxModel.structure</id>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints>
+                        <PrimaryKey name="PK_XSYNTAX_MODEL" nodes="org.example.etl.model.CSyntaxModel.id"/>
+                        <ForeignKey name="FK_XSYNTAX_MODEL_ACCESS_AREA" fromKey="org.example.etl.model.CSyntaxModel.accessArea" toKey="org.example.acl.model.AccessArea.id"/>
+                        <ForeignKey name="FK_XSYNTAX_MODEL_USER" fromKey="org.example.etl.model.CSyntaxModel.user" toKey="org.example.acl.model.User.id"/>
+                        <UniqueConstraint name="UC_XSYNTAX_MODEL_1" nodes="org.example.etl.model.CSyntaxModel.name org.example.etl.model.CSyntaxModel.accessArea"/>
+                    </Constraints>
+                </EntitySpec>
+                <EntitySpec className="org.example.etl.model.CXmlSyntaxModel" tableName="XSS_XSYNTAX_MODEL" abstract="false">
+                    <queryClass>org.example.etl.query.QCXmlSyntaxModel</queryClass>
+                    <parent>org.example.etl.model.CSyntaxModel</parent>
+                    <NodeSpecs>
+                        <NodeSpec name="structureType" javaType="ENUM" jdbcType="INT" columnName="STRUCTURE_TYPE" nullable="NOT_NULL" optimisticLock="false">
+                            <enumSpec>org.example.etl.model.StructureType</enumSpec>
+                            <fixedValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xsi:type="xs:int">1</fixedValue>
+                            <id>org.example.etl.model.CXmlSyntaxModel.structureType</id>
+                        </NodeSpec>
+                        <NodeSpec name="structure" jdbcType="BIGINT" columnName="STRUCTURE_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>org.example.etl.model.CXmlSyntaxModel.structure</id>
+                            <relation type="DEPENDS" entitySpec="org.example.etl.model.CXmlStructure" joinType="LEFT_OUTER_JOIN"/>
+                        </NodeSpec>
+                        <NodeSpec name="mappings" optimisticLock="false">
+                            <id>org.example.etl.model.CXmlSyntaxModel.mappings</id>
+                            <relation type="OWNS" entitySpec="org.example.etl.model.CXmlMapping" backReference="org.example.etl.model.CXmlMapping.syntax" sortNode="org.example.etl.model.CXmlMapping.xpath" joinType="LEFT_OUTER_JOIN"/>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints/>
+                </EntitySpec>
+                <EntitySpec className="org.example.etl.model.CXmlStructure" tableName="XSS_XXMLSTRUCTURE" abstract="false">
+                    <queryClass>org.example.etl.query.QCXmlStructure</queryClass>
+                    <NodeSpecs>
+                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" keyGenSpec="FRAMEWORK" pk="true">
+                            <id>org.example.etl.model.CXmlStructure.id</id>
+                        </NodeSpec>
+                        <NodeSpec name="accessArea" jdbcType="BIGINT" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>org.example.etl.model.CXmlStructure.accessArea</id>
+                            <relation type="REFERS" entitySpec="org.example.acl.model.AccessArea" joinType="LEFT_OUTER_JOIN"/>
+                        </NodeSpec>
+                        <NodeSpec name="uuid" javaType="STRING" jdbcType="CHAR" columnName="UUID" nullable="NOT_NULL" length="60" optimisticLock="false">
+                            <id>org.example.etl.model.CXmlStructure.uuid</id>
+                        </NodeSpec>
+                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" length="50" optimisticLock="true">
+                            <id>org.example.etl.model.CXmlStructure.modifiedAt</id>
+                        </NodeSpec>
+                        <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
+                            <id>org.example.etl.model.CXmlStructure.name</id>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints>
+                        <PrimaryKey name="PK_XXMLSTRUCTURE" nodes="org.example.etl.model.CXmlStructure.id"/>
+                        <ForeignKey name="FK_XXMLSTRUCTURE_ACCESS_AREA" fromKey="org.example.etl.model.CXmlStructure.accessArea" toKey="org.example.acl.model.AccessArea.id"/>
+                        <UniqueConstraint name="UC_XXMLSTRUCTURE_1" nodes="org.example.etl.model.CXmlStructure.name org.example.etl.model.CXmlStructure.accessArea"/>
+                    </Constraints>
+                </EntitySpec>
+                <EntitySpec className="org.example.etl.model.CXmlMapping" tableName="XSS_XXML_MAPPING" abstract="false">
+                    <queryClass>org.example.etl.query.QCXmlMapping</queryClass>
+                    <NodeSpecs>
+                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" keyGenSpec="FRAMEWORK" pk="true">
+                            <id>org.example.etl.model.CXmlMapping.id</id>
+                        </NodeSpec>
+                        <NodeSpec name="syntax" jdbcType="BIGINT" columnName="XSYNTAX_MODEL_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>org.example.etl.model.CXmlMapping.syntax</id>
+                            <relation type="REFERS" entitySpec="org.example.etl.model.CXmlSyntaxModel" joinType="LEFT_OUTER_JOIN"/>
+                        </NodeSpec>
+                        <NodeSpec name="subSyntax" jdbcType="BIGINT" columnName="SUB_SYNTAX_ID" nullable="NULL" optimisticLock="false">
+                            <id>org.example.etl.model.CXmlMapping.subSyntax</id>
+                            <relation type="OWNS" entitySpec="org.example.etl.model.CXmlSyntaxModel" joinType="LEFT_OUTER_JOIN"/>
+                        </NodeSpec>
+                        <NodeSpec name="xpath" javaType="STRING" jdbcType="VARCHAR" columnName="XPATH" nullable="NULL" length="150" optimisticLock="false">
+                            <id>org.example.etl.model.CXmlMapping.xpath</id>
+                        </NodeSpec>
+                        <NodeSpec name="targetFieldName" javaType="STRING" jdbcType="VARCHAR" columnName="TARGET_FIELD_NAME" nullable="NULL" length="150" optimisticLock="false">
+                            <id>org.example.etl.model.CXmlMapping.targetFieldName</id>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints>
+                        <PrimaryKey name="PK_XXML_MAPPING" nodes="org.example.etl.model.CXmlMapping.id"/>
+                        <ForeignKey name="FK_XXML_MAPPING_XSYNTAX_MODEL" fromKey="org.example.etl.model.CXmlMapping.syntax" toKey="org.example.etl.model.CSyntaxModel.id"/>
+                        <ForeignKey name="FK_CXML_MAPPING_SUBSYNTAX_MODEL" fromKey="org.example.etl.model.CXmlMapping.subSyntax" toKey="org.example.etl.model.CSyntaxModel.id"/>
+                    </Constraints>
+                </EntitySpec>
+                <EntitySpec className="org.example.etl.model.CCsvSyntaxModel" tableName="XSS_XSYNTAX_MODEL" abstract="false">
+                    <queryClass>org.example.etl.query.QCCsvSyntaxModel</queryClass>
+                    <parent>org.example.etl.model.CSyntaxModel</parent>
+                    <NodeSpecs>
+                        <NodeSpec name="structureType" javaType="ENUM" jdbcType="INT" columnName="STRUCTURE_TYPE" nullable="NOT_NULL" optimisticLock="false">
+                            <enumSpec>org.example.etl.model.StructureType</enumSpec>
+                            <fixedValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xsi:type="xs:int">0</fixedValue>
+                            <id>org.example.etl.model.CCsvSyntaxModel.structureType</id>
+                        </NodeSpec>
+                        <NodeSpec name="structure" jdbcType="BIGINT" columnName="STRUCTURE_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>org.example.etl.model.CCsvSyntaxModel.structure</id>
+                            <relation type="DEPENDS" entitySpec="org.example.etl.model.CCsvStructure" joinType="LEFT_OUTER_JOIN"/>
+                        </NodeSpec>
+                        <NodeSpec name="mappings" optimisticLock="false">
+                            <id>org.example.etl.model.CCsvSyntaxModel.mappings</id>
+                            <relation type="OWNS" entitySpec="org.example.etl.model.CCsvMapping" backReference="org.example.etl.model.CCsvMapping.syntax" sortNode="org.example.etl.model.CCsvMapping.structureField" joinType="LEFT_OUTER_JOIN"/>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints/>
+                </EntitySpec>
+                <EntitySpec className="org.example.etl.model.CCsvStructure" tableName="XSS_XCSVSTRUCTURE" abstract="false">
+                    <queryClass>org.example.etl.query.QCCsvStructure</queryClass>
+                    <NodeSpecs>
+                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" keyGenSpec="FRAMEWORK" pk="true">
+                            <id>org.example.etl.model.CCsvStructure.id</id>
+                        </NodeSpec>
+                        <NodeSpec name="accessArea" jdbcType="BIGINT" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>org.example.etl.model.CCsvStructure.accessArea</id>
+                            <relation type="REFERS" entitySpec="org.example.acl.model.AccessArea" joinType="LEFT_OUTER_JOIN"/>
+                        </NodeSpec>
+                        <NodeSpec name="uuid" javaType="STRING" jdbcType="CHAR" columnName="UUID" nullable="NOT_NULL" length="60" optimisticLock="false">
+                            <id>org.example.etl.model.CCsvStructure.uuid</id>
+                        </NodeSpec>
+                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" length="50" optimisticLock="true">
+                            <id>org.example.etl.model.CCsvStructure.modifiedAt</id>
+                        </NodeSpec>
+                        <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
+                            <id>org.example.etl.model.CCsvStructure.name</id>
+                        </NodeSpec>
+                        <NodeSpec name="headerBasedMapping" javaType="BOOLEAN" jdbcType="INT" columnName="HEADER_BASED_MAPPING" nullable="NOT_NULL" optimisticLock="false">
+                            <id>org.example.etl.model.CCsvStructure.headerBasedMapping</id>
+                        </NodeSpec>
+                        <NodeSpec name="fields" optimisticLock="false">
+                            <id>org.example.etl.model.CCsvStructure.fields</id>
+                            <relation type="OWNS" entitySpec="org.example.etl.model.CCsvStructureField" backReference="org.example.etl.model.CCsvStructureField.structure" joinType="LEFT_OUTER_JOIN"/>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints>
+                        <PrimaryKey name="PK_XCSVSTRUCTURE" nodes="org.example.etl.model.CCsvStructure.id"/>
+                        <ForeignKey name="FK_XCSVSTRUCTURE_ACCESS_AREA" fromKey="org.example.etl.model.CCsvStructure.accessArea" toKey="org.example.acl.model.AccessArea.id"/>
+                        <UniqueConstraint name="UC_XCSVSTRUCTURE_1" nodes="org.example.etl.model.CCsvStructure.name org.example.etl.model.CCsvStructure.accessArea"/>
+                    </Constraints>
+                </EntitySpec>
+                <EntitySpec className="org.example.etl.model.CCsvStructureField" tableName="XSS_XCSVSTRUCTURE_FIELD" abstract="false">
+                    <queryClass>org.example.etl.query.QCCsvStructureField</queryClass>
+                    <NodeSpecs>
+                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" keyGenSpec="FRAMEWORK" pk="true">
+                            <id>org.example.etl.model.CCsvStructureField.id</id>
+                        </NodeSpec>
+                        <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NULL" length="50" optimisticLock="false">
+                            <id>org.example.etl.model.CCsvStructureField.name</id>
+                        </NodeSpec>
+                        <NodeSpec name="structure" jdbcType="BIGINT" columnName="XCSVSTRUCTURE_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>org.example.etl.model.CCsvStructureField.structure</id>
+                            <relation type="REFERS" entitySpec="org.example.etl.model.CCsvStructure" joinType="LEFT_OUTER_JOIN"/>
+                        </NodeSpec>
+                        <NodeSpec name="columnIndex" javaType="INTEGER" jdbcType="INT" columnName="COLUMN_INDEX" nullable="NOT_NULL" optimisticLock="false">
+                            <id>org.example.etl.model.CCsvStructureField.columnIndex</id>
+                        </NodeSpec>
+                        <NodeSpec name="optional" javaType="BOOLEAN" jdbcType="INT" columnName="OPTIONAL" nullable="NOT_NULL" optimisticLock="false">
+                            <id>org.example.etl.model.CCsvStructureField.optional</id>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints>
+                        <PrimaryKey name="PK_XCSVSTRUCTURE_FIELD" nodes="org.example.etl.model.CCsvStructureField.id"/>
+                        <ForeignKey name="FK_XCSVSTRUCTURE_FIELD_XCSVSTRUCTURE" fromKey="org.example.etl.model.CCsvStructureField.structure" toKey="org.example.etl.model.CCsvStructure.id"/>
+                    </Constraints>
+                </EntitySpec>
+                <EntitySpec className="org.example.etl.model.CCsvMapping" tableName="XSS_XCSV_MAPPING" abstract="false">
+                    <queryClass>org.example.etl.query.QCCsvMapping</queryClass>
+                    <NodeSpecs>
+                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" keyGenSpec="FRAMEWORK" pk="true">
+                            <id>org.example.etl.model.CCsvMapping.id</id>
+                        </NodeSpec>
+                        <NodeSpec name="syntax" jdbcType="BIGINT" columnName="XSYNTAX_MODEL_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>org.example.etl.model.CCsvMapping.syntax</id>
+                            <relation type="REFERS" entitySpec="org.example.etl.model.CCsvSyntaxModel" joinType="LEFT_OUTER_JOIN"/>
+                        </NodeSpec>
+                        <NodeSpec name="structureField" jdbcType="BIGINT" columnName="XCSVSTRUCTURE_FIELD_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>org.example.etl.model.CCsvMapping.structureField</id>
+                            <relation type="REFERS" entitySpec="org.example.etl.model.CCsvStructureField" joinType="LEFT_OUTER_JOIN"/>
+                        </NodeSpec>
+                        <NodeSpec name="targetFieldName" javaType="STRING" jdbcType="VARCHAR" columnName="TARGET_FIELD_NAME" nullable="NULL" length="150" optimisticLock="false">
+                            <id>org.example.etl.model.CCsvMapping.targetFieldName</id>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints>
+                        <PrimaryKey name="PK_XCSV_MAPPING" nodes="org.example.etl.model.CCsvMapping.id"/>
+                        <ForeignKey name="FK_XCSV_MAPPING_XSYNTAX_MODEL" fromKey="org.example.etl.model.CCsvMapping.syntax" toKey="org.example.etl.model.CSyntaxModel.id"/>
+                        <ForeignKey name="FK_XCSV_MAPPING_XCSVSTRUCTURE_FIELD" fromKey="org.example.etl.model.CCsvMapping.structureField" toKey="org.example.etl.model.CCsvStructureField.id"/>
+                    </Constraints>
+                </EntitySpec>
+                <EntitySpec className="org.example.etl.model.CTemplate" tableName="XSS_XTEMPLATE" abstract="false">
+                    <queryClass>org.example.etl.query.QCTemplate</queryClass>
+                    <NodeSpecs>
+                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" keyGenSpec="FRAMEWORK" pk="true">
+                            <id>org.example.etl.model.CTemplate.id</id>
+                        </NodeSpec>
+                        <NodeSpec name="accessArea" jdbcType="BIGINT" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>org.example.etl.model.CTemplate.accessArea</id>
+                            <relation type="REFERS" entitySpec="org.example.acl.model.AccessArea" joinType="LEFT_OUTER_JOIN"/>
+                        </NodeSpec>
+                        <NodeSpec name="uuid" javaType="STRING" jdbcType="CHAR" columnName="UUID" nullable="NOT_NULL" length="60" optimisticLock="false">
+                            <id>org.example.etl.model.CTemplate.uuid</id>
+                        </NodeSpec>
+                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" length="50" optimisticLock="true">
+                            <id>org.example.etl.model.CTemplate.modifiedAt</id>
+                        </NodeSpec>
+                        <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
+                            <id>org.example.etl.model.CTemplate.name</id>
+                        </NodeSpec>
+                        <NodeSpec name="contents" optimisticLock="false">
+                            <id>org.example.etl.model.CTemplate.contents</id>
+                            <relation type="OWNS" entitySpec="org.example.etl.model.CTemplateContent" backReference="org.example.etl.model.CTemplateContent.template" joinType="LEFT_OUTER_JOIN"/>
+                        </NodeSpec>
+                        <NodeSpec name="businessTypes" optimisticLock="false">
+                            <id>org.example.etl.model.CTemplate.businessTypes</id>
+                            <relation type="OWNS" entitySpec="org.example.etl.model.CTemplateBusinessType" backReference="org.example.etl.model.CTemplateBusinessType.template" ownwardJoin="org.example.etl.model.CTemplateBusinessType.businessType" joinType="LEFT_OUTER_JOIN"/>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints>
+                        <PrimaryKey name="PK_XTEMPLATE" nodes="org.example.etl.model.CTemplate.id"/>
+                        <ForeignKey name="FK_XTEMPLATE_ACCESS_AREA" fromKey="org.example.etl.model.CTemplate.accessArea" toKey="org.example.acl.model.AccessArea.id"/>
+                        <UniqueConstraint name="UC_XTEMPLATE_1" nodes="org.example.etl.model.CTemplate.name org.example.etl.model.CTemplate.accessArea"/>
+                    </Constraints>
+                </EntitySpec>
+                <EntitySpec className="org.example.etl.model.CTemplateContent" tableName="XSS_XTEMPLATE_CONTENT" abstract="false">
+                    <queryClass>org.example.etl.query.QCTemplateContent</queryClass>
+                    <NodeSpecs>
+                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" keyGenSpec="FRAMEWORK" pk="true">
+                            <id>org.example.etl.model.CTemplateContent.id</id>
+                        </NodeSpec>
+                        <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
+                            <id>org.example.etl.model.CTemplateContent.name</id>
+                        </NodeSpec>
+                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" length="50" optimisticLock="true">
+                            <id>org.example.etl.model.CTemplateContent.modifiedAt</id>
+                        </NodeSpec>
+                        <NodeSpec name="template" jdbcType="BIGINT" columnName="XTEMPLATE_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>org.example.etl.model.CTemplateContent.template</id>
+                            <relation type="REFERS" entitySpec="org.example.etl.model.CTemplate" joinType="LEFT_OUTER_JOIN"/>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints>
+                        <PrimaryKey name="PK_XTEMPLATE_CONTENT" nodes="org.example.etl.model.CTemplateContent.id"/>
+                        <ForeignKey name="FK_XTEMPLATE_CONTENT_XTEMPLATE" fromKey="org.example.etl.model.CTemplateContent.template" toKey="org.example.etl.model.CTemplate.id"/>
+                    </Constraints>
+                </EntitySpec>
+                <EntitySpec className="org.example.etl.model.CBusinessType" tableName="XSS_XDATATYPE" abstract="false">
+                    <queryClass>org.example.etl.query.QCBusinessType</queryClass>
+                    <NodeSpecs>
+                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" keyGenSpec="FRAMEWORK" pk="true">
+                            <id>org.example.etl.model.CBusinessType.id</id>
+                        </NodeSpec>
+                        <NodeSpec name="accessArea" jdbcType="BIGINT" columnName="ACCESS_AREA_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>org.example.etl.model.CBusinessType.accessArea</id>
+                            <relation type="REFERS" entitySpec="org.example.acl.model.AccessArea" joinType="LEFT_OUTER_JOIN"/>
+                        </NodeSpec>
+                        <NodeSpec name="uuid" javaType="STRING" jdbcType="CHAR" columnName="UUID" nullable="NOT_NULL" length="60" optimisticLock="false">
+                            <id>org.example.etl.model.CBusinessType.uuid</id>
+                        </NodeSpec>
+                        <NodeSpec name="modifiedAt" javaType="LONG" jdbcType="TIMESTAMP" columnName="MODIFIED_AT" nullable="NOT_NULL" length="50" optimisticLock="true">
+                            <id>org.example.etl.model.CBusinessType.modifiedAt</id>
+                        </NodeSpec>
+                        <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="NAME" nullable="NOT_NULL" length="50" optimisticLock="false">
+                            <id>org.example.etl.model.CBusinessType.name</id>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints>
+                        <PrimaryKey name="PK_XDATATYPE" nodes="org.example.etl.model.CBusinessType.id"/>
+                        <ForeignKey name="FK_XDATATYPE_ACCESS_AREA" fromKey="org.example.etl.model.CBusinessType.accessArea" toKey="org.example.acl.model.AccessArea.id"/>
+                        <UniqueConstraint name="UC_XDATATYPE_1" nodes="org.example.etl.model.CBusinessType.name org.example.etl.model.CBusinessType.accessArea"/>
+                    </Constraints>
+                </EntitySpec>
+                <EntitySpec className="org.example.etl.model.CTemplateBusinessType" tableName="XSS_XTEMPLATE_DATATYPE" abstract="false">
+                    <queryClass>org.example.etl.query.QCTemplateBusinessType</queryClass>
+                    <NodeSpecs>
+                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" keyGenSpec="FRAMEWORK" pk="true">
+                            <id>org.example.etl.model.CTemplateBusinessType.id</id>
+                        </NodeSpec>
+                        <NodeSpec name="template" jdbcType="BIGINT" columnName="XTEMPLATE_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>org.example.etl.model.CTemplateBusinessType.template</id>
+                            <relation type="REFERS" entitySpec="org.example.etl.model.CTemplate" joinType="LEFT_OUTER_JOIN"/>
+                        </NodeSpec>
+                        <NodeSpec name="businessType" jdbcType="BIGINT" columnName="XDATATYPE_ID" nullable="NOT_NULL" optimisticLock="false">
+                            <id>org.example.etl.model.CTemplateBusinessType.businessType</id>
+                            <relation type="REFERS" entitySpec="org.example.etl.model.CBusinessType" joinType="LEFT_OUTER_JOIN"/>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints>
+                        <PrimaryKey name="PK_XTEMPLATE_DATATYPE" nodes="org.example.etl.model.CTemplateBusinessType.id"/>
+                        <ForeignKey name="FK_XTEMPLATE_DATATYPE_XTEMPLATE" fromKey="org.example.etl.model.CTemplateBusinessType.template" toKey="org.example.etl.model.CTemplate.id"/>
+                        <ForeignKey name="FK_XTEMPLATE_DATATYPE_XDATATYPE" fromKey="org.example.etl.model.CTemplateBusinessType.businessType" toKey="org.example.etl.model.CBusinessType.id"/>
+                    </Constraints>
+                </EntitySpec>
+                <EntitySpec className="org.example.etl.model.CRawData" tableName="XSS_XRAWDATA" abstract="false">
+                    <queryClass>org.example.etl.query.QCRawData</queryClass>
+                    <NodeSpecs>
+                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="ID" nullable="NOT_NULL" optimisticLock="false" keyGenSpec="FRAMEWORK" pk="true">
+                            <id>org.example.etl.model.CRawData.id</id>
+                        </NodeSpec>
+                        <NodeSpec name="data" javaType="BYTE_ARRAY" jdbcType="BLOB" columnName="DATA" nullable="NOT_NULL" optimisticLock="false">
+                            <id>org.example.etl.model.CRawData.data</id>
+                        </NodeSpec>
+                        <NodeSpec name="characterEncoding" javaType="STRING" jdbcType="VARCHAR" columnName="CHARACTER_ENCODING" nullable="NULL" length="50" optimisticLock="false">
+                            <id>org.example.etl.model.CRawData.characterEncoding</id>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints>
+                        <PrimaryKey name="PK_XRAWDATA" nodes="org.example.etl.model.CRawData.id"/>
+                    </Constraints>
+                </EntitySpec>
             </EntitySpecs>
         </Definitions>
     </contents>

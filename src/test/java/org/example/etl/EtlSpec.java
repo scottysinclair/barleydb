@@ -70,6 +70,11 @@ public class EtlSpec extends PlatformSpec {
         excludeForeignKeyConstraint(new StaticRelation(XmlSyntaxModel.structure));
         excludeForeignKeyConstraint(new StaticRelation(CsvSyntaxModel.structure));
         renameForeignKeyConstraint(new StaticRelation(XmlMapping.subSyntax), "FK_XML_MAPPING_SUBSYNTAX_MODEL");
+
+        excludeForeignKeyConstraint(new StaticRelation(CXmlSyntaxModel.structure));
+        excludeForeignKeyConstraint(new StaticRelation(CCsvSyntaxModel.structure));
+        renameForeignKeyConstraint(new StaticRelation(CXmlMapping.subSyntax), "FK_CXML_MAPPING_SUBSYNTAX_MODEL");
+
     }
 
     @Override
@@ -89,7 +94,22 @@ public class EtlSpec extends PlatformSpec {
                 TemplateContent.class,
                 BusinessType.class,
                 TemplateBusinessType.class,
-                RawData.class
+                RawData.class,
+                //copy
+                CSyntaxModel.class,
+                CXmlSyntaxModel.class,
+                CXmlStructure.class,
+                CXmlMapping.class,
+                CCsvSyntaxModel.class,
+                CCsvStructure.class,
+                CCsvStructureField.class,
+                CCsvMapping.class,
+                CTemplate.class,
+                CTemplateContent.class,
+                CBusinessType.class,
+                CTemplateBusinessType.class,
+                CRawData.class
+
         };
     }
 
@@ -248,5 +268,145 @@ public class EtlSpec extends PlatformSpec {
 
         public static final NodeSpec characterEncoding = optionalVarchar50();
     }
+
+    /*
+     * COPY
+     *
+     */
+
+    @AbstractEntity("XSS_XSYNTAX_MODEL")
+    public static class CSyntaxModel implements TopLevelModel {
+
+        public static final NodeSpec structureType = mandatoryEnum(StructureType.class);
+
+        public static final NodeSpec syntaxType = mandatoryEnum(SyntaxType.class);
+
+        public static final NodeSpec user = optionallyRefersTo(User.class);
+
+        /**
+         * We don't have a getter or setter for this because the subclass will have the correct methods
+         * for the real association.
+         */
+        @SuppressFromGeneratedCode
+        public static final NodeSpec structure = mandatoryLongValue("STRUCTURE_ID");
+    }
+
+    @Entity("XSS_XXMLSTRUCTURE")
+    public static class CXmlStructure implements TopLevelModel {
+    }
+
+    @ExtendsEntity
+    public static class CXmlSyntaxModel extends CSyntaxModel {
+
+        public static final NodeSpec structureType = mandatoryFixedEnum(StructureType.class, StructureType.XML);
+
+        public static final NodeSpec structure = dependsOn(CXmlStructure.class, "STRUCTURE_ID");
+
+        public static final NodeSpec mappings = sortedBy(CXmlMapping.xpath, ownsMany(CXmlMapping.class, CXmlMapping.syntax));
+    }
+
+    @Entity("XSS_XXML_MAPPING")
+    public static class CXmlMapping {
+
+        public static final NodeSpec id = longPrimaryKey();
+
+        public static final NodeSpec syntax = mandatoryRefersTo(CXmlSyntaxModel.class);
+
+        public static final NodeSpec subSyntax = optionallyOwns(CXmlSyntaxModel.class, "SUB_SYNTAX_ID");
+
+        public static final NodeSpec xpath = mandatoryVarchar150();
+
+        public static final NodeSpec targetFieldName = mandatoryVarchar150();
+    }
+
+    @ExtendsEntity
+    public static class CCsvSyntaxModel extends CSyntaxModel {
+
+        public static final NodeSpec structureType = mandatoryFixedEnum(StructureType.class, StructureType.CSV);
+
+        public static final NodeSpec structure = dependsOn(CCsvStructure.class, "STRUCTURE_ID");
+
+        public static final NodeSpec mappings = sortedBy(CCsvMapping.structureField, ownsMany(CCsvMapping.class, CCsvMapping.syntax));
+    }
+
+    @Entity("XSS_XCSVSTRUCTURE")
+    public static class CCsvStructure implements TopLevelModel {
+
+        public static final NodeSpec headerBasedMapping = mandatoryBooleanValue();
+
+        public static final NodeSpec fields = ownsMany(CCsvStructureField.class, CCsvStructureField.structure);
+    }
+
+    @Entity("XSS_XCSVSTRUCTURE_FIELD")
+    public static class CCsvStructureField {
+
+        public static final NodeSpec id = longPrimaryKey();
+
+        public static final NodeSpec name = optionalVarchar50();
+
+        public static final NodeSpec structure = mandatoryRefersTo(CCsvStructure.class);
+
+        public static final NodeSpec columnIndex = mandatoryIntegerValue();
+
+        public static final NodeSpec optional = mandatoryBooleanValue();
+
+    }
+
+    @Entity("XSS_XCSV_MAPPING")
+    public static class CCsvMapping {
+
+        public static final NodeSpec id = longPrimaryKey();
+
+        public static final NodeSpec syntax = mandatoryRefersTo(CCsvSyntaxModel.class);
+
+        public static final NodeSpec structureField = mandatoryRefersTo(CCsvStructureField.class);
+
+        public static final NodeSpec targetFieldName = mandatoryVarchar150();
+    }
+
+    @Entity("XSS_XTEMPLATE")
+    public static class CTemplate implements TopLevelModel {
+
+        public static final NodeSpec contents = ownsMany(CTemplateContent.class, CTemplateContent.template);
+
+        public static final NodeSpec businessTypes = ownsMany(CTemplateBusinessType.class, CTemplateBusinessType.template, CTemplateBusinessType.businessType);
+    }
+
+    @Entity("XSS_XTEMPLATE_CONTENT")
+    public static class CTemplateContent {
+
+        public static final NodeSpec id = longPrimaryKey();
+
+        public static final NodeSpec name = name();
+
+        public static final NodeSpec modifiedAt = optimisticLock();
+
+        public static final NodeSpec template = mandatoryRefersTo(CTemplate.class);
+    }
+
+    @Entity("XSS_XTEMPLATE_DATATYPE")
+    public static class CTemplateBusinessType {
+
+        public static final NodeSpec id = longPrimaryKey();
+
+        public static final NodeSpec template = mandatoryRefersTo(CTemplate.class);
+
+        public static final NodeSpec businessType = mandatoryRefersTo(CBusinessType.class);
+    }
+
+    @Entity("XSS_XDATATYPE")
+    public static class CBusinessType implements TopLevelModel {
+    }
+
+    @Entity("XSS_XRAWDATA")
+    public static class CRawData {
+        public static final NodeSpec id = longPrimaryKey();
+
+        public static final NodeSpec data = mandatoryNonStreamingLob();
+
+        public static final NodeSpec characterEncoding = optionalVarchar50();
+    }
+
+
 
 }

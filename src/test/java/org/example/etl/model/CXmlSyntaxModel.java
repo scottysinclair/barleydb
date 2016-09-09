@@ -15,14 +15,14 @@ import scott.barleydb.api.core.proxy.ToManyNodeProxyHelper;
  *
  * @author scott
  */
-public class XmlSyntaxModel extends SyntaxModel {
+public class CXmlSyntaxModel extends CSyntaxModel {
   private static final long serialVersionUID = 1L;
 
   private final ValueNode structureType;
   private final RefNodeProxyHelper structure;
   private final ToManyNodeProxyHelper mappings;
 
-  public XmlSyntaxModel(Entity entity) {
+  public CXmlSyntaxModel(Entity entity) {
     super(entity);
     structureType = entity.getChild("structureType", ValueNode.class, true);
     structure = new RefNodeProxyHelper(entity.getChild("structure", RefNode.class, true));
@@ -37,22 +37,22 @@ public class XmlSyntaxModel extends SyntaxModel {
     this.structureType.setValue(structureType);
   }
 
-  public XmlStructure getStructure() {
+  public CXmlStructure getStructure() {
     return super.getFromRefNode(structure.refNode);
   }
 
-  public void setStructure(XmlStructure structure) {
+  public void setStructure(CXmlStructure structure) {
     setToRefNode(this.structure.refNode, structure);
   }
 
-  public List<XmlMapping> getMappings() {
+  public List<CXmlMapping> getMappings() {
     return super.getListProxy(mappings.toManyNode);
   }
 
-  public void setMappings(List<XmlMapping> mappings) {
-     List<XmlMapping> copy = new ArrayList<>(mappings);
-     this.mappings.toManyNode.clear();
-     for (org.example.etl.model.XmlMapping item: copy) {
+  public void setMappings(List<CXmlMapping> mappings) {
+     List<CXmlMapping> copy = new ArrayList<>(mappings);
+    this.mappings.toManyNode.clear();
+     for (org.example.etl.model.CXmlMapping item: copy) {
           super.getListProxy(this.mappings.toManyNode).add( item );
      }
   }

@@ -10,12 +10,12 @@ package scott.barleydb.test;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -58,7 +58,7 @@ import org.example.etl.model.CsvMapping;
 import org.example.etl.model.CsvStructure;
 import org.example.etl.model.CsvStructureField;
 import org.example.etl.model.CsvSyntaxModel;
-import org.example.etl.model.MiProxyFactory;
+import org.example.etl.model.EtlProxyFactory;
 import org.example.etl.model.SyntaxModel;
 import org.example.etl.model.Template;
 import org.example.etl.model.TemplateContent;
@@ -330,7 +330,7 @@ public abstract class TestBase {
                 new QBusinessType(),
                 new QRawData());
 
-        env.getDefinitions("org.example.etl").registerProxyFactory(new MiProxyFactory());
+        env.getDefinitions("org.example.etl").registerProxyFactory(new EtlProxyFactory());
 
         transformXml = "<?xml version=\"1.0\"?>" +
                 "<xsl:stylesheet version=\"1.0\" " +

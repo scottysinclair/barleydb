@@ -1,14 +1,10 @@
 package org.example.etl.model;
 
-import java.util.List;
-
 import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.ValueNode;
 import scott.barleydb.api.core.proxy.AbstractCustomEntityProxy;
 import scott.barleydb.api.core.entity.RefNode;
 import scott.barleydb.api.core.proxy.RefNodeProxyHelper;
-import scott.barleydb.api.core.entity.ToManyNode;
-import scott.barleydb.api.core.proxy.ToManyNodeProxyHelper;
 
 import org.example.acl.model.AccessArea;
 
@@ -17,7 +13,7 @@ import org.example.acl.model.AccessArea;
  *
  * @author scott
  */
-public class Template extends AbstractCustomEntityProxy {
+public class CBusinessType extends AbstractCustomEntityProxy {
   private static final long serialVersionUID = 1L;
 
   private final ValueNode id;
@@ -25,18 +21,14 @@ public class Template extends AbstractCustomEntityProxy {
   private final ValueNode uuid;
   private final ValueNode modifiedAt;
   private final ValueNode name;
-  private final ToManyNodeProxyHelper contents;
-  private final ToManyNodeProxyHelper businessTypes;
 
-  public Template(Entity entity) {
+  public CBusinessType(Entity entity) {
     super(entity);
     id = entity.getChild("id", ValueNode.class, true);
     accessArea = new RefNodeProxyHelper(entity.getChild("accessArea", RefNode.class, true));
     uuid = entity.getChild("uuid", ValueNode.class, true);
     modifiedAt = entity.getChild("modifiedAt", ValueNode.class, true);
     name = entity.getChild("name", ValueNode.class, true);
-    contents = new ToManyNodeProxyHelper(entity.getChild("contents", ToManyNode.class, true));
-    businessTypes = new ToManyNodeProxyHelper(entity.getChild("businessTypes", ToManyNode.class, true));
   }
 
   public Long getId() {
@@ -77,27 +69,5 @@ public class Template extends AbstractCustomEntityProxy {
 
   public void setName(String name) {
     this.name.setValue(name);
-  }
-
-  public List<TemplateContent> getContents() {
-    return super.getListProxy(contents.toManyNode);
-  }
-
-  public void setContents(List<TemplateContent> contents) {
-    this.contents.toManyNode.clear();
-     for (org.example.etl.model.TemplateContent item: contents) {
-          super.getListProxy(this.contents.toManyNode).add( item );
-     }
-  }
-
-  public List<BusinessType> getBusinessTypes() {
-    return super.getListProxy(businessTypes.toManyNode);
-  }
-
-  public void setBusinessTypes(List<BusinessType> businessTypes) {
-//    this.businessTypes.toManyNode.clear();
-//     for (org.example.etl.model.TemplateBusinessType item: businessTypes) {
-//          super.getListProxy(this.businessTypes.toManyNode).add( item );
-//     }
   }
 }
