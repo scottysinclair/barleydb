@@ -48,6 +48,7 @@ import org.example.etl.model.CXmlSyntaxModel;
 import org.example.etl.model.XmlMapping;
 import org.example.etl.model.XmlStructure;
 import org.example.etl.model.XmlSyntaxModel;
+import org.example.etl.query.QCXmlSyntaxModel;
 import org.example.etl.query.QXmlStructure;
 import org.example.etl.query.QXmlSyntaxModel;
 import org.junit.Before;
@@ -79,14 +80,14 @@ public class TestEtlDozer extends TestBase {
 
     private EntityContext ctxSource;
     private EntityContext ctxDest;
-    private EtlDozerConfiguration cfg;
+    private EtlDozerContext cfg;
 
     @Before
     public void setup() throws Exception {
         super.setup();
         ctxSource = new MiEntityContext(env);
         ctxDest = new MiEntityContext(env);
-        cfg = new EtlDozerConfiguration(ctxDest);
+        cfg = new EtlDozerContext(ctxDest);
 
         System.out.println("==============================================================");
         System.out.println("==================  MAPPING TABLE                =============");
@@ -94,6 +95,8 @@ public class TestEtlDozer extends TestBase {
         System.out.println(cfg);
         System.out.println();
         System.out.println();
+
+        env.getDefaultRuntimeProperties().disableOptimisticLocks(true);
     }
 
     @Test
@@ -149,6 +152,54 @@ public class TestEtlDozer extends TestBase {
         exec2.executeLeftToRight( query );
     }
 
+    @Test
+    public void testEtlXmlSyntax3() throws SortException {
+        /*
+         * first ETL the structures, then the syntaxes
+         */
+        System.out.println("==============================================================");
+        System.out.println("==================  FIRST STRUCTURES             =============");
+        System.out.println("==============================================================");
+        EtlDozerExecution<XmlStructure, CXmlStructure> exec1 = new EtlDozerExecution<>(cfg, ctxSource, ctxDest, XmlStructure.class, CXmlStructure.class);
+        exec1.executeLeftToRight( new QXmlStructure() );
+
+        System.out.println("==============================================================");
+        System.out.println("==================  NOW SYNTAXES                 =============");
+        System.out.println("==============================================================");
+        /*
+         * then ETL the sytaxes and their mappings
+         */
+        EtlDozerExecution<XmlSyntaxModel, CXmlSyntaxModel> exec2 = new EtlDozerExecution<>(cfg, ctxSource, ctxDest, XmlSyntaxModel.class, CXmlSyntaxModel.class);
+        QXmlSyntaxModel query = new QXmlSyntaxModel();
+        query.joinToAccessArea().joinToParent();
+        query.joinToUser();
+        query.joinToMappings().joinToSubSyntax().joinToMappings();
+        exec2.executeLeftToRight( query );
+
+        /*
+         * then sync everything back the other way
+         */
+        System.out.println("==============================================================");
+        System.out.println("==================  BACK THE OTHER WAY           =============");
+        System.out.println("==============================================================");
+
+        ctxSource.clear();
+        ctxDest.clear();
+        /*
+         * ETL a whole syntax and structure across with no lazy loading
+         */
+        EtlDozerExecution<CXmlSyntaxModel, XmlSyntaxModel> exec = new EtlDozerExecution<>(cfg, ctxSource, ctxDest, CXmlSyntaxModel.class, XmlSyntaxModel.class);
+
+        QCXmlSyntaxModel cquery = new QCXmlSyntaxModel();
+        cquery.joinToAccessArea().joinToParent();
+        cquery.joinToUser();
+        cquery.joinToMappings().joinToSubSyntax().joinToMappings();
+        cquery.joinToStructure();
+
+        exec.executeLeftToRight( cquery );
+
+    }
+
 
     @Override
     protected void prepareData() throws Exception {
@@ -158,12 +209,14 @@ public class TestEtlDozer extends TestBase {
 
 }
 
-class EtlDozerConfiguration {
+class EtlDozerContext {
 
-    private DozerBeanMapper mapper;
-    private BeanMappingBuilder builder;
+    private final DozerBeanMapper mapper;
+    private final BeanMappingBuilder builder;
+    private final Map<Object,Object> factoryCache = new IdentityHashMap<>();
+    private final Map<Object,Object> alreadyMapped = new IdentityHashMap<>();
 
-    public EtlDozerConfiguration(final EntityContext ctx) {
+    public EtlDozerContext(final EntityContext ctx) {
         builder = new BeanMappingBuilder() {
               protected void configure() {
                 mapping(XmlSyntaxModel.class, CXmlSyntaxModel.class, TypeMappingOptions.beanFactory("MYBF"));
@@ -178,9 +231,6 @@ class EtlDozerConfiguration {
         mapper = new DozerBeanMapper();
         mapper.addMapping(builder);
         Map<String, BeanFactory> facs = new HashMap<String,BeanFactory>();
-
-        final Map<Object,Object> factoryCache = new IdentityHashMap<>();
-        final Map<Object,Object> alreadyMapped = new IdentityHashMap<>();
 
         /*
          * do not remap objects which have been mapped before
@@ -223,6 +273,11 @@ class EtlDozerConfiguration {
         mapper.setFactories(facs);
     }
 
+    public void clearReferenceCache() {
+        factoryCache.clear();
+        alreadyMapped.clear();
+    }
+
     public <T> T map(Object object, Class<T> destinationClass) {
         return mapper.map(object, destinationClass);
     }
@@ -246,14 +301,14 @@ class EtlDozerConfiguration {
 
 class EtlDozerExecution<LEFT,RIGHT> {
 
-    private final EtlDozerConfiguration configuration;
+    private final EtlDozerContext etlDozerContext;
     private final EntityContext ctxSource;
     private final EntityContext ctxDest;
     private final Class<RIGHT> rightClass;
 
 
-    public EtlDozerExecution(EtlDozerConfiguration configuration, EntityContext ctxSource, EntityContext ctxDest, Class<LEFT> leftClass, Class<RIGHT> rightClass) {
-        this.configuration = configuration;
+    public EtlDozerExecution(EtlDozerContext etlDozerContext, EntityContext ctxSource, EntityContext ctxDest, Class<LEFT> leftClass, Class<RIGHT> rightClass) {
+        this.etlDozerContext = etlDozerContext;
         this.ctxSource = ctxSource;
         this.ctxDest = ctxDest;
         this.rightClass = rightClass;
@@ -262,7 +317,7 @@ class EtlDozerExecution<LEFT,RIGHT> {
     public void executeLeftToRight(QueryObject<LEFT> query) throws SortException  {
         PersistRequest pr = new PersistRequest();
         System.out.println("=============== QUERY STARTING");
-       QueryResult<LEFT>result  = ctxSource.performQuery(query);
+        QueryResult<LEFT>result  = ctxSource.performQuery(query);
         EntityContextState state = ctxDest.beginLoading();
         try {
             System.out.println("");
@@ -292,7 +347,7 @@ class EtlDozerExecution<LEFT,RIGHT> {
     }
 
     private RIGHT transformLeftToRight(LEFT left) {
-        return configuration.map(left, rightClass);
+        return etlDozerContext.map(left, rightClass);
     }
 
 }

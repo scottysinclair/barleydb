@@ -10,12 +10,12 @@ package scott.barleydb.server.jdbc.helper;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -42,6 +42,7 @@ import scott.barleydb.api.core.types.JdbcType;
 import scott.barleydb.api.exception.SortException;
 import scott.barleydb.api.exception.execution.TypeConversionException;
 import scott.barleydb.api.exception.execution.TypeConverterNotFoundException;
+import scott.barleydb.api.query.RuntimeProperties;
 import scott.barleydb.api.specification.EnumSpec;
 import scott.barleydb.api.specification.EnumValueSpec;
 import scott.barleydb.server.jdbc.JdbcEntityContextServices;
@@ -51,12 +52,18 @@ public abstract class PreparedStatementHelper<PREPARING_EX extends SortException
 
     private static final Logger LOG = LoggerFactory.getLogger(PreparedStatementHelper.class);
 
+    private final RuntimeProperties runtimeProps;
     private final JdbcEntityContextServices entityContextServices;
     private final Definitions definitions;
 
-    public PreparedStatementHelper(JdbcEntityContextServices entityContextServices, Definitions definitions) {
+    public PreparedStatementHelper(RuntimeProperties runtimeProps, JdbcEntityContextServices entityContextServices, Definitions definitions) {
+        this.runtimeProps = runtimeProps;
         this.entityContextServices = entityContextServices;
         this.definitions = definitions;
+    }
+
+    public RuntimeProperties getRuntimeProps() {
+        return runtimeProps;
     }
 
     public void setParameter(final PreparedStatement ps, final int index, final Node node) throws PREPARING_EX {

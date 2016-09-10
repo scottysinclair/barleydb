@@ -10,12 +10,12 @@ package scott.barleydb.server.jdbc;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -292,8 +292,8 @@ public class JdbcEntityContextServices implements IEntityContextServices {
         }
     }
 
-    protected Persister newPersister(Environment env, String namespace) {
-        return new Persister(env, namespace, this);
+    protected Persister newPersister(RuntimeProperties runtimeProps, Environment env, String namespace) {
+        return new Persister(runtimeProps, env, namespace, this);
     }
 
     @Override
@@ -313,7 +313,7 @@ public class JdbcEntityContextServices implements IEntityContextServices {
             LOG.debug("Persist Analysis Results: \n{}", analyser.report());
         }
 
-        Persister persister = newPersister(env, analyser.getEntityContext().getNamespace());
+        Persister persister = newPersister(runtimeProperties, env, analyser.getEntityContext().getNamespace());
         EntityContext entityContext = analyser.getEntityContext();
         if (entityContext.isUser()) {
             throw new IllegalPersistStateException("EntityContext must be set to internal.");

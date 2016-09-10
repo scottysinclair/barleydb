@@ -10,12 +10,12 @@ package scott.barleydb.server.jdbc.persist;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -39,6 +39,7 @@ import scott.barleydb.api.exception.execution.jdbc.SortJdbcException;
 import scott.barleydb.api.exception.execution.persist.IllegalPersistStateException;
 import scott.barleydb.api.exception.execution.persist.PreparingPersistStatementException;
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
+import scott.barleydb.api.query.RuntimeProperties;
 import scott.barleydb.server.jdbc.JdbcEntityContextServices;
 import scott.barleydb.server.jdbc.vendor.Database;
 
@@ -52,11 +53,13 @@ abstract class BatchExecuter {
 
     private static final Logger LOG = LoggerFactory.getLogger(BatchExecuter.class);
 
+    private final RuntimeProperties runtimeProps;
     private final OperationGroup group;
     private final String operationName;
     private final Database database;
 
-    public BatchExecuter(OperationGroup group, String operationName, Database database) {
+    public BatchExecuter(RuntimeProperties runtimeProps, OperationGroup group, String operationName, Database database) {
+        this.runtimeProps = runtimeProps;
         this.group = group;
         this.operationName = operationName;
         this.database = database;
@@ -66,7 +69,7 @@ abstract class BatchExecuter {
         if (group.getEntities().isEmpty()) {
             return;
         }
-        try ( PreparedStatementPersistCache psCache = new PreparedStatementPersistCache(jdbcEntityContextServices, definitions);) {
+        try ( PreparedStatementPersistCache psCache = new PreparedStatementPersistCache(runtimeProps, jdbcEntityContextServices, definitions);) {
             PreparedStatement psLast = null;
             List<Entity> entities = new LinkedList<>();
             for (Entity entity : group.getEntities()) {

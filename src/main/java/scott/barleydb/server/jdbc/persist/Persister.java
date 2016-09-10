@@ -10,12 +10,12 @@ package scott.barleydb.server.jdbc.persist;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -51,6 +51,7 @@ import scott.barleydb.api.exception.execution.persist.PrimaryKeyExistsException;
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
 import scott.barleydb.api.exception.execution.query.SortQueryException;
 import scott.barleydb.api.persist.PersistAnalyser;
+import scott.barleydb.api.query.RuntimeProperties;
 import scott.barleydb.api.specification.KeyGenSpec;
 import scott.barleydb.server.jdbc.JdbcEntityContextServices;
 import scott.barleydb.server.jdbc.persist.audit.AuditInformation;
@@ -63,11 +64,17 @@ public class Persister {
 
     private static final Logger LOG = LoggerFactory.getLogger(Persister.class);
 
+    private final RuntimeProperties runtimeProps;
     private final Environment env;
     private final String namespace;
     private final JdbcEntityContextServices entityContextServices;
 
     public Persister(Environment env, String namespace, JdbcEntityContextServices entityContextServices) {
+        this(env.getDefaultRuntimeProperties(), env, namespace, entityContextServices);
+    }
+
+    public Persister(RuntimeProperties runtimeProps, Environment env, String namespace, JdbcEntityContextServices entityContextServices) {
+        this.runtimeProps = runtimeProps;
         this.env = env;
         this.namespace = namespace;
         this.entityContextServices = entityContextServices;
@@ -220,7 +227,9 @@ public class Persister {
             if (databaseEntity == null) {
                 throw new EntityMissingException(entity.getEntityType(), entity.getKey().getValue());
             }
-            verifyOptimisticLock(entity, databaseEntity);
+            if (!runtimeProps.isDisabledOptimisticLocks()) {
+                verifyOptimisticLock(entity, databaseEntity);
+            }
         }
     }
 
@@ -546,7 +555,7 @@ public class Persister {
 
     private void insert(OperationGroup createGroup, final Long optimisticLockTime, final Database database) throws SortPersistException, SortJdbcException  {
         logStep("Performing inserts");
-        BatchExecuter batchExecuter = new BatchExecuter(createGroup, "insert", database) {
+        BatchExecuter batchExecuter = new BatchExecuter(runtimeProps, createGroup, "insert", database) {
             @Override
             protected PreparedStatement prepareStatement(PreparedStatementPersistCache psCache, Entity entity) throws SortPersistException {
                 return psCache.prepareInsertStatement(entity, optimisticLockTime);
@@ -567,7 +576,7 @@ public class Persister {
 
     private void update(OperationGroup updateGroup, final Long newOptimisticLockTime, final Database database) throws PreparingPersistStatementException, SortJdbcException, SortPersistException {
         logStep("Performing updates");
-        BatchExecuter batchExecuter = new BatchExecuter(updateGroup, "update", database) {
+        BatchExecuter batchExecuter = new BatchExecuter(runtimeProps, updateGroup, "update", database) {
             @Override
             protected PreparedStatement prepareStatement(PreparedStatementPersistCache psCache, Entity entity) throws SortPersistException {
                 return psCache.prepareUpdateStatement(entity, newOptimisticLockTime);
@@ -586,7 +595,7 @@ public class Persister {
 
     private void delete(OperationGroup deleteGroup, final Database database) throws PreparingPersistStatementException, SortPersistException, SortJdbcException {
         logStep("Performing deletes");
-        BatchExecuter batchExecuter = new BatchExecuter(deleteGroup, "delete", database) {
+        BatchExecuter batchExecuter = new BatchExecuter(runtimeProps, deleteGroup, "delete", database) {
             @Override
             protected PreparedStatement prepareStatement(PreparedStatementPersistCache psCache, Entity entity) throws SortPersistException {
                 return psCache.prepareDeleteStatement(entity);

@@ -10,12 +10,12 @@ package scott.barleydb.server.jdbc.persist;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -24,16 +24,17 @@ package scott.barleydb.server.jdbc.persist;
 
 import scott.barleydb.api.config.Definitions;
 import scott.barleydb.api.exception.execution.persist.PreparingPersistStatementException;
+import scott.barleydb.api.query.RuntimeProperties;
 import scott.barleydb.server.jdbc.JdbcEntityContextServices;
 import scott.barleydb.server.jdbc.helper.PreparedStatementHelper;
 
 public class PersistPreparedStatementHelper extends PreparedStatementHelper<PreparingPersistStatementException> {
 
-    public PersistPreparedStatementHelper(JdbcEntityContextServices jdbcEntityContextServices, Definitions definitions) {
-        super(jdbcEntityContextServices, definitions);
+    public PersistPreparedStatementHelper(RuntimeProperties runtimeProps, JdbcEntityContextServices jdbcEntityContextServices, Definitions definitions) {
+        super(runtimeProps, jdbcEntityContextServices, definitions);
     }
-    
-	@Override
+
+    @Override
     public PreparingPersistStatementException newPreparingStatementException(String message) {
         return new PreparingPersistStatementException(message);
     }
