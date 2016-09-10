@@ -1,21 +1,15 @@
 package scott.barleydb.test;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.IdentityHashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.dozer.BeanFactory;
 import org.dozer.CustomFieldMapper;
 import org.dozer.DozerBeanMapper;
 import org.dozer.classmap.ClassMap;
-import org.dozer.classmap.MappingFileData;
 import org.dozer.fieldmap.FieldMap;
 import org.dozer.loader.api.BeanMappingBuilder;
-import org.dozer.loader.api.TypeMappingOption;
 import org.dozer.loader.api.TypeMappingOptions;
 import org.dozer.metadata.ClassMappingMetadata;
 import org.dozer.metadata.FieldMappingMetadata;
@@ -54,20 +48,14 @@ import org.example.etl.model.CXmlSyntaxModel;
 import org.example.etl.model.XmlMapping;
 import org.example.etl.model.XmlStructure;
 import org.example.etl.model.XmlSyntaxModel;
-import org.example.etl.query.QXmlMapping;
 import org.example.etl.query.QXmlStructure;
 import org.example.etl.query.QXmlSyntaxModel;
 import org.junit.Before;
 import org.junit.Test;
 
-import scott.barleydb.api.config.EntityType;
-import scott.barleydb.api.config.NodeType;
-import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityConstraint;
 import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.entity.EntityContextState;
-import scott.barleydb.api.core.entity.ValueNode;
-import scott.barleydb.api.core.types.JavaType;
 import scott.barleydb.api.exception.SortException;
 import scott.barleydb.api.persist.PersistRequest;
 import scott.barleydb.api.query.QueryObject;
@@ -241,10 +229,12 @@ class EtlDozerConfiguration {
 
     public String toString() {
         StringBuilder sb = new StringBuilder();
+        sb.append(String.format("%-40s %-40s %-40s %-40s %-40s%n", "SOURCE ENTITY", "SOURCE PROPERTY", "DEST ENTITY", "DEST PROPERTY", "CUSTOM CONVERTER"));
         for (ClassMappingMetadata cmmd: mapper.getMappingMetadata().getClassMappings()) {
-            sb.append("class mapping from " + cmmd.getSourceClassName() + " to " + cmmd.getDestinationClassName() + "\n");
+            //sb.append("class mapping from " + cmmd.getSourceClassName() + " to " + cmmd.getDestinationClassName() + "\n");
             for (FieldMappingMetadata fmmd: cmmd.getFieldMappings()) {
-                sb.append("  from " + fmmd.getSourceName() + " to " + fmmd.getDestinationName() + " cnv:" + fmmd.getCustomConverter() + "\n");
+                sb.append(String.format("%-40s %-40s %-40s %-40s %-40s%n", cmmd.getSourceClass().getName().toUpperCase(), fmmd.getSourceName().toUpperCase(), cmmd.getDestinationClass().getName().toUpperCase(), fmmd.getDestinationName().toUpperCase(), fmmd.getCustomConverter() != null ? fmmd.getCustomConverter().toUpperCase() : "NONE"));
+              //  sb.append("  from " + fmmd.getSourceName() + " to " + fmmd.getDestinationName() + " cnv:" + fmmd.getCustomConverter() + "\n");
             }
         }
         return sb.toString();
