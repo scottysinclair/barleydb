@@ -10,12 +10,12 @@ package scott.barleydb.api.config;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -54,19 +54,24 @@ public class Definitions implements Serializable {
     private DefinitionsSet definitionsSet;
 
     /**
-     * contains the standard query (no joins, no conditions) for each entity type
+     * contains the standard query (no joins, no conditions) for each entity
+     * type
      */
     private final QueryRegistry internalQueryRegistry = new QueryRegistry();
 
     public static Definitions create(DefinitionsSpec definitionsSpec) {
-        Definitions definitions = new Definitions( definitionsSpec.getNamespace() );
-        for (String importedSpec: definitionsSpec.getImports()) {
-            definitions.references.add( importedSpec );
+        Definitions definitions = new Definitions(definitionsSpec.getNamespace());
+        for (String importedSpec : definitionsSpec.getImports()) {
+            definitions.references.add(importedSpec);
         }
-        for (EntitySpec entitySpec: definitionsSpec.getEntitySpecs()) {
+        for (EntitySpec entitySpec : definitionsSpec.getEntitySpecs()) {
             definitions.entities.put(entitySpec.getClassName(), EntityType.create(definitions, entitySpec));
         }
         return definitions;
+    }
+
+    public List<String> getReferences() {
+        return Collections.unmodifiableList(references);
     }
 
     private Definitions(String namespace) {
@@ -94,6 +99,7 @@ public class Definitions implements Serializable {
 
     /**
      * Called when added to a definitions set
+     *
      * @param definitionsSet
      */
     public void setDefinitionsSet(DefinitionsSet definitionsSet) {
@@ -110,6 +116,7 @@ public class Definitions implements Serializable {
 
     /**
      * gets the entity type which matches an interface FQN
+     *
      * @param interfaceName
      * @param mustExist
      * @return
@@ -135,7 +142,7 @@ public class Definitions implements Serializable {
     }
 
     public Collection<EntityType> getEntityTypes() {
-        return Collections.unmodifiableCollection( entities.values() );
+        return Collections.unmodifiableCollection(entities.values());
     }
 
     public List<EntityType> getEntityTypesExtending(EntityType parentEntityType) {
@@ -171,7 +178,7 @@ public class Definitions implements Serializable {
     }
 
     public QueryObject<Object> getQuery(EntityType entityType, boolean mustExist) {
-        return this.<Object> getQuery(entityType.getInterfaceName(), mustExist);
+        return this.<Object>getQuery(entityType.getInterfaceName(), mustExist);
     }
 
     public <T> QueryObject<T> getQuery(Class<T> clazz) {
@@ -179,7 +186,7 @@ public class Definitions implements Serializable {
     }
 
     public <T> QueryObject<T> getQuery(Class<T> clazz, boolean mustExist) {
-        return this.<T> getQuery(clazz.getName(), mustExist);
+        return this.<T>getQuery(clazz.getName(), mustExist);
     }
 
     @SuppressWarnings("unchecked")

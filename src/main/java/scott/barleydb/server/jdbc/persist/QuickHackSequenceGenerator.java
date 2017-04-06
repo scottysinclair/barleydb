@@ -10,12 +10,12 @@ package scott.barleydb.server.jdbc.persist;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -34,12 +34,10 @@ import scott.barleydb.api.query.QueryObject;
 
 public class QuickHackSequenceGenerator implements SequenceGenerator {
     private Environment env;
-    private String namespace;
     private Map<EntityType, Long> values = new HashMap<>();
 
-    public QuickHackSequenceGenerator(Environment env, String namespace) {
+    public QuickHackSequenceGenerator(Environment env) {
         this.env = env;
-        this.namespace = namespace;
     }
 
     @Override
@@ -47,10 +45,10 @@ public class QuickHackSequenceGenerator implements SequenceGenerator {
         Long value = values.get(entityType);
         if (value == null) {
             try {
-                QueryObject<?> qo = new QueryObject<>( entityType.getInterfaceName() );
-                //a new entity context will consume a new connection
-                //as it is not sharing in a transaction.
-                EntityContext entityContext = new EntityContext(env, namespace);
+                QueryObject<?> qo = new QueryObject<>(entityType.getInterfaceName());
+                // a new entity context will consume a new connection
+                // as it is not sharing in a transaction.
+                EntityContext entityContext = new EntityContext(env, entityType.getDefinitions().getNamespace());
                 entityContext.performQuery(qo);
                 Long highest = 0l;
                 for (Entity e : entityContext.getEntitiesByType(entityType)) {
