@@ -10,12 +10,12 @@ package scott.barleydb.build.specification.ddlgen;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -257,14 +257,21 @@ public abstract class GenerateDatabaseScript {
         }
 
         private boolean dependsOn(EntitySpec e1, EntitySpec e2) {
-            Boolean value = cache.get(new DepKey(e1, e2));
+            DepKey key = new DepKey(e1, e2);
+            Boolean value = cache.get(key);
             if (value != null) {
                 return value;
             }
+            cache.put(key, null); //mark that we are processing this dependency by putting null in the map
             for (EntitySpec dep: getDependentEntitySpecs(e1)) {
                 if (dep == e2) {
+                    //found e2 as a dependency
                     cache.put(new DepKey(e1, e2), true);
                     return true;
+                }
+                if (cache.containsKey(new DepKey(dep, e2))) {
+                    //dep -> e2 is currently being calculated, do not recurse further.
+                    continue;
                 }
                 if (dependsOn(dep, e2)) {
                     return true;
@@ -273,6 +280,7 @@ public abstract class GenerateDatabaseScript {
             cache.put(new DepKey(e1, e2), false);
             return false;
         }
+
         private Collection<EntitySpec> getDependentEntitySpecs(EntitySpec spec) {
             Collection<EntitySpec> result = new HashSet<EntitySpec>();
             for (NodeSpec nodeSpec: spec.getNodeSpecs()) {

@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.Writer;
+import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.net.URLClassLoader;
 
@@ -180,7 +181,8 @@ public class JdbcEnvironmentBootstrap {
             for (SpecRegistry reg: specRegistries) {
                 for (DefinitionsSpec spec: reg.getDefinitions()) {
                     String fileName = "create-" + spec.getNamespace().replace('.', '-')  + "-mysql.sql";
-                    writeScripts(new File(scriptsDir, fileName), gen, MySqlSpecConverter.convertSpec(spec));
+                    //writeScripts(new File(scriptsDir, fileName), gen, MySqlSpecConverter.convertSpec(spec));
+                    writeScripts(new File(scriptsDir, fileName), gen, spec);
                 }
             }
         }
@@ -241,38 +243,49 @@ public class JdbcEnvironmentBootstrap {
     }
 
     private void loadDefinitions() throws Exception {
-
+        /*
+         * if the files haven't been preconfigured then find them.
+         */
         if (specFiles.isEmpty()) {
             findXmlSpecFiles();
-
             findSpecFilesInJars();
         }
 
         for (String specFile : specFiles) {
-            SpecRegistry registry = loadDefinitions(specFile);
-            specRegistries.add(registry);
-            for (DefinitionsSpec spec : registry.getDefinitions()) {
-                env.addDefinitions(Definitions.create(spec));
+            try {
+                SpecRegistry registry = loadDefinitions(specFile);
+                if (registry != null) {
+                    specRegistries.add(registry);
+                    for (DefinitionsSpec spec : registry.getDefinitions()) {
+                        env.addDefinitions(Definitions.create(spec));
+                    }
+                }
+            }
+            catch(Exception x) {
+                LOG.error("Could not load spec {}", specFile);
             }
         }
     }
 
     private void findSpecFilesInJars() throws Exception {
         File applicationDir = new File("application");
-        // look for XML files
-        for (File specJar : applicationDir.listFiles(new FilenameFilter() {
+
+        FilenameFilter filter = new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
                 return name.endsWith(".jar");
             }
-        })) {
+        };
+
+        // look for XML files
+        for (File specJar : applicationDir.listFiles(filter)) {
             findSpecFilesInJar(specJar);
         }
     }
 
     private void findSpecFilesInJar(File specJar) throws Exception {
         try (JarFile jar = new JarFile(specJar);) {
-            for (Enumeration<JarEntry> e = jar.entries(); e.hasMoreElements(); e.nextElement()) {
+            for (Enumeration<JarEntry> e = jar.entries(); e.hasMoreElements();) {
                 JarEntry entry = e.nextElement();
                 if (entry.getName().toLowerCase().endsWith("spec.class")) {
                     specFiles.add(convertJarEntryToClassName(entry));
@@ -308,11 +321,14 @@ public class JdbcEnvironmentBootstrap {
         } else {
             ClassLoader loader = getOrCreateSpecClassLoader();
             Class<? extends StaticDefinitions> specClass = (Class<? extends StaticDefinitions>) loader.loadClass(path);
-            SpecRegistry registry = new SpecRegistry();
-            StaticDefinitionProcessor processor = new StaticDefinitionProcessor();
-            processor.process(specClass.newInstance(), registry);
-            return registry;
+            if (!Modifier.isAbstract( specClass.getModifiers() )) {
+                SpecRegistry registry = new SpecRegistry();
+                StaticDefinitionProcessor processor = new StaticDefinitionProcessor();
+                processor.process(specClass.newInstance(), registry);
+                return registry;
+            }
         }
+        return null;
     }
 
     private ClassLoader getOrCreateSpecClassLoader() throws Exception {
@@ -321,12 +337,15 @@ public class JdbcEnvironmentBootstrap {
         }
         File applicationDir = new File("application");
         List<URL> urls = new LinkedList<>();
-        for (File f : applicationDir.listFiles(new FilenameFilter() {
+
+        FilenameFilter filter = new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
                 return name.endsWith(".jar");
             }
-        })) {
+        };
+
+        for (File f : applicationDir.listFiles(filter)) {
             urls.add(f.toURI().toURL());
         }
         if (urls.isEmpty()) {
