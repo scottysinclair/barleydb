@@ -46,6 +46,10 @@ public class CoreSpec {
         return enumSpec(enumSpec, Nullable.NOT_NULL);
     }
 
+    public static NodeSpec optionalEnum(Class<?> enumSpec) {
+        return enumSpec(enumSpec, Nullable.NULL);
+    }
+
     public static NodeSpec enumSpec(Class<?> enumSpecClass, Nullable nullable) {
         NodeSpec spec = new NodeSpec();
         spec.setJavaType(JavaType.ENUM);
@@ -119,7 +123,15 @@ public class CoreSpec {
                 Nullable.NULL);
     }
 
-    public static NodeSpec dependsOn(Class<?> type) {
+    public static NodeSpec mandatoryDependsOn(Class<?> type) {
+        return relation(
+                RelationType.DEPENDS,
+                type,
+                null,
+                Nullable.NULL);
+    }
+
+    public static NodeSpec optionallyDependsOn(Class<?> type) {
         return relation(
                 RelationType.DEPENDS,
                 type,
@@ -127,7 +139,7 @@ public class CoreSpec {
                 Nullable.NOT_NULL);
     }
 
-    public static NodeSpec dependsOn(Class<?> type, String columnName) {
+    public static NodeSpec optionallyDependsOn(Class<?> type, String columnName) {
         return relation(
                 RelationType.DEPENDS,
                 type,

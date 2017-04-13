@@ -25,7 +25,7 @@ package org.example.etl;
  * #L%
  */
 
-import static scott.barleydb.api.specification.CoreSpec.dependsOn;
+import static scott.barleydb.api.specification.CoreSpec.optionallyDependsOn;
 import static scott.barleydb.api.specification.CoreSpec.mandatoryRefersTo;
 import static scott.barleydb.api.specification.CoreSpec.optionallyOwns;
 import static scott.barleydb.api.specification.CoreSpec.optionallyRefersTo;
@@ -142,7 +142,7 @@ public class EtlSpec extends PlatformSpec {
 
         public static final NodeSpec structureType = mandatoryFixedEnum(StructureType.class, StructureType.XML);
 
-        public static final NodeSpec structure = dependsOn(XmlStructure.class, "STRUCTURE_ID");
+        public static final NodeSpec structure = optionallyDependsOn(XmlStructure.class, "STRUCTURE_ID");
 
         public static final NodeSpec mappings = sortedBy(XmlMapping.xpath, ownsMany(XmlMapping.class, XmlMapping.syntax));
     }
@@ -166,7 +166,7 @@ public class EtlSpec extends PlatformSpec {
 
         public static final NodeSpec structureType = mandatoryFixedEnum(StructureType.class, StructureType.CSV);
 
-        public static final NodeSpec structure = dependsOn(CsvStructure.class, "STRUCTURE_ID");
+        public static final NodeSpec structure = optionallyDependsOn(CsvStructure.class, "STRUCTURE_ID");
 
         public static final NodeSpec mappings = sortedBy(CsvMapping.structureField, ownsMany(CsvMapping.class, CsvMapping.syntax));
     }

@@ -10,12 +10,12 @@ package scott.barleydb.api.persist;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -51,6 +52,7 @@ import scott.barleydb.api.exception.execution.persist.EntityMissingException;
 import scott.barleydb.api.exception.execution.persist.IllegalPersistStateException;
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
 import scott.barleydb.api.exception.execution.query.SortQueryException;
+import scott.barleydb.api.persist.PersistRequest.OperationType;
 import scott.barleydb.api.query.QProperty;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.server.jdbc.persist.DatabaseDataSet;
@@ -77,6 +79,10 @@ public class PersistAnalyser implements Serializable {
     private final OperationGroup allGroups[];
 
     private final EntityContext entityContext;
+
+    private final DependencyTree insertDependencyTree = new DependencyTree(false);
+
+    private final DependencyTree deletionDependencyTree = new DependencyTree(false);
 
     private final Set<Entity> loadedDuringAnalysis = new HashSet<>();
 
@@ -195,76 +201,37 @@ public class PersistAnalyser implements Serializable {
     public void analyse(PersistRequest persistRequest) throws SortPersistException, EntityMissingException {
         try {
 
-            setCorrectStateForEntitiesWhichMayOrMayNotBeInTheDatabase(
-                    persistRequest.getToInsert(),
-                    persistRequest.getToUpdate(),
-                    persistRequest.getToSave(),
-                    persistRequest.getToDelete());
+            setCorrectStateForEntitiesWhichMayOrMayNotBeInTheDatabase( persistRequest.getOperations() );
 
-
-            for (Entity entity : persistRequest.getToInsert()) {
-                /*
-                 * top level toInsert entities get analyzed by themselves
-                 * so if they have been analyzed already then clear that.
-                 */
-                removeAnalysis(entity);
-
-                if (entity.getEntityContext() != entityContext) {
-                    throw new IllegalPersistStateException("Cannot persist entity from a different context");
-                }
-                analyseCreate(entity);
-            }
-            for (Entity entity : persistRequest.getToUpdate()) {
-                /*
-                 * top level toInsert entities get analyzed by themselves
-                 * so if they have been analyzed already then clear that.
-                 */
-                removeAnalysis(entity);
-
-                if (entity.getEntityContext() != entityContext) {
-                    throw new IllegalPersistStateException("Cannot persist entity from a different context");
-                }
-                analyseUpdate(entity);
-            }
-
-            for (Entity entity : persistRequest.getToSave()) {
-                /*
-                 * top level toSave entities get analyzed by themselves
-                 * so if they have been analyzed already then clear that.
-                 */
-                removeAnalysis(entity);
-
-                if (entity.getEntityContext() != entityContext) {
-                    throw new IllegalPersistStateException("Cannot persist entity from a different context");
-                }
-                if (entity.isUnclearIfInDatabase()) {
-                    throw new IllegalPersistStateException("We should know at this point if the entity is new or not: " + entity);
-                }
-                if (entity.isClearlyNotInDatabase()) {
-                    analyseCreate(entity);
-                } else {
-                    analyseUpdate(entity);
+            Collection<Entity> entitiesToInsertOrUpdate = new LinkedList<>();
+            for (PersistRequest.Operation op: persistRequest.getOperations()) {
+                if (op.opType != OperationType.DELETE) {
+                    entitiesToInsertOrUpdate.add(op.entity );
                 }
             }
-            for (Entity entity : persistRequest.getToDelete()) {
-                removeAnalysis(entity);
-                if (entity.getEntityContext() != entityContext) {
-                    throw new IllegalPersistStateException("Cannot persist entity from a different context");
+            insertDependencyTree.build(entitiesToInsertOrUpdate);
+
+            Collection<Entity> entitiesToDelete = new LinkedList<>();
+            for (PersistRequest.Operation op: persistRequest.getOperations()) {
+                if (op.opType == OperationType.DELETE) {
+                    entitiesToDelete.add(op.entity );
                 }
-                analyseDelete(entity);
             }
+            deletionDependencyTree.build(entitiesToDelete);
+
+            for (Entity entity: insertDependencyTree.getOrder()) {
+
+            }
+
         } finally {
             analysing.clear();
         }
     }
 
-
-
-    @SafeVarargs
-    private final void setCorrectStateForEntitiesWhichMayOrMayNotBeInTheDatabase(Collection<Entity> ...collectionOfCollectionOfEntities) throws SortPersistException {
+    private final void setCorrectStateForEntitiesWhichMayOrMayNotBeInTheDatabase(Collection<PersistRequest.Operation> operations) throws SortPersistException {
         LOG.debug("Setting the correct entity state for entities which may or may not be in the database.");
 
-        LinkedHashSet<Entity> matches = findEntites(flatten(collectionOfCollectionOfEntities), new Predicate() {
+        LinkedHashSet<Entity> matches = findEntites(entities, new Predicate() {
                     @Override
                     public boolean matches(Entity entity) {
                         return entity.isUnclearIfInDatabase();
@@ -313,6 +280,7 @@ public class PersistAnalyser implements Serializable {
          * Schedule ourselves for creation
          */
         createGroup.add(entity);
+        //as soon as we are added, things dependent on us can be added
 
         /*
          * Look at the to many relations, they must require creation
