@@ -52,7 +52,6 @@ import scott.barleydb.api.exception.execution.persist.EntityMissingException;
 import scott.barleydb.api.exception.execution.persist.IllegalPersistStateException;
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
 import scott.barleydb.api.exception.execution.query.SortQueryException;
-import scott.barleydb.api.persist.PersistRequest.OperationType;
 import scott.barleydb.api.query.QProperty;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.server.jdbc.persist.DatabaseDataSet;
@@ -80,9 +79,7 @@ public class PersistAnalyser implements Serializable {
 
     private final EntityContext entityContext;
 
-    private final DependencyTree insertDependencyTree = new DependencyTree(false);
-
-    private final DependencyTree deletionDependencyTree = new DependencyTree(false);
+    private final DependencyTree dependencyTree = new DependencyTree();
 
     private final Set<Entity> loadedDuringAnalysis = new HashSet<>();
 
@@ -203,24 +200,38 @@ public class PersistAnalyser implements Serializable {
 
             setCorrectStateForEntitiesWhichMayOrMayNotBeInTheDatabase( persistRequest.getOperations() );
 
-            Collection<Entity> entitiesToInsertOrUpdate = new LinkedList<>();
-            for (PersistRequest.Operation op: persistRequest.getOperations()) {
-                if (op.opType != OperationType.DELETE) {
-                    entitiesToInsertOrUpdate.add(op.entity );
+            dependencyTree.build( persistRequest.getOperations() );
+
+            for (Operation operation: dependencyTree.getOrder()) {
+                switch(operation.opType) {
+                    case INSERT: {
+                        createGroup.add(operation.entity);
+                        break;
+                    }
+                    case UPDATE: {
+                        updateGroup.add(operation.entity);
+                        break;
+                    }
+                    case SAVE: {
+                        if (operation.entity.isClearlyNotInDatabase()) {
+                            createGroup.add( operation.entity );
+                        }
+                        else if (operation.entity.isClearlyInDatabase()) {
+                            updateGroup.add( operation.entity );
+                        }
+                        else {
+                            throw new IllegalStateException("It must be clear by now if the entity exists or not: " + operation.entity);
+                        }
+                    }
+                    case DELETE: {
+                        deleteGroup.add(operation.entity);
+                    }
+                    case DEPENDS_ON: {
+                        dependsOnGroup.add(operation.entity);
+                    }
+                    default:
+                        throw new IllegalStateException("Unsupported operation type: " + operation.opType);
                 }
-            }
-            insertDependencyTree.build(entitiesToInsertOrUpdate);
-
-            Collection<Entity> entitiesToDelete = new LinkedList<>();
-            for (PersistRequest.Operation op: persistRequest.getOperations()) {
-                if (op.opType == OperationType.DELETE) {
-                    entitiesToDelete.add(op.entity );
-                }
-            }
-            deletionDependencyTree.build(entitiesToDelete);
-
-            for (Entity entity: insertDependencyTree.getOrder()) {
-
             }
 
         } finally {
@@ -228,8 +239,13 @@ public class PersistAnalyser implements Serializable {
         }
     }
 
-    private final void setCorrectStateForEntitiesWhichMayOrMayNotBeInTheDatabase(Collection<PersistRequest.Operation> operations) throws SortPersistException {
+    private final void setCorrectStateForEntitiesWhichMayOrMayNotBeInTheDatabase(Collection<Operation> operations) throws SortPersistException {
         LOG.debug("Setting the correct entity state for entities which may or may not be in the database.");
+
+        Collection<Entity> entities = new LinkedList<>();
+        for (Operation op: operations) {
+            entities.add( op.entity );
+        }
 
         LinkedHashSet<Entity> matches = findEntites(entities, new Predicate() {
                     @Override

@@ -37,26 +37,19 @@ public class PersistRequest implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    public enum OperationType {
-        INSERT,
-        UPDATE,
-        SAVE,
-        DELETE
-    }
-
-    public static class Operation {
-        public final Entity entity;
-        public final OperationType opType;
-        public Operation(Entity entity, OperationType opType) {
-            this.entity = entity;
-            this.opType = opType;
-        }
-    }
-
     private final List<Operation> operations = new LinkedList<>();
 
     public PersistRequest save(Object object) {
-        operations.add( new Operation(verifyArg(object, "save"), OperationType.SAVE) );
+        Entity entity = verifyArg(object, "save");
+        if (entity.isClearlyNotInDatabase()) {
+            operations.add( new Operation(entity, OperationType.INSERT) );
+        }
+        else if (entity.isClearlyInDatabase()) {
+            operations.add( new Operation(entity, OperationType.UPDATE) );
+        }
+        else {
+            operations.add( new Operation(entity, OperationType.SAVE) );
+        }
         return this;
     }
 

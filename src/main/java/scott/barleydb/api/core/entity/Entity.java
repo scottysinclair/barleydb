@@ -115,6 +115,10 @@ public class Entity implements Serializable {
         return getKey().getValue() == null || constraints.isMustNotExistInDatabase() || entityState == EntityState.NOT_IN_DB;
     }
 
+    public boolean isClearlyInDatabase() {
+        return  constraints.isMustExistInDatabase() || entityState == EntityState.LOADED;
+    }
+
     /**
      * The entity was loaded from the database
      * @return

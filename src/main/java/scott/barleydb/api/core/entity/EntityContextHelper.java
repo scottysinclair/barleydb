@@ -1,5 +1,7 @@
 package scott.barleydb.api.core.entity;
 
+import java.util.Arrays;
+
 /*
  * #%L
  * BarleyDB
@@ -10,12 +12,12 @@ package scott.barleydb.api.core.entity;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -67,6 +69,21 @@ public class EntityContextHelper {
             findEntites(matches, checked, entity, predicate);
         }
         return matches;
+    }
+
+    /**
+     * Navigates the object graph for each entity in the collection of entities.  returns the entities which match the predicate.
+     * @param entities the collection of entities to navigate
+     * @param predicate he predicate
+     * @return
+     */
+    public static LinkedHashSet<Entity> findAllEntites(Entity ...entities) {
+        return findEntites(Arrays.asList(entities), new Predicate() {
+            @Override
+            public boolean matches(Entity entity) {
+                return true;
+            }
+        });
     }
 
     /**
