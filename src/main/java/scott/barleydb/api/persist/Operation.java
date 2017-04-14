@@ -34,7 +34,7 @@ public class Operation implements Serializable {
     private static final long serialVersionUID = 1L;
 
     public final Entity entity;
-    public final OperationType opType;
+    public OperationType opType;
 
     public Operation(Entity entity, OperationType opType) {
         this.entity = entity;
@@ -84,6 +84,14 @@ public class Operation implements Serializable {
         if (opType != other.opType)
             return false;
         return true;
+    }
+
+    public boolean isNone() {
+        return opType == OperationType.NONE;
+    }
+
+    public void updateOpType(OperationType opType) {
+        this.opType = opType;
     }
 
 }

@@ -10,12 +10,12 @@ package scott.barleydb.test;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -120,6 +120,12 @@ public class TestPersistAnalyser extends TestBase {
 
         serverEntityContext.persist(new PersistRequest().save(syntaxModel));
 
+        /*
+         * do again after saving and assert the correct behaviour
+         */
+        request = new PersistRequest();
+        request.save(syntaxModel);
+
         analyser = new PersistAnalyser(serverEntityContext);
         analyser.analyse(request);
         printAnalysis(analyser);
@@ -132,9 +138,15 @@ public class TestPersistAnalyser extends TestBase {
         assertEquals(7, analyser.getUpdateGroup().getEntities().size());
         assertTrue(analyser.getDeleteGroup().getEntities().isEmpty());
 
+        /*
+         * OOPS I DIDNT NOT VERIFY THE CONTENT OF 1:N MAPPINGS IF SOME OF THE N HAS BEEN REMOVED
+         */
+
         syntaxModel.getMappings().remove(1); //delete the subsyntax mapping
         System.out.println("Deleted the subsyntax mapping!");
 
+        request = new PersistRequest();
+        request.save(syntaxModel);
         analyser = new PersistAnalyser(serverEntityContext);
         analyser.analyse(request);
         printAnalysis(analyser);

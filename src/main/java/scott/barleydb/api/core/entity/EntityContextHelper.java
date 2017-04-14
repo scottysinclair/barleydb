@@ -103,7 +103,7 @@ public class EntityContextHelper {
             matches.add(entity);
         }
         for (RefNode refNode: entity.getChildren(RefNode.class)) {
-            Entity e = refNode.getReference();
+            Entity e = refNode.getReference(false);
             if (e != null) {
                 findEntites(matches, checked, e, predicate);
             }
