@@ -248,7 +248,6 @@ public class PersistAnalyser implements Serializable {
              * process the deletes, their order is reversed
              */
             List<Operation> order = dependencyTree.getOrder();
-            Collections.reverse(order);
             for (Operation operation: order) {
                 switch(operation.opType) {
                     case INSERT:

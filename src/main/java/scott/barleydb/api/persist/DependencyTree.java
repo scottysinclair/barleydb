@@ -28,6 +28,7 @@ import java.util.ArrayList;
  */
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -125,7 +126,9 @@ public class DependencyTree {
                 }
             }
 
+            numberOfNodes = nodes.size();
             while (pendingOrphanChecks()) {
+
                 /*
                  * query for the data as efficiently as possible
                  */
@@ -135,30 +138,43 @@ public class DependencyTree {
                  */
                 integrateNewDeleteOperationsIntoDependencyTree();
             }
-
-            calculateDependencyOrder();
+            somethingToDo |= nodes.size() > numberOfNodes;
         }
         while(somethingToDo);
+
+        calculateDependencyOrder();
     }
 
     /**
      * populates the dependencyOrder list  by processing the dependency nodes.
      */
     private void calculateDependencyOrder() {
-        Collection<Node> readyNodes = getUnprocessedNodesWithNoUnprocessedDependencies();
+        Collection<Node> readyNodes = getUnprocessedNodesWithNoUnprocessedDependencies(false);
+        while(!readyNodes.isEmpty()) {
+            dependencyOrder.addAll( readyNodes );
+            LOG.debug("Added {} Nodes to dependecy order (size={})", readyNodes.size(), dependencyOrder.size());
+            readyNodes = getUnprocessedNodesWithNoUnprocessedDependencies(false);
+        }
+        /*
+         * now process deletes
+         */
+        readyNodes = getUnprocessedNodesWithNoUnprocessedDependencies(true);
         while(dependencyOrder.size() < nodes.size()) {
             if (readyNodes.isEmpty()) {
                 throw new IllegalStateException("Could not calculate the dependency order.");
             }
             dependencyOrder.addAll( readyNodes );
-            LOG.debug("Added {} Nodes to dependecy order (size={})", readyNodes.size(), dependencyOrder.size());
-            readyNodes = getUnprocessedNodesWithNoUnprocessedDependencies();
+            LOG.debug("Added {} Nodes to deletes order (size={})", readyNodes.size(), dependencyOrder.size());
+            readyNodes = getUnprocessedNodesWithNoUnprocessedDependencies(true);
         }
     }
 
-    private Collection<Node> getUnprocessedNodesWithNoUnprocessedDependencies() {
+    private Collection<Node> getUnprocessedNodesWithNoUnprocessedDependencies(boolean deletesMode) {
         Collection<Node> result = new LinkedList<>();
         for (Node node: nodes.values()) {
+            if (deletesMode !=  node.operation.isDelete()) {
+                continue;
+            }
             if (!node.isProcessed() && !node.hasUnprocessedDependecies()) {
                 LOG.trace("Node {} is ready for processing", node);
                 result.add( node );
@@ -212,10 +228,6 @@ public class DependencyTree {
             if (!orphanChecksRequired) {
                 builtOrphanChecks = true;
             }
-        }
-
-        public Node(Operation operation) {
-            this(operation, true);
         }
 
         public boolean isBuiltDependencies() {
@@ -400,6 +412,111 @@ public class DependencyTree {
 
                 /*
                  * delete operations are handles somewhere else
+                 */
+            }
+            return;
+        }
+
+        /**
+         * this can only be called when integrating new delete operations into the contetx
+         * which have been directly pulled from the database.
+         *
+         */
+        public void buildDeleteDependencies() {
+            if (builtDependencies) {
+                return;
+            }
+            builtDependencies = true;
+            LOG.debug("Building delete dependencies for {}", this);
+            /*
+             *  only care about deletes for this methos
+             */
+            if (operation.isDelete()) {
+                /*
+                 * go through our to many refs and build dependencies FROM them
+                 */
+                for (ToManyNode toManyNode: operation.entity.getChildren(ToManyNode.class)) {
+                    if (toManyNode.getList().isEmpty() && !toManyNode.isFetched()) {
+                        /*
+                         * if the many relation was never fetched, and it contains nothing, so skip.
+                         */
+                        continue;
+                    }
+                    for (Entity entity : toManyNode.getList()) {
+                        /*
+                         * check if we already have a dependency node for the reff'd entity.
+                         */
+                        Node dependentNode = getDependencyNode(entity);
+                        if (dependentNode == null) {
+                            /*
+                             *  We need to add a new node to our dependency tree.
+                             *  We must have had a recursive data structure, this is the only
+                             *  time it happens with delete logic...
+                             */
+
+
+                            /*
+                             * if we own the reffed entity then the reffed entity must be deleted.
+                             *
+                             * in any case - there is a clear dependency that we must be deleted before the
+                             * reffed entity, so we depend on it.
+                             */
+                            if (toManyNode.getNodeType().isOwns()) {
+                                dependentNode  = createOrGetNode(entity, OperationType.DELETE);
+                            }
+                            else {
+                                dependentNode  = createOrGetNode(entity, OperationType.NONE);
+                            }
+                        }
+                        /*
+                         * express the dependency, things which refer to us must be deleted before us.
+                         */
+                        dependency.add( dependentNode );
+                        LOG.debug("Added dependency from {} to {}", this, dependentNode);
+                    }
+                }
+
+                /*
+                 * go through our FK refs and build dependencies FROM them TO us
+                 */
+                for (RefNode ref: operation.entity.getChildren(RefNode.class)) {
+                    /*
+                     * look to see if the reference points to anything
+                     */
+                    Entity entity = ref.getReference(false);
+                    if (entity != null) {
+                        /*
+                         * check if we already have a dependency node for the reff'd entity.
+                         */
+                        Node dependentNode = getReffedDependencyNode(ref);
+                        if (dependentNode == null) {
+                            /*
+                             *  We need to add a new node to our dependency tree.
+                             *  We must have had a recursive data structure, this is the only
+                             *  time it happens with delete logic...
+                             */
+
+                            /*
+                             * If a syntax has a FK reference to a structure then we can express a delete
+                             * dependency that the structure depends on us if it wants to be deleted.
+                             */
+
+                            if (ref.getNodeType().isOwns()) {
+                                dependentNode  = createOrGetNode(entity, OperationType.DELETE);
+                            }
+                        }
+                        /*
+                         * express the dependency, we must be deleted before our ref
+                         */
+                        dependentNode.dependency.add( this );
+                        LOG.debug("Added dependency from {} to {}", this, dependentNode);
+                    }
+                }
+            }
+            else {        // TODO Auto-generated method stub
+
+                /*
+                 * non-delete operations are handles somewhere else
                  */
             }
             return;
@@ -606,9 +723,13 @@ public class DependencyTree {
     }
 
 
-    private void copyIntoContextAndCreateDeleteNodes(Entity reffedEntity) {
-        LOG.debug("Copying {} and all children into main ctx and create delete operations for them all.", reffedEntity);
-        Collection<Entity> toCopy = EntityContextHelper.findAllEntites(reffedEntity);
+    /**
+     * puts the entity into the main context creates delete operations for the whole entity tree of ownership
+     * @param entity
+     */
+    private void copyIntoContextAndCreateDeleteNodes(Entity entity) {
+        LOG.debug("Copying {} and all children into main ctx and create delete operations for them all.", entity);
+        Collection<Entity> toCopy = EntityContextHelper.findAllEntites(entity);
 
         List<Entity> copied = EntityContextHelper.addEntities(toCopy, ctx, true);
         EntityContextHelper.copyRefStates(dctx, ctx, copied, new EntityContextHelper.EntityFilter() {
@@ -618,9 +739,13 @@ public class DependencyTree {
             }
         });
 
-        for (Entity entity: copied) {
-            LOG.debug("Adding delete operation for entity {}", reffedEntity);
-            createOrGetNode(entity, OperationType.DELETE, false);
+        List<Node> nodes = new LinkedList<>();
+        for (Entity e: copied) {
+            LOG.debug("Adding delete operation for entity {}", entity);
+            nodes.add( createOrGetNode(e, OperationType.DELETE, false) );
+        }
+        for (Node node: nodes) {
+            node.buildDeleteDependencies();
         }
     }
 
