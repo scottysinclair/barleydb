@@ -30,5 +30,6 @@ public enum OperationType {
     UPDATE,
     SAVE,
     DELETE,
+    DEPENDS,
     NONE
 }

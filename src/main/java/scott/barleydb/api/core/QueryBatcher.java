@@ -23,6 +23,7 @@ package scott.barleydb.api.core;
  */
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -57,7 +58,7 @@ public class QueryBatcher implements Serializable {
         return queries.size();
     }
 
-    public Iterable<QueryObject<?>> getQueries() {
+    public Collection<QueryObject<?>> getQueries() {
         return queries;
     }
 

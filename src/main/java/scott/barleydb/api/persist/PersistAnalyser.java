@@ -1,5 +1,7 @@
 package scott.barleydb.api.persist;
 
+import static scott.barleydb.api.core.entity.EntityContextHelper.findEntites;
+
 /*
  * #%L
  * BarleyDB
@@ -23,6 +25,7 @@ package scott.barleydb.api.persist;
  */
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,8 +35,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import javax.management.Query;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +47,6 @@ import scott.barleydb.api.core.entity.EntityContextHelper.Predicate;
 import scott.barleydb.api.core.entity.EntityState;
 import scott.barleydb.api.core.entity.RefNode;
 import scott.barleydb.api.core.entity.ToManyNode;
-import scott.barleydb.api.exception.constraint.EntityMustExistInDBException;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.execution.persist.EntityMissingException;
 import scott.barleydb.api.exception.execution.persist.IllegalPersistStateException;
@@ -57,9 +57,6 @@ import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.server.jdbc.persist.DatabaseDataSet;
 import scott.barleydb.server.jdbc.persist.OperationGroup;
 import scott.barleydb.server.jdbc.query.QueryResult;
-
-import static scott.barleydb.api.core.entity.EntityContextHelper.findEntites;
-import static scott.barleydb.api.core.entity.EntityContextHelper.flatten;
 
 public class PersistAnalyser implements Serializable {
 
@@ -79,7 +76,7 @@ public class PersistAnalyser implements Serializable {
 
     private final EntityContext entityContext;
 
-    private final DependencyTree dependencyTree = new DependencyTree();
+    private final DependencyTree dependencyTree;
 
     private final Set<Entity> loadedDuringAnalysis = new HashSet<>();
 
@@ -100,6 +97,7 @@ public class PersistAnalyser implements Serializable {
         this.deleteGroup = deleteGroup;
         this.dependsOnGroup = dependsOnGroup;
         this.allGroups = new OperationGroup[] { createGroup, updateGroup, deleteGroup, dependsOnGroup };
+        this.dependencyTree = new DependencyTree(entityContext);
     }
 
     public EntityContext getEntityContext() {
@@ -200,8 +198,15 @@ public class PersistAnalyser implements Serializable {
 
             setCorrectStateForEntitiesWhichMayOrMayNotBeInTheDatabase( persistRequest.getOperations() );
 
-            dependencyTree.build( persistRequest.getOperations() );
+            try {
+                dependencyTree.build( persistRequest.getOperations() );
+            } catch (SortServiceProviderException | SortQueryException x) {
+                throw new SortPersistException("Error building dependency tree", x);
+            }
 
+            /*
+             * process the inserts, updates and depends, they have the same order
+             */
             for (Operation operation: dependencyTree.getOrder()) {
                 switch(operation.opType) {
                     case INSERT: {
@@ -222,12 +227,38 @@ public class PersistAnalyser implements Serializable {
                         else {
                             throw new IllegalStateException("It must be clear by now if the entity exists or not: " + operation.entity);
                         }
+                        break;
                     }
                     case DELETE: {
-                        deleteGroup.add(operation.entity);
+                        break;
                     }
-                    case DEPENDS_ON: {
+                    case DEPENDS: {
                         dependsOnGroup.add(operation.entity);
+                        break;
+                    }
+                    case NONE: {
+                        break;
+                    }
+                    default:
+                        throw new IllegalStateException("Unsupported operation type: " + operation.opType);
+                }
+            }
+
+            /*
+             * process the deletes, their order is reversed
+             */
+            List<Operation> order = dependencyTree.getOrder();
+            Collections.reverse(order);
+            for (Operation operation: order) {
+                switch(operation.opType) {
+                    case INSERT:
+                    case UPDATE:
+                    case SAVE:
+                    case DEPENDS:
+                    case NONE: break;
+                    case DELETE: {
+                        deleteGroup.add(operation.entity);
+                        break;
                     }
                     default:
                         throw new IllegalStateException("Unsupported operation type: " + operation.opType);
