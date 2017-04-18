@@ -10,12 +10,12 @@ package scott.barleydb.server.jdbc;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -61,6 +61,7 @@ import scott.barleydb.api.query.RuntimeProperties;
 import scott.barleydb.server.jdbc.converter.TypeConverter;
 import scott.barleydb.server.jdbc.persist.Persister;
 import scott.barleydb.server.jdbc.persist.SequenceGenerator;
+import scott.barleydb.server.jdbc.persist.audit.AuditInformation;
 import scott.barleydb.server.jdbc.query.QueryExecuter;
 import scott.barleydb.server.jdbc.query.QueryExecution;
 import scott.barleydb.server.jdbc.query.QueryResult;
@@ -75,6 +76,7 @@ import scott.barleydb.server.jdbc.vendor.Database;
 public class JdbcEntityContextServices implements IEntityContextServices {
 
     private static final Logger LOG = LoggerFactory.getLogger(JdbcEntityContextServices.class);
+    private static final Logger LOG_PERSIST_REPORT = LoggerFactory.getLogger(PersistAnalyser.class.getName() + ".report");
 
     private Environment env;
 
@@ -296,6 +298,39 @@ public class JdbcEntityContextServices implements IEntityContextServices {
         return new Persister(env, namespace, this);
     }
 
+    public AuditInformation comapreWithDatabase(PersistRequest persistRequest, RuntimeProperties runtimeProperties) throws SortJdbcException, SortPersistException  {
+        PersistAnalyser analyser = new PersistAnalyser(persistRequest.getEntityContext());
+        try (OptionalyClosingResources con = newOptionallyClosingConnection(persistRequest.getEntityContext())) {
+            analyser.analyse(persistRequest);
+        }
+        /*
+         * We can optionally copy the data to  be persisted to a new context
+         * This way we only apply the changes back if the whole persist succeeds.
+         */
+        if (runtimeProperties.getExecuteInSameContext() == null || !runtimeProperties.getExecuteInSameContext()) {
+            analyser = analyser.deepCopy();
+        }
+        if (LOG_PERSIST_REPORT.isDebugEnabled()) {
+            LOG_PERSIST_REPORT.debug(analyser.report());
+        }
+
+        Persister persister = newPersister(env, analyser.getEntityContext().getNamespace());
+        EntityContext entityContext = analyser.getEntityContext();
+        if (entityContext.isUser()) {
+            throw new IllegalPersistStateException("EntityContext must be set to internal.");
+        }
+
+        try (OptionalyClosingResources con = newOptionallyClosingConnection(entityContext)) {
+            try {
+                return persister.compareWithDatabase(analyser);
+            }
+            catch(SortPersistException x) {
+                rollback(con.getConnection(), "Error rolling back the persist request");
+                throw x;
+            }
+        }
+    }
+
     @Override
     public PersistAnalyser execute(PersistRequest persistRequest, RuntimeProperties runtimeProperties) throws SortJdbcException, SortPersistException {
         PersistAnalyser analyser = new PersistAnalyser(persistRequest.getEntityContext());
@@ -309,8 +344,8 @@ public class JdbcEntityContextServices implements IEntityContextServices {
         if (runtimeProperties.getExecuteInSameContext() == null || !runtimeProperties.getExecuteInSameContext()) {
             analyser = analyser.deepCopy();
         }
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Persist Analysis Results: \n{}", analyser.report());
+        if (LOG_PERSIST_REPORT.isDebugEnabled()) {
+            LOG_PERSIST_REPORT.debug(analyser.report());
         }
 
         Persister persister = newPersister(env, analyser.getEntityContext().getNamespace());

@@ -279,9 +279,14 @@ public class Entity implements Serializable {
      * @param from
      */
     public void copyValueNodesToMe(Entity from) {
+        if (from.isNotLoaded()) {
+            return;
+        }
         for (ValueNode fromChild : from.getChildren(ValueNode.class)) {
-            ValueNode toChild = getChild(fromChild.getName(), ValueNode.class);
-            toChild.setValue(fromChild.getValue());
+            if (fromChild.isLoaded()) {
+                ValueNode toChild = getChild(fromChild.getName(), ValueNode.class);
+                toChild.setValue( fromChild.getValue() );
+            }
         }
     }
 

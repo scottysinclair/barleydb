@@ -13,12 +13,12 @@ package scott.barleydb.test;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -44,12 +44,14 @@ import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.execution.TransactionsNoSupportedException;
 import scott.barleydb.api.exception.execution.jdbc.CommitWithoutTransactionException;
 import scott.barleydb.api.exception.execution.jdbc.RollbackWithoutTransactionException;
+import scott.barleydb.api.exception.execution.jdbc.SortJdbcException;
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
 import scott.barleydb.api.exception.execution.query.SortQueryException;
 import scott.barleydb.api.persist.PersistAnalyser;
 import scott.barleydb.api.persist.PersistRequest;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.query.RuntimeProperties;
+import scott.barleydb.server.jdbc.persist.audit.AuditInformation;
 import scott.barleydb.server.jdbc.query.QueryResult;
 
 /**
@@ -227,6 +229,13 @@ public class RemoteClientEntityContextServices implements IEntityContextServices
         finally {
             EnvironmentAccessor.remove();
         }
+    }
+
+    @Override
+    public AuditInformation comapreWithDatabase(PersistRequest persistRequest, RuntimeProperties runtimeProperties)
+            throws SortJdbcException, SortPersistException {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     @Override

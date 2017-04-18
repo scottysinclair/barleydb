@@ -52,6 +52,7 @@ import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.entity.EntityContextHelper;
 import scott.barleydb.api.core.entity.RefNode;
 import scott.barleydb.api.core.entity.ToManyNode;
+import scott.barleydb.api.core.entity.EntityContextHelper.Predicate;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.execution.query.SortQueryException;
 import scott.barleydb.api.query.QProperty;
@@ -130,7 +131,7 @@ public class DependencyTree implements Serializable {
             int numberOfNodes;
             do {
                 LOG.debug("---------------------------------------------------------------------------------------");
-                LOG.debug("processing node dependencies, current set contains {} items.", nodes.size());
+                LOG.debug("- processing node dependencies, current set contains {} items.", nodes.size());
                 numberOfNodes = nodes.size();
                 for (Node node: new ArrayList<>(nodes.values())) {
                     somethingToDo |= !node.isBuiltDependencies();
@@ -140,11 +141,12 @@ public class DependencyTree implements Serializable {
             while(numberOfNodes < nodes.size());
 
             LOG.debug("---------------------------------------------------------------------------------------");
-            LOG.debug("We have built nodes for every single entity operation in memory");
-            LOG.debug("We need to now query the database to include delete operations records which were not loaded.");
+            LOG.debug("- FINISHED processing node dependencies for now current set contains {} items.", nodes.size());
+            LOG.debug("- We have built nodes for every single entity operation in memory");
+            LOG.debug("- We need to now query the database to include delete operations records which were not loaded.");
             LOG.debug("---------------------------------------------------------------------------------------");
 
-            LOG.debug("Checking if any of the {} operations require orphan checks", nodes.size());
+            LOG.debug("- Checking if any of the {} operations require orphan checks", nodes.size());
             int currentAmountOfOrphanChecks = orphanChecks.size();
             for (Node node: nodes.values()) {
                 somethingToDo |= !node.isBuiltOrphanChecks();
@@ -152,10 +154,10 @@ public class DependencyTree implements Serializable {
             }
             if (LOG.isDebugEnabled()) {
                 if (orphanChecks.size() > currentAmountOfOrphanChecks) {
-                    LOG.debug("ORPHAN CHECKS: Added {} orphan checks", orphanChecks.size() - currentAmountOfOrphanChecks);
+                    LOG.debug("- ORPHAN CHECKS: Added {} orphan checks", orphanChecks.size() - currentAmountOfOrphanChecks);
                 }
                 else {
-                    LOG.debug("ORPHAN CHECKS: No orphan checks added");
+                    LOG.debug("- ORPHAN CHECKS: No orphan checks added");
                 }
             }
 
@@ -274,6 +276,7 @@ public class DependencyTree implements Serializable {
                 node.operation.updateOpType( opType );
             }
         }
+        LOG.debug("Added node {} to dependency tree", node);
         return node;
     }
 
@@ -314,6 +317,14 @@ public class DependencyTree implements Serializable {
                  */
                 return;
             }
+            if (operation.isNone()) {
+                /*
+                 * there is no operation being performed on this entity so it cannot cause
+                 * any of it's owned stuff to be deleted.
+                 */
+                return;
+            }
+
             /*
              * we need to check what should be deleted from the database based on the set of operations.
              * ie entities which are owned by RefNodes but no longer pointed to need to be deleted, the same goes for to many nodes.
@@ -366,11 +377,12 @@ public class DependencyTree implements Serializable {
                 return;
             }
             builtDependencies = true;
-            LOG.debug("Building dependencies for {}", this);
+            LOG.debug("--------------------------");
+            LOG.debug("- Building dependencies for {}", this);
             /*
              *  first process insert or update logic
              */
-            if (!operation.isDelete()) {
+            if (!operation.isDelete() && !operation.isNone()) {
                 /*
                  * go through our FK refs and build dependencies TO them
                  */
@@ -820,7 +832,7 @@ public class DependencyTree implements Serializable {
                      */
                     if (dependencyNode.operation.isDelete()) {
                         LOG.debug("Adding delete operation for reffed entity {} because the owner is being deleted", reffedEntity);
-                        copyIntoContextAndCreateDeleteNodes(reffedEntity);
+                        copyIntoContextAndCreateDeleteNodes(refNode, reffedEntity);
                         continue;
                     }
                     throw new IllegalStateException("Unexpected state reached when processing orphan check " + oc + " for integrating into the dependency tree");
@@ -871,13 +883,27 @@ public class DependencyTree implements Serializable {
         return true;
     }
 
-    /**
+
+    private void copyIntoContextAndCreateDeleteNodes(Entity entity) {
+        copyIntoContextAndCreateDeleteNodes(null, entity);
+    }
+/**
      * puts the entity into the main context creates delete operations for the whole entity tree of ownership
      * @param entity
      */
-    private void copyIntoContextAndCreateDeleteNodes(Entity entity) {
+    private void copyIntoContextAndCreateDeleteNodes(ToManyNode toManyNode, Entity entity) {
         LOG.debug("Copying {} and all children into main ctx and create delete operations for them all.", entity);
-        Collection<Entity> toCopy = EntityContextHelper.findAllEntites(entity);
+
+        //watch out for ownership over join tables (N:M)
+        Collection<Entity> toCopy;
+        if (toManyNode != null && toManyNode.getNodeType().getJoinProperty() != null) {
+            toCopy = findOwnedEntites(new LinkedHashSet<Entity>(), new HashSet<Entity>(), entity, toManyNode.getNodeType().getJoinProperty());
+        }
+        else {
+            toCopy = findOwnedEntites(new LinkedHashSet<Entity>(), new HashSet<Entity>(), entity, null);
+        }
+
+
 
         List<Entity> copied = EntityContextHelper.addEntities(toCopy, ctx, true);
         EntityContextHelper.copyRefStates(dctx, ctx, copied, new EntityContextHelper.EntityFilter() {
@@ -897,6 +923,53 @@ public class DependencyTree implements Serializable {
         }
     }
 
+    /**
+     *
+     * @param matches
+     * @param checked
+     * @param entity
+     * @param joinProperty is set iff the Entity is a jointable entity which is owned by the ToManyNode which linked to the join table..
+     * @return
+     */
+    public static LinkedHashSet<Entity> findOwnedEntites(LinkedHashSet<Entity> matches, HashSet<Entity> checked, Entity entity, String joinProperty) {
+        if (!checked.add( entity )) {
+            return matches;
+        }
+        matches.add( entity );
+        for (RefNode refNode: entity.getChildren(RefNode.class)) {
+            //either we own the ref or we are a joinProperty from a ToMany node which must own the ref
+            if (!refNode.getNodeType().isOwns()) {
+                if (!refNode.getName().equals(joinProperty)) {
+                    continue;
+                }
+                else {
+                    LOG.debug("Finding owned entities across N:M relation for {}", entity);
+                }
+            }
+            Entity e = refNode.getReference(false);
+            if (e != null) {
+                findOwnedEntites(matches, checked, e, null);
+            }
+        }
+        for (ToManyNode toManyNode: entity.getChildren(ToManyNode.class)) {
+            if (!toManyNode.getNodeType().isOwns()) {
+                continue;
+            }
+            /*
+             * if we have a N:M jointable relationship
+             * and our side is an owning relation then we need to reach over and include the other side of the join table
+             * ie templates owning the list of business types via the TemplateBusinessType entity
+             */
+            for (Entity e: toManyNode.getList()) {
+                if (e != null) {
+                    findOwnedEntites(matches, checked, e, toManyNode.getNodeType().getJoinProperty());
+                }
+            }
+        }
+        return matches;
+    }
+
+
 
     /**
      * checks if a given operation would cause the entity to be orhaned
@@ -911,7 +984,7 @@ public class DependencyTree implements Serializable {
     }
 
     private QueryObject<Object> createQueryForReferencesToDelete(Entity entity) {
-        QueryObject<Object> query = dctx.getUnitQuery( entity.getEntityType() );
+        QueryObject<Object> query = dctx.getUnitQuery( entity.getEntityType(), true );
 
         //filter on PK
         final QProperty<Object> keyProp = new QProperty<Object>(query, entity.getKey().getName());
@@ -921,29 +994,40 @@ public class DependencyTree implements Serializable {
         /*
          * add joins to all owning ToManyNodes
          */
-        addJoinsForAllOwningRefs(entity.getEntityType(), query, new HashSet<NodeType>());
+        addJoinsForAllOwningRefs(entity.getEntityType(), query, new HashSet<NodeType>(), null);
 
         return query;
     }
 
-    private void addJoinsForAllOwningRefs(EntityType entityType, QueryObject<Object> query, Set<NodeType> alreadyProcessed) {
+    private void addJoinsForAllOwningRefs(EntityType entityType, QueryObject<Object> query, Set<NodeType> alreadyProcessed, String ownedByJoinProperty) {
         /*
          * add joins to all owning Refs
          */
         for (NodeType nodeType: entityType.getNodeTypes()) {
-            if (nodeType.isOwns()) {
-                /*
-                 * add left outer joins for owning relationships
-                 */
-                if (alreadyProcessed.add(nodeType)) {
-                    QueryObject<Object> to = new QueryObject<>(nodeType.getRelationInterfaceName());
-                    query.addLeftOuterJoin(to, nodeType.getName());
-                    LOG.trace("Added left outer join from {} with property {} to {}", query.getTypeName(), nodeType.getName(), nodeType.getRelationInterfaceName());
-
-                    EntityType reffedEntityType = entityType.getDefinitions().getEntityTypeMatchingInterface( nodeType.getRelationInterfaceName(), true);
-                    addJoinsForAllOwningRefs(reffedEntityType, to, alreadyProcessed);
+            if (!nodeType.isOwns()) {
+                if (ownedByJoinProperty == null) {
+                    continue;
                 }
+                else if (!nodeType.getName().equals( ownedByJoinProperty )) {
+                    continue;
+                }
+                else {
+                    LOG.debug("Querying over join table for {}.{} " + entityType.getInterfaceShortName(), nodeType.getName());
+                }
+            }
+            /*
+             * at this point either the node type isowns or it matches the join property which is owned.
+             */
+            /*
+             * add left outer joins for owning relationships
+             */
+            if (alreadyProcessed.add(nodeType)) {
+                QueryObject<Object> to = new QueryObject<>(nodeType.getRelationInterfaceName());
+                query.addLeftOuterJoin(to, nodeType.getName());
+                LOG.trace("Added left outer join from {} with property {} to {}", query.getTypeName(), nodeType.getName(), nodeType.getRelationInterfaceName());
 
+                EntityType reffedEntityType = entityType.getDefinitions().getEntityTypeMatchingInterface( nodeType.getRelationInterfaceName(), true);
+                addJoinsForAllOwningRefs(reffedEntityType, to, alreadyProcessed, nodeType.getJoinProperty());
             }
         }
     }

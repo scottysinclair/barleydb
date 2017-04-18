@@ -62,6 +62,8 @@ import scott.barleydb.server.jdbc.vendor.Database;
 public class Persister {
 
     private static final Logger LOG = LoggerFactory.getLogger(Persister.class);
+    private static final Logger LOG_PERSIST_REPORT = LoggerFactory.getLogger(PersistAnalyser.class.getName() + ".report");
+    private static final Logger AUDITLOG = LoggerFactory.getLogger(Persister.class.getName() + ".audit");
 
     private final Environment env;
     private final String namespace;
@@ -71,6 +73,23 @@ public class Persister {
         this.env = env;
         this.namespace = namespace;
         this.entityContextServices = entityContextServices;
+    }
+
+    public AuditInformation compareWithDatabase(PersistAnalyser analyser) throws SortPersistException {
+        DatabaseDataSet databaseDataSet = new DatabaseDataSet(analyser.getEntityContext());
+        try {
+            loadAndValidate(databaseDataSet, analyser.getUpdateGroup(), analyser.getDeleteGroup(), analyser.getDependsOnGroup());
+        } catch (SortServiceProviderException x) {
+            throw new SortPersistException("Error loading original data", x);
+        }
+
+        logStep("Generating audit logs");
+        AuditInformation audit = new AuditInformation();
+        audit.add(auditCreate(analyser.getCreateGroup()));
+        audit.add(auditUpdate(databaseDataSet, analyser.getUpdateGroup()));
+        audit.add(auditDelete(databaseDataSet, analyser.getDeleteGroup()));
+
+        return audit;
     }
 
     public void persist(PersistAnalyser analyser) throws SortPersistException {
@@ -114,6 +133,11 @@ public class Persister {
         logStep("Filter out entities which won't change from the update batch group");
         filterOutUnchangedEntities(updateRequired, analyser.getUpdateGroup());
 
+        if (LOG_PERSIST_REPORT.isDebugEnabled()) {
+            LOG_PERSIST_REPORT.debug("Persist report after filtering...");
+            LOG_PERSIST_REPORT.debug(analyser.report());
+        }
+
         /*
          * Add audit records for the optimistic lock columns.
          * The real entities still contain the original OL values, we are keeping them for the where clauses
@@ -125,12 +149,6 @@ public class Persister {
          */
         setNewOptimisticLockOnAuditRecords(audit, analyser.getCreateGroup(), analyser.getUpdateGroup(), newOptimisticLockTime);
 
-        /*
-         * Optimize the operation groups so that we can perform jdbc batch operations
-         */
-        logStep("Optimising operation order to enable batching");
-        analyser = analyser.optimizedCopy();
-        LOG.debug(analyser.report());
 
         verifyAccessRights(analyser.getCreateGroup(), analyser.getUpdateGroup(), analyser.getDeleteGroup());
 
@@ -620,7 +638,7 @@ public class Persister {
         logStep("Inserting audit records");
         for (AuditRecord auditRecord : audit.getRecords()) {
             for (Change change : auditRecord.changes()) {
-                LOG.debug(String.format("AUDIT %1$-30s %2$-30s %3$-30s %4$-30s\n", auditRecord.getEntityType().getTableName(), change.node.getNodeType().getColumnName(), change.oldValue, change.newValue));
+                AUDITLOG.debug( auditRecord.formatChange(change) );
             }
         }
     }

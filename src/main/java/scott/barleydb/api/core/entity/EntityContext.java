@@ -76,6 +76,7 @@ import scott.barleydb.api.persist.PersistRequest;
 import scott.barleydb.api.query.QProperty;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.query.RuntimeProperties;
+import scott.barleydb.server.jdbc.persist.audit.AuditInformation;
 import scott.barleydb.server.jdbc.query.QueryResult;
 
 import static scott.barleydb.api.core.entity.EntityContextHelper.toParents;
@@ -505,7 +506,7 @@ public class EntityContext implements Serializable {
             }
             for (RefNode refNode : entity.getChildren(RefNode.class)) {
                 Entity refEntity = refNode.getReference();
-                if (refEntity.getKey().getValue() != null) {
+                if (refEntity != null && refEntity.getKey().getValue() != null) {
                     Entity ourRefEntity = getEntity(refNode.getEntityType(), refEntity.getKey().getValue(), false);
                     if (ourRefEntity == null) {
                         //copy the constraints from the original entity's referenced entity
@@ -654,6 +655,17 @@ public class EntityContext implements Serializable {
         return queryResult.copyResultTo(this);
     }
 
+    public AuditInformation comapreWithDatabase(PersistRequest persistRequest) throws SortServiceProviderException, SortPersistException  {
+        beginSaving();
+        RuntimeProperties runtimeProperties = env.overrideProps( null  );
+        try {
+              return env.services().comapreWithDatabase(persistRequest, runtimeProperties);
+
+        } finally {
+            endSaving();
+        }
+    }
+
     public void persist(PersistRequest persistRequest) throws SortServiceProviderException, SortPersistException  {
         persist(persistRequest, null);
     }
@@ -747,6 +759,15 @@ public class EntityContext implements Serializable {
      */
     public QueryObject<Object> getUnitQuery(EntityType entityType) {
         return definitions.getQuery(entityType, false);
+    }
+
+    /**
+     * Gets a copy of the standard unit query with no joins
+     * @param clazz
+     * @return
+     */
+    public QueryObject<Object> getUnitQuery(EntityType entityType, boolean mustExist) {
+        return definitions.getQuery(entityType, mustExist);
     }
 
     private QueryObject<Object> getQuery(EntityType entityType, boolean fetchInternal) {

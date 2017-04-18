@@ -239,7 +239,7 @@ public class EntityContextHelper {
                 /*
                  * If we have an actual entity on the reference then set it on refNode if it is included.
                  */
-                Entity origRefE = origRefNode.getReference();
+                Entity origRefE = origRefNode.getReference(false);
                 if (origRefE != null && entityFilter.includesEntity(origRefE)) {
                     Entity e = newContext.getEntityByUuidOrKey(origRefE.getUuid(), origRefE.getEntityType(), origRefE.getKey().getValue(), true);
                     refNode.setReference(e);
