@@ -1,4 +1,6 @@
-package scott.barleydb.server.jdbc.persist.audit;
+package scott.barleydb.api.audit;
+
+import java.io.Serializable;
 
 /*
  * #%L
@@ -10,12 +12,12 @@ package scott.barleydb.server.jdbc.persist.audit;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -25,7 +27,10 @@ package scott.barleydb.server.jdbc.persist.audit;
 import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.core.entity.Entity;
 
-class AuditKey {
+class AuditKey implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     private final EntityType entityType;
     private final Object entityKey;
 

@@ -472,9 +472,11 @@ public class DependencyTree implements Serializable {
                                 throw new IllegalStateException(
                                         "Entities should be clearly defined at this point: " + entity);
                             }
-                            if (entity.isClearlyInDatabase() && ref.getNodeType().isOwns()
-                                    && !entity.isFetchRequired()) {
+                            if (entity.isClearlyInDatabase() && !entity.isFetchRequired() && ref.getNodeType().isOwns()) {
                                 dependentNode = createOrGetNode(entity, OperationType.UPDATE);
+                            }
+                            else if (entity.isClearlyInDatabase() && !entity.isFetchRequired() && ref.getNodeType().isDependsOn()){
+                                dependentNode = createOrGetNode(entity, OperationType.DEPENDS);
                             }
                             /*
                              * if the entity it not in the database then it has
@@ -482,8 +484,6 @@ public class DependencyTree implements Serializable {
                              */
                             else if (entity.isClearlyNotInDatabase()) {
                                 dependentNode = createOrGetNode(entity, OperationType.INSERT);
-                            } else if (ref.getNodeType().isDependsOn()) {
-                                dependentNode = createOrGetNode(entity, OperationType.DEPENDS);
                             } else {
                                 /*
                                  * the dependency is there but there is nothing

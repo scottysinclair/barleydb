@@ -1,4 +1,4 @@
-package scott.barleydb.server.jdbc.persist.audit;
+package scott.barleydb.api.audit;
 
 /*
  * #%L

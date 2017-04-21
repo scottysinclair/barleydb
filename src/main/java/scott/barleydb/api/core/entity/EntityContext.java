@@ -54,6 +54,7 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import scott.barleydb.api.audit.AuditInformation;
 import scott.barleydb.api.config.Definitions;
 import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.config.NodeType;
@@ -76,7 +77,6 @@ import scott.barleydb.api.persist.PersistRequest;
 import scott.barleydb.api.query.QProperty;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.query.RuntimeProperties;
-import scott.barleydb.server.jdbc.persist.audit.AuditInformation;
 import scott.barleydb.server.jdbc.query.QueryResult;
 
 import static scott.barleydb.api.core.entity.EntityContextHelper.toParents;

@@ -34,6 +34,7 @@ import java.io.ObjectOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import scott.barleydb.api.audit.AuditInformation;
 import scott.barleydb.api.config.DefinitionsSet;
 import scott.barleydb.api.core.Environment;
 import scott.barleydb.api.core.IEntityContextServices;
@@ -51,7 +52,6 @@ import scott.barleydb.api.persist.PersistAnalyser;
 import scott.barleydb.api.persist.PersistRequest;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.query.RuntimeProperties;
-import scott.barleydb.server.jdbc.persist.audit.AuditInformation;
 import scott.barleydb.server.jdbc.query.QueryResult;
 
 /**

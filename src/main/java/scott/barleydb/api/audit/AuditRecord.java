@@ -1,4 +1,6 @@
-package scott.barleydb.server.jdbc.persist.audit;
+package scott.barleydb.api.audit;
+
+import java.io.Serializable;
 
 /*
  * #%L
@@ -34,7 +36,10 @@ import scott.barleydb.api.core.entity.Node;
 import scott.barleydb.api.core.entity.ValueNode;
 import scott.barleydb.api.exception.execution.persist.IllegalPersistStateException;
 
-public final class AuditRecord {
+public final class AuditRecord implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     private final EntityType entityType;
     private final Object entityKey;
     private final List<Change> changes = new LinkedList<>();

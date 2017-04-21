@@ -93,9 +93,9 @@ public class TestPersistence extends TestRemoteClientBase {
 //        this.getter = getter;
 //        //this.getter = new EntityContextGetter(true);
 //    }
-
+//
     public TestPersistence() {
-        this.getter = new EntityContextGetter(false);;
+        this.getter = new EntityContextGetter(true);
     }
 
     @Override
@@ -715,12 +715,21 @@ public class TestPersistence extends TestRemoteClientBase {
          * verify that the syntax was removed
          */
         assertTrue(theEntityContext.performQuery(new QXmlSyntaxModel()).getList().isEmpty());
-        assertEquals(10, theEntityContext.size());
-        assertEquals(1, EntityContextHelper.countNotLoaded( theEntityContext.getEntitiesByType(AccessArea.class) ) );
-        assertEquals(2, EntityContextHelper.countNew( theEntityContext.getEntitiesByType(XmlSyntaxModel.class) ) );
-        assertEquals(5, EntityContextHelper.countNew( theEntityContext.getEntitiesByType(XmlMapping.class) ) );
-        assertEquals(1, EntityContextHelper.countNotLoaded( theEntityContext.getEntitiesByType(XmlStructure.class) ) );
-        assertEquals(1, EntityContextHelper.countNotLoaded( theEntityContext.getEntitiesByType(User.class) ) );
+        if (getter.testingRemoteClient()) {
+            assertEquals(4, theEntityContext.size());
+            assertEquals(1, EntityContextHelper.countNotLoaded( theEntityContext.getEntitiesByType(AccessArea.class) ) );
+            assertEquals(1, EntityContextHelper.countNew( theEntityContext.getEntitiesByType(XmlSyntaxModel.class) ) );
+            assertEquals(1, EntityContextHelper.countNotLoaded( theEntityContext.getEntitiesByType(XmlStructure.class) ) );
+            assertEquals(1, EntityContextHelper.countNotLoaded( theEntityContext.getEntitiesByType(User.class) ) );
+        }
+        else {
+            assertEquals(10, theEntityContext.size());
+            assertEquals(1, EntityContextHelper.countNotLoaded( theEntityContext.getEntitiesByType(AccessArea.class) ) );
+            assertEquals(2, EntityContextHelper.countNew( theEntityContext.getEntitiesByType(XmlSyntaxModel.class) ) );
+            assertEquals(5, EntityContextHelper.countNew( theEntityContext.getEntitiesByType(XmlMapping.class) ) );
+            assertEquals(1, EntityContextHelper.countNotLoaded( theEntityContext.getEntitiesByType(XmlStructure.class) ) );
+            assertEquals(1, EntityContextHelper.countNotLoaded( theEntityContext.getEntitiesByType(User.class) ) );
+        }
     }
 
     @Test

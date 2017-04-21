@@ -33,6 +33,9 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import scott.barleydb.api.audit.AuditInformation;
+import scott.barleydb.api.audit.AuditRecord;
+import scott.barleydb.api.audit.Change;
 import scott.barleydb.api.core.Environment;
 import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityContext;
@@ -53,9 +56,6 @@ import scott.barleydb.api.exception.execution.query.SortQueryException;
 import scott.barleydb.api.persist.PersistAnalyser;
 import scott.barleydb.api.specification.KeyGenSpec;
 import scott.barleydb.server.jdbc.JdbcEntityContextServices;
-import scott.barleydb.server.jdbc.persist.audit.AuditInformation;
-import scott.barleydb.server.jdbc.persist.audit.AuditRecord;
-import scott.barleydb.server.jdbc.persist.audit.Change;
 import scott.barleydb.server.jdbc.resources.ConnectionResources;
 import scott.barleydb.server.jdbc.vendor.Database;
 

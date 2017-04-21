@@ -1,4 +1,6 @@
-package scott.barleydb.server.jdbc.persist.audit;
+package scott.barleydb.api.audit;
+
+import java.io.Serializable;
 
 /*
  * #%L
@@ -30,7 +32,10 @@ import java.util.Map;
 
 import scott.barleydb.api.core.entity.Entity;
 
-public class AuditInformation {
+public class AuditInformation implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     final Map<AuditKey, AuditRecord> recordsLookup = new HashMap<>();
     final List<AuditRecord> records = new LinkedList<>();
 

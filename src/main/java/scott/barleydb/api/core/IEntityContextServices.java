@@ -1,5 +1,7 @@
 package scott.barleydb.api.core;
 
+import scott.barleydb.api.audit.AuditInformation;
+
 /*
  * #%L
  * BarleyDB
@@ -32,7 +34,6 @@ import scott.barleydb.api.persist.PersistAnalyser;
 import scott.barleydb.api.persist.PersistRequest;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.query.RuntimeProperties;
-import scott.barleydb.server.jdbc.persist.audit.AuditInformation;
 import scott.barleydb.server.jdbc.query.QueryResult;
 import scott.barleydb.api.core.QueryBatcher;
 
