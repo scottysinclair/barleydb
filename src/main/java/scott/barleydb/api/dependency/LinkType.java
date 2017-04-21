@@ -28,5 +28,4 @@ package scott.barleydb.api.dependency;
 public enum LinkType {
     DEPENDENCY,
     DEPENDENCY_DASHED
-
 }

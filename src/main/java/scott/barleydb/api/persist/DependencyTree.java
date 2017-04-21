@@ -105,7 +105,7 @@ public class DependencyTree implements Serializable {
                 }
             }
         }
-        diag.generate(diagram, firstLink);
+        diag.generate(diagram);
     }
 
     private String genNodeDiagramName(Node node) {

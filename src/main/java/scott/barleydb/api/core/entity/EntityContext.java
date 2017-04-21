@@ -27,6 +27,7 @@ package scott.barleydb.api.core.entity;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.ref.WeakReference;
@@ -35,10 +36,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.WeakHashMap;
 
@@ -65,6 +68,9 @@ import scott.barleydb.api.core.entity.context.Entities;
 import scott.barleydb.api.core.entity.context.EntityInfo;
 import scott.barleydb.api.core.proxy.ProxyList;
 import scott.barleydb.api.core.util.EnvironmentAccessor;
+import scott.barleydb.api.dependency.DependencyDiagram;
+import scott.barleydb.api.dependency.Link;
+import scott.barleydb.api.dependency.LinkType;
 import scott.barleydb.api.exception.constraint.EntityConstraintMismatchException;
 import scott.barleydb.api.exception.constraint.EntityMustExistInDBException;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
@@ -1086,6 +1092,90 @@ public class EntityContext implements Serializable {
         stream.writeUTF(namespace);
         stream.writeObject(entityContextState);
         stream.writeBoolean(entities.isAllowGarbageCollection());
+    }
+
+    public DependencyDiagram generateDependencyDiagram(Entity entity) throws IOException {
+        DependencyDiagram diag = new DependencyDiagram();
+        generateDiagram(diag, entity, new HashSet<Entity>());
+        return diag;
+    }
+    private Link generateDiagram(DependencyDiagram diag, Entity entity, Set<Entity> processed) {
+        if (!processed.add(entity)) {
+            return null;
+        }
+        Link firstLink = null;
+        /*
+         * first add links for all refnodes
+         */
+        for (RefNode refNode: entity.getChildren(RefNode.class)) {
+            Entity reffed = refNode.getReference(false);
+            if (reffed != null) {
+                Link l = diag.link(entity.toString(), reffed.toString(), genLinkName(refNode), LinkType.DEPENDENCY);
+                if (firstLink == null) {
+                    firstLink = l;
+                }
+            }
+        }
+
+
+        /*
+         * first add links for all tomany
+         */
+        for (ToManyNode toManyNode: entity.getChildren(ToManyNode.class)) {
+            if (!toManyNode.isFetched()) {
+                continue;
+            }
+            for (Entity reffed: toManyNode.getList()) {
+                Link l = diag.link(entity.toString(), reffed.toString(), genLinkName(toManyNode), LinkType.DEPENDENCY);
+                if (firstLink == null) {
+                    firstLink = l;
+                }
+
+            }
+        }
+
+        /*
+         * recurse into the ref nodes
+         */
+        for (RefNode refNode: entity.getChildren(RefNode.class)) {
+            Entity reffed = refNode.getReference(false);
+            if (reffed != null) {
+                generateDiagram(diag, reffed, processed);
+            }
+        }
+
+        /*
+         * recurse into the to many nodes
+         */
+        for (ToManyNode toManyNode: entity.getChildren(ToManyNode.class)) {
+            if (!toManyNode.isFetched()) {
+                continue;
+            }
+            for (Entity reffed: toManyNode.getList()) {
+                generateDiagram(diag, reffed, processed);
+            }
+        }
+        return firstLink;
+    }
+
+    private String genLinkName(ToManyNode toManyNode) {
+        if (toManyNode.getNodeType().isOwns()) {
+            return "owns " + toManyNode.getName();
+        }
+        else if (toManyNode.getNodeType().isDependsOn()) {
+            return "depends on " + toManyNode.getName();
+        }
+        return toManyNode.getName();
+    }
+
+    private String genLinkName(RefNode refNode) {
+        if (refNode.getNodeType().isOwns()) {
+            return "owns " + refNode.getName();
+        }
+        else if (refNode.getNodeType().isDependsOn()) {
+            return "depends on " + refNode.getName();
+        }
+        return refNode.getName();
     }
 
     public String printXml() {
