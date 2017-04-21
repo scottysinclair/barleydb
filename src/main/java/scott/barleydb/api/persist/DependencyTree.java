@@ -1,5 +1,7 @@
 package scott.barleydb.api.persist;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 
@@ -29,10 +31,8 @@ import java.util.ArrayList;
  */
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -52,7 +52,9 @@ import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.entity.EntityContextHelper;
 import scott.barleydb.api.core.entity.RefNode;
 import scott.barleydb.api.core.entity.ToManyNode;
-import scott.barleydb.api.core.entity.EntityContextHelper.Predicate;
+import scott.barleydb.api.dependency.DependencyDiagram;
+import scott.barleydb.api.dependency.Link;
+import scott.barleydb.api.dependency.LinkType;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.execution.query.SortQueryException;
 import scott.barleydb.api.query.QProperty;
@@ -75,6 +77,41 @@ public class DependencyTree implements Serializable {
     public DependencyTree(EntityContext refCtx) {
         this.ctx = refCtx;
         this.dctx = refCtx.newEntityContext();
+    }
+
+    public void generateDiagram() {
+        try {
+            File file = new File(System.getProperty("java.io.tmpdir") + "/dep-tree.jpeg");
+            generateDiagram(file);
+            LOG.warn("GENERATED DIAGRAM AT " + file.getPath());
+        }
+        catch(Exception x) {
+            LOG.warn("Could not generate diagram!", x);
+        }
+    }
+
+    public void generateDiagram(File diagram) throws IOException {
+        DependencyDiagram diag = new DependencyDiagram();
+        Link firstLink = null;
+        for (Node node: nodes.values()) {
+            for (Node depNode: node.dependency) {
+                LinkType linkType = LinkType.DEPENDENCY;
+                if (node.operation.opType == OperationType.NONE) {
+                    linkType = LinkType.DEPENDENCY_DASHED;
+                }
+                Link l = diag.link(genNodeDiagramName(node), genNodeDiagramName(depNode), "", linkType);
+                if (firstLink == null) {
+                    firstLink = l;
+                }
+            }
+        }
+        diag.generate(diagram, firstLink);
+    }
+
+    private String genNodeDiagramName(Node node) {
+        String entityName = node.operation.entity.toString();
+        return entityName + "|" + node.operation.opType;
+
     }
 
     public String dumpCurrentState() {
@@ -145,7 +182,7 @@ public class DependencyTree implements Serializable {
             } while (numberOfNodes < nodes.size());
 
             LOG.debug("---------------------------------------------------------------------------------------");
-            LOG.debug("- FINISHED processing node dependencies current set contains {}.", print(nodes));
+            LOG.debug("- FINISHED processing node dependencies current set contains {}.", print(nodes.values()));
             LOG.debug("- We have built nodes for every single entity operation in memory");
             LOG.debug(
                     "- We need to now query the database to include delete operations records which were not loaded.");
@@ -209,9 +246,12 @@ public class DependencyTree implements Serializable {
         return true;
     }
 
-    private String print(Map<Entity, Node> nodes) {
+    private String print(Collection<Node> nodes) {
+        if (nodes.isEmpty()) {
+            return "[]";
+        }
         StringBuilder sb = new StringBuilder("[\n");
-        for (Node node : nodes.values()) {
+        for (Node node : nodes) {
             sb.append(node);
             sb.append(",\n");
         }
@@ -238,28 +278,53 @@ public class DependencyTree implements Serializable {
      */
     private void calculateDependencyOrder() {
         Collection<Node> readyNodes = getUnprocessedNodesWithNoUnprocessedDependencies(false);
-        while (!readyNodes.isEmpty()) {
+        int count = 0;
+        while (count < 1000 && dependencyOrder.size() < countNodeRequiredInDependencyOrder(true)) {
             dependencyOrder.addAll(readyNodes);
-            LOG.debug("Added {} Nodes to dependecy order (size={})", readyNodes.size(), dependencyOrder.size());
+            LOG.debug("added following nodes to dependecy order {}", print(readyNodes));
             readyNodes = getUnprocessedNodesWithNoUnprocessedDependencies(false);
+            count++;
+        }
+        if (count == 1000) {
+            throw new IllegalStateException("Infinite loop, calculating dependency order");
         }
         /*
          * now process deletes
          */
         readyNodes = getUnprocessedNodesWithNoUnprocessedDependencies(true);
-        while (dependencyOrder.size() < nodes.size()) {
+        count = 0;
+        while (count < 1000 && dependencyOrder.size() < countNodeRequiredInDependencyOrder(false)) {
             if (readyNodes.isEmpty()) {
                 LOG.error(dumpCurrentState());
+                generateDiagram();
                 throw new IllegalStateException("Could not calculate the dependency order.");
             }
             dependencyOrder.addAll(readyNodes);
-            LOG.debug("Added {} Nodes to deletes order (size={})", readyNodes.size(), dependencyOrder.size());
+            LOG.debug("added following nodes to dependecy order {}", print(readyNodes));
             readyNodes = getUnprocessedNodesWithNoUnprocessedDependencies(true);
+            count++;
+        }
+        if (count == 1000) {
+            throw new IllegalStateException("Infinite loop, calculating dependency order");
         }
 
         if (LOG.isDebugEnabled()) {
             LOG.debug(dumpCurrentState());
         }
+    }
+
+    private int countNodeRequiredInDependencyOrder(boolean excludeDeleteOperations) {
+        int count = 0;
+        for (Node node: nodes.values()) {
+            if (excludeDeleteOperations && node.operation.opType == OperationType.DELETE) {
+                continue;
+            }
+            if (node.operation.opType == OperationType.NONE) {
+                continue;
+            }
+            count++;
+        }
+        return count;
     }
 
     /**
@@ -273,23 +338,36 @@ public class DependencyTree implements Serializable {
         LOG.trace("getUnprocessedNodesWithNoUnprocessedDependencies - {}", deletesMode ? "true" : "false");
         Collection<Node> result = new LinkedList<>();
         for (Node node : nodes.values()) {
-            if (deletesMode && node.operation.isDelete()) {
+            if (node.isProcessed()) {
                 continue;
             }
-            if (!deletesMode && !node.operation.isDelete()) {
+            if (deletesMode && !node.operation.isDelete()) {
+                continue;
+            }
+            if (!deletesMode && node.operation.isDelete()) {
+                continue;
+            }
+            if (node.operation.opType == OperationType.NONE) {
                 continue;
             }
             if (LOG.isTraceEnabled()) {
-                LOG.trace("{} is processed == {}", node, node.isProcessed());
-                LOG.trace("{} has unprocessed dependecies == {}", node, node.hasUnprocessedDependecies());
-                if (node.hasUnprocessedDependecies()) {
-                    LOG.trace("{} has dependecies", node);
-                    for (Node dep : node.dependency) {
-                        LOG.trace("{} has dependecy {} - is processed == {}", dep, dependencyOrder.contains(dep));
+                StringBuilder sb = new StringBuilder();
+                sb.append("DEPENDENCY REPORT\n");
+                sb.append("  ");
+                sb.append(node + " has following dependecies:\n");
+                for (Node dep : node.dependency) {
+                    sb.append("    ");
+                    sb.append(dep);
+                    if (dep.isProcessed()) {
+                        sb.append(" which is processed\n");
+                    }
+                    else {
+                            sb.append(" which is NOT processed\n");
                     }
                 }
+                LOG.trace(sb.toString());
             }
-            if (!node.isProcessed() && !node.hasUnprocessedDependecies()) {
+            if (!node.hasUnprocessedDependecies(deletesMode)) {
                 LOG.trace("Node {} is ready for processing", node);
                 result.add(node);
             }
@@ -492,8 +570,13 @@ public class DependencyTree implements Serializable {
                                 dependentNode = createOrGetNode(entity, OperationType.NONE);
                             }
                         }
-                        dependency.add(dependentNode);
-                        LOG.debug("Added dependency from {} to {}", this, dependentNode);
+                        if (operation.opType != OperationType.NONE && operation.opType != OperationType.DEPENDS) {
+                            dependency.add(dependentNode);
+                            LOG.debug("Added dependency from {} to {}", this, dependentNode);
+                        }
+                        else {
+                            LOG.debug("No dependencies created from {} to {} for OPTYPE {}", this, dependentNode, dependentNode.operation.opType);
+                       }
                     }
                 }
 
@@ -544,9 +627,13 @@ public class DependencyTree implements Serializable {
                          * the direction of the FK dependency is reversed for
                          * ToManyNodes
                          */
-                        dependentNode.dependency.add(this);
-                        LOG.debug("Added dependency from {} to {}", this, dependentNode);
-
+                        if (dependentNode.operation.opType != OperationType.NONE && dependentNode.operation.opType != OperationType.DEPENDS) {
+                            dependentNode.dependency.add(this);
+                            LOG.debug("Added dependency from {} to {}", dependentNode, this);
+                        }
+                        else {
+                            LOG.debug("No dependencies created from {} to {} for OPTYPE {}", dependentNode, this, dependentNode.operation.opType);
+                        }
                     }
                 }
             } else { // TODO Auto-generated method stub
@@ -615,8 +702,13 @@ public class DependencyTree implements Serializable {
                          * express the dependency, things which refer to us must
                          * be deleted before us.
                          */
-                        dependency.add(dependentNode);
-                        LOG.debug("Added dependency from {} to {}", this, dependentNode);
+                        if (operation.opType != OperationType.NONE && operation.opType != OperationType.DEPENDS) {
+                            dependency.add(dependentNode);
+                            LOG.debug("Added dependency from {} to {}", this, dependentNode);
+                        }
+                        else {
+                            LOG.debug("No dependencies created from {} to {} for OPTYPE {}", this, dependentNode, dependentNode.operation.opType);
+                       }
                     }
                 }
 
@@ -658,8 +750,17 @@ public class DependencyTree implements Serializable {
                          * express the dependency, we must be deleted before our
                          * ref
                          */
-                        dependentNode.dependency.add(this);
-                        LOG.debug("Added dependency from {} to {}", this, dependentNode);
+                        if (dependentNode.operation.opType != OperationType.NONE &&
+                            dependentNode.operation.opType != OperationType.DEPENDS) {
+                            /*
+                             * a non-op or a depends-op doesn't need any dependency
+                             */
+                            dependentNode.dependency.add(this);
+                            LOG.debug("Added dependency from {} to {}", dependentNode, this);
+                        }
+                        else {
+                            LOG.debug("No dependencies created from {} to {} for OPTYPE {}", dependentNode, this, dependentNode.operation.opType);
+                        }
                     }
                 }
             } else { // TODO Auto-generated method stub
@@ -675,8 +776,22 @@ public class DependencyTree implements Serializable {
             return dependencyOrder.contains(this);
         }
 
-        public boolean hasUnprocessedDependecies() {
-            return !dependency.isEmpty() && !dependencyOrder.containsAll(dependency);
+        public boolean hasUnprocessedDependecies(boolean deletesMode) {
+            Set<Node> filtered = filterOutOperations( dependency, OperationType.NONE );
+            if (!deletesMode) {
+                filtered = filterOutOperations( filtered, OperationType.DELETE );
+            }
+            return !filtered.isEmpty() && !dependencyOrder.containsAll(filtered);
+        }
+
+        private Set<Node> filterOutOperations(Set<Node> nodes,OperationType type) {
+            Set<Node> result = new HashSet<>();
+            for (Node node: nodes) {
+                if (node.operation.opType != type) {
+                    result.add( node );
+                }
+            }
+            return result;
         }
 
         @Override
