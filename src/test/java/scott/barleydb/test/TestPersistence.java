@@ -72,7 +72,7 @@ import scott.barleydb.server.jdbc.persist.Persister;
 import scott.barleydb.server.jdbc.resources.ConnectionResources;
 import scott.barleydb.test.TestEntityContextServices.PersisterFactory;
 
-@RunWith(Parameterized.class)
+//@RunWith(Parameterized.class)
 public class TestPersistence extends TestRemoteClientBase {
 
     private static final Logger LOG = LoggerFactory.getLogger(TestPersistence.class);
@@ -89,14 +89,14 @@ public class TestPersistence extends TestRemoteClientBase {
     private EntityContextGetter getter;
     private EntityContext theEntityContext;
 
-    public TestPersistence(EntityContextGetter getter) {
-        this.getter = getter;
-        //this.getter = new EntityContextGetter(true);
-    }
-
-//    public TestPersistence() {
-//        this.getter = new EntityContextGetter(false);;
+//    public TestPersistence(EntityContextGetter getter) {
+//        this.getter = getter;
+//        //this.getter = new EntityContextGetter(true);
 //    }
+
+    public TestPersistence() {
+        this.getter = new EntityContextGetter(false);;
+    }
 
     @Override
     public void setup() throws Exception {
@@ -468,6 +468,9 @@ public class TestPersistence extends TestRemoteClientBase {
             @Override
             protected void preJdbcWorkHook() {
                 try {
+                    LOG.debug("====================================================================================");
+                    LOG.debug("START SNEAK DELETE Scott's SyntaxModel");
+                    LOG.debug("====================================================================================");
                     QXmlSyntaxModel qsyntax = new QXmlSyntaxModel();
                     qsyntax.where(qsyntax.name().equal("Scott's SyntaxModel"));
 
@@ -480,8 +483,13 @@ public class TestPersistence extends TestRemoteClientBase {
                     entityContextServices.setPersisterFactory(null);
                     otherUser.persist( new PersistRequest().delete(otherSyntax) );
                     otherUser.commit();
+                    LOG.debug("====================================================================================");
+                    LOG.debug("END SNEAK DELETE Scott's SyntaxModel");
+                    LOG.debug("====================================================================================");
                 }
-                catch (Exception x) {}
+                catch (Exception x) {
+                    throw new IllegalStateException("Error in test harness, performing sneak delete", x);
+                }
             }
         };
 
@@ -672,6 +680,47 @@ public class TestPersistence extends TestRemoteClientBase {
         assertEquals(5, EntityContextHelper.countNew( theEntityContext.getEntitiesByType(XmlMapping.class) ) );
         assertEquals(1, EntityContextHelper.countLoaded( theEntityContext.getEntitiesByType(XmlStructure.class) ) );
         assertEquals(1, EntityContextHelper.countLoaded( theEntityContext.getEntitiesByType(User.class) ) );
+    }
+
+    /**
+     * deletes a recursive syntax with only the root syntax record being in memory
+     * everything else is deleted via orphan checks.
+     * @throws Exception
+     */
+    @Test
+    public void testDeleteSyntax3() throws Exception {
+        theEntityContext.setAllowGarbageCollection(false);
+        /*
+         * insert a new full model
+         */
+        XmlSyntaxModel syntaxModel = buildSyntax();
+        theEntityContext.persist(new PersistRequest().save(syntaxModel));
+
+        long syntaxId = syntaxModel.getId();
+
+        theEntityContext.clear();
+
+        QXmlSyntaxModel qs = new QXmlSyntaxModel();
+        qs.where(qs.id().equal( syntaxId ));
+        syntaxModel = theEntityContext.performQuery(qs).getSingleResult();
+
+        /*
+         * Then delete the full model (including sub-syntax).
+         */
+        theEntityContext.persist(new PersistRequest().delete(syntaxModel));
+
+        printEntityContext(theEntityContext);
+
+        /*
+         * verify that the syntax was removed
+         */
+        assertTrue(theEntityContext.performQuery(new QXmlSyntaxModel()).getList().isEmpty());
+        assertEquals(10, theEntityContext.size());
+        assertEquals(1, EntityContextHelper.countNotLoaded( theEntityContext.getEntitiesByType(AccessArea.class) ) );
+        assertEquals(2, EntityContextHelper.countNew( theEntityContext.getEntitiesByType(XmlSyntaxModel.class) ) );
+        assertEquals(5, EntityContextHelper.countNew( theEntityContext.getEntitiesByType(XmlMapping.class) ) );
+        assertEquals(1, EntityContextHelper.countNotLoaded( theEntityContext.getEntitiesByType(XmlStructure.class) ) );
+        assertEquals(1, EntityContextHelper.countNotLoaded( theEntityContext.getEntitiesByType(User.class) ) );
     }
 
     @Test

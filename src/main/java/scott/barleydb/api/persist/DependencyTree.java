@@ -80,7 +80,7 @@ public class DependencyTree implements Serializable {
     public String dumpCurrentState() {
         StringBuilder sb = new StringBuilder();
         sb.append("DEPENDENCY ORDER\n");
-        for (Node node: dependencyOrder) {
+        for (Node node : dependencyOrder) {
             sb.append(node.operation);
             sb.append('\n');
         }
@@ -88,7 +88,7 @@ public class DependencyTree implements Serializable {
         missing.removeAll(dependencyOrder);
         if (!missing.isEmpty()) {
             sb.append("MISSING FROM DEPENDENCY ORDER\n");
-            for (Node node: missing) {
+            for (Node node : missing) {
                 sb.append(node.operation);
                 sb.append('\n');
             }
@@ -102,67 +102,65 @@ public class DependencyTree implements Serializable {
      */
     public List<Operation> getOrder() {
         List<Operation> result = new ArrayList<>(dependencyOrder.size());
-        for (Node node: dependencyOrder) {
-            result.add( node.operation  );
+        for (Node node : dependencyOrder) {
+            result.add(node.operation);
         }
         return result;
     }
 
     public void build(Collection<Operation> operations) throws SortServiceProviderException, SortQueryException {
-        LOG.debug("---------------------------------------------------------------------------------------");
-        LOG.debug(" STARTING DEPENDENCY TREE BUILD ");
-        LOG.debug("---------------------------------------------------------------------------------------");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("---------------------------------------------------------------------------------------");
+            LOG.debug(" STARTING DEPENDENCY TREE BUILD ");
+            LOG.debug("---------------------------------------------------------------------------------------");
+        }
 
+        LOG.debug(" adding initial set of operations handed over to us...");
 
-        LOG.debug(" adding initial set of operations handed over to us ");
-        LOG.debug("---------------------------------------------------------------------------------------");
-
-        for (Operation operation: operations) {
+        for (Operation operation : operations) {
             createOrGetNode(operation.entity, operation.opType);
         }
 
-        boolean somethingToDo;
+        boolean allDependenciesBuilt;
+        boolean allOrphanChecksBuilt;
         do {
-            somethingToDo = false;
             /*
-             * building node dependencies can cause new nodes to be added
-             * so do a small loop until no more nodes are added
+             * building node dependencies can cause new nodes to be added so do
+             * a small loop until no more nodes are added
              */
             int numberOfNodes;
             do {
-                LOG.debug("---------------------------------------------------------------------------------------");
-                LOG.debug("- processing node dependencies, current set contains {} items.", nodes.size());
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(
+                            "---------------------------------------------------------------------------------------");
+                    LOG.debug("- processing node dependencies, current pending checks {}.",
+                            printNodesPendingDependencyChecks(nodes));
+                }
                 numberOfNodes = nodes.size();
-                for (Node node: new ArrayList<>(nodes.values())) {
-                    somethingToDo |= !node.isBuiltDependencies();
-                    node.buildDependencies();
+                for (Node node : new ArrayList<>(nodes.values())) {
+                    if (!node.isBuiltDependencies()) {
+                        node.buildDependencies();
+                    }
                 }
-            }
-            while(numberOfNodes < nodes.size());
+            } while (numberOfNodes < nodes.size());
 
             LOG.debug("---------------------------------------------------------------------------------------");
-            LOG.debug("- FINISHED processing node dependencies for now current set contains {} items.", nodes.size());
+            LOG.debug("- FINISHED processing node dependencies current set contains {}.", print(nodes));
             LOG.debug("- We have built nodes for every single entity operation in memory");
-            LOG.debug("- We need to now query the database to include delete operations records which were not loaded.");
+            LOG.debug(
+                    "- We need to now query the database to include delete operations records which were not loaded.");
             LOG.debug("---------------------------------------------------------------------------------------");
 
-            LOG.debug("- Checking if any of the {} operations require orphan checks", nodes.size());
-            int currentAmountOfOrphanChecks = orphanChecks.size();
-            for (Node node: nodes.values()) {
-                somethingToDo |= !node.isBuiltOrphanChecks();
-                node.buildOprhanChecks();
-            }
-            if (LOG.isDebugEnabled()) {
-                if (orphanChecks.size() > currentAmountOfOrphanChecks) {
-                    LOG.debug("- ORPHAN CHECKS: Added {} orphan checks", orphanChecks.size() - currentAmountOfOrphanChecks);
-                }
-                else {
-                    LOG.debug("- ORPHAN CHECKS: No orphan checks added");
+            LOG.debug("- Checking if any of the {} operations in our dependency tree require orphan checks",
+                    nodes.size());
+            for (Node node : nodes.values()) {
+                if (!node.isBuiltOrphanChecks()) {
+                    node.buildOprhanChecks();
                 }
             }
 
-            numberOfNodes = nodes.size();
             while (pendingOrphanChecks()) {
+                LOG.debug("- Processing pending orphan checks...");
 
                 /*
                  * query for the data as efficiently as possible
@@ -173,20 +171,75 @@ public class DependencyTree implements Serializable {
                  */
                 integrateNewDeleteOperationsIntoDependencyTree();
             }
-            somethingToDo |= nodes.size() > numberOfNodes;
-        }
-        while(somethingToDo);
 
+            allDependenciesBuilt = allNodesHaveDependenciesBuilt();
+            allOrphanChecksBuilt = allNodesHaveOrphanChecksBuilt();
+
+            if (allDependenciesBuilt) {
+                LOG.debug("All dependency checks built");
+            } else {
+                LOG.debug("Dependency checks still pending...");
+            }
+            if (allOrphanChecksBuilt) {
+                LOG.debug("All orphan checks built");
+            } else {
+                LOG.debug("Orphan checks still pending...");
+            }
+        } while (!allDependenciesBuilt || !allOrphanChecksBuilt);
+
+        LOG.debug("FINALLY calculating dependency order...");
         calculateDependencyOrder();
     }
 
+    private boolean allNodesHaveDependenciesBuilt() {
+        for (Node node : nodes.values()) {
+            if (!node.isBuiltDependencies()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean allNodesHaveOrphanChecksBuilt() {
+        for (Node node : nodes.values()) {
+            if (!node.isBuiltOrphanChecks()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private String print(Map<Entity, Node> nodes) {
+        StringBuilder sb = new StringBuilder("[\n");
+        for (Node node : nodes.values()) {
+            sb.append(node);
+            sb.append(",\n");
+        }
+        sb.setLength(sb.length() - 2);
+        sb.append("\n]");
+        return sb.toString();
+    }
+
+    private String printNodesPendingDependencyChecks(Map<Entity, Node> nodes) {
+        StringBuilder sb = new StringBuilder("[\n");
+        for (Node node : nodes.values()) {
+            if (!node.isBuiltDependencies()) {
+                sb.append(node);
+                sb.append(",\n");
+            }
+        }
+        sb.setLength(sb.length() - 2);
+        sb.append("\n]");
+        return sb.toString();
+    }
+
     /**
-     * populates the dependencyOrder list  by processing the dependency nodes.
+     * populates the dependencyOrder list by processing the dependency nodes.
      */
     private void calculateDependencyOrder() {
         Collection<Node> readyNodes = getUnprocessedNodesWithNoUnprocessedDependencies(false);
-        while(!readyNodes.isEmpty()) {
-            dependencyOrder.addAll( readyNodes );
+        while (!readyNodes.isEmpty()) {
+            dependencyOrder.addAll(readyNodes);
             LOG.debug("Added {} Nodes to dependecy order (size={})", readyNodes.size(), dependencyOrder.size());
             readyNodes = getUnprocessedNodesWithNoUnprocessedDependencies(false);
         }
@@ -194,12 +247,12 @@ public class DependencyTree implements Serializable {
          * now process deletes
          */
         readyNodes = getUnprocessedNodesWithNoUnprocessedDependencies(true);
-        while(dependencyOrder.size() < nodes.size()) {
+        while (dependencyOrder.size() < nodes.size()) {
             if (readyNodes.isEmpty()) {
                 LOG.error(dumpCurrentState());
                 throw new IllegalStateException("Could not calculate the dependency order.");
             }
-            dependencyOrder.addAll( readyNodes );
+            dependencyOrder.addAll(readyNodes);
             LOG.debug("Added {} Nodes to deletes order (size={})", readyNodes.size(), dependencyOrder.size());
             readyNodes = getUnprocessedNodesWithNoUnprocessedDependencies(true);
         }
@@ -210,14 +263,16 @@ public class DependencyTree implements Serializable {
     }
 
     /**
-     * finds nodes which have themselves not been processed, but their dependencies have been.
+     * finds nodes which have themselves not been processed, but their
+     * dependencies have been.
+     *
      * @param deletesMode
      * @return
      */
     private Collection<Node> getUnprocessedNodesWithNoUnprocessedDependencies(boolean deletesMode) {
         LOG.trace("getUnprocessedNodesWithNoUnprocessedDependencies - {}", deletesMode ? "true" : "false");
         Collection<Node> result = new LinkedList<>();
-        for (Node node: nodes.values()) {
+        for (Node node : nodes.values()) {
             if (deletesMode && node.operation.isDelete()) {
                 continue;
             }
@@ -229,14 +284,14 @@ public class DependencyTree implements Serializable {
                 LOG.trace("{} has unprocessed dependecies == {}", node, node.hasUnprocessedDependecies());
                 if (node.hasUnprocessedDependecies()) {
                     LOG.trace("{} has dependecies", node);
-                    for (Node dep: node.dependency) {
+                    for (Node dep : node.dependency) {
                         LOG.trace("{} has dependecy {} - is processed == {}", dep, dependencyOrder.contains(dep));
                     }
                 }
             }
             if (!node.isProcessed() && !node.hasUnprocessedDependecies()) {
                 LOG.trace("Node {} is ready for processing", node);
-                result.add( node );
+                result.add(node);
             }
         }
         return result;
@@ -244,12 +299,12 @@ public class DependencyTree implements Serializable {
 
     private Node getReffedDependencyNode(RefNode refNode) {
         Entity dependentEntity = refNode.getReference();
-        return dependentEntity != null ? nodes.get( dependentEntity ) : null;
+        return dependentEntity != null ? nodes.get(dependentEntity) : null;
     }
-
 
     /**
      * creates the node for the given entity and operation
+     *
      * @param entity
      * @param opType
      * @return the Node or null if it an operation already exists for the entity
@@ -260,9 +315,11 @@ public class DependencyTree implements Serializable {
 
     /**
      * creates the node for the given entity and operation
+     *
      * @param entity
      * @param opType
-     * @param orphanCheck if an orphan check is required.
+     * @param orphanCheck
+     *            if an orphan check is required.
      * @return the Node or null if it an operation already exists for the entity
      */
     private Node createOrGetNode(Entity entity, OperationType opType, boolean orphanCheck) {
@@ -270,16 +327,14 @@ public class DependencyTree implements Serializable {
         if (node == null) {
             node = new Node(new Operation(entity, opType), orphanCheck);
             nodes.put(entity, node);
-        }
-        else {
+        } else {
             if (node.operation.isNone()) {
-                node.operation.updateOpType( opType );
+                node.operation.updateOpType(opType);
             }
         }
         LOG.debug("Added node {} to dependency tree", node);
         return node;
     }
-
 
     private class Node implements Serializable {
 
@@ -310,30 +365,34 @@ public class DependencyTree implements Serializable {
             if (builtOrphanChecks) {
                 return;
             }
+            LOG.debug("Building orphan checks for {}", this);
             builtOrphanChecks = true;
             if (operation.entity.getKey().getValue() == null) {
                 /*
-                 * this entity has no PK, it cannot exist in the DB, therefore nothing to do
+                 * this entity has no PK, it cannot exist in the DB, therefore
+                 * nothing to do
                  */
                 return;
             }
             if (operation.isNone()) {
                 /*
-                 * there is no operation being performed on this entity so it cannot cause
-                 * any of it's owned stuff to be deleted.
+                 * there is no operation being performed on this entity so it
+                 * cannot cause any of it's owned stuff to be deleted.
                  */
                 return;
             }
 
             /*
-             * we need to check what should be deleted from the database based on the set of operations.
-             * ie entities which are owned by RefNodes but no longer pointed to need to be deleted, the same goes for to many nodes.
+             * we need to check what should be deleted from the database based
+             * on the set of operations. ie entities which are owned by RefNodes
+             * but no longer pointed to need to be deleted, the same goes for to
+             * many nodes.
              */
             LOG.debug("Analysing orphan checks for {}", this);
             /*
              * go through our FK refs and build dependencies TO them
              */
-            for (RefNode ref: operation.entity.getChildren(RefNode.class)) {
+            for (RefNode ref : operation.entity.getChildren(RefNode.class)) {
                 /*
                  * it doesn't matter what the reference is currently pointing at
                  * we need to load from the DB and get the REAL reference.
@@ -347,17 +406,18 @@ public class DependencyTree implements Serializable {
             }
 
             /*
-             * If we own the N side of the relationship and an entity was removed from the List of N
-             * then that entity should be deleted.
+             * If we own the N side of the relationship and an entity was
+             * removed from the List of N then that entity should be deleted.
              *
-             * If we are being deleted and we own the N side then all are deleted.
+             * If we are being deleted and we own the N side then all are
+             * deleted.
              *
              * IE we always have to load the original N when we own the relation
              */
             /*
              * go through our FK refs and build dependencies FROM them
              */
-            for (ToManyNode toManyNode: operation.entity.getChildren(ToManyNode.class)) {
+            for (ToManyNode toManyNode : operation.entity.getChildren(ToManyNode.class)) {
                 /*
                  * it doesn't matter what the reference is currently pointing at
                  * we need to load from the DB and get the REAL reference.
@@ -380,57 +440,59 @@ public class DependencyTree implements Serializable {
             LOG.debug("--------------------------");
             LOG.debug("- Building dependencies for {}", this);
             /*
-             *  first process insert or update logic
+             * first process insert or update logic
              */
             if (!operation.isDelete() && !operation.isNone()) {
                 /*
                  * go through our FK refs and build dependencies TO them
                  */
-                for (RefNode ref: operation.entity.getChildren(RefNode.class)) {
+                for (RefNode ref : operation.entity.getChildren(RefNode.class)) {
                     /*
                      * look to see if the reference points to anything
                      */
                     Entity entity = ref.getReference(false);
                     if (entity != null) {
                         /*
-                         * check if we already have a dependency node for the reff'd entity.
+                         * check if we already have a dependency node for the
+                         * reff'd entity.
                          */
                         Node dependentNode = getReffedDependencyNode(ref);
                         if (dependentNode == null) {
-                            /*true
-                             *  We need to add a new node to our dependency tree.
+                            /*
+                             * true We need to add a new node to our dependency
+                             * tree.
                              */
 
                             /*
-                             * if the entity is already in the DB
-                             * and we own it
-                             * and we have it loaded into memory
-                             * then we should perform an update
+                             * if the entity is already in the DB and we own it
+                             * and we have it loaded into memory then we should
+                             * perform an update
                              */
                             if (entity.isUnclearIfInDatabase()) {
-                                throw new IllegalStateException("Entities should be clearly defined at this point: " + entity);
+                                throw new IllegalStateException(
+                                        "Entities should be clearly defined at this point: " + entity);
                             }
-                            if (entity.isClearlyInDatabase() && ref.getNodeType().isOwns() && !entity.isFetchRequired()) {
-                                dependentNode  = createOrGetNode(entity, OperationType.UPDATE);
+                            if (entity.isClearlyInDatabase() && ref.getNodeType().isOwns()
+                                    && !entity.isFetchRequired()) {
+                                dependentNode = createOrGetNode(entity, OperationType.UPDATE);
                             }
                             /*
-                             * if the entity it not in the database then it has to be inserted
-                             * otherwise we cannot set the FK
+                             * if the entity it not in the database then it has
+                             * to be inserted otherwise we cannot set the FK
                              */
                             else if (entity.isClearlyNotInDatabase()) {
-                                dependentNode  = createOrGetNode(entity, OperationType.INSERT);
-                            }
-                            else if (ref.getNodeType().isDependsOn()) {
-                                dependentNode  = createOrGetNode(entity, OperationType.DEPENDS);
-                            }
-                            else {
+                                dependentNode = createOrGetNode(entity, OperationType.INSERT);
+                            } else if (ref.getNodeType().isDependsOn()) {
+                                dependentNode = createOrGetNode(entity, OperationType.DEPENDS);
+                            } else {
                                 /*
-                                 * the dependency is there but there is nothing to.do.
+                                 * the dependency is there but there is nothing
+                                 * to.do.
                                  */
-                                dependentNode  = createOrGetNode(entity, OperationType.NONE);
+                                dependentNode = createOrGetNode(entity, OperationType.NONE);
                             }
                         }
-                        dependency.add( dependentNode );
+                        dependency.add(dependentNode);
                         LOG.debug("Added dependency from {} to {}", this, dependentNode);
                     }
                 }
@@ -438,55 +500,56 @@ public class DependencyTree implements Serializable {
                 /*
                  * go through our to many refs and build dependencies FROM them
                  */
-                for (ToManyNode toManyNode: operation.entity.getChildren(ToManyNode.class)) {
+                for (ToManyNode toManyNode : operation.entity.getChildren(ToManyNode.class)) {
                     if (toManyNode.getList().isEmpty() && !toManyNode.isFetched()) {
                         /*
-                         * if the many relation was never fetched, and it contains nothing, so skip.
+                         * if the many relation was never fetched, and it
+                         * contains nothing, so skip.
                          */
                         continue;
                     }
                     for (Entity entity : toManyNode.getList()) {
                         /*
-                         * check if we already have a dependency node for the reff'd entity.
+                         * check if we already have a dependency node for the
+                         * reff'd entity.
                          */
                         Node dependentNode = getDependencyNode(entity);
                         if (dependentNode == null) {
                             /*
-                             * if the entity is already in the DB
-                             * and we own it
-                             * and we have it loaded into memory
-                             * then we should perform an update
+                             * if the entity is already in the DB and we own it
+                             * and we have it loaded into memory then we should
+                             * perform an update
                              */
-                            if (entity.isClearlyInDatabase() && toManyNode.getNodeType().isOwns() && !entity.isFetchRequired()) {
-                                dependentNode  = createOrGetNode(entity, OperationType.UPDATE);
+                            if (entity.isClearlyInDatabase() && toManyNode.getNodeType().isOwns()
+                                    && !entity.isFetchRequired()) {
+                                dependentNode = createOrGetNode(entity, OperationType.UPDATE);
                             }
                             /*
-                             * if the entity it not in the database then it has to be inserted
-                             * otherwise we cannot set the FK
+                             * if the entity it not in the database then it has
+                             * to be inserted otherwise we cannot set the FK
                              */
                             else if (entity.isClearlyNotInDatabase()) {
-                                dependentNode  = createOrGetNode(entity, OperationType.INSERT);
-                            }
-                            else if (toManyNode.getNodeType().isDependsOn()) {
-                                dependentNode  = createOrGetNode(entity, OperationType.DEPENDS);
-                            }
-                            else {
+                                dependentNode = createOrGetNode(entity, OperationType.INSERT);
+                            } else if (toManyNode.getNodeType().isDependsOn()) {
+                                dependentNode = createOrGetNode(entity, OperationType.DEPENDS);
+                            } else {
                                 /*
-                                 * the dependency is there but there is nothing to.do.
+                                 * the dependency is there but there is nothing
+                                 * to.do.
                                  */
-                                dependentNode  = createOrGetNode(entity, OperationType.NONE);
+                                dependentNode = createOrGetNode(entity, OperationType.NONE);
                             }
                         }
                         /*
-                         * the direction of the FK dependency is reversed for ToManyNodes
+                         * the direction of the FK dependency is reversed for
+                         * ToManyNodes
                          */
                         dependentNode.dependency.add(this);
                         LOG.debug("Added dependency from {} to {}", this, dependentNode);
 
                     }
                 }
-            }
-            else {        // TODO Auto-generated method stub
+            } else { // TODO Auto-generated method stub
 
                 /*
                  * delete operations are handles somewhere else
@@ -496,8 +559,8 @@ public class DependencyTree implements Serializable {
         }
 
         /**
-         * this can only be called when integrating new delete operations into the contetx
-         * which have been directly pulled from the database.
+         * this can only be called when integrating new delete operations into
+         * the contetx which have been directly pulled from the database.
          *
          */
         public void buildDeleteDependencies() {
@@ -507,49 +570,52 @@ public class DependencyTree implements Serializable {
             builtDependencies = true;
             LOG.debug("Building delete dependencies for {}", this);
             /*
-             *  only care about deletes for this methos
+             * only care about deletes for this methos
              */
             if (operation.isDelete()) {
                 /*
                  * go through our to many refs and build dependencies FROM them
                  */
-                for (ToManyNode toManyNode: operation.entity.getChildren(ToManyNode.class)) {
+                for (ToManyNode toManyNode : operation.entity.getChildren(ToManyNode.class)) {
                     if (toManyNode.getList().isEmpty() && !toManyNode.isFetched()) {
                         /*
-                         * if the many relation was never fetched, and it contains nothing, so skip.
+                         * if the many relation was never fetched, and it
+                         * contains nothing, so skip.
                          */
                         continue;
                     }
                     for (Entity entity : toManyNode.getList()) {
                         /*
-                         * check if we already have a dependency node for the reff'd entity.
+                         * check if we already have a dependency node for the
+                         * reff'd entity.
                          */
                         Node dependentNode = getDependencyNode(entity);
                         if (dependentNode == null) {
                             /*
-                             *  We need to add a new node to our dependency tree.
-                             *  We must have had a recursive data structure, this is the only
-                             *  time it happens with delete logic...
+                             * We need to add a new node to our dependency tree.
+                             * We must have had a recursive data structure, this
+                             * is the only time it happens with delete logic...
                              */
-
 
                             /*
-                             * if we own the reffed entity then the reffed entity must be deleted.
+                             * if we own the reffed entity then the reffed
+                             * entity must be deleted.
                              *
-                             * in any case - there is a clear dependency that we must be deleted before the
-                             * reffed entity, so we depend on it.
+                             * in any case - there is a clear dependency that we
+                             * must be deleted before the reffed entity, so we
+                             * depend on it.
                              */
                             if (toManyNode.getNodeType().isOwns()) {
-                                dependentNode  = createOrGetNode(entity, OperationType.DELETE);
-                            }
-                            else {
-                                dependentNode  = createOrGetNode(entity, OperationType.NONE);
+                                dependentNode = createOrGetNode(entity, OperationType.DELETE);
+                            } else {
+                                dependentNode = createOrGetNode(entity, OperationType.NONE);
                             }
                         }
                         /*
-                         * express the dependency, things which refer to us must be deleted before us.
+                         * express the dependency, things which refer to us must
+                         * be deleted before us.
                          */
-                        dependency.add( dependentNode );
+                        dependency.add(dependentNode);
                         LOG.debug("Added dependency from {} to {}", this, dependentNode);
                     }
                 }
@@ -557,44 +623,46 @@ public class DependencyTree implements Serializable {
                 /*
                  * go through our FK refs and build dependencies FROM them TO us
                  */
-                for (RefNode ref: operation.entity.getChildren(RefNode.class)) {
+                for (RefNode ref : operation.entity.getChildren(RefNode.class)) {
                     /*
                      * look to see if the reference points to anything
                      */
                     Entity entity = ref.getReference(false);
                     if (entity != null) {
                         /*
-                         * check if we already have a dependency node for the reff'd entity.
+                         * check if we already have a dependency node for the
+                         * reff'd entity.
                          */
                         Node dependentNode = getReffedDependencyNode(ref);
                         if (dependentNode == null) {
                             /*
-                             *  We need to add a new node to our dependency tree.
-                             *  We must have had a recursive data structure, this is the only
-                             *  time it happens with delete logic...
+                             * We need to add a new node to our dependency tree.
+                             * We must have had a recursive data structure, this
+                             * is the only time it happens with delete logic...
                              */
 
                             /*
-                             * If a syntax has a FK reference to a structure then we can express a delete
-                             * dependency that the structure depends on us if it wants to be deleted.
+                             * If a syntax has a FK reference to a structure
+                             * then we can express a delete dependency that the
+                             * structure depends on us if it wants to be
+                             * deleted.
                              */
 
                             if (ref.getNodeType().isOwns()) {
-                                dependentNode  = createOrGetNode(entity, OperationType.DELETE);
-                            }
-                            else {
-                                dependentNode  = createOrGetNode(entity, OperationType.NONE);
+                                dependentNode = createOrGetNode(entity, OperationType.DELETE);
+                            } else {
+                                dependentNode = createOrGetNode(entity, OperationType.NONE);
                             }
                         }
                         /*
-                         * express the dependency, we must be deleted before our ref
+                         * express the dependency, we must be deleted before our
+                         * ref
                          */
-                        dependentNode.dependency.add( this );
+                        dependentNode.dependency.add(this);
                         LOG.debug("Added dependency from {} to {}", this, dependentNode);
                     }
                 }
-            }
-            else {        // TODO Auto-generated method stub
+            } else { // TODO Auto-generated method stub
 
                 /*
                  * non-delete operations are handles somewhere else
@@ -656,7 +724,7 @@ public class DependencyTree implements Serializable {
     }
 
     private boolean pendingOrphanChecks() {
-        for (OrphanCheck oc: orphanChecks.values()) {
+        for (OrphanCheck oc : orphanChecks.values()) {
             if (!oc.checkWasPerformed()) {
                 return true;
             }
@@ -672,26 +740,30 @@ public class DependencyTree implements Serializable {
 
         Map<EntityId, OrphanCheck> lookup = new HashMap<>();
 
-        for (OrphanCheck orphCheck: new ArrayList<>(orphanChecks.values())) {
+        for (OrphanCheck orphCheck : new ArrayList<>(orphanChecks.values())) {
             if (orphCheck.checkWasPerformed()) {
-//                LOG.debug("Already performed orphan check for {}", orphCheck.entity);
+                // LOG.debug("Already performed orphan check for {}",
+                // orphCheck.entity);
                 continue;
             }
-            LOG.debug("- Creating query to load all data of type {} for orphan checking", orphCheck.entity.getEntityType().getInterfaceName());
+            LOG.debug("- Creating query to load all data of type {} for orphan checking",
+                    orphCheck.entity.getEntityType().getInterfaceName());
             LOG.debug("-------------------------------------------------------------");
             /*
-             * at the top level of this loop we just need 1 orphCheck of each EntityType.
+             * at the top level of this loop we just need 1 orphCheck of each
+             * EntityType.
              */
-            EntityId eid = new EntityId(orphCheck.entity.getEntityType(),  orphCheck.entity.getKey().getValue());
+            EntityId eid = new EntityId(orphCheck.entity.getEntityType(), orphCheck.entity.getKey().getValue());
             /*
-             * create a query for the entity type, which includes all orph checks of the same type
+             * create a query for the entity type, which includes all orph
+             * checks of the same type
              */
-            QueryObject<Object> query = createQueryForReferencesToDelete( orphCheck.entity );
+            QueryObject<Object> query = createQueryForReferencesToDelete(orphCheck.entity);
             orphCheck.setCheckWasPerformed(true);
             lookup.put(eid, orphCheck);
             int logNumberOfQueryConditions = 1;
 
-            for (OrphanCheck sub: orphanChecks.values()) {
+            for (OrphanCheck sub : orphanChecks.values()) {
                 if (sub == orphCheck) {
                     continue;
                 }
@@ -702,16 +774,17 @@ public class DependencyTree implements Serializable {
                 if (sub.entity.getEntityType() != orphCheck.entity.getEntityType()) {
                     continue;
                 }
-                EntityId eidSub = new EntityId(sub.entity.getEntityType(),  sub.entity.getKey().getValue());
+                EntityId eidSub = new EntityId(sub.entity.getEntityType(), sub.entity.getKey().getValue());
                 QProperty<Object> keyProp = new QProperty<>(query, sub.entity.getKey().getName());
-                query.or( keyProp.equal( sub.entity.getKey().getValue()));
+                query.or(keyProp.equal(sub.entity.getKey().getValue()));
                 logNumberOfQueryConditions++;
 
                 sub.setCheckWasPerformed(true);
                 lookup.put(eidSub, sub);
             }
 
-            LOG.debug("- Query of type {} created which performs {} checks.", query.getTypeName(), logNumberOfQueryConditions);
+            LOG.debug("- Query of type {} created which performs {} checks.", query.getTypeName(),
+                    logNumberOfQueryConditions);
             LOG.debug("-------------------------------------------------------------");
             qbatcher.addQuery(query);
         }
@@ -722,16 +795,16 @@ public class DependencyTree implements Serializable {
         if (!qbatcher.getQueries().isEmpty()) {
             LOG.debug("- Executing all prepared queries");
             LOG.debug("-------------------------------------------------------------");
-            dctx.performQueries( qbatcher );
-            for (QueryResult<?> result: qbatcher.getResults()) {
-                for (Entity entityResult: result.getEntityList()) {
-                    OrphanCheck check = lookup.get(new EntityId(entityResult.getEntityType(), entityResult.getKey().getValue()));
-                    LOG.debug("Set check result {}", entityResult);
+            dctx.performQueries(qbatcher);
+            for (QueryResult<?> result : qbatcher.getResults()) {
+                for (Entity entityResult : result.getEntityList()) {
+                    OrphanCheck check = lookup
+                            .get(new EntityId(entityResult.getEntityType(), entityResult.getKey().getValue()));
+                    LOG.debug("Setting orphan check result {}", entityResult);
                     check.setResult(entityResult);
                 }
             }
-        }
-        else {
+        } else {
             LOG.debug("- No queries were pepared, orphan checks is completed.");
         }
         LOG.debug("-------------------------------------------------------------");
@@ -741,31 +814,32 @@ public class DependencyTree implements Serializable {
     }
 
     /**
-     * analyses the entities which were loaded as part of the delete orphan checking
-     * and integrates them into the main ctx and sets the delete operation
+     * analyses the entities which were loaded as part of the delete orphan
+     * checking and integrates them into the main ctx and sets the delete
+     * operation
      *
      */
     private void integrateNewDeleteOperationsIntoDependencyTree() {
         LOG.debug("-------------------------------------------------------------");
         LOG.debug("START Checking if we need to integrate new delete operations into the depdendecy tree.");
-        LOG.debug("-------------------------------------------------------------");
 
-        for (OrphanCheck oc: orphanChecks.values()) {
+        for (OrphanCheck oc : orphanChecks.values()) {
             if (oc.result == null) {
                 continue;
             }
-            LOG.debug("- Processing orphan check {} which {}",
-                    oc.entity,
-                    oc.result != null ? "found the original entity" : "did not find the original entity");
             LOG.debug("-------------------------------------------------------------");
+            LOG.debug("- Processing orphan check {}", oc.entity);
+
             Node dependencyNode = getDependencyNode(oc.entity);
             if (dependencyNode == null) {
-                throw new IllegalStateException("Could not find dependency node for an orphan check entity: " + oc.entity);
+                throw new IllegalStateException(
+                        "Could not find dependency node for an orphan check entity: " + oc.entity);
             }
             /*
-             * create delete operations for the orphan checks and the data it owns (data which it eagerly loaded in our case).
+             * create delete operations for the orphan checks and the data it
+             * owns (data which it eagerly loaded in our case).
              */
-            for (RefNode refNode: oc.result.getChildren(RefNode.class)) {
+            for (RefNode refNode : oc.result.getChildren(RefNode.class)) {
                 if (!refNode.getNodeType().isOwns()) {
                     continue;
                 }
@@ -774,73 +848,78 @@ public class DependencyTree implements Serializable {
                     continue;
                 }
                 if (dependencyNode.operation.isInsert()) {
-                    //there is nothing to delete if the entity referring to us is not yet in the DB
+                    // there is nothing to delete if the entity referring to us
+                    // is not yet in the DB
                     continue;
                 }
                 if (dependencyNode.operation.isDelete()) {
-                    LOG.debug("- Adding delete operation for reffed entity {} because the owner is being deleted", reffedEntity);
+                    LOG.debug("- Adding delete operation for reffed entity {} because the owner is being deleted",
+                            reffedEntity);
                     LOG.debug("-------------------------------------------------------------");
                     copyIntoContextAndCreateDeleteNodes(reffedEntity);
                     continue;
                 }
                 if (dependencyNode.operation.isUpdate()) {
                     if (isOrphaningReference(dependencyNode.operation, refNode.getNodeType(), oc.result)) {
-                        LOG.debug("- Adding delete operation for reffed entity {} because the owner orphaned it", reffedEntity);
+                        LOG.debug("- Adding delete operation for reffed entity {} because the owner orphaned it",
+                                reffedEntity);
                         LOG.debug("-------------------------------------------------------------");
                         copyIntoContextAndCreateDeleteNodes(reffedEntity);
                         continue;
-                    }
-                    else {
+                    } else {
                         LOG.debug("No orphan for {} reference to {}", oc.entity, refNode.getName());
                         continue;
                     }
                 }
-                throw new IllegalStateException("Unexpected state reached when processing orphan check " + oc + " for integrating into the dependency tree");
+                throw new IllegalStateException("Unexpected state reached when processing orphan check " + oc
+                        + " for integrating into the dependency tree");
             }
 
-
             /*
-             * create delete operations for the orphan checks and the data it owns (data which it eagerly loaded in our case).
+             * create delete operations for the orphan checks and the data it
+             * owns (data which it eagerly loaded in our case).
              */
-            for (ToManyNode refNode: oc.result.getChildren(ToManyNode.class)) {
+            for (ToManyNode refNode : oc.result.getChildren(ToManyNode.class)) {
                 if (!refNode.getNodeType().isOwns()) {
                     continue;
                 }
                 if (!refNode.isFetched()) {
                     continue;
                 }
-                for (Entity reffedEntity: refNode.getList()) {
+                for (Entity reffedEntity : refNode.getList()) {
                     if (reffedEntity == null) {
                         continue;
                     }
                     if (dependencyNode.operation.isInsert()) {
-                        //there is nothing to delete if the entity referring to us is not yet in the DB
+                        // there is nothing to delete if the entity referring to
+                        // us is not yet in the DB
                         continue;
                     }
                     if (dependencyNode.operation.isUpdate()) {
                         if (wasRemovedFromList(oc.entity, refNode.getName(), reffedEntity)) {
                             LOG.debug("Adding delete operation entity {} which was removde from list", reffedEntity);
                             copyIntoContextAndCreateDeleteNodes(reffedEntity);
-                        }
-                        else {
+                        } else {
                             LOG.debug("entity {} was not removed from list", reffedEntity);
                         }
                         continue;
                     }
                     /*
-                     * if we are being deleted, then the fulll N side is also being deleted.
+                     * if we are being deleted, then the fulll N side is also
+                     * being deleted.
                      */
                     if (dependencyNode.operation.isDelete()) {
-                        LOG.debug("Adding delete operation for reffed entity {} because the owner is being deleted", reffedEntity);
+                        LOG.debug("Adding delete operation for reffed entity {} because the owner is being deleted",
+                                reffedEntity);
                         copyIntoContextAndCreateDeleteNodes(refNode, reffedEntity);
                         continue;
                     }
-                    throw new IllegalStateException("Unexpected state reached when processing orphan check " + oc + " for integrating into the dependency tree");
+                    throw new IllegalStateException("Unexpected state reached when processing orphan check " + oc
+                            + " for integrating into the dependency tree");
                 }
             }
 
-
-            for (Node node: nodes.values()) {
+            for (Node node : nodes.values()) {
                 node.buildDependencies();
             }
         }
@@ -851,9 +930,10 @@ public class DependencyTree implements Serializable {
     }
 
     /**
-     * Checks if an entity on the N side of 1:N was actually removed.
-     * We can do this because we can compare the data from the client programmer to the data in the database
-     * obtained from the orphan check.
+     * Checks if an entity on the N side of 1:N was actually removed. We can do
+     * this because we can compare the data from the client programmer to the
+     * data in the database obtained from the orphan check.
+     *
      * @param entity
      * @param name
      * @param reffedEntity
@@ -862,49 +942,57 @@ public class DependencyTree implements Serializable {
     private boolean wasRemovedFromList(Entity entity, String name, Entity reffedEntity) {
         if (entity.isNotLoaded()) {
             /*
-             * the list cannot have something removed if the entity owning the list was never loaded.
+             * the list cannot have something removed if the entity owning the
+             * list was never loaded.
              */
             return false;
         }
         ToManyNode toManyNode = entity.getChild(name, ToManyNode.class);
         if (!toManyNode.isFetched()) {
             /*
-             * the list cannot have something removed if the list was never fetched.
+             * the list cannot have something removed if the list was never
+             * fetched.
              */
             return false;
         }
-        for (Entity e: toManyNode.getList()) {
-            if (e.getKey().getValue() != null && Objects.equals(e.getKey().getValue(), reffedEntity.getKey().getValue())) {
-                //we found the entity, so it wasn't removed
+        for (Entity e : toManyNode.getList()) {
+            if (e.getKey().getValue() != null
+                    && Objects.equals(e.getKey().getValue(), reffedEntity.getKey().getValue())) {
+                // we found the entity, so it wasn't removed
                 return false;
             }
         }
-        //only leaves 1 possibility
+        // only leaves 1 possibility
         return true;
     }
-
 
     private void copyIntoContextAndCreateDeleteNodes(Entity entity) {
         copyIntoContextAndCreateDeleteNodes(null, entity);
     }
-/**
-     * puts the entity into the main context creates delete operations for the whole entity tree of ownership
+
+    /**
+     * puts the entity into the main context creates delete operations for the
+     * whole entity tree of ownership
+     *
      * @param entity
      */
     private void copyIntoContextAndCreateDeleteNodes(ToManyNode toManyNode, Entity entity) {
         LOG.debug("Copying {} and all children into main ctx and create delete operations for them all.", entity);
 
-        //watch out for ownership over join tables (N:M)
+        // watch out for ownership over join tables (N:M)
         Collection<Entity> toCopy;
         if (toManyNode != null && toManyNode.getNodeType().getJoinProperty() != null) {
-            toCopy = findOwnedEntites(new LinkedHashSet<Entity>(), new HashSet<Entity>(), entity, toManyNode.getNodeType().getJoinProperty());
-        }
-        else {
+            toCopy = findOwnedEntites(new LinkedHashSet<Entity>(), new HashSet<Entity>(), entity,
+                    toManyNode.getNodeType().getJoinProperty());
+        } else {
             toCopy = findOwnedEntites(new LinkedHashSet<Entity>(), new HashSet<Entity>(), entity, null);
         }
 
-
-
+        /*
+         * TODO: we should not overwrite entities which are already in the client's content
+         * if he had a delete operation with an out of date optimistic lock then the operation would
+         * succeed instead of fail, because the optimistic lock value would be refreshed.
+         */
         List<Entity> copied = EntityContextHelper.addEntities(toCopy, ctx, true);
         EntityContextHelper.copyRefStates(dctx, ctx, copied, new EntityContextHelper.EntityFilter() {
             @Override
@@ -914,13 +1002,56 @@ public class DependencyTree implements Serializable {
         });
 
         List<Node> nodes = new LinkedList<>();
-        for (Entity e: copied) {
+        for (Entity e : copied) {
             LOG.debug("Adding delete operation for entity {}", e);
-            nodes.add( createOrGetNode(e, OperationType.DELETE, false) );
+            /*
+             * as this entity ori...
+             */
+            Entity eDctx = getEntityInCollection(toCopy, e.getEntityType(), e.getKey().getValue());
+            if (eDctx == null) {
+                throw new IllegalStateException("Cannot find entity " + e + " in dCtx");
+            }
+            boolean orphanChecksAreRequired = entityHasOwningRelationsWhichAreLazy( eDctx );
+            nodes.add(createOrGetNode(e, OperationType.DELETE, orphanChecksAreRequired));
         }
-        for (Node node: nodes) {
+        for (Node node : nodes) {
             node.buildDeleteDependencies();
         }
+    }
+
+    private Entity getEntityInCollection(Collection<Entity> col, EntityType entityType, Object key) {
+        for (Entity e: col) {
+            if (e.getEntityType() == entityType && e.getKey().getValue() != null && e.getKey().getValue().equals(key)) {
+                return e;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * returns true iff the entity has a tomanynode with an isowning relationship and the it is not loaded
+     *
+     * @param entityWhichWasLoadedForOrphanCheck
+     * @return
+     */
+    private boolean entityHasOwningRelationsWhichAreLazy(Entity entityWhichWasLoadedForOrphanCheck) {
+        for (ToManyNode toManyNode: entityWhichWasLoadedForOrphanCheck.getChildren(ToManyNode.class)) {
+            if (toManyNode.getNodeType().isOwns() && !toManyNode.isFetched()) {
+                return true;
+            }
+        }
+        for (RefNode refNode: entityWhichWasLoadedForOrphanCheck.getChildren(RefNode.class)) {
+            if (refNode.getNodeType().isOwns() &&
+                    refNode.getReference(false) != null &&
+                    refNode.getReference().isNotLoaded()) {
+
+                /*
+                 * we refer to an entity which we own, but the entity was not loaded
+                 */
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -928,21 +1059,24 @@ public class DependencyTree implements Serializable {
      * @param matches
      * @param checked
      * @param entity
-     * @param joinProperty is set iff the Entity is a jointable entity which is owned by the ToManyNode which linked to the join table..
+     * @param joinProperty
+     *            is set iff the Entity is a jointable entity which is owned by
+     *            the ToManyNode which linked to the join table..
      * @return
      */
-    public static LinkedHashSet<Entity> findOwnedEntites(LinkedHashSet<Entity> matches, HashSet<Entity> checked, Entity entity, String joinProperty) {
-        if (!checked.add( entity )) {
+    public static LinkedHashSet<Entity> findOwnedEntites(LinkedHashSet<Entity> matches, HashSet<Entity> checked,
+            Entity entity, String joinProperty) {
+        if (!checked.add(entity)) {
             return matches;
         }
-        matches.add( entity );
-        for (RefNode refNode: entity.getChildren(RefNode.class)) {
-            //either we own the ref or we are a joinProperty from a ToMany node which must own the ref
+        matches.add(entity);
+        for (RefNode refNode : entity.getChildren(RefNode.class)) {
+            // either we own the ref or we are a joinProperty from a ToMany node
+            // which must own the ref
             if (!refNode.getNodeType().isOwns()) {
                 if (!refNode.getName().equals(joinProperty)) {
                     continue;
-                }
-                else {
+                } else {
                     LOG.debug("Finding owned entities across N:M relation for {}", entity);
                 }
             }
@@ -951,16 +1085,17 @@ public class DependencyTree implements Serializable {
                 findOwnedEntites(matches, checked, e, null);
             }
         }
-        for (ToManyNode toManyNode: entity.getChildren(ToManyNode.class)) {
+        for (ToManyNode toManyNode : entity.getChildren(ToManyNode.class)) {
             if (!toManyNode.getNodeType().isOwns()) {
                 continue;
             }
             /*
-             * if we have a N:M jointable relationship
-             * and our side is an owning relation then we need to reach over and include the other side of the join table
-             * ie templates owning the list of business types via the TemplateBusinessType entity
+             * if we have a N:M jointable relationship and our side is an owning
+             * relation then we need to reach over and include the other side of
+             * the join table ie templates owning the list of business types via
+             * the TemplateBusinessType entity
              */
-            for (Entity e: toManyNode.getList()) {
+            for (Entity e : toManyNode.getList()) {
                 if (e != null) {
                     findOwnedEntites(matches, checked, e, toManyNode.getNodeType().getJoinProperty());
                 }
@@ -969,26 +1104,25 @@ public class DependencyTree implements Serializable {
         return matches;
     }
 
-
-
     /**
      * checks if a given operation would cause the entity to be orhaned
+     *
      * @param operation
      * @param potentalOrphan
      * @return
      */
     private boolean isOrphaningReference(Operation operation, NodeType nodeType, Entity potentalOrphan) {
-        Object newFkRefValue = operation.entity.getChild( nodeType.getName(), RefNode.class).getEntityKey();
-        Object origFkRefValue = potentalOrphan.getChild( nodeType.getName(), RefNode.class).getEntityKey();
-        return origFkRefValue != null && !origFkRefValue.equals( newFkRefValue );
+        Object newFkRefValue = operation.entity.getChild(nodeType.getName(), RefNode.class).getEntityKey();
+        Object origFkRefValue = potentalOrphan.getChild(nodeType.getName(), RefNode.class).getEntityKey();
+        return origFkRefValue != null && !origFkRefValue.equals(newFkRefValue);
     }
 
     private QueryObject<Object> createQueryForReferencesToDelete(Entity entity) {
-        QueryObject<Object> query = dctx.getUnitQuery( entity.getEntityType(), true );
+        QueryObject<Object> query = dctx.getUnitQuery(entity.getEntityType(), true);
 
-        //filter on PK
+        // filter on PK
         final QProperty<Object> keyProp = new QProperty<Object>(query, entity.getKey().getName());
-        query.where( keyProp.equal( entity.getKey().getValue() ));
+        query.where(keyProp.equal(entity.getKey().getValue()));
         LOG.trace("Added property {} to query {}", keyProp.getName(), query.getTypeName());
 
         /*
@@ -999,24 +1133,25 @@ public class DependencyTree implements Serializable {
         return query;
     }
 
-    private void addJoinsForAllOwningRefs(EntityType entityType, QueryObject<Object> query, Set<NodeType> alreadyProcessed, String ownedByJoinProperty) {
+    private void addJoinsForAllOwningRefs(EntityType entityType, QueryObject<Object> query,
+            Set<NodeType> alreadyProcessed, String ownedByJoinProperty) {
         /*
          * add joins to all owning Refs
          */
-        for (NodeType nodeType: entityType.getNodeTypes()) {
+        for (NodeType nodeType : entityType.getNodeTypes()) {
             if (!nodeType.isOwns()) {
                 if (ownedByJoinProperty == null) {
                     continue;
-                }
-                else if (!nodeType.getName().equals( ownedByJoinProperty )) {
+                } else if (!nodeType.getName().equals(ownedByJoinProperty)) {
                     continue;
-                }
-                else {
-                    LOG.debug("Querying over join table for {}.{} " + entityType.getInterfaceShortName(), nodeType.getName());
+                } else {
+                    LOG.debug("Querying over join table for {}.{} " + entityType.getInterfaceShortName(),
+                            nodeType.getName());
                 }
             }
             /*
-             * at this point either the node type isowns or it matches the join property which is owned.
+             * at this point either the node type isowns or it matches the join
+             * property which is owned.
              */
             /*
              * add left outer joins for owning relationships
@@ -1024,9 +1159,11 @@ public class DependencyTree implements Serializable {
             if (alreadyProcessed.add(nodeType)) {
                 QueryObject<Object> to = new QueryObject<>(nodeType.getRelationInterfaceName());
                 query.addLeftOuterJoin(to, nodeType.getName());
-                LOG.trace("Added left outer join from {} with property {} to {}", query.getTypeName(), nodeType.getName(), nodeType.getRelationInterfaceName());
+                LOG.trace("Added left outer join from {} with property {} to {}", query.getTypeName(),
+                        nodeType.getName(), nodeType.getRelationInterfaceName());
 
-                EntityType reffedEntityType = entityType.getDefinitions().getEntityTypeMatchingInterface( nodeType.getRelationInterfaceName(), true);
+                EntityType reffedEntityType = entityType.getDefinitions()
+                        .getEntityTypeMatchingInterface(nodeType.getRelationInterfaceName(), true);
                 addJoinsForAllOwningRefs(reffedEntityType, to, alreadyProcessed, nodeType.getJoinProperty());
             }
         }
@@ -1039,7 +1176,7 @@ public class DependencyTree implements Serializable {
     public void addOrphanCheck(Entity entity) {
         orphanChecks.put(entity, new OrphanCheck(entity));
         // TODO Auto-generated method stub
-        LOG.debug("Adding orphan check  {}", entity);
+        LOG.debug("Adding orphan check  for {}", entity);
     }
 
     @Override
@@ -1093,10 +1230,12 @@ class EntityId implements Serializable {
 
     private final EntityType et;
     private final Object keyValue;
+
     public EntityId(EntityType et, Object keyValue) {
         this.et = et;
         this.keyValue = keyValue;
     }
+
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -1105,6 +1244,7 @@ class EntityId implements Serializable {
         result = prime * result + ((keyValue == null) ? 0 : keyValue.hashCode());
         return result;
     }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
@@ -1126,10 +1266,9 @@ class EntityId implements Serializable {
             return false;
         return true;
     }
+
     @Override
     public String toString() {
         return "EntityId [et=" + et + ", keyValue=" + keyValue + "]";
     }
 }
-
-
