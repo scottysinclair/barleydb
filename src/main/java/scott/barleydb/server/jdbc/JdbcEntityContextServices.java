@@ -284,6 +284,9 @@ public class JdbcEntityContextServices implements IEntityContextServices {
 
     @Override
     public QueryBatcher execute(EntityContext entityContext, QueryBatcher queryBatcher, RuntimeProperties props) throws SortJdbcException, SortQueryException {
+        if (queryBatcher.getQueries().isEmpty()) {
+            return queryBatcher;
+        }
         ConnectionResources conRes = ConnectionResources.get(entityContext);
         boolean returnToPool = false;
         if (conRes == null) {
@@ -300,7 +303,7 @@ public class JdbcEntityContextServices implements IEntityContextServices {
 
         try (OptionalyClosingResources con = new OptionalyClosingResources(conRes, returnToPool);) {
             QueryExecuter exec = new QueryExecuter(this, conRes.getDatabase(), con.getConnection(), entityContext, props);
-            return toQueryBatchResult( exec.execute(queryExecutions) );
+            return toQueryBatchResult(entityContext, queryBatcher, exec.execute(queryExecutions) );
         }
         catch(EntityStreamException x) {
             throw new SortQueryException("Error processing entity stream", x);
@@ -397,6 +400,7 @@ public class JdbcEntityContextServices implements IEntityContextServices {
         QueryResultItem qitem;
         Definitions defs = entityContext.getDefinitions();
         while( (qitem = in.read()) != null) {
+            LOG.debug("START PROCESSING QUERY RESULT ITEM FROM STEAM.");
             List<Entity> entities = new LinkedList<>();
             for (EntityData entityData:  qitem.getObjectGraph().getEntityData()) {
                 entities.add( entityContext.addEntityLoadedFromDB( entityData  ));
@@ -408,13 +412,37 @@ public class JdbcEntityContextServices implements IEntityContextServices {
                 EntityType entityType = defs.getEntityTypeMatchingInterface( nodeId.getEntityType(), true);
                 Entity entity = entityContext.getEntity(entityType, nodeId.getEntityKey(), true);
                 entity.getChild(nodeId.getNodeName(), ToManyNode.class, true).setFetched(true);
+                entity.getChild(nodeId.getNodeName(), ToManyNode.class, true).refresh();
             }
+            LOG.debug("END PROCESSING QUERY RESULT ITEM FROM STEAM.");
         }
         return result;
     }
 
-    private QueryBatcher toQueryBatchResult(QueryEntityDataInputStream execute) {
-        return null;
+    private QueryBatcher toQueryBatchResult(EntityContext entityContext, QueryBatcher queryBatcher, QueryEntityDataInputStream in) throws EntityStreamException {
+        LOG.debug("Consuming QueryEntityDataInputStream and generating a QueryResult...");
+        for (QueryObject<?> query: queryBatcher.getQueries()) {
+            queryBatcher.addResult( new QueryResult<>(entityContext) );
+        }
+
+        QueryResultItem qitem;
+        Definitions defs = entityContext.getDefinitions();
+        while( (qitem = in.read()) != null) {
+
+            List<Entity> entities = new LinkedList<>();
+            for (EntityData entityData:  qitem.getObjectGraph().getEntityData()) {
+                entities.add( entityContext.addEntityLoadedFromDB( entityData  ));
+                if (entities.size() == 1) {
+                    queryBatcher.getResults().get( qitem.getQueryIndex() ).getEntityList().add( entities.get(0));
+                }
+            }
+            for (NodeId nodeId: qitem.getObjectGraph().getFetchedToManyNodes()) {
+                EntityType entityType = defs.getEntityTypeMatchingInterface( nodeId.getEntityType(), true);
+                Entity entity = entityContext.getEntity(entityType, nodeId.getEntityKey(), true);
+                entity.getChild(nodeId.getNodeName(), ToManyNode.class, true).setFetched(true);
+            }
+        }
+        return queryBatcher;
     }
 
 

@@ -155,6 +155,10 @@ public class QueryExecuter {
     }
 
     interface IResultManager {
+        /**
+         * The first query has ind0x ß
+         * @return
+         */
         public int getQueryIndex();
 
         /**
@@ -224,6 +228,7 @@ public class QueryExecuter {
             if (!moreData) {
                 resultSet = null;
                 queryIndex++;
+                next(); //try and move to the next query resultset (if there is one)
             }
             return og;
         }

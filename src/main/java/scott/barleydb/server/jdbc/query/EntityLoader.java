@@ -102,7 +102,8 @@ final class EntityLoader {
     }
 
     public boolean isNotYetLoaded() throws SortJdbcException, SortQueryException  {
-        return !entityLoaders.getLoadedEntityData().containsKey( getEntityKey(true) );
+        EntityKey key = new EntityKey(getEntityType(), getEntityKey(true));
+        return !entityLoaders.getLoadedEntityData().containsKey( key );
     }
 
     public EntityType getEntityType() {
@@ -167,7 +168,7 @@ final class EntityLoader {
         Object value = rowCache.get(index);
         if (value == null) {
             value = getResultSetValue(resultSet, column);
-            LOG.debug(String.format("%-5s%-15s = %s", index, column.getColumn(),
+            LOG.debug(String.format("%-5s%-20s%-15s = %s", index, column.getNodeType().getEntityType().getInterfaceShortName(), column.getColumn(),
                     String.valueOf(value)));
             rowCache.put(column.getIndex(), value != null ? value : NULL_VALUE);
         }

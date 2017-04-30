@@ -93,13 +93,15 @@ public class QueryExecution<T> {
      */
     public boolean readObjectGraph(ResultSet resultSet, ObjectGraph objectGraph) throws EntityStreamException {
         LOG.debug("Reading object graph from ResultSet...");
-        prepareEntityLoadersForNewObjectGraph(resultSet);
 
         boolean moreData = false;
         try {
+
             Object rootEntityKey = null;
-            LOG.debug("START ROW ----------------------------------------------------------------");
             do {
+                prepareEntityLoadersForNewRow(resultSet);
+                LOG.debug("START ROW ----------------------------------------------------------------");
+
                 Iterator<EntityLoader> i = entityLoaders.iterator();
                 EntityLoader entityDataLoader = i.next();
 
@@ -158,7 +160,7 @@ public class QueryExecution<T> {
         return objectGraph;
     }
 
-    private void prepareEntityLoadersForNewObjectGraph(ResultSet resultSet) {
+    private void prepareEntityLoadersForNewRow(ResultSet resultSet) {
         if (entityLoaders == null) {
             entityLoaders = new EntityLoaders(entityContextServices, definitions, projection, resultSet);
         }

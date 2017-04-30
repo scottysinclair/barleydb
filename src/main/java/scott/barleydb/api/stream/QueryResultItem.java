@@ -30,6 +30,7 @@ public class QueryResultItem {
     /**
      * If multiple queries were executed on the query engine,
      * then then index indicates which query this data is a part of.
+     * Index is from 0 to N-1
      */
     private int queryIndex;
 
