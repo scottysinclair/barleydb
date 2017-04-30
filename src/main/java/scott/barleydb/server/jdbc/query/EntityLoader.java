@@ -10,12 +10,12 @@ package scott.barleydb.server.jdbc.query;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -26,7 +26,6 @@ import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -39,18 +38,10 @@ import org.slf4j.LoggerFactory;
 
 import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.config.NodeType;
-import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityConstraint;
-import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.entity.EntityState;
-import scott.barleydb.api.core.entity.Node;
-import scott.barleydb.api.core.entity.NotLoaded;
-import scott.barleydb.api.core.entity.RefNode;
-import scott.barleydb.api.core.entity.ValueNode;
 import scott.barleydb.api.core.types.JavaType;
 import scott.barleydb.api.core.types.JdbcType;
-import scott.barleydb.api.exception.constraint.EntityMustExistInDBException;
-import scott.barleydb.api.exception.constraint.EntityMustNotExistInDBException;
 import scott.barleydb.api.exception.execution.TypeConversionException;
 import scott.barleydb.api.exception.execution.TypeConverterNotFoundException;
 import scott.barleydb.api.exception.execution.jdbc.SortJdbcException;
@@ -59,11 +50,8 @@ import scott.barleydb.api.exception.execution.query.InvalidNodeTypeException;
 import scott.barleydb.api.exception.execution.query.ResultDataConversionException;
 import scott.barleydb.api.exception.execution.query.SortQueryException;
 import scott.barleydb.api.query.QueryObject;
+import scott.barleydb.api.stream.EntityData;
 import scott.barleydb.server.jdbc.converter.TypeConverter;
-import scott.barleydb.server.jdbc.query.EntityLoader;
-import scott.barleydb.server.jdbc.query.EntityLoaders;
-import scott.barleydb.server.jdbc.query.Projection;
-import scott.barleydb.server.jdbc.query.ProjectionColumn;
 
 /**
  *
@@ -81,24 +69,26 @@ final class EntityLoader {
     private final EntityLoaders entityLoaders;
     private final List<ProjectionColumn> myProjectionCols;
     private final QueryObject<?> queryObject;
-    private final EntityContext entityContext;
     private final ResultSet resultSet;
     private final Map<Integer, Object> rowCache;
-    private final LinkedHashMap<Object,Entity> loadedEntities;
+    private final LinkedHashMap<EntityKey, EntityData> loadedEntityData;;
 
     public EntityLoader(EntityLoaders entityLoaders, Projection projection, QueryObject<?> queryObject,
-            ResultSet resultSet, EntityContext entityContext) {
+            ResultSet resultSet) {
         this.entityLoaders = entityLoaders;
         this.resultSet = resultSet;
         this.queryObject = queryObject;
-        this.entityContext = entityContext;
-        this.loadedEntities = new LinkedHashMap<>();
         this.rowCache = new HashMap<>();
         this.myProjectionCols = projection.getColumnsFor(queryObject);
+        this.loadedEntityData = new LinkedHashMap<>();
     }
 
     public QueryObject<?> getQueryObject() {
         return queryObject;
+    }
+
+    public LinkedHashMap<EntityKey, EntityData> getLoadedEntityData() {
+        return loadedEntityData;
     }
 
     /**
@@ -112,15 +102,11 @@ final class EntityLoader {
     }
 
     public boolean isNotYetLoaded() throws SortJdbcException, SortQueryException  {
-        return !loadedEntities.containsKey( getEntityKey(true) );
+        return !entityLoaders.getLoadedEntityData().containsKey( getEntityKey(true) );
     }
 
     public EntityType getEntityType() {
         return myProjectionCols.get(0).getNodeType().getEntityType();
-    }
-
-    public List<Entity> getLoadedEntities() {
-        return new ArrayList<>(loadedEntities.values());
     }
 
     public Object getEntityKey(boolean mustExist) throws SortJdbcException, SortQueryException {
@@ -138,92 +124,38 @@ final class EntityLoader {
         throw new IllegalQueryStateException("Cannot find primary key node definition for: " + getEntityType());
     }
 
-    /**
-     * Associates an existing entity in the context with queryobject
-     *
-     * @throws SQLException
-     * @throws SortJdbcException
-     * @throws InvalidNodeTypeException
-     */
-    public void associateExistingEntity() throws SortQueryException, SortJdbcException {
-        Entity entity = entityContext.getEntity(getEntityType(), getEntityKey(true), false);
-        if (entity == null) {
-            throw new IllegalQueryStateException("Entity with type "
-                    + getEntityType() + " and key " + getEntityKey(true)
-                    + " must exist in the entity context");
-        }
-        if (!loadedEntities.containsKey(entity.getKey().getValue())) {
-            LOG.debug("Associating existing entity " + entity);
-            loadedEntities.put(entity.getKey().getValue(), entity);
-        }
-    }
-
-    public Entity load() throws SortQueryException, SortJdbcException {
+    public EntityData load() throws SortQueryException, SortJdbcException {
         final EntityType entityType = getEntityType();
-        final Object entityKey = getEntityKey(true);
-        Entity entity = entityContext.getEntity(entityType, entityKey, false);
 
-        if (entity != null) {
-            if (entity.getConstraints().isMustNotExistInDatabase()) {
-                /*
-                 * oops we actually have this entity in our context already, and it is defined that
-                 * the entity MUST NOT exist in the database
-                 */
-                throw new EntityMustNotExistInDBException(entity);
-            }
-            /*
-             * because we are loading the entity, we can update it's constraint
-             */
-            entity.getConstraints().setMustExistInDatabase();
-        }
-        else {
-            /*
-             * we can set the must exist in database constraint because we are loading it.
-             */
-            entity = entityContext.newEntity(entityType, entityKey, EntityConstraint.mustExistInDatabase());
-        }
+        EntityData entityData = new EntityData();
+        entityData.setNamespace(entityType.getDefinitions().getNamespace());
+        entityData.setEntityType(entityType.getInterfaceName());
+        entityData.setConstraints( EntityConstraint.mustExistInDatabase() );
+        entityData.setEntityState(EntityState.LOADED);
 
-        /*
-         * If the entity state is NOTLOADED, then the entityContext just created it.
-         * Therefore we can pre-init each ValueNode to NOTLOADED
-         */
-        if (entity.getEntityState() == EntityState.NOTLOADED) {
-            for (ValueNode node : entity.getChildren(ValueNode.class)) {
-                if (entity.getKey() != node) {
-                    node.setValue(NotLoaded.VALUE);
-                }
-            }
-            for (RefNode node : entity.getChildren(RefNode.class)) {
-                node.setLoaded(false);
-            }
-        }
-        entity.setEntityState(EntityState.LOADING);
         for (ProjectionColumn column : myProjectionCols) {
             Object value = getValue(column);
-            Node node = entity.getChild(column.getProperty(), Node.class);
-            if (node instanceof ValueNode) {
-                ((ValueNode) node).setValue(value);
-            } else if (node instanceof RefNode) {
-                RefNode rn = (RefNode) node;
-                rn.setLoaded(true);
-                if (value != null) {
-                    Entity e = entityContext.getEntity(rn.getEntityType(), value, false);
-                    if (e != null) {
-                        e.getConstraints().setMustExistInDatabase();
-                    }
-                    else {
-                        e = entityContext.newEntity(rn.getEntityType(), value, EntityConstraint.mustExistInDatabase());
-                    }
-                    rn.setReference(e);
-                }
-                else {
-                    rn.setReference(null);
-                }
-            }
-            // nothing to set on a ToMany node.
+            entityData.getData().put(column.getProperty(), value);
         }
-        loadedEntities.put(entity.getKey().getValue(), entity);
-        return entity;
+        EntityKey key = new EntityKey(entityType, getKey(entityData, entityType));
+        entityLoaders.getLoadedEntityData().put(key, entityData);
+        loadedEntityData.put(key, entityData);
+        return entityData;
+    }
+
+    public void associateAsLoaded() throws SortJdbcException, SortQueryException {
+        final EntityType entityType = getEntityType();
+        EntityKey key = new EntityKey(entityType, getEntityKey(true));
+        EntityData entityData = entityLoaders.getLoadedEntityData().get(key);
+        if (entityData == null) {
+            //we only associate if the entity was already loaded, something went wrong...
+            throw new SortQueryException("Could not find entity data with " + entityType + " and key " + key);
+        }
+        loadedEntityData.put(key, entityData);
+    }
+
+    private static Object getKey(EntityData entityData, EntityType entityType) {
+        return entityData.getData().get( entityType.getKeyNodeName() );
     }
 
     public void clearRowCache() {
@@ -256,7 +188,7 @@ final class EntityLoader {
              * If there is no java type then it must be a 1:1 relation (RefNode)
              * A 1:N relation does not have a projection column
              */
-            EntityType entityType = entityContext.getDefinitions().getEntityTypeMatchingInterface(column.getNodeType().getRelationInterfaceName(), true);
+            EntityType entityType = entityLoaders.getDefinitions().getEntityTypeMatchingInterface(column.getNodeType().getRelationInterfaceName(), true);
             javaType = entityType.getNodeType(entityType.getKeyNodeName(), true).getJavaType();
             if (javaType == null) {
                 throw new InvalidNodeTypeException(nd, "Could not get javaType for projection column " + column);

@@ -10,12 +10,12 @@ package scott.barleydb.server.jdbc.query;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -34,13 +34,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import scott.barleydb.api.core.entity.EntityContext;
-import scott.barleydb.api.core.entity.EntityContextState;
 import scott.barleydb.api.exception.execution.jdbc.SortJdbcException;
 import scott.barleydb.api.exception.execution.persist.PreparingPersistStatementException;
 import scott.barleydb.api.exception.execution.query.ForUpdateNotSupportedException;
 import scott.barleydb.api.exception.execution.query.IllegalQueryStateException;
 import scott.barleydb.api.exception.execution.query.SortQueryException;
 import scott.barleydb.api.query.RuntimeProperties;
+import scott.barleydb.api.stream.EntityStreamException;
+import scott.barleydb.api.stream.ObjectGraph;
+import scott.barleydb.api.stream.QueryEntityDataInputStream;
 import scott.barleydb.server.jdbc.JdbcEntityContextServices;
 import scott.barleydb.server.jdbc.query.QueryGenerator.Param;
 import scott.barleydb.server.jdbc.vendor.Database;
@@ -83,30 +85,26 @@ public class QueryExecuter {
      * @param queryExecutions
      * @throws PreparingPersistStatementException
      * @throws SortQueryException
+     * @throws EntityStreamException
      * @throws SQLException
      * @throws Exception
      */
-    public void execute(QueryExecution<?>... queryExecutions) throws SortJdbcException, SortQueryException  {
-        EntityContextState ecs = entityContext.beginLoading();
+    public QueryEntityDataInputStream execute(QueryExecution<?>... queryExecutions) throws SortJdbcException, SortQueryException, EntityStreamException  {
         try {
-            performExecute(queryExecutions);
+            return performExecute(queryExecutions);
         }
         catch (PreparingPersistStatementException x) {
             throw new SortQueryException("Error preparing query statement", x);
         }
-        finally {
-            entityContext.endLoading(ecs);
-        }
     }
 
-    private void performExecute(QueryExecution<?>... queryExecutions) throws SortJdbcException, PreparingPersistStatementException, SortQueryException {
+    private QueryEntityDataInputStream performExecute(QueryExecution<?>... queryExecutions) throws SortJdbcException, PreparingPersistStatementException, SortQueryException, EntityStreamException {
         if (queryExecutions == null || queryExecutions.length == 0) {
-            return;
+            throw new SortQueryException("No query executions...");
         }
         if (!database.supportsMultipleResultSets() || queryExecutions.length == 1) {
-            for (QueryExecution<?> qExec : queryExecutions) {
-                executeQuery(qExec);
-            }
+            SeparateQueryResultManager resultManager = new SeparateQueryResultManager(queryExecutions);
+            return new StreamingQueryExecutionProcessor( resultManager );
         }
         else {
             LOG.debug("Executing queries in one batch, processing multiple resultsets...");
@@ -123,8 +121,10 @@ public class QueryExecuter {
                         if (!stmt.execute()) {
                             throw new IllegalQueryStateException("Query did not return a result set");
                         }
-                        processResults(stmt, queryExecutions);
-                        }
+
+                        CombinedQueryResultManager resultManager = new CombinedQueryResultManager(queryExecutions, stmt, stmt.getResultSet());
+                        return new StreamingQueryExecutionProcessor(resultManager);
+                    }
                     catch (SQLException x) {
                         throw new SortJdbcException("SQLException on prepared statement execute", x);
                     }
@@ -143,55 +143,202 @@ public class QueryExecuter {
                     catch (SQLException x) {
                         throw new SortJdbcException("SQLException on statement execute", x);
                     }
-                    processResults(stmt, queryExecutions);
+
+                    CombinedQueryResultManager resultManager = new CombinedQueryResultManager(queryExecutions, stmt, stmt.getResultSet());
+                    return new StreamingQueryExecutionProcessor(resultManager);
                 }
                 catch (SQLException x) {
                     throw new SortJdbcException("SQLException on statement create", x);
                 }
             }
         }
-        /*
-        * Tell each query excecution to finish
-        */
-        for (QueryExecution<?> queryExecution : queryExecutions) {
-            queryExecution.finish();
-        }
     }
 
-    private void processResults(Statement stmt, QueryExecution<?>... queryExecutions) throws SortJdbcException, SortQueryException  {
-        int queryIndex = 0;
-        int countResultSets = 0;
-        boolean finished = false;
-        do {
-            try (ResultSet resultSet = stmt.getResultSet();) {
-                queryExecutions[queryIndex++].processResultSet(resultSet);
+    interface IResultManager {
+        public int getQueryIndex();
+
+        /**
+        *
+        * @return true if there is a next result
+        * @throws SQLException
+        */
+        public boolean next() throws EntityStreamException;
+        public ObjectGraph readObjectGraph() throws EntityStreamException;
+        public void close() throws EntityStreamException;
+        public boolean hasNext();
+    }
+
+    private class SeparateQueryResultManager implements IResultManager {
+        private QueryExecution<?> queryExecutions[];
+        private Statement stmt;
+        private ResultSet resultSet;
+        private int queryIndex = 0;
+
+        public SeparateQueryResultManager(QueryExecution<?> queryExecutions[]) {
+            this.queryExecutions = queryExecutions;
+        }
+
+        public int getQueryIndex() {
+            return queryIndex;
+        }
+
+        public boolean next() throws EntityStreamException {
+            if (resultSet == null) {
+                //check if we have any more query executions to perform.
+                if (queryIndex >= queryExecutions.length) {
+                    return false;
+                }
+                try {
+                    resultSet = executeQuery( queryExecutions[ queryIndex ] );
+                    /*
+                     * after we get the result set, we "fall through" and call resultSet.next so that
+                     * the cursor is at the correct position.
+                     */
+                }
+                catch (SortJdbcException | SortQueryException  | PreparingPersistStatementException x) {
+                    throw new EntityStreamException("Error executing query", x);
+                }
+            }
+            try {
+                if (resultSet.next()) {
+                    return true;
+                }
+                resultSet = null;
+                queryIndex++;
+                //try again
+                return next();
             }
             catch (SQLException x) {
-                throw new SortJdbcException("SQLException getting the statement result", x);
+                throw new EntityStreamException("Error calling ResultSet.next", x);
             }
-            countResultSets++;
+        }
 
-            //There are no more results when the following is true:
-            //((stmt.getMoreResults() == false) && (stmt.getUpdateCount() == -1))
+        @Override
+        public boolean hasNext() {
+            return queryIndex < queryExecutions.length;
+        }
+
+        public ObjectGraph readObjectGraph() throws EntityStreamException {
+            ObjectGraph og = new ObjectGraph();
+            boolean moreData =  queryExecutions[ queryIndex ].readObjectGraph( resultSet, og );
+            if (!moreData) {
+                resultSet = null;
+                queryIndex++;
+            }
+            return og;
+        }
+
+        public void close() throws EntityStreamException {
             try {
-                while (!finished && stmt.getMoreResults() == false) {
-                    try {
-                        if (stmt.getUpdateCount() == -1) {
-                            finished = true;
-                        }
-                    }
-                    catch (SQLException x) {
-                        throw new SortJdbcException("SQLException calling getUpdateCount on the statement", x);
-                    }
+                resultSet.close();
+            }
+            catch (SQLException x) {
+                try {
+                    stmt.close();
+                }
+                catch(SQLException x2) {
+                    x.addSuppressed(x2);
+                }
+                throw new EntityStreamException("Error closing ResultSet", x);
+            }
+            try {
+                stmt.close();
+            }
+            catch(SQLException x) {
+                throw new EntityStreamException("Error closing Statement", x);
+            }
+        }
+
+
+    }
+
+    private class CombinedQueryResultManager implements IResultManager {
+        private final QueryExecution<?> queryExecutions[];
+        private final Statement stmt;
+        private ResultSet resultSet;
+        private boolean finished;
+        private int queryIndex = 0;
+
+        public CombinedQueryResultManager(QueryExecution<?> queryExecutions[], Statement stmt, ResultSet resultSet) {
+            this.queryExecutions = queryExecutions;
+            this.stmt = stmt;
+            this.resultSet = resultSet;
+        }
+
+        public int getQueryIndex() {
+            return queryIndex;
+        }
+
+
+        public boolean next() throws EntityStreamException {
+            try {
+                if (resultSet != null && resultSet.next()) {
+                    return true;
                 }
             }
             catch (SQLException x) {
-                throw new SortJdbcException("SQLException calling getMoreResults on the statement", x);
+                throw new EntityStreamException("Error calling ResultSet.next", x);
             }
-        } while (!finished);
-        if (countResultSets != queryExecutions.length) {
-            throw new IllegalQueryStateException("Executed " + queryExecutions.length + " queries but only received " + countResultSets + " resultsets");
+            try {
+                if (stmt.getMoreResults()) {
+                    //good, we have moved to the next result which is an honest-to-goodness ResultSet
+                    resultSet = stmt.getResultSet();
+                    queryIndex++;
+                    //try again
+                    return next();
+                }
+            }
+            catch (Exception x) {
+                throw new EntityStreamException("Error checking for or getting the next ResultSet", x);
+            }
+            //the stmt return false..., we have reach the end of result-data OR we have an update count
+            resultSet = null;
+            try {
+                if (stmt.getUpdateCount() != -1) {
+                    //means it WAS an update count, we may have more results yet.
+                    //try again
+                    return next();
+                }
+            }
+            catch (SQLException x) {
+                throw new EntityStreamException("Error getting the update count of the statement", x);
+            }
+            //the update count WAS -1, so no more result-sets and no more results.
+            return !(finished = true);
         }
+
+        @Override
+        public boolean hasNext() {
+            return finished;
+        }
+
+        public ObjectGraph readObjectGraph() throws EntityStreamException {
+            ObjectGraph  objectGraph = new ObjectGraph();
+            queryExecutions[ queryIndex ].readObjectGraph( resultSet, objectGraph );
+            return objectGraph;
+        }
+
+        public void close() throws EntityStreamException {
+            try {
+                resultSet.close();
+            }
+            catch (SQLException x) {
+                try {
+                    stmt.close();
+                }
+                catch(SQLException x2) {
+                    x.addSuppressed(x2);
+                }
+                throw new EntityStreamException("Error closing ResultSet", x);
+            }
+            try {
+                stmt.close();
+            }
+            catch(SQLException x) {
+                throw new EntityStreamException("Error closing Statement", x);
+            }
+        }
+
     }
 
     /**
@@ -200,7 +347,7 @@ public class QueryExecuter {
      * @throws SortQueryException
      * @throws SQLException
      */
-    private void executeQuery(QueryExecution<?> queryExecution) throws SortJdbcException, PreparingPersistStatementException, SortQueryException  {
+    private ResultSet executeQuery(QueryExecution<?> queryExecution) throws SortJdbcException, PreparingPersistStatementException, SortQueryException  {
         List<Param> params = new LinkedList<Param>();
         String sql = queryExecution.getSql(params);
 
@@ -214,12 +361,7 @@ public class QueryExecuter {
 
                 setParameters(stmt, params);
 
-                try (ResultSet resultSet = stmt.executeQuery()) {
-                    queryExecution.processResultSet(resultSet);
-                }
-                catch (SQLException x) {
-                    throw new SortJdbcException("SQLException executing the prepared statement query", x);
-                }
+                return stmt.executeQuery();
             }
             catch (SQLException x) {
                 throw new PreparingPersistStatementException("SQLException preparing statement", x);
@@ -230,12 +372,7 @@ public class QueryExecuter {
 
                 setFetch(stmt, runtimeProperties);
 
-                try (ResultSet resultSet = stmt.executeQuery(sql)) {
-                    queryExecution.processResultSet(resultSet);
-                }
-                catch (SQLException x) {
-                    throw new SortJdbcException("SQLException executing the statement query", x);
-                }
+                return stmt.executeQuery(sql);
             }
             catch (SQLException x) {
                 throw new SortJdbcException("SQLException creating statement", x);

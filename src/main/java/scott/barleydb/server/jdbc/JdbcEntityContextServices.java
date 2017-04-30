@@ -37,11 +37,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import scott.barleydb.api.audit.AuditInformation;
+import scott.barleydb.api.config.Definitions;
 import scott.barleydb.api.config.DefinitionsSet;
+import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.core.Environment;
 import scott.barleydb.api.core.IEntityContextServices;
 import scott.barleydb.api.core.QueryBatcher;
+import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityContext;
+import scott.barleydb.api.core.entity.ToManyNode;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.execution.jdbc.AquireConnectionException;
 import scott.barleydb.api.exception.execution.jdbc.ClosingConnectionException;
@@ -59,6 +63,11 @@ import scott.barleydb.api.persist.PersistAnalyser;
 import scott.barleydb.api.persist.PersistRequest;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.query.RuntimeProperties;
+import scott.barleydb.api.stream.EntityData;
+import scott.barleydb.api.stream.EntityStreamException;
+import scott.barleydb.api.stream.ObjectGraph.NodeId;
+import scott.barleydb.api.stream.QueryEntityDataInputStream;
+import scott.barleydb.api.stream.QueryResultItem;
 import scott.barleydb.server.jdbc.converter.TypeConverter;
 import scott.barleydb.server.jdbc.persist.Persister;
 import scott.barleydb.server.jdbc.persist.SequenceGenerator;
@@ -263,8 +272,13 @@ public class JdbcEntityContextServices implements IEntityContextServices {
 
         try (OptionalyClosingResources con = new OptionalyClosingResources(conRes, returnToPool)){
             QueryExecuter executer = new QueryExecuter(this, conRes.getDatabase(), con.getConnection(), entityContext, props);
-            executer.execute(execution);
-            return execution.getResult();
+            /*
+             * convert the result stream to a full in-memory result
+             */
+            return toQueryResult(entityContext, executer.execute(execution));
+        }
+        catch(EntityStreamException x) {
+            throw new SortQueryException("Error processing entity stream", x);
         }
     }
 
@@ -286,11 +300,10 @@ public class JdbcEntityContextServices implements IEntityContextServices {
 
         try (OptionalyClosingResources con = new OptionalyClosingResources(conRes, returnToPool);) {
             QueryExecuter exec = new QueryExecuter(this, conRes.getDatabase(), con.getConnection(), entityContext, props);
-            exec.execute(queryExecutions);
-            for (i = 0; i < queryExecutions.length; i++) {
-                queryBatcher.addResult(queryExecutions[i].getResult());
-            }
-            return queryBatcher;
+            return toQueryBatchResult( exec.execute(queryExecutions) );
+        }
+        catch(EntityStreamException x) {
+            throw new SortQueryException("Error processing entity stream", x);
         }
     }
 
@@ -370,6 +383,40 @@ public class JdbcEntityContextServices implements IEntityContextServices {
             }
         }
     }
+
+    /**
+     * convert the data stream to a full in memory result.
+     * @param entityContext
+     * @param in
+     * @return
+     * @throws EntityStreamException
+     */
+    private <T> QueryResult<T> toQueryResult(EntityContext entityContext, QueryEntityDataInputStream in) throws EntityStreamException {
+        LOG.debug("Consuming QueryEntityDataInputStream and generating a QueryResult...");
+        QueryResult<T> result = new QueryResult<>(entityContext);
+        QueryResultItem qitem;
+        Definitions defs = entityContext.getDefinitions();
+        while( (qitem = in.read()) != null) {
+            List<Entity> entities = new LinkedList<>();
+            for (EntityData entityData:  qitem.getObjectGraph().getEntityData()) {
+                entities.add( entityContext.addEntityLoadedFromDB( entityData  ));
+                if (entities.size() == 1) {
+                    result.getEntityList().add( entities.get(0));
+                }
+            }
+            for (NodeId nodeId: qitem.getObjectGraph().getFetchedToManyNodes()) {
+                EntityType entityType = defs.getEntityTypeMatchingInterface( nodeId.getEntityType(), true);
+                Entity entity = entityContext.getEntity(entityType, nodeId.getEntityKey(), true);
+                entity.getChild(nodeId.getNodeName(), ToManyNode.class, true).setFetched(true);
+            }
+        }
+        return result;
+    }
+
+    private QueryBatcher toQueryBatchResult(QueryEntityDataInputStream execute) {
+        return null;
+    }
+
 
     private OptionalyClosingResources newOptionallyClosingConnection(EntityContext entityContext) throws SortJdbcException {
         ConnectionResources conRes = ConnectionResources.get(entityContext);

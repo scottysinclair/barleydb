@@ -25,7 +25,6 @@ import static scott.barleydb.api.core.entity.EntityContextHelper.findEntites;
  */
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -111,7 +110,7 @@ public class PersistAnalyser implements Serializable {
     public PersistAnalyser deepCopy() {
         LOG.debug("Performing a deep copy of the PersistAnalyser");
         EntityContext newContext = entityContext.newEntityContextSharingTransaction();
-        newContext.beginSaving();
+        newContext.switchToInternalMode();
         PersistAnalyser copyAnalyser = new PersistAnalyser(newContext);
 
         copyEntityValues(createGroup, copyAnalyser.createGroup, newContext);

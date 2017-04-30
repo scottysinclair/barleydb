@@ -10,12 +10,12 @@ package scott.barleydb.server.jdbc.query;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -24,7 +24,9 @@ package scott.barleydb.server.jdbc.query;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,31 +34,21 @@ import org.slf4j.LoggerFactory;
 import scott.barleydb.api.config.Definitions;
 import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.config.NodeType;
-import scott.barleydb.api.core.entity.Entity;
-import scott.barleydb.api.core.entity.EntityConstraint;
 import scott.barleydb.api.core.entity.EntityContext;
-import scott.barleydb.api.core.entity.EntityState;
-import scott.barleydb.api.core.entity.RefNode;
-import scott.barleydb.api.core.entity.ToManyNode;
-import scott.barleydb.api.core.entity.ValueNode;
 import scott.barleydb.api.exception.execution.jdbc.SortJdbcException;
-import scott.barleydb.api.exception.execution.query.DowncastEntityException;
 import scott.barleydb.api.exception.execution.query.ForUpdateNotSupportedException;
 import scott.barleydb.api.exception.execution.query.IllegalQueryStateException;
 import scott.barleydb.api.exception.execution.query.QueryConnectionRequiredException;
 import scott.barleydb.api.exception.execution.query.SortQueryException;
 import scott.barleydb.api.query.QJoin;
 import scott.barleydb.api.query.QueryObject;
+import scott.barleydb.api.stream.EntityData;
+import scott.barleydb.api.stream.EntityStreamException;
+import scott.barleydb.api.stream.ObjectGraph;
 import scott.barleydb.server.jdbc.JdbcEntityContextServices;
 import scott.barleydb.server.jdbc.query.QueryGenerator.Param;
 import scott.barleydb.server.jdbc.resources.ConnectionResources;
 import scott.barleydb.server.jdbc.vendor.Database;
-import scott.barleydb.server.jdbc.query.EntityLoader;
-import scott.barleydb.server.jdbc.query.EntityLoaders;
-import scott.barleydb.server.jdbc.query.Projection;
-import scott.barleydb.server.jdbc.query.QueryExecution;
-import scott.barleydb.server.jdbc.query.QueryGenerator;
-import scott.barleydb.server.jdbc.query.QueryResult;
 
 /**
  * Builds the SQL for a query
@@ -69,25 +61,21 @@ public class QueryExecution<T> {
 
     private static final Logger LOG = LoggerFactory.getLogger(QueryExecution.class);
 
-    private JdbcEntityContextServices jdbcEntityContextServices;
-    private final EntityContext entityContext;
+    private final JdbcEntityContextServices entityContextServices;
     private final QueryObject<T> query;
     private final Definitions definitions;
     private final Projection projection;
     private final Database database;
-    private QueryResult<T> queryResult;
     private EntityLoaders entityLoaders;
     private QueryGenerator qGen;
 
-    public QueryExecution(JdbcEntityContextServices jdbcEntityContextServices, EntityContext entityContext, QueryObject<T> query, Definitions definitions) throws QueryConnectionRequiredException {
-        this.jdbcEntityContextServices = jdbcEntityContextServices;
-        this.entityContext = entityContext;
+    public QueryExecution(JdbcEntityContextServices entityContextServices, EntityContext entityContext, QueryObject<T> query, Definitions definitions) throws QueryConnectionRequiredException {
+        this.entityContextServices = entityContextServices;
         this.query = query;
         this.definitions = definitions;
         this.projection = new Projection(definitions);
         this.database = ConnectionResources.getMandatoryForQuery(entityContext).getDatabase();
         projection.build(query);
-        queryResult = new QueryResult<>(entityContext);
     }
 
     public String getSql(List<Param> queryParameters) throws IllegalQueryStateException, ForUpdateNotSupportedException {
@@ -95,107 +83,88 @@ public class QueryExecution<T> {
         return qGen.generateSQL(projection, queryParameters);
     }
 
-    public String getPrimaryTableName() {
-        EntityType entityType = definitions.getEntityTypeMatchingInterface(query.getTypeName(), true);
-        return entityType.getTableName();
-    }
 
-    void processResultSet(ResultSet resultSet) throws SortJdbcException, SortQueryException {
-        int row = 1;
+    /**
+     *
+     * @param resultSet
+     * @param objectGraph
+     * @return true if there is more data in the resultset
+     * @throws EntityStreamException
+     */
+    public boolean readObjectGraph(ResultSet resultSet, ObjectGraph objectGraph) throws EntityStreamException {
+        LOG.debug("Reading object graph from ResultSet...");
+        prepareEntityLoadersForNewObjectGraph(resultSet);
+
+        boolean moreData = false;
         try {
-            while (resultSet.next()) {
-                LOG.debug("======== row " + row + " =======");
-                processRow(resultSet);
-                row++;
-            }
-        }
-        catch (SQLException x) {
-            throw new SortJdbcException("SQLException getting next result set", x);
-        }
-    }
+            Object rootEntityKey = null;
+            LOG.debug("START ROW ----------------------------------------------------------------");
+            do {
+                Iterator<EntityLoader> i = entityLoaders.iterator();
+                EntityLoader entityDataLoader = i.next();
 
-    /**
-     * called after the resultset data
-     * has been loaded to correctly
-     * set the final state
-     * @throws SortQueryException
-     */
-    void finish() throws SortQueryException {
-        if (entityLoaders != null) {
-            LOG.debug("Finishing query execution....");
-            downcastAbstractEntities(query);
-            processToManyRelations(query);
-            setEntityStateToLoadedAndRefresh();
-            prepareQueryResult();
-            LOG.debug("Finished query execution.");
-        }
-    }
-
-    /**
-     * Finds the concrete entity type for any abstract entities
-     * @throws IllegalQueryStateException
-     */
-    private void downcastAbstractEntities(QueryObject<?> queryObject) throws IllegalQueryStateException {
-        List<Entity> loadedEntities = entityLoaders.getEntitiesForQueryObject(queryObject);
-        for (Entity e : loadedEntities) {
-            if (e.getEntityType().isAbstract()) {
-                LOG.debug("Attempting to downcast abstract entity {}", e);
-                downcastEntity(e);
-            }
-        }
-
-        for (QJoin join : queryObject.getJoins()) {
-            downcastAbstractEntities(join.getTo());
-        }
-    }
-
-    private void downcastEntity(Entity entity) throws IllegalQueryStateException  {
-        LOG.debug("Downcasting entity {}", entity);
-        List<EntityType> candidateChildTypes = definitions.getEntityTypesExtending(entity.getEntityType());
-        LOG.debug("Found candidate types for downcast {}", candidateChildTypes);
-        EntityType entityType = null;
-        for (EntityType et : candidateChildTypes) {
-            if (canDowncastEntity(entity, et)) {
-                if (entityType != null) {
-                    throw new DowncastEntityException("Multiple downcast paths for entity '" + entity + "'");
+                if (rootEntityKey == null) {
+                    //first time in the loop, lets set the root entity key
+                    rootEntityKey = entityDataLoader.getEntityKey(true);
                 }
-                entityType = et;
-            }
-        }
-        if (entityType == null) {
-            throw new DowncastEntityException("No suitable type for downcast for entity '" + entity + "'");
-        }
-        entity.downcast(entityType, EntityConstraint.mustExistInDatabase());
-    }
+                else if (!Objects.equals(rootEntityKey, entityDataLoader.getEntityKey(true))) {
+                    //the PK of the root entity record has changed, so we have all of the data
+                    //for the object graph...
+                    moreData = true;
+                    break;
+                }
 
-    /**
-     * This is based on checking for any fixed value nodes in
-     * the child type which "lock" the entity for us
-     * @param entity
-     * @return
-     * @throws IllegalQueryStateException
-     */
-    private boolean canDowncastEntity(Entity entity, EntityType entityType) throws IllegalQueryStateException {
-        int fvFound = 0;
-        int fvMatch = 0;
-        for (NodeType nd : entityType.getNodeTypes()) {
-            final Object fv = nd.getFixedValue();
-            if (fv != null) {
-                fvFound++;
-                final ValueNode node = entity.getChild(nd.getName(), ValueNode.class, false);
-                if (node != null) {
-                    LOG.debug("Looking for matching fixed value {} in candidate types",node.getValue());
-                    if (fv.equals(node.getValue())) {
-                        LOG.debug("Found matching fixed value for downcast {}", node.getValue());
-                        fvMatch++;
+                /*
+                 * load the root entity data if we need to.
+                 */
+                if (entityDataLoader.isNotYetLoaded()) {
+                    entityDataLoader.load();
+                }
+
+                while(i.hasNext()) {
+                    entityDataLoader = i.next();
+                    if (entityDataLoader.isEntityThere()) {
+                        if (entityDataLoader.isNotYetLoaded()) {
+                            entityDataLoader.load();
+                        }
+                        else {
+                            entityDataLoader.associateAsLoaded();
+                        }
                     }
                 }
             }
+            while(resultSet.next());
+            LOG.debug("-------------------------------------------------------------------");
         }
-        if (fvFound == 0) {
-            throw new IllegalQueryStateException("Invalid downcast candidate '" + entityType + "', no fixed values defined");
+        catch (SortJdbcException  | SortQueryException  | SQLException x) {
+            throw new EntityStreamException("Could not load Object Graph", x);
         }
-        return fvFound == fvMatch;
+        if (moreData) {
+            LOG.debug("Fully read in Object Graph, ResultSet contains more data...");
+        }
+        else {
+            LOG.debug("Fully read in Object Graph, reached end of ResultSet...");
+        }
+
+        prepareObjectGraphFromLoadedData( objectGraph );
+        return moreData;
+    }
+
+    private ObjectGraph prepareObjectGraphFromLoadedData(ObjectGraph objectGraph) {
+        objectGraph.addAll( entityLoaders.getLoadedEntityData().values() );
+
+        setFetchedFlag(query, objectGraph);
+
+        return objectGraph;
+    }
+
+    private void prepareEntityLoadersForNewObjectGraph(ResultSet resultSet) {
+        if (entityLoaders == null) {
+            entityLoaders = new EntityLoaders(entityContextServices, definitions, projection, resultSet);
+        }
+        else {
+            entityLoaders.clearRowCache();
+        }
     }
 
     /**
@@ -203,97 +172,26 @@ public class QueryExecution<T> {
      * @param queryObject
      * @throws IllegalQueryStateException
      */
-    private void processToManyRelations(QueryObject<?> queryObject) throws IllegalQueryStateException {
-        //get the entities which this query object loaded
-        List<Entity> loadedEntities = entityLoaders.getEntitiesForQueryObject(queryObject);
-        if (loadedEntities.isEmpty()) {
-            return;
-        }
+    private void setFetchedFlag(QueryObject<?> queryObject, ObjectGraph objectGraph)  {
         //for each tomany ref set fetched to true iff the queryobject had a join for that property
-        for (Entity loadedEntity : loadedEntities) {
-            for (ToManyNode toManyNode : loadedEntity.getChildren(ToManyNode.class)) {
-                if (findJoin(toManyNode.getName(), queryObject) != null) {
-                    toManyNode.setFetched(true);
+        for (EntityData entityData: entityLoaders.getEntityDataLoadedFor( queryObject )) {
+            EntityType entityType = definitions.getEntityTypeMatchingInterface(entityData.getEntityType(), true);
+            for (QJoin join: queryObject.getJoins()) {
+                String propertyName = join.getFkeyProperty();
+                NodeType nodeType = entityType.getNodeType(propertyName, true);
+                if (nodeType.getRelationInterfaceName() != null && nodeType.getColumnName() == null) {
+                    objectGraph.setFetched(entityData.getEntityType(), getKey(entityData, entityType), propertyName);
                 }
             }
         }
         //repeat the process for tomany relations in the joined queryobjects
         for (QJoin join : queryObject.getJoins()) {
-            processToManyRelations(join.getTo());
+            setFetchedFlag(join.getTo(), objectGraph);
         }
     }
 
-    private void prepareQueryResult() throws IllegalQueryStateException {
-        //get the entities from the top level query object
-        List<Entity> loadedEntities = entityLoaders.getEntitiesForQueryObject(query);
-        //add them to the result
-        queryResult.addEntities(loadedEntities);
+    private Object getKey(EntityData entityData, EntityType entityType) {
+        return entityData.getData().get( entityType.getKeyNodeName() );
     }
 
-    /**
-     * Sets the entitystate to loaded and refreshes each entity.
-     */
-    private void setEntityStateToLoadedAndRefresh() {
-        for (EntityLoader entityLoader : entityLoaders) {
-            for (Entity entity : entityLoader.getLoadedEntities()) {
-                entity.setEntityState(EntityState.LOADED);
-                entity.refresh();
-            }
-        }
-    }
-
-    /**
-     * looks for a join on the given property for the queryobject
-     * @param propertyName
-     * @param queryObject
-     * @return true iff the join was found
-     */
-    private QJoin findJoin(String propertyName, QueryObject<?> queryObject) {
-        for (QJoin join : queryObject.getJoins()) {
-            if (join.getFkeyProperty().equals(propertyName)) {
-                return join;
-            }
-        }
-        return null;
-    }
-
-    public QueryResult<T> getResult() {
-        return queryResult;
-    }
-
-    /**
-     * Processes a row of the resultset
-     * @param resultSet
-     * @throws SortQueryException
-     * @throws SQLException
-     */
-    private void processRow(ResultSet resultSet) throws SortJdbcException, SortQueryException {
-        if (entityLoaders == null) {
-            entityLoaders = new EntityLoaders(jdbcEntityContextServices, projection, resultSet, entityContext);
-        }
-        else {
-            entityLoaders.clearRowCache();
-        }
-        for (EntityLoader entityLoader : entityLoaders) {
-            if (entityLoader.isEntityThere()) {
-                //todo: handle entity nodes which are lazy (partially loaded).
-                //current logic sees that the entity exists && is loaded and does nothing
-                //this isNotYetLoaded only makes sense if we are loading into a fresh entity context.
-                if (entityLoader.isNotYetLoaded()) {
-                    entityLoader.load();
-                }
-                else {
-                    /*
-                     * The entity is already loaded in our context
-                     * so don't update it, and associate the existing entity
-                     * with our loader so that it can be part of the QueryResult.
-                     *
-                     * Perhaps we should refresh existing entities by default.
-                     * or perhaps we should make it part of the runtime properties.
-                     */
-                    entityLoader.associateExistingEntity();
-                }
-            }
-        }
-    }
 }

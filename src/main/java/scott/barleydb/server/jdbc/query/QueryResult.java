@@ -10,12 +10,12 @@ package scott.barleydb.server.jdbc.query;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -97,8 +97,8 @@ public class QueryResult<T> implements Serializable {
             return this;
         }
         LOG.debug("=== COPYING DATA ACROSS =======");
-        EntityContextState ecs1 = entityContext.beginLoading();
-        EntityContextState ecs2 = newEntityContext.beginLoading();
+        EntityContextState ecs1 = entityContext.switchToInternalMode();
+        EntityContextState ecs2 = newEntityContext.switchToInternalMode();
         try {
             QueryResult<T> result = new QueryResult<T>(newEntityContext);
             List<Entity> copied = EntityContextHelper.addEntities(entityContext.getEntities(), newEntityContext, true);
@@ -114,8 +114,8 @@ public class QueryResult<T> implements Serializable {
 
             return result;
         } finally {
-            newEntityContext.endLoading(ecs2);
-            entityContext.endLoading(ecs1);
+            newEntityContext.switchToMode(ecs2);
+            entityContext.switchToMode(ecs1);
         }
     }
 }

@@ -83,6 +83,7 @@ import scott.barleydb.api.persist.PersistRequest;
 import scott.barleydb.api.query.QProperty;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.query.RuntimeProperties;
+import scott.barleydb.api.stream.EntityData;
 import scott.barleydb.server.jdbc.query.QueryResult;
 
 import static scott.barleydb.api.core.entity.EntityContextHelper.toParents;
@@ -316,31 +317,22 @@ public class EntityContext implements Serializable {
         return entityContextState == EntityContextState.INTERNAL;
     }
 
-    public EntityContextState beginLoading() {
-        EntityContextState prev = this.entityContextState;
+    public EntityContextState switchToInternalMode() {
+        EntityContextState old = this.entityContextState;
         this.entityContextState = EntityContextState.INTERNAL;
-        return prev;
+        return old;
     }
 
-    public void endLoading(EntityContextState restore) {
-        setAllLoadingEntitiesToLoaded();
-        this.entityContextState = restore;
-    }
-
-    public void beginSaving() {
+    public EntityContextState switchToExternalMode() {
+        EntityContextState old = this.entityContextState;
         this.entityContextState = EntityContextState.INTERNAL;
+        return old;
     }
 
-    public void beginDeleting() {
-        this.entityContextState = EntityContextState.INTERNAL;
-    }
-
-    public void endSaving() {
-        this.entityContextState = EntityContextState.USER;
-    }
-
-    public void endDeleting() {
-        this.entityContextState = EntityContextState.USER;
+    public EntityContextState switchToMode(EntityContextState mode) {
+        EntityContextState old = this.entityContextState;
+        this.entityContextState = mode;
+        return old;
     }
 
 
@@ -467,6 +459,58 @@ public class EntityContext implements Serializable {
         return null;
     }
 
+    /**
+     * Bit of a hacky method thrown in for new streaming support, will most likely be replaced...
+     * @param entityData
+     * @return
+     */
+    public Entity addEntityLoadedFromDB(EntityData entityData) {
+        EntityType entityType = definitions.getEntityTypeMatchingInterface(entityData.getEntityType(), true);
+        Object key = entityData.getData().get( entityType.getKeyNodeName() );
+        LOG.debug("Adding or creating Entity for EntityData {} with key {}", entityType, key);
+        Entity entity = getEntity(entityType, key, false);
+        if (entity == null) {
+            entity = new Entity(this, entityType, key, entityData.getConstraints());
+            entity.setEntityState( entityData.getEntityState() );
+            add(entity);
+        }
+        else {
+            LOG.debug("Found entity already in ctx {}", entity);
+            entity.setEntityState( entityData.getEntityState() );
+            entity.setConstraints( entityData.getConstraints() );
+        }
+        LOG.debug("--------------------------------------------------------");
+        for (Node node: entity.getChildren()) {
+            Object value = entityData.getData().get( node.getName() );
+            if (node.getNodeType().isPrimaryKey()) {
+                continue;
+            }
+            if (node instanceof ValueNode) {
+                LOG.debug("Setting value of {} to {}", node.getName(), value);
+                ((ValueNode)node).setValueNoEvent( value );
+            }
+            else if (node instanceof RefNode) {
+                RefNode refNode = (RefNode)node;
+                if (Objects.equals(value, NotLoaded.VALUE)) {
+                    refNode.setLoaded(false);
+                }
+                else if (value != null) {
+                    LOG.debug("Processing RefNode {} with key {}", refNode.getName(), value);
+                    Entity reffed = getEntity(refNode.getEntityType(), value, false);
+                    if (reffed == null) {
+                        //TODO: MUST EXIST IN DATABASE BECAUSE of our method name  cleanp entity data logic
+                        //so that it is dynamic
+                        reffed = newEntity(refNode.getEntityType(), value, EntityConstraint.noConstraints());
+                    }
+                    refNode.setReference( reffed );
+                }
+            }
+        }
+        LOG.debug("--------------------------------------------------------");
+        return entity;
+    }
+
+
 
     void add(Entity entity) {
         if (getEntityByUuid(entity.getUuid(), false) != null) {
@@ -489,8 +533,8 @@ public class EntityContext implements Serializable {
      *            return the new entity
      */
     public Entity copyInto(Entity entity) {
-        EntityContextState ecs1 = beginLoading();
-        EntityContextState ecs2 = entity.getEntityContext().beginLoading();
+        EntityContextState ecs1 = switchToInternalMode();
+        EntityContextState ecs2 = entity.getEntityContext().switchToInternalMode();
         try {
             if (entity.getEntityContext() == this) {
                 throw new IllegalStateException("Cannot copy entity into same context");
@@ -523,8 +567,8 @@ public class EntityContext implements Serializable {
             }
             return ours;
         } finally {
-            entity.getEntityContext().endLoading(ecs2);
-            endLoading(ecs1);
+            entity.getEntityContext().switchToMode(ecs2);
+            switchToMode(ecs1);
         }
     }
 
@@ -662,13 +706,13 @@ public class EntityContext implements Serializable {
     }
 
     public AuditInformation comapreWithDatabase(PersistRequest persistRequest) throws SortServiceProviderException, SortPersistException  {
-        beginSaving();
+        switchToInternalMode();
         RuntimeProperties runtimeProperties = env.overrideProps( null  );
         try {
               return env.services().comapreWithDatabase(persistRequest, runtimeProperties);
 
         } finally {
-            endSaving();
+            switchToExternalMode();
         }
     }
 
@@ -676,7 +720,7 @@ public class EntityContext implements Serializable {
         persist(persistRequest, null);
     }
     public void persist(PersistRequest persistRequest, RuntimeProperties runtimeProperties) throws SortServiceProviderException, SortPersistException  {
-        beginSaving();
+        switchToInternalMode();
         runtimeProperties = env.overrideProps( runtimeProperties );
         try {
             try {
@@ -690,7 +734,7 @@ public class EntityContext implements Serializable {
                 x.switchEntitiesAndThrow(this);
             }
         } finally {
-            endSaving();
+            switchToExternalMode();
         }
     }
 
@@ -1099,6 +1143,7 @@ public class EntityContext implements Serializable {
         generateDiagram(diag, entity, new HashSet<Entity>());
         return diag;
     }
+
     private Link generateDiagram(DependencyDiagram diag, Entity entity, Set<Entity> processed) {
         if (!processed.add(entity)) {
             return null;

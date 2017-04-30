@@ -155,6 +155,14 @@ public class Entity implements Serializable {
         return constraints;
     }
 
+    /**
+     * keep this package level access only.
+     * to be used only by experts
+     */
+    void setConstraints(EntityConstraint constraints) {
+        this.constraints = constraints;
+    }
+
 
     /**
      * Clears any change tracking
@@ -470,7 +478,7 @@ public class Entity implements Serializable {
          */
         EntityContextState state = entityContext.getEntityContextState();
         try {
-            entityContext.beginLoading();
+            entityContext.switchToInternalMode();
             for (Node child: ((Map<String, Node>)ois.readObject()).values()) {
                 if (child instanceof ValueNode) {
                     ValueNode fromStream = (ValueNode)child;
@@ -496,7 +504,7 @@ public class Entity implements Serializable {
             LOG.trace("Deserializing entity {}", this);
         }
         finally {
-            entityContext.setEntityContextState(state);
+            entityContext.switchToMode(state);
         }
     }
 
