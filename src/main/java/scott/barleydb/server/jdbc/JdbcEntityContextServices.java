@@ -440,6 +440,7 @@ public class JdbcEntityContextServices implements IEntityContextServices {
                 EntityType entityType = defs.getEntityTypeMatchingInterface( nodeId.getEntityType(), true);
                 Entity entity = entityContext.getEntity(entityType, nodeId.getEntityKey(), true);
                 entity.getChild(nodeId.getNodeName(), ToManyNode.class, true).setFetched(true);
+                entity.getChild(nodeId.getNodeName(), ToManyNode.class, true).refresh();
             }
         }
         return queryBatcher;
