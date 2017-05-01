@@ -156,15 +156,6 @@ public class Entity implements Serializable {
     }
 
     /**
-     * keep this package level access only.
-     * to be used only by experts
-     */
-    void setConstraints(EntityConstraint constraints) {
-        this.constraints = constraints;
-    }
-
-
-    /**
      * Clears any change tracking
      * (the new entities list in tomany nodes)
      */

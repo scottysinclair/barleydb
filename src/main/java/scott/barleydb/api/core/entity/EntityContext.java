@@ -476,7 +476,7 @@ public class EntityContext implements Serializable {
         }
         else {
             LOG.debug("Found entity already in ctx {}", entity);
-            entity.setConstraints( entityData.getConstraints() );
+            entity.getConstraints().set( entityData.getConstraints() );
         }
         if (entity.getEntityState() == EntityState.NOTLOADED) {
             for (Node child: entity.getChildren()) {
@@ -509,18 +509,22 @@ public class EntityContext implements Serializable {
             }
             else if (node instanceof RefNode) {
                 RefNode refNode = (RefNode)node;
-                if (Objects.equals(value, NotLoaded.VALUE)) {
-                    refNode.setLoaded(false);
-                }
-                else if (value != null) {
+                refNode.setLoaded(true);
+                if (value != null) {
                     LOG.debug("Processing RefNode {} with key {}", refNode.getName(), value);
                     Entity reffed = getEntity(refNode.getEntityType(), value, false);
-                    if (reffed == null) {
+                    if (reffed != null) {
+                        reffed.getConstraints().setMustExistInDatabase();
+                    }
+                    else {
                         //TODO: MUST EXIST IN DATABASE BECAUSE of our method name  cleanp entity data logic
                         //so that it is dynamic
-                        reffed = newEntity(refNode.getEntityType(), value, EntityConstraint.noConstraints());
+                        reffed = newEntity(refNode.getEntityType(), value, EntityConstraint.mustExistInDatabase());
                     }
                     refNode.setReference( reffed );
+                }
+                else {
+                    refNode.setReference(null);
                 }
             }
         }
