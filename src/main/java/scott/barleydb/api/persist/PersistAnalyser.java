@@ -110,6 +110,7 @@ public class PersistAnalyser implements Serializable {
     public PersistAnalyser deepCopy() {
         LOG.debug("Performing a deep copy of the PersistAnalyser");
         EntityContext newContext = entityContext.newEntityContextSharingTransaction();
+        //TOD:bug fix we switch to internal mode but never switch back
         newContext.switchToInternalMode();
         PersistAnalyser copyAnalyser = new PersistAnalyser(newContext);
 

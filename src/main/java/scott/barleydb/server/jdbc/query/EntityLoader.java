@@ -110,6 +110,10 @@ final class EntityLoader {
         return myProjectionCols.get(0).getNodeType().getEntityType();
     }
 
+    public void clearLoadedEntityData() {
+        loadedEntityData.clear();
+    }
+
     public Object getEntityKey(boolean mustExist) throws SortJdbcException, SortQueryException {
         for (ProjectionColumn column : myProjectionCols) {
             if (column.getNodeType().isPrimaryKey()) {

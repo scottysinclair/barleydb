@@ -98,6 +98,13 @@ final class EntityLoaders implements Iterable<EntityLoader> {
         }
         return Collections.emptyList();
     }
+
+    public void clearLoadedEntityData() {
+        loadedEntityData.clear();
+        for (EntityLoader loader: entityLoadersList) {
+            loader.clearLoadedEntityData();
+        }
+    }
 }
 
 class EntityKey {

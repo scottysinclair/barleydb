@@ -94,6 +94,13 @@ public class QueryExecution<T> {
     public boolean readObjectGraph(ResultSet resultSet, ObjectGraph objectGraph) throws EntityStreamException {
         LOG.debug("Reading object graph from ResultSet...");
 
+        /*
+         * we are reading a whole new Object graph, we need to clear any entity data which were loaded previously.
+         */
+        if (entityLoaders != null) {
+            entityLoaders.clearLoadedEntityData();
+        }
+
         boolean moreData = false;
         try {
 

@@ -132,6 +132,7 @@ public class EntityContext implements Serializable {
         this.env = env;
         this.namespace = namespace;
         init(true);
+        this.entityContextState = EntityContextState.USER;
     }
 
     private void init(boolean allowGarbageCollection) {
@@ -471,18 +472,35 @@ public class EntityContext implements Serializable {
         Entity entity = getEntity(entityType, key, false);
         if (entity == null) {
             entity = new Entity(this, entityType, key, entityData.getConstraints());
-            entity.setEntityState( entityData.getEntityState() );
             add(entity);
         }
         else {
             LOG.debug("Found entity already in ctx {}", entity);
-            entity.setEntityState( entityData.getEntityState() );
             entity.setConstraints( entityData.getConstraints() );
         }
+        if (entity.getEntityState() == EntityState.NOTLOADED) {
+            for (Node child: entity.getChildren()) {
+                if (entity.getKey() == child) {
+                    continue;
+                }
+                if (child  instanceof ValueNode) {
+                    ((ValueNode)child).setValue( NotLoaded.VALUE );
+                }
+                else if (child instanceof RefNode) {
+                    ((RefNode)child).setLoaded(false);
+                }
+            }
+        }
+        entity.setEntityState(EntityState.LOADING);
+
         LOG.debug("--------------------------------------------------------");
-        for (Node node: entity.getChildren()) {
-            Object value = entityData.getData().get( node.getName() );
-            if (node.getNodeType().isPrimaryKey()) {
+        /*
+         * apply the data from the EntityData object onto the Entitie's nodes.
+         */
+        for (Map.Entry<String, Object> entry: entityData.getData().entrySet()) {
+            Node node = entity.getChild( entry.getKey() );
+            Object value = entry.getValue();
+            if (node == entity.getKey()) {
                 continue;
             }
             if (node instanceof ValueNode) {
@@ -506,6 +524,7 @@ public class EntityContext implements Serializable {
                 }
             }
         }
+        entity.setEntityState( entityData.getEntityState() );
         LOG.debug("--------------------------------------------------------");
         return entity;
     }
@@ -720,7 +739,7 @@ public class EntityContext implements Serializable {
         persist(persistRequest, null);
     }
     public void persist(PersistRequest persistRequest, RuntimeProperties runtimeProperties) throws SortServiceProviderException, SortPersistException  {
-        switchToInternalMode();
+        EntityContextState prev = switchToInternalMode();
         runtimeProperties = env.overrideProps( runtimeProperties );
         try {
             try {
@@ -734,7 +753,7 @@ public class EntityContext implements Serializable {
                 x.switchEntitiesAndThrow(this);
             }
         } finally {
-            switchToExternalMode();
+            switchToMode( prev );
         }
     }
 
