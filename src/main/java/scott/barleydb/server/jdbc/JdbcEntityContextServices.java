@@ -257,6 +257,30 @@ public class JdbcEntityContextServices implements IEntityContextServices {
         }
     }
 
+    public <T> QueryEntityDataInputStream streamQuery(EntityContext entityContext, QueryObject<T> query, RuntimeProperties props) throws SortJdbcException, SortQueryException {
+        env.preProcess(query, entityContext.getDefinitions());
+
+        ConnectionResources conRes = ConnectionResources.get(entityContext);
+        boolean returnToPool = false;
+        if (conRes == null) {
+            conRes = newConnectionResources(entityContext, true);
+            returnToPool = true;
+        }
+
+        QueryExecution<T> execution = new QueryExecution<T>(this, entityContext, query, env.getDefinitions(entityContext.getNamespace()));
+
+        try (OptionalyClosingResources con = new OptionalyClosingResources(conRes, returnToPool)){
+            QueryExecuter executer = new QueryExecuter(this, conRes.getDatabase(), con.getConnection(), entityContext, props);
+            /*
+             * convert the result stream to a full in-memory result
+             */
+            return executer.execute(execution);
+        }
+        catch(EntityStreamException x) {
+            throw new SortQueryException("Error processing entity stream", x);
+        }
+    }
+
     @Override
     public <T> QueryResult<T> execute(EntityContext entityContext, QueryObject<T> query, RuntimeProperties props) throws SortJdbcException, SortQueryException {
         env.preProcess(query, entityContext.getDefinitions());

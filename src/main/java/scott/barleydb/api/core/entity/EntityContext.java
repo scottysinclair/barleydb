@@ -84,6 +84,9 @@ import scott.barleydb.api.query.QProperty;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.query.RuntimeProperties;
 import scott.barleydb.api.stream.EntityData;
+import scott.barleydb.api.stream.ObjectInputStream;
+import scott.barleydb.api.stream.QueryEntityDataInputStream;
+import scott.barleydb.api.stream.QueryEntityInputStream;
 import scott.barleydb.server.jdbc.query.QueryResult;
 
 import static scott.barleydb.api.core.entity.EntityContextHelper.toParents;
@@ -706,6 +709,33 @@ public class EntityContext implements Serializable {
          * Copy the result into the original query batcher if required.
          */
         result.copyTo(this, queryBatcher);
+    }
+
+    public <T> ObjectInputStream<T> streamObjectQuery(QueryObject<T> queryObject) throws SortServiceProviderException, SortQueryException {
+        return streamObjectQuery(queryObject, null, false);
+    }
+
+    public <T> ObjectInputStream<T> streamObjectQuery(QueryObject<T> queryObject, boolean createNewCtx) throws SortServiceProviderException, SortQueryException {
+        return streamObjectQuery(queryObject, null, createNewCtx);
+    }
+
+    public <T> ObjectInputStream<T> streamObjectQuery(QueryObject<T> queryObject, RuntimeProperties runtimeProperties, boolean createNewCtx) throws SortServiceProviderException, SortQueryException {
+        /*
+         * We can perform the query in a fresh context which is copied back to us
+         * it gives us control over any replace vs merge logic
+         *
+         * It's also means that we don't potentially send our full entity context across the wire
+         *
+         * But we let the runtime properties decide.
+         */
+
+        runtimeProperties = env.overrideProps( runtimeProperties  );
+        EntityContext opContext = getOperationContext(this, runtimeProperties);
+
+        return  new ObjectInputStream<T>( new QueryEntityInputStream(
+                env.services().streamQuery(opContext, queryObject, runtimeProperties),
+                this,
+                createNewCtx));
     }
 
     public <T> QueryResult<T> performQuery(QueryObject<T> queryObject) throws SortServiceProviderException, SortQueryException {

@@ -52,6 +52,7 @@ import scott.barleydb.api.persist.PersistAnalyser;
 import scott.barleydb.api.persist.PersistRequest;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.query.RuntimeProperties;
+import scott.barleydb.api.stream.QueryEntityDataInputStream;
 import scott.barleydb.server.jdbc.query.QueryResult;
 
 /**
@@ -132,6 +133,13 @@ public class RemoteClientEntityContextServices implements IEntityContextServices
     @Override
     public void rollback(EntityContext entityContext) throws SortServiceProviderException {
         throw new RollbackWithoutTransactionException("Remote client cannot have a transaction");
+    }
+
+    @Override
+    public <T> QueryEntityDataInputStream streamQuery(EntityContext entityContext, QueryObject<T> query,
+            RuntimeProperties props) throws SortJdbcException, SortQueryException {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     @SuppressWarnings("unchecked")

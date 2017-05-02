@@ -111,7 +111,9 @@ public class QueryExecuter {
             List<Param> params = new LinkedList<Param>();
             String sql = createCombinedQuery(params, queryExecutions);
             if (!params.isEmpty()) {
-                try (PreparedStatement stmt = prepareStatement(sql, runtimeProperties)) {
+                //stmts cant close before rs
+                try {
+                    PreparedStatement stmt = prepareStatement(sql, runtimeProperties);
 
                     setFetch(stmt, runtimeProperties);
 
@@ -134,7 +136,9 @@ public class QueryExecuter {
                 }
             }
             else {
-                try (Statement stmt = connection.createStatement();) {
+                //stmts cant close before rs
+                try {
+                    Statement stmt = connection.createStatement();
                     try {
                         if (!stmt.execute(sql)) {
                             throw new IllegalQueryStateException("Query did not return a result set");
@@ -154,198 +158,6 @@ public class QueryExecuter {
         }
     }
 
-    interface IResultManager {
-        /**
-         * The first query has ind0x ß
-         * @return
-         */
-        public int getQueryIndex();
-
-        /**
-        *
-        * @return true if there is a next result
-        * @throws SQLException
-        */
-        public boolean next() throws EntityStreamException;
-        public ObjectGraph readObjectGraph() throws EntityStreamException;
-        public void close() throws EntityStreamException;
-        public boolean hasNext();
-    }
-
-    private class SeparateQueryResultManager implements IResultManager {
-        private QueryExecution<?> queryExecutions[];
-        private Statement stmt;
-        private ResultSet resultSet;
-        private int queryIndex = 0;
-
-        public SeparateQueryResultManager(QueryExecution<?> queryExecutions[]) {
-            this.queryExecutions = queryExecutions;
-        }
-
-        public int getQueryIndex() {
-            return queryIndex;
-        }
-
-        public boolean next() throws EntityStreamException {
-            if (resultSet == null) {
-                //check if we have any more query executions to perform.
-                if (queryIndex >= queryExecutions.length) {
-                    return false;
-                }
-                try {
-                    resultSet = executeQuery( queryExecutions[ queryIndex ] );
-                    /*
-                     * after we get the result set, we "fall through" and call resultSet.next so that
-                     * the cursor is at the correct position.
-                     */
-                }
-                catch (SortJdbcException | SortQueryException  | PreparingPersistStatementException x) {
-                    throw new EntityStreamException("Error executing query", x);
-                }
-            }
-            try {
-                if (resultSet.next()) {
-                    return true;
-                }
-                resultSet = null;
-                queryIndex++;
-                //try again
-                return next();
-            }
-            catch (SQLException x) {
-                throw new EntityStreamException("Error calling ResultSet.next", x);
-            }
-        }
-
-        @Override
-        public boolean hasNext() {
-            return queryIndex < queryExecutions.length;
-        }
-
-        public ObjectGraph readObjectGraph() throws EntityStreamException {
-            ObjectGraph og = new ObjectGraph();
-            boolean moreData =  queryExecutions[ queryIndex ].readObjectGraph( resultSet, og );
-            if (!moreData) {
-                resultSet = null;
-                queryIndex++;
-                next(); //try and move to the next query resultset (if there is one)
-            }
-            return og;
-        }
-
-        public void close() throws EntityStreamException {
-            try {
-                resultSet.close();
-            }
-            catch (SQLException x) {
-                try {
-                    stmt.close();
-                }
-                catch(SQLException x2) {
-                    x.addSuppressed(x2);
-                }
-                throw new EntityStreamException("Error closing ResultSet", x);
-            }
-            try {
-                stmt.close();
-            }
-            catch(SQLException x) {
-                throw new EntityStreamException("Error closing Statement", x);
-            }
-        }
-
-
-    }
-
-    private class CombinedQueryResultManager implements IResultManager {
-        private final QueryExecution<?> queryExecutions[];
-        private final Statement stmt;
-        private ResultSet resultSet;
-        private boolean finished;
-        private int queryIndex = 0;
-
-        public CombinedQueryResultManager(QueryExecution<?> queryExecutions[], Statement stmt, ResultSet resultSet) {
-            this.queryExecutions = queryExecutions;
-            this.stmt = stmt;
-            this.resultSet = resultSet;
-        }
-
-        public int getQueryIndex() {
-            return queryIndex;
-        }
-
-
-        public boolean next() throws EntityStreamException {
-            try {
-                if (resultSet != null && resultSet.next()) {
-                    return true;
-                }
-            }
-            catch (SQLException x) {
-                throw new EntityStreamException("Error calling ResultSet.next", x);
-            }
-            try {
-                if (stmt.getMoreResults()) {
-                    //good, we have moved to the next result which is an honest-to-goodness ResultSet
-                    resultSet = stmt.getResultSet();
-                    queryIndex++;
-                    //try again
-                    return next();
-                }
-            }
-            catch (Exception x) {
-                throw new EntityStreamException("Error checking for or getting the next ResultSet", x);
-            }
-            //the stmt return false..., we have reach the end of result-data OR we have an update count
-            resultSet = null;
-            try {
-                if (stmt.getUpdateCount() != -1) {
-                    //means it WAS an update count, we may have more results yet.
-                    //try again
-                    return next();
-                }
-            }
-            catch (SQLException x) {
-                throw new EntityStreamException("Error getting the update count of the statement", x);
-            }
-            //the update count WAS -1, so no more result-sets and no more results.
-            return !(finished = true);
-        }
-
-        @Override
-        public boolean hasNext() {
-            return finished;
-        }
-
-        public ObjectGraph readObjectGraph() throws EntityStreamException {
-            ObjectGraph  objectGraph = new ObjectGraph();
-            queryExecutions[ queryIndex ].readObjectGraph( resultSet, objectGraph );
-            return objectGraph;
-        }
-
-        public void close() throws EntityStreamException {
-            try {
-                resultSet.close();
-            }
-            catch (SQLException x) {
-                try {
-                    stmt.close();
-                }
-                catch(SQLException x2) {
-                    x.addSuppressed(x2);
-                }
-                throw new EntityStreamException("Error closing ResultSet", x);
-            }
-            try {
-                stmt.close();
-            }
-            catch(SQLException x) {
-                throw new EntityStreamException("Error closing Statement", x);
-            }
-        }
-
-    }
-
     /**
      * Executes a single query expecting one resultset.
      * @param queryExecution
@@ -360,7 +172,9 @@ public class QueryExecuter {
         LOG.debug("Executing individual query:\n" + sql);
 
         if (!params.isEmpty()) {
-            try (PreparedStatement stmt = prepareStatement(sql, runtimeProperties)) {
+            //TODO:stmt cant be closed before resultset
+            try {
+                PreparedStatement stmt = prepareStatement(sql, runtimeProperties);
 
                 setFetch(stmt, runtimeProperties);
 
@@ -373,7 +187,8 @@ public class QueryExecuter {
             }
         }
         else {
-            try (Statement stmt = createStatement(runtimeProperties)) {
+            try {
+                Statement stmt = createStatement(runtimeProperties);
 
                 setFetch(stmt, runtimeProperties);
 
@@ -456,4 +271,216 @@ public class QueryExecuter {
         LOG.debug("Created combined query:\n" + combinedQueryStr);
         return combinedQueryStr;
     }
+
+
+    interface IResultManager {
+        /**
+         * The first query has ind0x ß
+         * @return
+         */
+        public int getQueryIndex();
+
+        /**
+        *
+        * @return true if there is a next result
+        * @throws SQLException
+        */
+        public boolean next() throws EntityStreamException;
+        public ObjectGraph readObjectGraph() throws EntityStreamException;
+        public void close() throws EntityStreamException;
+        public boolean hasNext();
+    }
+
+    private class SeparateQueryResultManager implements IResultManager {
+        private QueryExecution<?> queryExecutions[];
+        private Statement stmt;
+        private ResultSet resultSet;
+        private int queryIndex = 0;
+
+        public SeparateQueryResultManager(QueryExecution<?> queryExecutions[]) {
+            this.queryExecutions = queryExecutions;
+        }
+
+        public int getQueryIndex() {
+            return queryIndex;
+        }
+
+        public boolean next() throws EntityStreamException {
+            if (resultSet == null) {
+                //check if we have any more query executions to perform.
+                if (queryIndex >= queryExecutions.length) {
+                    return false;
+                }
+                try {
+                    resultSet = executeQuery( queryExecutions[ queryIndex ] );
+                    stmt = resultSet.getStatement();
+                    /*
+                     * after we get the result set, we "fall through" and call resultSet.next so that
+                     * the cursor is at the correct position.
+                     */
+                }
+                catch (SQLException | SortJdbcException | SortQueryException  | PreparingPersistStatementException x) {
+                    throw new EntityStreamException("Error executing query", x);
+                }
+            }
+            try {
+                if (resultSet.next()) {
+                    return true;
+                }
+                //closes current resultset and statement
+                close();
+                queryIndex++;
+                //try again
+                return next();
+            }
+            catch (SQLException x) {
+                throw new EntityStreamException("Error calling ResultSet.next", x);
+            }
+        }
+
+        @Override
+        public boolean hasNext() {
+            return queryIndex < queryExecutions.length;
+        }
+
+        public ObjectGraph readObjectGraph() throws EntityStreamException {
+            ObjectGraph og = new ObjectGraph();
+            boolean moreData =  queryExecutions[ queryIndex ].readObjectGraph( resultSet, og );
+            if (!moreData) {
+                close();
+                queryIndex++;
+                next(); //try and move to the next query resultset (if there is one)
+            }
+            return og;
+        }
+
+        public void close() throws EntityStreamException {
+            if (resultSet != null) {
+                try {
+                    LOG.debug("Closing result-set");
+                    resultSet.close();
+                }
+                catch (SQLException x) {
+                    try {
+                        stmt.close();
+                    }
+                    catch(SQLException x2) {
+                        x.addSuppressed(x2);
+                    }
+                    finally {
+                        stmt = null;
+                    }
+                    throw new EntityStreamException("Error closing ResultSet", x);
+                }
+                finally {
+                    resultSet = null;
+                }
+            }
+            if (stmt != null) {
+                try {
+                    LOG.debug("Closing statement");
+                    stmt.close();
+                }
+                catch(SQLException x) {
+                    throw new EntityStreamException("Error closing Statement", x);
+                }
+                finally {
+                    stmt = null;
+                }
+            }
+        }
+
+    }
+
+    private class CombinedQueryResultManager implements IResultManager {
+        private final QueryExecution<?> queryExecutions[];
+        private final Statement stmt;
+        private ResultSet resultSet;
+        private boolean finished;
+        private int queryIndex = 0;
+
+        public CombinedQueryResultManager(QueryExecution<?> queryExecutions[], Statement stmt, ResultSet resultSet) {
+            this.queryExecutions = queryExecutions;
+            this.stmt = stmt;
+            this.resultSet = resultSet;
+        }
+
+        public int getQueryIndex() {
+            return queryIndex;
+        }
+
+        public boolean next() throws EntityStreamException {
+            try {
+                if (resultSet != null && resultSet.next()) {
+                    return true;
+                }
+            }
+            catch (SQLException x) {
+                throw new EntityStreamException("Error calling ResultSet.next", x);
+            }
+            try {
+                if (stmt.getMoreResults()) {
+                    //good, we have moved to the next result which is an honest-to-goodness ResultSet
+                    resultSet = stmt.getResultSet();
+                    queryIndex++;
+                    //try again
+                    return next();
+                }
+            }
+            catch (Exception x) {
+                throw new EntityStreamException("Error checking for or getting the next ResultSet", x);
+            }
+            //the stmt return false..., we have reach the end of result-data OR we have an update count
+            resultSet = null;
+            try {
+                if (stmt.getUpdateCount() != -1) {
+                    //means it WAS an update count, we may have more results yet.
+                    //try again
+                    return next();
+                }
+            }
+            catch (SQLException x) {
+                throw new EntityStreamException("Error getting the update count of the statement", x);
+            }
+            //the update count WAS -1, so no more result-sets and no more results.
+            return !(finished = true);
+        }
+
+        @Override
+        public boolean hasNext() {
+            return finished;
+        }
+
+        public ObjectGraph readObjectGraph() throws EntityStreamException {
+            ObjectGraph  objectGraph = new ObjectGraph();
+            queryExecutions[ queryIndex ].readObjectGraph( resultSet, objectGraph );
+            return objectGraph;
+        }
+
+        public void close() throws EntityStreamException {
+            try {
+                LOG.debug("Closing result-set");
+                resultSet.close();
+            }
+            catch (SQLException x) {
+                try {
+                    LOG.debug("Closing statement");
+                    stmt.close();
+                }
+                catch(SQLException x2) {
+                    x.addSuppressed(x2);
+                }
+                throw new EntityStreamException("Error closing ResultSet", x);
+            }
+            try {
+                LOG.debug("Closing statement");
+                stmt.close();
+            }
+            catch(SQLException x) {
+                throw new EntityStreamException("Error closing Statement", x);
+            }
+        }
+
+    }
+
 }

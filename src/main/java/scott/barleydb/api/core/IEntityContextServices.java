@@ -34,6 +34,7 @@ import scott.barleydb.api.persist.PersistAnalyser;
 import scott.barleydb.api.persist.PersistRequest;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.query.RuntimeProperties;
+import scott.barleydb.api.stream.QueryEntityDataInputStream;
 import scott.barleydb.server.jdbc.query.QueryResult;
 import scott.barleydb.api.core.QueryBatcher;
 
@@ -95,6 +96,20 @@ public interface IEntityContextServices {
      * @throws SortJdbcException
      */
     void rollback(EntityContext entityContext) throws SortServiceProviderException;
+
+
+    /**
+     * Executes the query returning a stream of EntityData
+     * @param entityContext
+     * @param query
+     * @param props
+     * @return
+     * @throws SortJdbcException
+     * @throws SortQueryException
+     */
+    <T> QueryEntityDataInputStream streamQuery(EntityContext entityContext, QueryObject<T> query, RuntimeProperties props) throws SortJdbcException, SortQueryException;
+
+
 
     /**
      * Executes the query populating the given entity context with the result.
