@@ -1,5 +1,7 @@
 package scott.barleydb.api.core.entity;
 
+import static scott.barleydb.api.core.entity.EntityContextHelper.toParents;
+
 /*-
  * #%L
  * BarleyDB
@@ -27,7 +29,6 @@ package scott.barleydb.api.core.entity;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.ref.WeakReference;
@@ -78,18 +79,18 @@ import scott.barleydb.api.exception.execution.persist.OptimisticLockMismatchExce
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
 import scott.barleydb.api.exception.execution.query.SortQueryException;
 import scott.barleydb.api.exception.model.ProxyCreationException;
+import scott.barleydb.api.persist.OperationType;
 import scott.barleydb.api.persist.PersistAnalyser;
 import scott.barleydb.api.persist.PersistRequest;
 import scott.barleydb.api.query.QProperty;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.query.RuntimeProperties;
 import scott.barleydb.api.stream.EntityData;
+import scott.barleydb.api.stream.EntityStreamException;
 import scott.barleydb.api.stream.ObjectInputStream;
 import scott.barleydb.api.stream.QueryEntityDataInputStream;
 import scott.barleydb.api.stream.QueryEntityInputStream;
 import scott.barleydb.server.jdbc.query.QueryResult;
-
-import static scott.barleydb.api.core.entity.EntityContextHelper.toParents;
 
 /**
  * Contains a set of entities.<br/>
@@ -738,6 +739,84 @@ public class EntityContext implements Serializable {
                 createNewCtx));
     }
 
+    public interface BatchPersistProcessor {
+        public void beforePersist(EntityContext ctx);
+    }
+
+    /**
+     * Saves the stream data to the database in batches specified by batchSize.<br/>
+     * None of the entities are added to this EntityContext
+     *
+     * @param in
+     * @param batchSize
+     * @throws EntityStreamException
+     * @throws SortServiceProviderException
+     * @throws SortPersistException
+     */
+    public void batchPersistStreamData(QueryEntityDataInputStream in, int batchSize, OperationType operationType, BatchPersistProcessor processor) throws EntityStreamException, SortServiceProviderException, SortPersistException {
+        EntityContext tmpCtx = this.newEntityContext();
+        tmpCtx.setAllowGarbageCollection(false);
+
+        try ( QueryEntityInputStream ein = new QueryEntityInputStream(in, tmpCtx, false); ) {
+            PersistRequest request = new PersistRequest();
+            Entity entity;
+            int count = 0;
+            while ( (entity = ein.read()) != null) {
+                switch (operationType) {
+                    case INSERT: request.insert( entity ); break;
+                    case UPDATE: request.update( entity ); break;
+                    case SAVE: request.save( entity ); break;
+                    default: throw new SortPersistException("Unknown operation type " + operationType);
+                }
+                if (count % batchSize == 0) {
+                    /*
+                     * persist all of the entities in the request in one transaction.
+                     */
+                    if (processor != null) {
+                        processor.beforePersist( tmpCtx );
+                    }
+                    tmpCtx.persist( request );
+                    /*
+                     * start a new request for a new batch.
+                     */
+                    request = new PersistRequest();
+                    /*
+                     * clear all entities collected in the context
+                     */
+                    tmpCtx.clear();
+                }
+                count++;
+            }
+            /*
+             * save the last entities.
+             */
+            if (!request.isEmpty()) {
+                if (processor != null) {
+                    processor.beforePersist( tmpCtx );
+                }
+                tmpCtx.persist( request );
+            }
+        }
+    }
+
+    public QueryEntityDataInputStream streamQueryEntityData(QueryObject<?> queryObject, RuntimeProperties runtimeProperties) throws SortServiceProviderException, SortQueryException {
+        /*
+         * We can perform the query in a fresh context which is copied back to us
+         * it gives us control over any replace vs merge logic
+         *
+         * It's also means that we don't potentially send our full entity context across the wire
+         *
+         * But we let the runtime properties decide.
+         */
+
+        runtimeProperties = env.overrideProps( runtimeProperties  );
+        EntityContext opContext = getOperationContext(this, runtimeProperties);
+
+        return env.services().streamQuery(opContext, queryObject, runtimeProperties);
+    }
+
+
+
     public <T> QueryResult<T> performQuery(QueryObject<T> queryObject) throws SortServiceProviderException, SortQueryException {
         return performQuery(queryObject, null);
     }
@@ -835,6 +914,7 @@ public class EntityContext implements Serializable {
      */
     public EntityContext newEntityContext() {
         EntityContext entityContext = new EntityContext(env, namespace);
+        entityContext.setAllowGarbageCollection( this.isAllowGarbageCollection() );
         return entityContext;
     }
 

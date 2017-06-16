@@ -40,6 +40,7 @@ import org.example.etl.context.MiEntityContext;
 import org.example.etl.model.BusinessType;
 import org.example.etl.model.RawData;
 import org.example.etl.model.SyntaxModel;
+import org.example.etl.model.SyntaxType;
 import org.example.etl.model.Template;
 import org.example.etl.model.TemplateContent;
 import org.example.etl.model.XmlMapping;
@@ -48,9 +49,7 @@ import org.example.etl.model.XmlSyntaxModel;
 import org.example.etl.query.QRawData;
 import org.example.etl.query.QTemplate;
 import org.example.etl.query.QXmlSyntaxModel;
-import org.example.etl.model.SyntaxType;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -60,7 +59,6 @@ import org.slf4j.LoggerFactory;
 
 import scott.barleydb.api.core.Environment;
 import scott.barleydb.api.core.entity.Entity;
-import scott.barleydb.api.core.entity.EntityConstraint;
 import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.entity.EntityContextHelper;
 import scott.barleydb.api.core.entity.ProxyController;
@@ -72,7 +70,7 @@ import scott.barleydb.server.jdbc.persist.Persister;
 import scott.barleydb.server.jdbc.resources.ConnectionResources;
 import scott.barleydb.test.TestEntityContextServices.PersisterFactory;
 
-//@RunWith(Parameterized.class)
+@RunWith(Parameterized.class)
 public class TestPersistence extends TestRemoteClientBase {
 
     private static final Logger LOG = LoggerFactory.getLogger(TestPersistence.class);
@@ -89,13 +87,8 @@ public class TestPersistence extends TestRemoteClientBase {
     private EntityContextGetter getter;
     private EntityContext theEntityContext;
 
-//    public TestPersistence(EntityContextGetter getter) {
-//        this.getter = getter;
-//        //this.getter = new EntityContextGetter(true);
-//    }
-//
-    public TestPersistence() {
-        this.getter = new EntityContextGetter(true);
+    public TestPersistence(EntityContextGetter getter) {
+        this.getter = getter;
     }
 
     @Override

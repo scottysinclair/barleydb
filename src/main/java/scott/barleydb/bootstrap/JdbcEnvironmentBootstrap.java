@@ -71,6 +71,7 @@ import scott.barleydb.server.jdbc.query.QueryPreProcessor;
 import scott.barleydb.server.jdbc.vendor.HsqlDatabase;
 import scott.barleydb.server.jdbc.vendor.MySqlDatabase;
 import scott.barleydb.server.jdbc.vendor.OracleDatabase;
+import scott.barleydb.server.jdbc.vendor.PostgresqlDatabase;
 import scott.barleydb.server.jdbc.vendor.SqlServerDatabase;
 
 /**
@@ -99,6 +100,8 @@ public class JdbcEnvironmentBootstrap {
 
     private String ddlGen;
 
+    private String applicationDir = "application";
+
     @PostConstruct
     public void init() throws Exception {
         services = new JdbcEntityContextServices(dataSource);
@@ -121,7 +124,7 @@ public class JdbcEnvironmentBootstrap {
         Connection connection = dataSource.getConnection();
         DatabaseMetaData metadata = connection.getMetaData();
         services.addDatabases(new HsqlDatabase(metadata), new OracleDatabase(metadata), new SqlServerDatabase(metadata),
-                new MySqlDatabase(metadata));
+                new MySqlDatabase(metadata), new PostgresqlDatabase(metadata));
 
         connection.close();
 
@@ -133,7 +136,10 @@ public class JdbcEnvironmentBootstrap {
         if (ddlGen != null)  {
             generateDDls();
         }
+    }
 
+    public void setApplicationDir(String applicationDir) {
+        this.applicationDir = applicationDir;
     }
 
     public void setDdlGen(String ddlGen) {
@@ -262,13 +268,13 @@ public class JdbcEnvironmentBootstrap {
                 }
             }
             catch(Exception x) {
-                LOG.error("Could not load spec {}", specFile);
+                LOG.error("Could not load spec " + specFile, x);
             }
         }
     }
 
     private void findSpecFilesInJars() throws Exception {
-        File applicationDir = new File("application");
+        File applicationDir = new File( this.applicationDir );
 
         FilenameFilter filter = new FilenameFilter() {
             @Override
@@ -277,9 +283,12 @@ public class JdbcEnvironmentBootstrap {
             }
         };
 
-        // look for XML files
-        for (File specJar : applicationDir.listFiles(filter)) {
-            findSpecFilesInJar(specJar);
+        File files[] = applicationDir.listFiles(filter);
+        if (files != null) {
+            // look for XML files
+            for (File specJar : files) {
+                findSpecFilesInJar(specJar);
+            }
         }
     }
 
@@ -300,15 +309,18 @@ public class JdbcEnvironmentBootstrap {
     }
 
     private void findXmlSpecFiles() {
-        File applicationDir = new File("application");
+        File applicationDir = new File( this.applicationDir );
         // look for XML files
-        for (File specXml : applicationDir.listFiles(new FilenameFilter() {
+        File files[] = applicationDir.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
                 return name.endsWith("spec.xml");
             }
-        })) {
-            specFiles.add(specXml.getPath());
+        });
+        if (files != null) {
+            for (File specXml : files) {
+                specFiles.add(specXml.getPath());
+            }
         }
     }
 
@@ -335,7 +347,7 @@ public class JdbcEnvironmentBootstrap {
         if (specClassLoader != null) {
             return specClassLoader;
         }
-        File applicationDir = new File("application");
+        File applicationDir = new File( this.applicationDir );
         List<URL> urls = new LinkedList<>();
 
         FilenameFilter filter = new FilenameFilter() {

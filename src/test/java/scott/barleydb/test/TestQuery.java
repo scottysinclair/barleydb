@@ -53,6 +53,7 @@ import org.springframework.test.jdbc.SimpleJdbcTestUtils;
 
 import scott.barleydb.api.core.QueryBatcher;
 import scott.barleydb.api.core.entity.EntityContext;
+import scott.barleydb.api.stream.ObjectInputStream;
 import scott.barleydb.server.jdbc.query.QueryResult;
 import scott.barleydb.server.jdbc.resources.ConnectionResources;
 
@@ -140,13 +141,20 @@ public class TestQuery extends TestRemoteClientBase {
         QXmlSyntaxModel qxsm = new QXmlSyntaxModel();
         qxsm.joinToStructure();
         qxsm.joinToUser();
-        QXmlSyntaxModel subSyntax = qxsm.joinToMappings().joinToSubSyntax();
-        subSyntax.joinToUser();
-        subSyntax.joinToStructure();
-        subSyntax.joinToMappings();
+//        QXmlSyntaxModel subSyntax = qxsm.joinToMappings().joinToSubSyntax();
+//        subSyntax.joinToUser();
+//        subSyntax.joinToStructure();
+//        subSyntax.joinToMappings();
 
+
+        QXmlMapping qm =  new QXmlMapping();
+        QXmlSyntaxModel qs = qm.joinToSubSyntax();
+        qs.joinToUser();
+        qs.joinToStructure();
+        qs.joinToMappings();
 
         theEntityContext.register(qxsm);
+        theEntityContext.register(qm);
 
         /*
          * get a copy of the syntax query
@@ -192,6 +200,64 @@ public class TestQuery extends TestRemoteClientBase {
          * check the server auto-commit mode hasn't changed somehow
          */
         assertEquals(autoCommitMode, serverEntityContext.getAutocommit());
+    }
+
+
+    @Test
+    public void testStreamingSyntaxModelComplexQuery() throws Exception {
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println();
+
+        /*
+         * create and registery all fetch queries
+         */
+        QXmlSyntaxModel qxsm = new QXmlSyntaxModel();
+        qxsm.joinToStructure();
+        qxsm.joinToUser();
+        QXmlSyntaxModel subSyntax = qxsm.joinToMappings().joinToSubSyntax();
+        subSyntax.joinToUser();
+        subSyntax.joinToStructure();
+        subSyntax.joinToMappings();
+
+
+        theEntityContext.register(qxsm);
+
+        /*
+         * get a copy of the syntax query
+         */
+        QXmlSyntaxModel syntax = (QXmlSyntaxModel) theEntityContext.getQuery(XmlSyntaxModel.class);
+
+        /*
+         * add a where clause
+         */
+        QXmlMapping aMapping = syntax.existsMappings();
+        QUser aUser = syntax.existsUser();
+        //QXmlStructure aStructure = syntax.existsStructure();
+        syntax.where(syntax.name().equal("syntax-xml-1"))
+                .andExists(aMapping.where(aMapping.xpath().equal("sfn11").or(aMapping.xpath().equal("sfn12"))))
+                .andExists(aUser.where(aUser.name().equal("Scott")));
+
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println();
+
+        try {
+            /*
+             * Execute the query and process the result
+             */
+            try (ObjectInputStream<XmlSyntaxModel> in =  theEntityContext.streamObjectQuery(syntax); ) {
+                XmlSyntaxModel model;
+                while((model = in.read()) != null) {
+                    print("", model);
+               }
+            }
+        }
+        catch(UnsupportedOperationException x) {
+            assertTrue("Remote streaming is not supported", getter.client);
+        }
     }
 
     /**

@@ -138,8 +138,7 @@ public class RemoteClientEntityContextServices implements IEntityContextServices
     @Override
     public <T> QueryEntityDataInputStream streamQuery(EntityContext entityContext, QueryObject<T> query,
             RuntimeProperties props) throws SortJdbcException, SortQueryException {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException("Remote streaming is not supported.");
     }
 
     @SuppressWarnings("unchecked")
