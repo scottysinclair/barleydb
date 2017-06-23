@@ -25,49 +25,20 @@ package scott.barleydb.api.dependency;
  * #L%
  */
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.Collection;
 
-public class Node {
+public abstract class DependencyTreeNode {
 
-    private String name;
+    public abstract Object getThing();
 
-    private Set<Link> linksFrom = new LinkedHashSet<>();
+    public abstract boolean hasBuiltDependencies();
 
-    private Set<Link> linksTo= new LinkedHashSet<>();
+    public abstract String getShortDescription();
 
-    private String colour;
+    public abstract void buildDependencies(Collection<DependencyTreeNode> nodes);
 
-    public Node(String name) {
-        this.name = name;
-    }
+    public abstract Collection<DependencyTreeNode> getDependencies();
 
-    public String getName() {
-        return name;
-    }
-
-    public Set<Link> getLinksFrom() {
-        return linksFrom;
-    }
-
-    public Set<Link> getLinksTo() {
-        return linksTo;
-    }
-
-    void addLinkFrom(Link link) {
-        linksFrom.add(link);
-    }
-
-    void addLinkTo(Link link) {
-        linksTo.add(link);
-    }
-
-    public String getColour() {
-        return colour;
-    }
-
-    public void setColour(String colour) {
-        this.colour = colour;
-    }
+    public abstract String getDiagramName();
 
 }

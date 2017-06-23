@@ -1,4 +1,4 @@
-package scott.barleydb.api.dependency;
+package scott.barleydb.api.dependency.diagram;
 
 /*-
  * #%L
@@ -25,41 +25,49 @@ package scott.barleydb.api.dependency;
  * #L%
  */
 
-public class Link {
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+public class Node {
 
     private String name;
 
-    private LinkType type;
+    private Set<Link> linksFrom = new LinkedHashSet<>();
 
-    private Node from;
+    private Set<Link> linksTo= new LinkedHashSet<>();
 
-    private Node to;
+    private String colour;
 
-    public Link(String name, LinkType type, Node from, Node to) {
+    public Node(String name) {
         this.name = name;
-        this.type = type;
-        this.from = from;
-        this.to = to;
     }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public Set<Link> getLinksFrom() {
+        return linksFrom;
     }
 
-    public LinkType getType() {
-        return type;
+    public Set<Link> getLinksTo() {
+        return linksTo;
     }
 
-    public Node getFrom() {
-        return from;
+    void addLinkFrom(Link link) {
+        linksFrom.add(link);
     }
 
-    public Node getTo() {
-        return to;
+    void addLinkTo(Link link) {
+        linksTo.add(link);
+    }
+
+    public String getColour() {
+        return colour;
+    }
+
+    public void setColour(String colour) {
+        this.colour = colour;
     }
 
 }

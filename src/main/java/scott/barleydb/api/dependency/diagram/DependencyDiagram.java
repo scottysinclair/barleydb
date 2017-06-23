@@ -1,4 +1,4 @@
-package scott.barleydb.api.dependency;
+package scott.barleydb.api.dependency.diagram;
 
 /*-
  * #%L

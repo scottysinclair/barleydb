@@ -78,7 +78,8 @@ public abstract class GenerateDatabaseScript {
          * Abstract entities don't have all of the relations in them
          * remove them.
          */
-        Collections.sort(entities, new DependencyComparator());
+        //Collections.sort(entities, new DependencyComparator());
+        entities = CleanStatementOrder.order(entities);
         List<String> tableNames = toTableNames( entities );
         removeDuplicates(tableNames);
         for (String tableName: tableNames) {

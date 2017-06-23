@@ -52,9 +52,9 @@ import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.entity.EntityContextHelper;
 import scott.barleydb.api.core.entity.RefNode;
 import scott.barleydb.api.core.entity.ToManyNode;
-import scott.barleydb.api.dependency.DependencyDiagram;
-import scott.barleydb.api.dependency.Link;
-import scott.barleydb.api.dependency.LinkType;
+import scott.barleydb.api.dependency.diagram.DependencyDiagram;
+import scott.barleydb.api.dependency.diagram.Link;
+import scott.barleydb.api.dependency.diagram.LinkType;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.execution.query.SortQueryException;
 import scott.barleydb.api.query.QProperty;
@@ -176,6 +176,9 @@ public class DependencyTree implements Serializable {
                 numberOfNodes = nodes.size();
                 for (Node node : new ArrayList<>(nodes.values())) {
                     if (!node.isBuiltDependencies()) {
+                        /*
+                         * building dependencies can cause new dependencies to be found.
+                         */
                         node.buildDependencies();
                     }
                 }
@@ -283,7 +286,12 @@ public class DependencyTree implements Serializable {
             dependencyOrder.addAll(readyNodes);
             LOG.debug("added following nodes to dependecy order {}", print(readyNodes));
             readyNodes = getUnprocessedNodesWithNoUnprocessedDependencies(false);
-            count++;
+            if (readyNodes.isEmpty()) {
+                count++;
+            }
+            else {
+                count = 0;
+            }
         }
         if (count == 1000) {
             throw new IllegalStateException("Infinite loop, calculating dependency order");
@@ -293,7 +301,7 @@ public class DependencyTree implements Serializable {
          */
         readyNodes = getUnprocessedNodesWithNoUnprocessedDependencies(true);
         count = 0;
-        while (count < 1000 && dependencyOrder.size() < countNodeRequiredInDependencyOrder(false)) {
+        while (count < 100 && dependencyOrder.size() < countNodeRequiredInDependencyOrder(false)) {
             if (readyNodes.isEmpty()) {
                 LOG.error(dumpCurrentState());
                 generateDiagram();
@@ -302,9 +310,14 @@ public class DependencyTree implements Serializable {
             dependencyOrder.addAll(readyNodes);
             LOG.debug("added following nodes to dependecy order {}", print(readyNodes));
             readyNodes = getUnprocessedNodesWithNoUnprocessedDependencies(true);
-            count++;
+            if (readyNodes.isEmpty()) {
+                count++;
+            }
+            else {
+                count = 0;
+            }
         }
-        if (count == 1000) {
+        if (count == 100) {
             throw new IllegalStateException("Infinite loop, calculating dependency order");
         }
 
