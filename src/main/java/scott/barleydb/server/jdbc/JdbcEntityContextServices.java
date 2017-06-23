@@ -508,7 +508,7 @@ public class JdbcEntityContextServices implements IEntityContextServices {
     }
 
 
-    private Database getDatabaseInfo(Connection connection) throws SortJdbcException {
+    public Database getDatabaseInfo(Connection connection) throws SortJdbcException {
         DatabaseMetaData metaData;
         try {
             metaData = connection.getMetaData();
