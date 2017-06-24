@@ -31,8 +31,10 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Statement;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import javax.sql.DataSource;
 
@@ -50,6 +52,7 @@ import scott.barleydb.api.specification.DefinitionsSpec;
 import scott.barleydb.api.specification.EntitySpec;
 import scott.barleydb.api.specification.SpecRegistry;
 import scott.barleydb.build.specification.ddlgen.CreateScriptOrder;
+import scott.barleydb.build.specification.ddlgen.DropScriptOrder;
 import scott.barleydb.build.specification.ddlgen.GenerateDatabaseScript;
 import scott.barleydb.build.specification.ddlgen.GenerateHsqlDatabaseScript;
 import scott.barleydb.build.specification.ddlgen.GenerateMySqlDatabaseScript;
@@ -77,6 +80,7 @@ public class EnvironmentDef {
     private DataSource dataSource;
     private List<Class<?>> specClasses = new LinkedList<>();
     private boolean createDDL;
+    private boolean dropSchema;
 
     public EnvironmentDef withDataSource(DataSource dataSource) {
         this.dataSource = dataSource;
@@ -87,8 +91,17 @@ public class EnvironmentDef {
         return new DataSourceDef();
     }
 
+    public DataSource getDataSource() {
+        return dataSource;
+    }
+
     public EnvironmentDef withSpecs(Class<?> ...specClass) {
         specClasses.addAll(Arrays.asList(specClass));
+        return this;
+    }
+
+    public EnvironmentDef withDroppingSchema(boolean drop) {
+        dropSchema = drop;
         return this;
     }
 
@@ -97,8 +110,12 @@ public class EnvironmentDef {
         return this;
     }
 
+    protected JdbcEntityContextServices createEntityContextServices(DataSource dataSource) {
+        return new JdbcEntityContextServices(dataSource);
+    }
+
     public Environment create() throws Exception {
-        JdbcEntityContextServices services = new JdbcEntityContextServices(dataSource);
+        JdbcEntityContextServices services = createEntityContextServices(dataSource);
         Environment env = new Environment(services);
 
         /*
@@ -140,13 +157,15 @@ public class EnvironmentDef {
         /*
          * process all of the schema definitions and load them into the barleydb environment.
          */
-        List<DefinitionsSpec> allSpecs = new LinkedList<>();
         StaticDefinitionProcessor processor = new StaticDefinitionProcessor();
         for (Class<?> specClass: specClasses) {
-            DefinitionsSpec spec = processor.process((StaticDefinitions)specClass.newInstance(), registry);
-            env.addDefinitions( Definitions.create( spec ) );
-            allSpecs.add(spec);
+            processor.process((StaticDefinitions)specClass.newInstance(), registry);
         }
+        List<DefinitionsSpec> allSpecs = new LinkedList<>(registry.getDefinitions());
+        for (DefinitionsSpec spec: allSpecs) {
+            env.addDefinitions( Definitions.create( spec ) );
+        }
+
 
         /*
          * registery default queries for all entity specs.
@@ -167,12 +186,22 @@ public class EnvironmentDef {
             env.getDefinitions(spec.getNamespace()).registerProxyFactory((ProxyFactory)facClass.newInstance());
         }
 
+        if (dropSchema) {
+            try (Connection con = dataSource.getConnection();) {
+                Database dbInfo = services.getDatabaseInfo(con);
+                GenerateDatabaseScript genScript = getScriptGeneratorFor( dbInfo );
+                for (DefinitionsSpec spec: DropScriptOrder.order(allSpecs)) {
+                    executeScript( con, genScript.generateDropScript(spec), true );
+                }
+            }
+        }
+
         if (createDDL) {
             try (Connection con = dataSource.getConnection();) {
                 Database dbInfo = services.getDatabaseInfo(con);
-                GenerateDatabaseScript genDDLScript = getScriptGeneratorFor( dbInfo );
+                GenerateDatabaseScript genScript = getScriptGeneratorFor( dbInfo );
                 for (DefinitionsSpec spec: CreateScriptOrder.order(allSpecs)) {
-                    executeScript( con, genDDLScript.generateScript(spec), false );
+                    executeScript( con, genScript.generateScript(spec), false );
                 }
             }
         }

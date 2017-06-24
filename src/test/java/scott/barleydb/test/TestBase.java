@@ -101,7 +101,9 @@ import scott.barleydb.api.query.RuntimeProperties.Concurrency;
 import scott.barleydb.api.query.RuntimeProperties.ScrollType;
 import scott.barleydb.api.specification.DefinitionsSpec;
 import scott.barleydb.api.specification.SpecRegistry;
+import scott.barleydb.bootstrap.EnvironmentDef;
 import scott.barleydb.build.specification.vendor.MySqlSpecConverter;
+import scott.barleydb.server.jdbc.JdbcEntityContextServices;
 import scott.barleydb.server.jdbc.converter.LongToStringTimestampConverter;
 import scott.barleydb.server.jdbc.persist.QuickHackSequenceGenerator;
 import scott.barleydb.server.jdbc.persist.SequenceGenerator;
@@ -206,24 +208,6 @@ public abstract class TestBase {
       executeScript("/clean.sql", false);
     }
 
-    private void initDb() throws Exception {
-        if (!databaseInitialized) {
-            DriverManagerDataSource dmDataSource = new DriverManagerDataSource();
-            dmDataSource.setDriverClassName( db.getDriverClassName());
-            dmDataSource.setUrl( db.getUrl());
-            dmDataSource.setUsername( db.getUser() );
-            dmDataSource.setPassword( db.getPassword() );
-            dmDataSource.setConnectionProperties( db.getConnectionProperties() );
-            dataSource = dmDataSource;
-
-            if (db instanceof HsqlDbTest) {
-            executeScript("/drop.sql", true);
-            executeScript("/" + db.getSchemaName(), false);
-           }
-            databaseInitialized = true;
-        }
-    }
-
     public static void executeScript(String script, boolean continueOnError) throws Exception {
         System.out.println("EXECUTING SCRIPT " + script);
         LineNumberReader in = new LineNumberReader(new InputStreamReader(new ClassPathResource(script).getInputStream(), "UTF-8"));
@@ -263,86 +247,44 @@ public abstract class TestBase {
         System.out.println("FINISHED EXECUTING SCRIPT " + script);
     }
 
-    public static void setupDefs() throws Exception {
-        if (env != null) {
-            return;
-        }
-
-        entityContextServices = new TestEntityContextServices(dataSource);
-        env = new Environment(entityContextServices);
-        /*
-         * The server executes by default in the same context
-         * and provides reasonable values for result-set scrolling and fetching
-         */
-        env.setDefaultRuntimeProperties(
-                new RuntimeProperties()
-                    .concurrency(Concurrency.READ_ONLY)
-                    .fetchSize(100)
-                    .executeInSameContext(true)
-                    .scrollType(ScrollType.FORWARD_ONLY));
-        env.setQueryPreProcessor(new QueryPreProcessor());
-
-        entityContextServices.setEnvironment(env);
-        env.loadDefinitions();
-
-        Connection connection = dataSource.getConnection();
-        DatabaseMetaData metadata = connection.getMetaData();
-        entityContextServices.addDatabases(
-                new HsqlDatabase(metadata),
-                new OracleDatabase(metadata),
-                new SqlServerDatabase(metadata),
-                new MySqlDatabase(metadata));
-
-        connection.close();
-
-
-        entityContextServices.setSequenceGenerator(new QuickHackSequenceGenerator(env));
-        entityContextServices.register(new LongToStringTimestampConverter());
-
-
-        env.addDefinitions( Definitions.create( loadDefinitions("src/test/java/org/example/acl/aclspec.xml", "org.example.acl") ) );
-        env.addDefinitions( Definitions.create( loadDefinitions("src/test/java/org/example/etl/etlspec.xml", "org.example.etl") ) );
-
-        env.getDefinitions("org.example.acl").registerQueries(
-                new QUser(),
-                new QAccessArea());
-
-        env.getDefinitions("org.example.acl").registerProxyFactory(new MacProxyFactory());
-
-        env.getDefinitions("org.example.etl").registerQueries(
-                new QXmlSyntaxModel(),
-                new QXmlStructure(),
-                new QXmlMapping(),
-                new QCsvSyntaxModel(),
-                new QCsvStructure(),
-                new QCsvStructureField(),
-                new QCsvMapping(),
-                new QTemplate(),
-                new QTemplateContent(),
-                new QTemplateBusinessType(),
-                new QBusinessType(),
-                new QRawData());
-
-        env.getDefinitions("org.example.etl").registerProxyFactory(new MiProxyFactory());
-
-        transformXml = "<?xml version=\"1.0\"?>" +
-                "<xsl:stylesheet version=\"1.0\" " +
-                "xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">" +
-                "<xsl:strip-space elements=\"*\" />" +
-                "<xsl:output method=\"xml\" indent=\"yes\" />" +
-                "" +
-                "<xsl:template match=\"node() | @*\">" +
-                "<xsl:copy>" +
-                "<xsl:apply-templates select=\"node() | @*\" />" +
-                "</xsl:copy>" +
-                "</xsl:template>" +
-                "</xsl:stylesheet>";
-    }
-
     @Before
     public void setup() throws Exception {
-        initDb();
-        setupDefs();
+        if (env == null) {
+            EnvironmentDef envDef = new EnvironmentDef() {
+                @Override
+                protected JdbcEntityContextServices createEntityContextServices(DataSource dataSource) {
+                    return entityContextServices = new TestEntityContextServices(dataSource);
+                }
+            };
+
+            envDef.withDataSource()
+                .withDriver( db.getDriverClassName() )
+                .withUser( db.getUser() )
+                .withPassword( db.getPassword() )
+                .withUrl( db.getUrl() )
+                .end()
+             .withSpecs(EtlSpec.class)
+             .withDroppingSchema(true)
+             .withSchemaCreation(true);
+
+            env = envDef.create();
+            dataSource = envDef.getDataSource();
+
+            transformXml = "<?xml version=\"1.0\"?>" +
+                    "<xsl:stylesheet version=\"1.0\" " +
+                    "xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">" +
+                    "<xsl:strip-space elements=\"*\" />" +
+                    "<xsl:output method=\"xml\" indent=\"yes\" />" +
+                    "" +
+                    "<xsl:template match=\"node() | @*\">" +
+                    "<xsl:copy>" +
+                    "<xsl:apply-templates select=\"node() | @*\" />" +
+                    "</xsl:copy>" +
+                    "</xsl:template>" +
+                    "</xsl:stylesheet>";
+
+        }
+
         prepareData();
 
         /*

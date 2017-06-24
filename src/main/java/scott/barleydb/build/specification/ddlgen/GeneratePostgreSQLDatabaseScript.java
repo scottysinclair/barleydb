@@ -24,7 +24,11 @@ package scott.barleydb.build.specification.ddlgen;
 
 import java.util.Objects;
 
+import scott.barleydb.api.specification.EntitySpec;
 import scott.barleydb.api.specification.NodeSpec;
+import scott.barleydb.api.specification.constraint.ForeignKeyConstraintSpec;
+import scott.barleydb.api.specification.constraint.PrimaryKeyConstraintSpec;
+import scott.barleydb.api.specification.constraint.UniqueConstraintSpec;
 
 public class GeneratePostgreSQLDatabaseScript extends GenerateDatabaseScript {
 
@@ -70,6 +74,48 @@ public class GeneratePostgreSQLDatabaseScript extends GenerateDatabaseScript {
                 throw new IllegalStateException("Invalid JDBC type: " + nodeSpec.getJdbcType());
         }
     }
+
+
+
+    @Override
+    protected void generateDropUniqueConstraints(EntitySpec entitySpec, StringBuilder sb) {
+        for (UniqueConstraintSpec spec: entitySpec.getUniqueConstraints()) {
+            sb.append("\nalter table ");
+            sb.append(entitySpec.getTableName());
+            sb.append(" drop constraint ");
+            sb.append(spec.getName());
+            sb.append(';');
+        }
+    }
+
+
+
+    @Override
+    protected void generateDropPrimaryKeyConstraints(EntitySpec entitySpec, StringBuilder sb) {
+        PrimaryKeyConstraintSpec spec = entitySpec.getPrimaryKeyConstraint();
+        if (spec != null) {
+            sb.append("\nalter table ");
+            sb.append(entitySpec.getTableName());
+            sb.append(" drop constraint  ");
+            sb.append(spec.getName());
+            sb.append(';');
+        }
+    }
+
+
+
+    @Override
+    protected void generateDropForeignKeyConstraints(EntitySpec entitySpec, StringBuilder sb) {
+        for (ForeignKeyConstraintSpec spec: entitySpec.getForeignKeyConstraints()) {
+            sb.append("\nalter table ");
+            sb.append(entitySpec.getTableName());
+            sb.append(" drop constraint ");
+            sb.append(spec.getName());
+            sb.append(';');
+        }
+    }
+
+
 
     private void generatePrecisionAndScale(NodeSpec nodeSpec, StringBuilder sb) {
         sb.append('(');

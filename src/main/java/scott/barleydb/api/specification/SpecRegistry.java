@@ -1,5 +1,6 @@
 package scott.barleydb.api.specification;
 
+import java.util.Collection;
 import java.util.Collections;
 
 /*
@@ -75,7 +76,7 @@ public class SpecRegistry {
         }
     }
 
-    public Iterable<DefinitionsSpec> getDefinitions() {
+    public Collection<DefinitionsSpec> getDefinitions() {
         return Collections.unmodifiableCollection(definitionsByNamespace.values());
     }
 

@@ -101,24 +101,15 @@ public abstract class GenerateDatabaseScript {
         List<EntitySpec> entities = new LinkedList<>(definitionsSpec.getEntitySpecs());
 
         for (EntitySpec entitySpec: entities) {
-            for (UniqueConstraintSpec spec: entitySpec.getUniqueConstraints()) {
-                sb.append("\nalter table ");
-                sb.append(entitySpec.getTableName());
-                sb.append(" drop index ");
-                sb.append(spec.getName());
-                sb.append(';');
-            }
+            generateDropUniqueConstraints(entitySpec, sb);
+        }
 
+        for (EntitySpec entitySpec: entities) {
             generateDropForeignKeyConstraints(entitySpec, sb);
+        }
 
-            PrimaryKeyConstraintSpec spec = entitySpec.getPrimaryKeyConstraint();
-            if (spec != null) {
-                sb.append("\nalter table ");
-                sb.append(entitySpec.getTableName());
-                sb.append(" drop primary key  ");
-                sb.append(spec.getName());
-                sb.append(';');
-            }
+        for (EntitySpec entitySpec: entities) {
+            generateDropPrimaryKeyConstraints(entitySpec, sb);
         }
 
         /*
@@ -136,7 +127,28 @@ public abstract class GenerateDatabaseScript {
         return sb.toString();
     }
 
-    private void generateDropForeignKeyConstraints(EntitySpec entitySpec, StringBuilder sb) {
+    protected void generateDropUniqueConstraints(EntitySpec entitySpec, StringBuilder sb) {
+        for (UniqueConstraintSpec spec: entitySpec.getUniqueConstraints()) {
+            sb.append("\nalter table ");
+            sb.append(entitySpec.getTableName());
+            sb.append(" drop index ");
+            sb.append(spec.getName());
+            sb.append(';');
+        }
+    }
+
+    protected void generateDropPrimaryKeyConstraints(EntitySpec entitySpec, StringBuilder sb) {
+        PrimaryKeyConstraintSpec spec = entitySpec.getPrimaryKeyConstraint();
+        if (spec != null) {
+            sb.append("\nalter table ");
+            sb.append(entitySpec.getTableName());
+            sb.append(" drop primary key  ");
+            sb.append(spec.getName());
+            sb.append(';');
+        }
+    }
+
+    protected void generateDropForeignKeyConstraints(EntitySpec entitySpec, StringBuilder sb) {
         for (ForeignKeyConstraintSpec spec: entitySpec.getForeignKeyConstraints()) {
             sb.append("\nalter table ");
             sb.append(entitySpec.getTableName());
