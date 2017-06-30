@@ -91,6 +91,14 @@ public class CoreSpec {
                 Nullable.NULL);
     }
 
+    public static NodeSpec mandatoryOwns(Class<?> type) {
+        return relation(
+                RelationType.OWNS,
+                type,
+                null,
+                Nullable.NOT_NULL);
+    }
+
     public static NodeSpec mandatoryRefersTo(Class<?> type) {
         return relation(
                 RelationType.REFERS,

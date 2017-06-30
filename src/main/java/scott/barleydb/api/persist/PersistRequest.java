@@ -39,32 +39,40 @@ public class PersistRequest implements Serializable {
 
     private final List<Operation> operations = new LinkedList<>();
 
-    public PersistRequest save(Object object) {
-        Entity entity = verifyArg(object, "save");
-        if (entity.isClearlyNotInDatabase()) {
-            operations.add( new Operation(entity, OperationType.INSERT) );
-        }
-        else if (entity.isClearlyInDatabase()) {
-            operations.add( new Operation(entity, OperationType.UPDATE) );
-        }
-        else {
-            operations.add( new Operation(entity, OperationType.SAVE) );
+    public PersistRequest save(Object ...objects) {
+        for (Object object: objects) {
+            Entity entity = verifyArg(object, "save");
+            if (entity.isClearlyNotInDatabase()) {
+                operations.add( new Operation(entity, OperationType.INSERT) );
+            }
+            else if (entity.isClearlyInDatabase()) {
+                operations.add( new Operation(entity, OperationType.UPDATE) );
+            }
+            else {
+                operations.add( new Operation(entity, OperationType.SAVE) );
+            }
         }
         return this;
     }
 
-    public PersistRequest insert(Object object) {
-        operations.add( new Operation(verifyArg(object, "insert"), OperationType.INSERT) );
+    public PersistRequest insert(Object ...objects) {
+        for (Object object: objects) {
+            operations.add( new Operation(verifyArg(object, "insert"), OperationType.INSERT) );
+        }
         return this;
     }
 
-    public PersistRequest update(Object object) {
-        operations.add( new Operation(verifyArg(object, "update"), OperationType.UPDATE) );
+    public PersistRequest update(Object ...objects) {
+        for (Object object: objects) {
+            operations.add( new Operation(verifyArg(object, "update"), OperationType.UPDATE) );
+        }
         return this;
     }
 
-    public PersistRequest delete(Object object) {
-        operations.add( new Operation(verifyArg(object, "delete"), OperationType.DELETE) );
+    public PersistRequest delete(Object ...objects) {
+        for (Object object: objects) {
+            operations.add( new Operation(verifyArg(object, "delete"), OperationType.DELETE) );
+        }
         return this;
     }
 

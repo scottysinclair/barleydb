@@ -219,7 +219,12 @@ public class EnvironmentDef {
         LineNumberReader in = new LineNumberReader(new StringReader( script ));
         List<String> statements = new LinkedList<>();
         JdbcTestUtils.splitSqlScript(JdbcTestUtils.readScript(in), ';', statements);
-        con.setAutoCommit(false);
+        if (continueOnError){
+            con.setAutoCommit(true);
+        }
+        else {
+            con.setAutoCommit(false);
+        }
         try ( Statement s = con.createStatement(); ) {
             for (String line: statements) {
                 try {
