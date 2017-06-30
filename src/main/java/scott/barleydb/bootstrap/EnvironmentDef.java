@@ -31,10 +31,8 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Statement;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import javax.sql.DataSource;
 
@@ -82,6 +80,10 @@ public class EnvironmentDef {
     private boolean createDDL;
     private boolean dropSchema;
 
+    //resources created during the create() method..
+    private JdbcEntityContextServices services;
+    private List<DefinitionsSpec> allSpecs;
+
     public EnvironmentDef withDataSource(DataSource dataSource) {
         this.dataSource = dataSource;
         return this;
@@ -115,7 +117,7 @@ public class EnvironmentDef {
     }
 
     public Environment create() throws Exception {
-        JdbcEntityContextServices services = createEntityContextServices(dataSource);
+        services = createEntityContextServices(dataSource);
         Environment env = new Environment(services);
 
         /*
@@ -161,7 +163,7 @@ public class EnvironmentDef {
         for (Class<?> specClass: specClasses) {
             processor.process((StaticDefinitions)specClass.newInstance(), registry);
         }
-        List<DefinitionsSpec> allSpecs = new LinkedList<>(registry.getDefinitions());
+        allSpecs = new LinkedList<>(registry.getDefinitions());
         for (DefinitionsSpec spec: allSpecs) {
             env.addDefinitions( Definitions.create( spec ) );
         }
@@ -187,23 +189,11 @@ public class EnvironmentDef {
         }
 
         if (dropSchema) {
-            try (Connection con = dataSource.getConnection();) {
-                Database dbInfo = services.getDatabaseInfo(con);
-                GenerateDatabaseScript genScript = getScriptGeneratorFor( dbInfo );
-                for (DefinitionsSpec spec: DropScriptOrder.order(allSpecs)) {
-                    executeScript( con, genScript.generateDropScript(spec), true );
-                }
-            }
+            dropSchema();
         }
 
         if (createDDL) {
-            try (Connection con = dataSource.getConnection();) {
-                Database dbInfo = services.getDatabaseInfo(con);
-                GenerateDatabaseScript genScript = getScriptGeneratorFor( dbInfo );
-                for (DefinitionsSpec spec: CreateScriptOrder.order(allSpecs)) {
-                    executeScript( con, genScript.generateScript(spec), false );
-                }
-            }
+            createSchema();
         }
 
         return env;
@@ -277,6 +267,32 @@ public class EnvironmentDef {
             withDataSource(new DriverManagerDataSource(url, user, password));
             return EnvironmentDef.this;
         }
+    }
+
+    public void createSchema() throws Exception {
+        try (Connection con = dataSource.getConnection();) {
+            Database dbInfo = services.getDatabaseInfo(con);
+            GenerateDatabaseScript genScript = getScriptGeneratorFor( dbInfo );
+            for (DefinitionsSpec spec: CreateScriptOrder.order(allSpecs)) {
+                executeScript( con, genScript.generateScript(spec), false );
+            }
+        }
+    }
+
+    public void dropSchema() throws Exception {
+        try (Connection con = dataSource.getConnection();) {
+            Database dbInfo = services.getDatabaseInfo(con);
+            GenerateDatabaseScript genScript = getScriptGeneratorFor( dbInfo );
+            for (DefinitionsSpec spec: DropScriptOrder.order(allSpecs)) {
+                executeScript( con, genScript.generateDropScript(spec), true );
+            }
+        }
+
+    }
+
+    public void dropAndCreateSchema() throws Exception {
+        dropSchema();
+        createSchema();
     }
 
 }

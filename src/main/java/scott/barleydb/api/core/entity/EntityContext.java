@@ -135,7 +135,7 @@ public class EntityContext implements Serializable {
     public EntityContext(Environment env, String namespace) {
         this.env = env;
         this.namespace = namespace;
-        init(true);
+        init(false);
         this.entityContextState = EntityContextState.USER;
     }
 
@@ -760,7 +760,7 @@ public class EntityContext implements Serializable {
         try ( QueryEntityInputStream ein = new QueryEntityInputStream(in, tmpCtx, false); ) {
             PersistRequest request = new PersistRequest();
             Entity entity;
-            int count = 0;
+            int count = 1;
             while ( (entity = ein.read()) != null) {
                 switch (operationType) {
                     case INSERT: request.insert( entity ); break;

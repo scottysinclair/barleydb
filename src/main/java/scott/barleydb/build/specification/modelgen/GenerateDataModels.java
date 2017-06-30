@@ -45,6 +45,36 @@ public class GenerateDataModels extends GenerateModelsHelper {
             generateModel(path, definitions, entitySpec);
         }
         generateProxyFactory(path, definitions);
+        generateEntityContext(path, definitions);
+    }
+
+    private void generateEntityContext(String path, DefinitionsSpec definitions) throws IOException {
+        String entityContextName = getEntityContextName(definitions);
+
+        String packageName = definitions.getNamespace();
+
+        File classFile = toFile(path, packageName + "." + entityContextName);
+        try (Writer out = new FileWriter(classFile); ) {
+            out.write("package ");
+            out.write(packageName);
+            out.write(";\n");
+            out.write("\n");
+
+            out.write("import scott.barleydb.api.core.entity.EntityContext;\n");
+            out.write("import scott.barleydb.api.core.Environment;\n");
+
+            out.write("\n");
+            out.write("public class ");
+            out.write(entityContextName);
+            out.write(" extends EntityContext {\n");
+            out.write("\n");
+            out.write("  private static final long serialVersionUID = 1L;\n");
+            out.write("\n");
+            out.write("  public " + entityContextName + "(Environment env) {\n");
+            out.write("    super(env, \"" + packageName + "\");\n");
+            out.write("  }\n");
+            out.write("}");
+        }
     }
 
     private void generateProxyFactory(String path, DefinitionsSpec definitions) throws IOException {
@@ -57,11 +87,13 @@ public class GenerateDataModels extends GenerateModelsHelper {
             out.write("package ");
             out.write(packageName);
             out.write(";\n");
+            out.write("\n");
 
             out.write("import scott.barleydb.api.core.entity.Entity;\n");
             out.write("import scott.barleydb.api.core.proxy.ProxyFactory;\n");
             out.write("import scott.barleydb.api.exception.model.ProxyCreationException;\n");
 
+            out.write("\n");
             out.write("\n");
             out.write("public class ");
             out.write(proxyFactoryName);
@@ -93,7 +125,6 @@ public class GenerateDataModels extends GenerateModelsHelper {
         }
 
 
-
     }
 
     public static String getProxyFactoryFullyQuallifiedClassName(DefinitionsSpec definitions) {
@@ -104,6 +135,12 @@ public class GenerateDataModels extends GenerateModelsHelper {
         name = name.substring(name.lastIndexOf('.')+1, name.length());
         name = Character.toUpperCase(name.charAt(0)) + name.substring(1);
         return name + "ProxyFactory";
+    }
+    public static String getEntityContextName(DefinitionsSpec definitions) {
+        String name = definitions.getNamespace();
+        name = name.substring(name.lastIndexOf('.')+1, name.length());
+        name = Character.toUpperCase(name.charAt(0)) + name.substring(1);
+        return name + "EntityContext";
     }
 
     private void generateModel(String path, DefinitionsSpec definitions, EntitySpec entitySpec) throws IOException {

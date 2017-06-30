@@ -67,16 +67,19 @@ public class DependencyTree implements Serializable {
 
     private static final Logger LOG = LoggerFactory.getLogger(DependencyTree.class);
 
-    private final Collection<Node> dependencyOrder = new LinkedHashSet<>();
+    private final List<Node> dependencyOrder = new LinkedList<>();
     private final Map<Entity, Node> nodes = new LinkedHashMap<>();
 
     private final EntityContext ctx;
     private final EntityContext dctx;
     private final Map<Entity, OrphanCheck> orphanChecks = new HashMap<>();
 
-    public DependencyTree(EntityContext refCtx) {
+    private final boolean tryAndOrderInBatches;
+
+    public DependencyTree(EntityContext refCtx, boolean tryAndOrderInBatches) {
         this.ctx = refCtx;
         this.dctx = refCtx.newEntityContext();
+        this.tryAndOrderInBatches = tryAndOrderInBatches;
     }
 
     public void generateDiagram() {
@@ -283,8 +286,26 @@ public class DependencyTree implements Serializable {
         Collection<Node> readyNodes = getUnprocessedNodesWithNoUnprocessedDependencies(false);
         int count = 0;
         while (count < 1000 && dependencyOrder.size() < countNodeRequiredInDependencyOrder(true)) {
-            dependencyOrder.addAll(readyNodes);
-            LOG.debug("added following nodes to dependecy order {}", print(readyNodes));
+            if (tryAndOrderInBatches) {
+                //for batch ordering we need to recalculate the ready nodes each time we add to dependencyOrder.
+                Node next = null;
+                if (!dependencyOrder.isEmpty()) {
+                    next = findMatchingNode(readyNodes, dependencyOrder.get( dependencyOrder.size() - 1));
+                }
+                if (next == null) {
+                    next = readyNodes.iterator().next();
+                }
+                dependencyOrder.add( next );
+                next.notifyAddedToDependencyOrder();
+                LOG.debug("added single node to dependecy order {}", next.toString());
+            }
+            else {
+                dependencyOrder.addAll(readyNodes);
+                for (Node n: readyNodes) {
+                    n.notifyAddedToDependencyOrder();
+                }
+                LOG.debug("added following nodes to dependecy order {}", print(readyNodes));
+            }
             readyNodes = getUnprocessedNodesWithNoUnprocessedDependencies(false);
             if (readyNodes.isEmpty()) {
                 count++;
@@ -307,8 +328,26 @@ public class DependencyTree implements Serializable {
                 generateDiagram();
                 throw new IllegalStateException("Could not calculate the dependency order.");
             }
-            dependencyOrder.addAll(readyNodes);
-            LOG.debug("added following nodes to dependecy order {}", print(readyNodes));
+            if (tryAndOrderInBatches) {
+                //for batch ordering we need to recalculate the ready nodes each time we add to dependencyOrder.
+                Node next = null;
+                if (!dependencyOrder.isEmpty()) {
+                    next = findMatchingNode(readyNodes, dependencyOrder.get( dependencyOrder.size() - 1));
+                }
+                if (next == null) {
+                    next = readyNodes.iterator().next();
+                }
+                dependencyOrder.add( next );
+                next.notifyAddedToDependencyOrder();
+                LOG.debug("added single node to dependecy order {}", next.toString());
+            }
+            else {
+                dependencyOrder.addAll(readyNodes);
+                for (Node n: readyNodes) {
+                    n.notifyAddedToDependencyOrder();
+                }
+                LOG.debug("added following nodes to dependecy order {}", print(readyNodes));
+            }
             readyNodes = getUnprocessedNodesWithNoUnprocessedDependencies(true);
             if (readyNodes.isEmpty()) {
                 count++;
@@ -324,6 +363,21 @@ public class DependencyTree implements Serializable {
         if (LOG.isDebugEnabled()) {
             LOG.debug(dumpCurrentState());
         }
+    }
+
+    /**
+     * finds a node with the same entity type.
+     * @param readyNodes
+     * @param node
+     * @return
+     */
+    private Node findMatchingNode(Collection<Node> readyNodes, Node node) {
+        for (Node n: readyNodes) {
+            if (n.operation.entity.getEntityType() == node.operation.entity.getEntityType()) {
+                return n;
+            }
+        }
+        return null;
     }
 
     private int countNodeRequiredInDependencyOrder(boolean excludeDeleteOperations) {
@@ -436,6 +490,8 @@ public class DependencyTree implements Serializable {
 
         private boolean builtDependencies = false;
         private boolean builtOrphanChecks = false;
+
+        private boolean inDependencyOrder;
 
         public Node(Operation operation, boolean orphanChecksRequired) {
             this.operation = operation;
@@ -785,8 +841,12 @@ public class DependencyTree implements Serializable {
             return;
         }
 
+        public void notifyAddedToDependencyOrder() {
+            inDependencyOrder = true;
+        }
+
         public boolean isProcessed() {
-            return dependencyOrder.contains(this);
+            return inDependencyOrder;
         }
 
         public boolean hasUnprocessedDependecies(boolean deletesMode) {
@@ -794,7 +854,15 @@ public class DependencyTree implements Serializable {
             if (!deletesMode) {
                 filtered = filterOutOperations( filtered, OperationType.DELETE );
             }
-            return !filtered.isEmpty() && !dependencyOrder.containsAll(filtered);
+            if (filtered.isEmpty()) {
+                return false;
+            }
+            for (Node n: filtered) {
+                if (!n.isProcessed()) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private Set<Node> filterOutOperations(Set<Node> nodes,OperationType type) {
@@ -883,7 +951,7 @@ public class DependencyTree implements Serializable {
              */
             EntityId eid = new EntityId(orphCheck.entity.getEntityType(), orphCheck.entity.getKey().getValue());
             /*
-             * create a query for the entity type, which includes all orph
+             * create a query for the entity type, which includes all orphan
              * checks of the same type
              */
             QueryObject<Object> query = createQueryForReferencesToDelete(orphCheck.entity);
@@ -1254,7 +1322,7 @@ public class DependencyTree implements Serializable {
         LOG.trace("Added property {} to query {}", keyProp.getName(), query.getTypeName());
 
         /*
-         * add joins to all owning ToManyNodes
+         * add joins to all owning relations
          */
         addJoinsForAllOwningRefs(entity.getEntityType(), query, new HashSet<NodeType>(), null);
 

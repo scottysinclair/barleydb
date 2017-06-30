@@ -10,12 +10,12 @@ package scott.barleydb.api.core.entity.context;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -229,19 +229,19 @@ public final class Entities implements Iterable<Entity>, Serializable {
         while((entityInfo = (EntityInfo)entityReferenceQueue.poll()) != null) {
             if (entityInfo.getPrimaryKey() != null) {
                 if (entityByPk.remove(new EntityPkKey(entityInfo)) == null) {
-                    GC_LOG.warn("Failed to remove EntityInfo from primary key lookup for {}", entityInfo);
+                    GC_LOG.debug("Failed to remove EntityInfo from primary key lookup for {}", entityInfo);
                 }
             }
             if (entityByUuid.remove(entityInfo.getUuid()) == null) {
-                GC_LOG.warn("Failed to remove EntityInfo from UUID lookup for {}", entityInfo);
+                GC_LOG.debug("Failed to remove EntityInfo from UUID lookup for {}", entityInfo);
             }
             if (!removeEntityByType(entityInfo)) {
-                GC_LOG.warn("Failed to remove EntityInfo from set of entities by type {}", entityInfo);
+                GC_LOG.debug("Failed to remove EntityInfo from set of entities by type {}", entityInfo);
             }
             //calling size on WeakHashMap will force any stale references to be cleared.
             //this is required for our EnityInfo which is stored as a map value.
             entityInfos.size();
-            GC_LOG.trace("Removed entity info " + entityInfo + " for garbage collected entity");
+            GC_LOG.debug("Removed entity info " + entityInfo + " for garbage collected entity");
         }
     }
 

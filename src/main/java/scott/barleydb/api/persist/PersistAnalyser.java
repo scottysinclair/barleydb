@@ -96,7 +96,7 @@ public class PersistAnalyser implements Serializable {
         this.deleteGroup = deleteGroup;
         this.dependsOnGroup = dependsOnGroup;
         this.allGroups = new OperationGroup[] { createGroup, updateGroup, deleteGroup, dependsOnGroup };
-        this.dependencyTree = new DependencyTree(entityContext);
+        this.dependencyTree = new DependencyTree(entityContext, true);
     }
 
     public EntityContext getEntityContext() {
