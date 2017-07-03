@@ -29,8 +29,6 @@ import java.io.Writer;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.example.etl.model.XmlMapping;
-
 import scott.barleydb.api.core.entity.RefNode;
 import scott.barleydb.api.core.entity.ToManyNode;
 import scott.barleydb.api.core.entity.ValueNode;
@@ -39,8 +37,6 @@ import scott.barleydb.api.specification.EntitySpec;
 import scott.barleydb.api.specification.NodeSpec;
 import scott.barleydb.api.specification.RelationSpec;
 import scott.barleydb.api.specification.SuppressionSpec;
-import scott.barleydb.api.stream.ObjectInputStream;
-import scott.barleydb.api.stream.QueryEntityInputStream;
 
 public class GenerateDataModels extends GenerateModelsHelper {
 
