@@ -54,7 +54,7 @@ import org.springframework.test.jdbc.SimpleJdbcTestUtils;
 
 import scott.barleydb.api.core.QueryBatcher;
 import scott.barleydb.api.core.entity.EntityContext;
-import scott.barleydb.api.stream.IterableObjectStream;
+import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.stream.ObjectInputStream;
 import scott.barleydb.server.jdbc.query.QueryResult;
 import scott.barleydb.server.jdbc.resources.ConnectionResources;
@@ -272,14 +272,19 @@ public class TestQuery extends TestRemoteClientBase {
         query.where(query.name().equal("syntax-xml-1"));
 
         //stream the query result.
-        try (IterableObjectStream<XmlSyntaxModel> syntaxModelStream =  theEntityContext.streamIterateObjectQuery( query ); ) {
-            for (XmlSyntaxModel syntaxModel: syntaxModelStream) {
+        try (ObjectInputStream<XmlSyntaxModel> syntaxModelStream =  theEntityContext.streamObjectQuery( query ); ) {
+
+            XmlSyntaxModel syntaxModel;
+            while((syntaxModel = syntaxModelStream.read()) != null) {
                 Runtime.getRuntime().gc();
+                System.out.println("-------------------------------------------");
                 System.out.println("**** NAME:" + syntaxModel.getName());
 
                 //stream all of the mappings for the syntax
-                try (IterableObjectStream<XmlMapping> mappingsStream = syntaxModel.streamMappings()) {
-                    for (XmlMapping mapping: mappingsStream) {
+                try (ObjectInputStream<XmlMapping> mappingsStream = syntaxModel.streamMappings()) {
+                    XmlMapping mapping;
+                    while((mapping = mappingsStream.read()) != null) {
+                        System.out.println("-------------------------------------------");
                         System.out.println("****XPATH : " + mapping.getXpath());
                         System.out.println("****TARGET: " + mapping.getTargetFieldName());
                         Runtime.getRuntime().gc();
@@ -287,11 +292,72 @@ public class TestQuery extends TestRemoteClientBase {
                         //will cause  a lazy load
                         XmlSyntaxModel subSyntax = mapping.getSubSyntax();
                         if (subSyntax != null) {
+                            System.out.println("-------------------------------------------");
                             System.out.println(subSyntax.getName());
 
                             //stream all of the mappings for the subyntax
-                            try (IterableObjectStream<XmlMapping> mappingsSubStream = subSyntax.streamMappings()) {
-                                for (XmlMapping mappingSub: mappingsSubStream) {
+                            try (ObjectInputStream<XmlMapping> mappingsSubStream = subSyntax.streamMappings()) {
+                                XmlMapping mappingSub;
+                                while((mappingSub = mappingsSubStream.read()) != null) {
+                                    System.out.println("-------------------------------------------");
+                                    System.out.println("****XPATH : " + mappingSub.getXpath());
+                                    System.out.println("****TARGET: " + mappingSub.getTargetFieldName());
+                                    Runtime.getRuntime().gc();
+                                }
+                            }
+                        }
+                        Runtime.getRuntime().gc();
+                    }
+                }
+            }
+        }
+
+        Runtime.getRuntime().gc();
+        Thread.sleep(500);
+        Runtime.getRuntime().gc();
+    }
+
+    @Test
+    public void testStreamingDownSyntaxModelHierarchyWithJoins() throws Exception {
+
+        QXmlSyntaxModel query = new QXmlSyntaxModel();
+        query.where(query.name().equal("syntax-xml-1"));
+
+        //stream the query result.
+        try (ObjectInputStream<XmlSyntaxModel> syntaxModelStream =  theEntityContext.streamObjectQuery( query ); ) {
+
+            XmlSyntaxModel syntaxModel;
+            while((syntaxModel = syntaxModelStream.read()) != null) {
+                Runtime.getRuntime().gc();
+                System.out.println("-------------------------------------------");
+                System.out.println("**** NAME:" + syntaxModel.getName());
+
+                /*
+                 * we define a custom fetch graph and use it when streaming the mappings below.
+                 */
+                QXmlMapping qmappings = new QXmlMapping();
+                qmappings.joinToSubSyntax();
+
+                //stream all of the mappings for the syntax
+                try (ObjectInputStream<XmlMapping> mappingsStream = syntaxModel.streamMappings( qmappings )) {
+                    XmlMapping mapping;
+                    while((mapping = mappingsStream.read()) != null) {
+                        System.out.println("-------------------------------------------");
+                        System.out.println("****XPATH : " + mapping.getXpath());
+                        System.out.println("****TARGET: " + mapping.getTargetFieldName());
+                        Runtime.getRuntime().gc();
+
+                        //will cause  a lazy load
+                        XmlSyntaxModel subSyntax = mapping.getSubSyntax();
+                        if (subSyntax != null) {
+                            System.out.println("-------------------------------------------");
+                            System.out.println(subSyntax.getName());
+
+                            //stream all of the mappings for the subyntax
+                            try (ObjectInputStream<XmlMapping> mappingsSubStream = subSyntax.streamMappings()) {
+                                XmlMapping mappingSub;
+                                while((mappingSub = mappingsSubStream.read()) != null) {
+                                    System.out.println("-------------------------------------------");
                                     System.out.println("****XPATH : " + mappingSub.getXpath());
                                     System.out.println("****TARGET: " + mappingSub.getTargetFieldName());
                                     Runtime.getRuntime().gc();

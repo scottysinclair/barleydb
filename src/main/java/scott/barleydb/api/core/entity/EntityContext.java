@@ -88,11 +88,9 @@ import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.query.RuntimeProperties;
 import scott.barleydb.api.stream.EntityData;
 import scott.barleydb.api.stream.EntityStreamException;
-import scott.barleydb.api.stream.IterableObjectStream;
 import scott.barleydb.api.stream.ObjectInputStream;
 import scott.barleydb.api.stream.QueryEntityDataInputStream;
 import scott.barleydb.api.stream.QueryEntityInputStream;
-import scott.barleydb.api.stream.StreamingObjectIterator;
 import scott.barleydb.server.jdbc.query.QueryResult;
 
 /**
@@ -717,11 +715,6 @@ public class EntityContext implements Serializable {
 
     public <T> ObjectInputStream<T> streamObjectQuery(QueryObject<T> queryObject) throws SortServiceProviderException, SortQueryException {
         return streamObjectQuery(queryObject, null, false);
-    }
-
-    public <T> IterableObjectStream<T> streamIterateObjectQuery(QueryObject<T> queryObject) throws SortServiceProviderException, SortQueryException, EntityStreamException {
-        ObjectInputStream<T> in = streamObjectQuery(queryObject, null, false);
-        return new IterableObjectStream<T>(new StreamingObjectIterator<>(in));
     }
 
     public <T> ObjectInputStream<T> streamObjectQuery(QueryObject<T> queryObject, boolean createNewCtx) throws SortServiceProviderException, SortQueryException {

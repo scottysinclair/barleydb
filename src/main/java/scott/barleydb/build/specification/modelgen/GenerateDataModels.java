@@ -29,6 +29,8 @@ import java.io.Writer;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.example.etl.model.XmlMapping;
+
 import scott.barleydb.api.core.entity.RefNode;
 import scott.barleydb.api.core.entity.ToManyNode;
 import scott.barleydb.api.core.entity.ValueNode;
@@ -37,6 +39,8 @@ import scott.barleydb.api.specification.EntitySpec;
 import scott.barleydb.api.specification.NodeSpec;
 import scott.barleydb.api.specification.RelationSpec;
 import scott.barleydb.api.specification.SuppressionSpec;
+import scott.barleydb.api.stream.ObjectInputStream;
+import scott.barleydb.api.stream.QueryEntityInputStream;
 
 public class GenerateDataModels extends GenerateModelsHelper {
 
@@ -154,6 +158,13 @@ public class GenerateDataModels extends GenerateModelsHelper {
             out.write("\n");
             if (hasToManyReference(entitySpec)) {
                 out.write("import java.util.List;\n");
+                out.write("import scott.barleydb.api.stream.ObjectInputStream;\n");
+                out.write("import scott.barleydb.api.stream.QueryEntityInputStream;\n");
+                out.write("import scott.barleydb.api.query.QueryObject;\n");
+                out.write("import scott.barleydb.api.stream.EntityStreamException;\n");
+                out.write("import scott.barleydb.api.exception.execution.SortServiceProviderException;\n");
+                out.write("import scott.barleydb.api.exception.execution.query.SortQueryException;\n");
+
                 out.write("\n");
             }
             out.write("import scott.barleydb.api.core.entity.Entity;\n");
@@ -192,6 +203,14 @@ public class GenerateDataModels extends GenerateModelsHelper {
                     writeNodeGetterAndSetter(out, definitions, nodeSpec);
                 }
             }
+
+            for (NodeSpec nodeSpec: entitySpec.getNodeSpecs()) {
+                if (!isCompletelySuppressed(nodeSpec) && nodeSpec.getRelationSpec() != null && nodeSpec.getColumnName() == null) {
+                    writeStreamMethods(out, definitions, nodeSpec);
+                }
+            }
+
+
             out.write("}\n");
             out.flush();
         }
@@ -351,6 +370,25 @@ public class GenerateDataModels extends GenerateModelsHelper {
         }
     }
 
+    private void writeStreamMethods(Writer out, DefinitionsSpec definitions, NodeSpec nodeSpec) throws IOException {
+        out.write("  public ObjectInputStream<"  + getModelSimpleClassName( nodeSpec.getRelation().getEntitySpec() ) +  "> ");
+        out.write(toStreamName(nodeSpec));
+        out.write("() throws SortServiceProviderException, SortQueryException, EntityStreamException {\n");
+        out.write("    final QueryEntityInputStream in = mappings.toManyNode.stream();\n");
+        out.write("    return new ObjectInputStream<>(in);\n");
+        out.write("  }\n");
+        out.write("\n");
+        out.write("  public ObjectInputStream<"  + getModelSimpleClassName(nodeSpec.getRelation().getEntitySpec()) +  "> ");
+        out.write(toStreamName(nodeSpec));
+        out.write("(QueryObject<" + getModelSimpleClassName(nodeSpec.getRelation().getEntitySpec()) + "> query");
+        out.write(") throws SortServiceProviderException, SortQueryException, EntityStreamException {\n");
+        out.write("    final QueryEntityInputStream in = mappings.toManyNode.stream(query);\n");
+        out.write("    return new ObjectInputStream<>(in);\n");
+        out.write("  }\n");
+    }
+
+
+
     private void writeNodeSetter(Writer out, NodeSpec nodeSpec) throws IOException {
         switch(calcNodeType(nodeSpec)) {
         case "ValueNode":
@@ -459,6 +497,13 @@ public class GenerateDataModels extends GenerateModelsHelper {
         char fc = Character.toUpperCase( name.charAt(0) );
         return "set" + fc + name.substring(1, name.length());
     }
+
+    private String toStreamName(NodeSpec nodeSpec) {
+        String name = nodeSpec.getName();
+        char fc = Character.toUpperCase( name.charAt(0) );
+        return "stream" + fc + name.substring(1, name.length());
+    }
+
 
     private boolean hasToManyReference(EntitySpec entitySpec) {
         for (NodeSpec nodeSpec: entitySpec.getNodeSpecs()) {
