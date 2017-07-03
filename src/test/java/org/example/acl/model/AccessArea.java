@@ -71,12 +71,12 @@ public class AccessArea extends AbstractCustomEntityProxy {
     return super.getListProxy(children.toManyNode);
   }
   public ObjectInputStream<AccessArea> streamChildren() throws SortServiceProviderException, SortQueryException, EntityStreamException {
-    final QueryEntityInputStream in = mappings.toManyNode.stream();
+    final QueryEntityInputStream in = children.toManyNode.stream();
     return new ObjectInputStream<>(in);
   }
 
   public ObjectInputStream<AccessArea> streamChildren(QueryObject<AccessArea> query) throws SortServiceProviderException, SortQueryException, EntityStreamException {
-    final QueryEntityInputStream in = mappings.toManyNode.stream(query);
+    final QueryEntityInputStream in = children.toManyNode.stream(query);
     return new ObjectInputStream<>(in);
   }
 }

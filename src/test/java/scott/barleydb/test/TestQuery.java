@@ -35,12 +35,15 @@ import org.example.acl.query.QUser;
 import org.example.etl.model.CsvSyntaxModel;
 import org.example.etl.model.SyntaxModel;
 import org.example.etl.model.Template;
+import org.example.etl.model.TemplateBusinessType;
 import org.example.etl.model.XmlMapping;
 import org.example.etl.model.XmlSyntaxModel;
+import org.example.etl.query.QBusinessType;
 import org.example.etl.query.QCsvStructure;
 import org.example.etl.query.QCsvSyntaxModel;
 import org.example.etl.query.QSyntaxModel;
 import org.example.etl.query.QTemplate;
+import org.example.etl.query.QTemplateBusinessType;
 import org.example.etl.query.QXmlMapping;
 import org.example.etl.query.QXmlSyntaxModel;
 import org.example.etl.model.SyntaxType;
@@ -447,6 +450,30 @@ public class TestQuery extends TestRemoteClientBase {
         QueryResult<Template> result2 = theEntityContext.performQuery(templatesQuery);
         for (Template t : result2.getList()) {
             print("", t);
+        }
+        /*
+         * check the server auto-commit mode hasn't changed somehow
+         */
+        assertEquals(autoCommitMode, serverEntityContext.getAutocommit());
+    }
+
+    @Test
+    public void testQueryTemplateAndDatatypeWithStreaming() throws Exception {
+        /*
+         * fetching over a join table
+         */
+        QTemplate templatesQuery = new QTemplate();
+
+        QueryResult<Template> result2 = theEntityContext.performQuery(templatesQuery);
+        for (Template t : result2.getList()) {
+            QTemplateBusinessType qtb = new QTemplateBusinessType();
+            qtb.joinToBusinessType();
+            try ( ObjectInputStream<TemplateBusinessType> in = t.streamBusinessTypes(qtb);) {
+                TemplateBusinessType tbt;
+                while((tbt = in.read()) != null) {
+                    System.out.println(tbt.getBusinessType().getName());
+                }
+            }
         }
         /*
          * check the server auto-commit mode hasn't changed somehow

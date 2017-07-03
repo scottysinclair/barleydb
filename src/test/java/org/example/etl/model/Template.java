@@ -89,21 +89,21 @@ public class Template extends AbstractCustomEntityProxy {
     return super.getListProxy(businessTypes.toManyNode);
   }
   public ObjectInputStream<TemplateContent> streamContents() throws SortServiceProviderException, SortQueryException, EntityStreamException {
-    final QueryEntityInputStream in = mappings.toManyNode.stream();
+    final QueryEntityInputStream in = contents.toManyNode.stream();
     return new ObjectInputStream<>(in);
   }
 
   public ObjectInputStream<TemplateContent> streamContents(QueryObject<TemplateContent> query) throws SortServiceProviderException, SortQueryException, EntityStreamException {
-    final QueryEntityInputStream in = mappings.toManyNode.stream(query);
+    final QueryEntityInputStream in = contents.toManyNode.stream(query);
     return new ObjectInputStream<>(in);
   }
   public ObjectInputStream<TemplateBusinessType> streamBusinessTypes() throws SortServiceProviderException, SortQueryException, EntityStreamException {
-    final QueryEntityInputStream in = mappings.toManyNode.stream();
+    final QueryEntityInputStream in = businessTypes.toManyNode.stream();
     return new ObjectInputStream<>(in);
   }
 
   public ObjectInputStream<TemplateBusinessType> streamBusinessTypes(QueryObject<TemplateBusinessType> query) throws SortServiceProviderException, SortQueryException, EntityStreamException {
-    final QueryEntityInputStream in = mappings.toManyNode.stream(query);
+    final QueryEntityInputStream in = businessTypes.toManyNode.stream(query);
     return new ObjectInputStream<>(in);
   }
 }

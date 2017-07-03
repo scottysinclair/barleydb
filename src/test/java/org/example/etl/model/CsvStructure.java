@@ -93,12 +93,12 @@ public class CsvStructure extends AbstractCustomEntityProxy {
     return super.getListProxy(fields.toManyNode);
   }
   public ObjectInputStream<CsvStructureField> streamFields() throws SortServiceProviderException, SortQueryException, EntityStreamException {
-    final QueryEntityInputStream in = mappings.toManyNode.stream();
+    final QueryEntityInputStream in = fields.toManyNode.stream();
     return new ObjectInputStream<>(in);
   }
 
   public ObjectInputStream<CsvStructureField> streamFields(QueryObject<CsvStructureField> query) throws SortServiceProviderException, SortQueryException, EntityStreamException {
-    final QueryEntityInputStream in = mappings.toManyNode.stream(query);
+    final QueryEntityInputStream in = fields.toManyNode.stream(query);
     return new ObjectInputStream<>(in);
   }
 }

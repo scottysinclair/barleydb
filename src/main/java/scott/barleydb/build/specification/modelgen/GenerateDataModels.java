@@ -374,7 +374,7 @@ public class GenerateDataModels extends GenerateModelsHelper {
         out.write("  public ObjectInputStream<"  + getModelSimpleClassName( nodeSpec.getRelation().getEntitySpec() ) +  "> ");
         out.write(toStreamName(nodeSpec));
         out.write("() throws SortServiceProviderException, SortQueryException, EntityStreamException {\n");
-        out.write("    final QueryEntityInputStream in = mappings.toManyNode.stream();\n");
+        out.write("    final QueryEntityInputStream in = " + nodeSpec.getName() + ".toManyNode.stream();\n");
         out.write("    return new ObjectInputStream<>(in);\n");
         out.write("  }\n");
         out.write("\n");
@@ -382,7 +382,7 @@ public class GenerateDataModels extends GenerateModelsHelper {
         out.write(toStreamName(nodeSpec));
         out.write("(QueryObject<" + getModelSimpleClassName(nodeSpec.getRelation().getEntitySpec()) + "> query");
         out.write(") throws SortServiceProviderException, SortQueryException, EntityStreamException {\n");
-        out.write("    final QueryEntityInputStream in = mappings.toManyNode.stream(query);\n");
+        out.write("    final QueryEntityInputStream in = " + nodeSpec.getName() + ".toManyNode.stream(query);\n");
         out.write("    return new ObjectInputStream<>(in);\n");
         out.write("  }\n");
     }
