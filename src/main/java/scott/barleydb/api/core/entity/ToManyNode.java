@@ -10,12 +10,12 @@ package scott.barleydb.api.core.entity;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -43,6 +43,14 @@ import scott.barleydb.api.core.entity.Node;
 import scott.barleydb.api.core.entity.RefNode;
 import scott.barleydb.api.core.entity.ToManyNode;
 import scott.barleydb.api.core.entity.ValueNode;
+import scott.barleydb.api.exception.execution.SortServiceProviderException;
+import scott.barleydb.api.exception.execution.query.SortQueryException;
+import scott.barleydb.api.query.QCondition;
+import scott.barleydb.api.query.QProperty;
+import scott.barleydb.api.query.QPropertyCondition;
+import scott.barleydb.api.query.QueryObject;
+import scott.barleydb.api.stream.QueryEntityDataInputStream;
+import scott.barleydb.api.stream.QueryEntityInputStream;
 
 /**
  * Contains information on how this node refers to many entities.
@@ -242,6 +250,39 @@ public class ToManyNode extends Node {
 
     public NodeType getNodeType() {
         return getParent().getEntityType().getNodeType(getName(), true);
+    }
+
+    /**
+     *
+     * @return a QueryEntityInputStream to stream the the data from the N relation.
+     * @throws SortServiceProviderException
+     * @throws SortQueryException
+     */
+    public QueryEntityInputStream stream() throws SortServiceProviderException, SortQueryException {
+        QueryObject<Object> query = getEntityContext().getUnitQuery(entityType);
+        return stream(query);
+    }
+
+    /**
+    *
+    * @return a QueryEntityInputStream to stream the the data from the N relation.
+    * @throws SortServiceProviderException
+    * @throws SortQueryException
+    */
+    public QueryEntityInputStream stream(QueryObject<?> query) throws SortServiceProviderException, SortQueryException {
+        EntityContext ctx = getEntityContext();
+
+        final String foreignNodeName = getNodeType().getForeignNodeName();
+        if (foreignNodeName != null) {
+            final QProperty<Object> manyFk = new QProperty<Object>(query, foreignNodeName);
+            final Object primaryKeyOfOneSide = getParent().getKey().getValue();
+            query.where(manyFk.equal(primaryKeyOfOneSide));
+        }
+        else {
+            throw new IllegalStateException("streaming over join tables directly from a tomany node is not yet supported, stream via the entity context instead.");
+        }
+        QueryEntityDataInputStream in  = ctx.streamQueryEntityData(query, null);
+        return new QueryEntityInputStream(in, ctx, false);
     }
 
     public void copyFrom(ToManyNode other) {

@@ -1,5 +1,7 @@
 package org.example.etl.model;
 
+import java.util.Iterator;
+
 /*
  * #%L
  * BarleyDB
@@ -13,12 +15,12 @@ package org.example.etl.model;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -33,6 +35,16 @@ import scott.barleydb.api.core.entity.RefNode;
 import scott.barleydb.api.core.proxy.RefNodeProxyHelper;
 import scott.barleydb.api.core.entity.ToManyNode;
 import scott.barleydb.api.core.proxy.ToManyNodeProxyHelper;
+import scott.barleydb.api.core.util.CollectionUtil;
+import scott.barleydb.api.exception.execution.SortServiceProviderException;
+import scott.barleydb.api.exception.execution.query.SortQueryException;
+import scott.barleydb.api.query.QueryObject;
+import scott.barleydb.api.stream.EntityStreamException;
+import scott.barleydb.api.stream.IterableObjectStream;
+import scott.barleydb.api.stream.ObjectInputStream;
+import scott.barleydb.api.stream.QueryEntityDataInputStream;
+import scott.barleydb.api.stream.QueryEntityInputStream;
+import scott.barleydb.api.stream.StreamingObjectIterator;
 
 /**
  * Generated from Entity Specification
@@ -72,4 +84,19 @@ public class XmlSyntaxModel extends SyntaxModel {
   public List<XmlMapping> getMappings() {
     return super.getListProxy(mappings.toManyNode);
   }
+
+  public IterableObjectStream<XmlMapping> streamMappings() throws SortServiceProviderException, SortQueryException, EntityStreamException {
+      final QueryEntityInputStream in = mappings.toManyNode.stream();
+      final ObjectInputStream<XmlMapping> oin = new ObjectInputStream<>(in);
+      final StreamingObjectIterator<XmlMapping> it = new StreamingObjectIterator<XmlMapping>(oin);
+      return new IterableObjectStream<>(it);
+  }
+
+  public  IterableObjectStream<XmlMapping> streamMappings(QueryObject<XmlMapping> query) throws SortServiceProviderException, SortQueryException, EntityStreamException {
+      final QueryEntityInputStream in = mappings.toManyNode.stream(query);
+      final ObjectInputStream<XmlMapping> oin = new ObjectInputStream<>(in);
+      final StreamingObjectIterator<XmlMapping> it = new StreamingObjectIterator<XmlMapping>(oin);
+      return new IterableObjectStream<>(it);
+  }
+
 }

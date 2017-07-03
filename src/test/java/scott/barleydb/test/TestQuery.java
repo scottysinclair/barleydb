@@ -35,6 +35,7 @@ import org.example.acl.query.QUser;
 import org.example.etl.model.CsvSyntaxModel;
 import org.example.etl.model.SyntaxModel;
 import org.example.etl.model.Template;
+import org.example.etl.model.XmlMapping;
 import org.example.etl.model.XmlSyntaxModel;
 import org.example.etl.query.QCsvStructure;
 import org.example.etl.query.QCsvSyntaxModel;
@@ -53,6 +54,7 @@ import org.springframework.test.jdbc.SimpleJdbcTestUtils;
 
 import scott.barleydb.api.core.QueryBatcher;
 import scott.barleydb.api.core.entity.EntityContext;
+import scott.barleydb.api.stream.IterableObjectStream;
 import scott.barleydb.api.stream.ObjectInputStream;
 import scott.barleydb.server.jdbc.query.QueryResult;
 import scott.barleydb.server.jdbc.resources.ConnectionResources;
@@ -66,7 +68,7 @@ import scott.barleydb.server.jdbc.resources.ConnectionResources;
  *
  */
 @SuppressWarnings({ "deprecation", "unused" })
-@RunWith(Parameterized.class)
+//@RunWith(Parameterized.class)
 public class TestQuery extends TestRemoteClientBase {
 
     @Parameters
@@ -81,15 +83,15 @@ public class TestQuery extends TestRemoteClientBase {
     private EntityContextGetter getter;
     private EntityContext theEntityContext;
 
-    public TestQuery(EntityContextGetter getter, boolean autoCommitMode) {
-        this.getter = getter;
-        this.autoCommitMode = autoCommitMode;
-    }
-
-//    public TestQuery() {
-//        getter = new EntityContextGetter(false);
-//        autoCommitMode = false;
+//    public TestQuery(EntityContextGetter getter, boolean autoCommitMode) {
+//        this.getter = getter;
+//        this.autoCommitMode = autoCommitMode;
 //    }
+
+    public TestQuery() {
+        getter = new EntityContextGetter(false);
+        autoCommitMode = false;
+    }
 
     @Override
     protected void prepareData() throws Exception {
@@ -250,15 +252,63 @@ public class TestQuery extends TestRemoteClientBase {
              */
             try (ObjectInputStream<XmlSyntaxModel> in =  theEntityContext.streamObjectQuery(syntax); ) {
                 XmlSyntaxModel model;
+                int count = 0;
                 while((model = in.read()) != null) {
+                    count++;
                     print("", model);
                }
+                assertEquals(1, count);
             }
         }
         catch(UnsupportedOperationException x) {
             assertTrue("Remote streaming is not supported", getter.client);
         }
     }
+
+    @Test
+    public void testStreamingDownSyntaxModelHierarchy() throws Exception {
+
+        QXmlSyntaxModel query = new QXmlSyntaxModel();
+        query.where(query.name().equal("syntax-xml-1"));
+
+        //stream the query result.
+        try (IterableObjectStream<XmlSyntaxModel> syntaxModelStream =  theEntityContext.streamIterateObjectQuery( query ); ) {
+            for (XmlSyntaxModel syntaxModel: syntaxModelStream) {
+                Runtime.getRuntime().gc();
+                System.out.println("**** NAME:" + syntaxModel.getName());
+
+                //stream all of the mappings for the syntax
+                try (IterableObjectStream<XmlMapping> mappingsStream = syntaxModel.streamMappings()) {
+                    for (XmlMapping mapping: mappingsStream) {
+                        System.out.println("****XPATH : " + mapping.getXpath());
+                        System.out.println("****TARGET: " + mapping.getTargetFieldName());
+                        Runtime.getRuntime().gc();
+
+                        //will cause  a lazy load
+                        XmlSyntaxModel subSyntax = mapping.getSubSyntax();
+                        if (subSyntax != null) {
+                            System.out.println(subSyntax.getName());
+
+                            //stream all of the mappings for the subyntax
+                            try (IterableObjectStream<XmlMapping> mappingsSubStream = subSyntax.streamMappings()) {
+                                for (XmlMapping mappingSub: mappingsSubStream) {
+                                    System.out.println("****XPATH : " + mappingSub.getXpath());
+                                    System.out.println("****TARGET: " + mappingSub.getTargetFieldName());
+                                    Runtime.getRuntime().gc();
+                                }
+                            }
+                        }
+                        Runtime.getRuntime().gc();
+                    }
+                }
+            }
+        }
+
+        Runtime.getRuntime().gc();
+        Thread.sleep(500);
+        Runtime.getRuntime().gc();
+    }
+
 
     /**
      * Loads all ROOT syntaxes in one abstract query (XML + CSV)

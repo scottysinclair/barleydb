@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * an result item which came out of a query execution
+ * a result item which came out of a query execution
  */
 public class ObjectGraph {
 

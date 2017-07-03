@@ -68,6 +68,7 @@ import scott.barleydb.api.core.QueryRegistry;
 import scott.barleydb.api.core.entity.context.Entities;
 import scott.barleydb.api.core.entity.context.EntityInfo;
 import scott.barleydb.api.core.proxy.ProxyList;
+import scott.barleydb.api.core.util.CollectionUtil;
 import scott.barleydb.api.core.util.EnvironmentAccessor;
 import scott.barleydb.api.dependency.diagram.DependencyDiagram;
 import scott.barleydb.api.dependency.diagram.Link;
@@ -87,9 +88,11 @@ import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.query.RuntimeProperties;
 import scott.barleydb.api.stream.EntityData;
 import scott.barleydb.api.stream.EntityStreamException;
+import scott.barleydb.api.stream.IterableObjectStream;
 import scott.barleydb.api.stream.ObjectInputStream;
 import scott.barleydb.api.stream.QueryEntityDataInputStream;
 import scott.barleydb.api.stream.QueryEntityInputStream;
+import scott.barleydb.api.stream.StreamingObjectIterator;
 import scott.barleydb.server.jdbc.query.QueryResult;
 
 /**
@@ -135,7 +138,7 @@ public class EntityContext implements Serializable {
     public EntityContext(Environment env, String namespace) {
         this.env = env;
         this.namespace = namespace;
-        init(false);
+        init(true);
         this.entityContextState = EntityContextState.USER;
     }
 
@@ -714,6 +717,11 @@ public class EntityContext implements Serializable {
 
     public <T> ObjectInputStream<T> streamObjectQuery(QueryObject<T> queryObject) throws SortServiceProviderException, SortQueryException {
         return streamObjectQuery(queryObject, null, false);
+    }
+
+    public <T> IterableObjectStream<T> streamIterateObjectQuery(QueryObject<T> queryObject) throws SortServiceProviderException, SortQueryException, EntityStreamException {
+        ObjectInputStream<T> in = streamObjectQuery(queryObject, null, false);
+        return new IterableObjectStream<T>(new StreamingObjectIterator<>(in));
     }
 
     public <T> ObjectInputStream<T> streamObjectQuery(QueryObject<T> queryObject, boolean createNewCtx) throws SortServiceProviderException, SortQueryException {
