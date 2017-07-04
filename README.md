@@ -56,7 +56,7 @@ ctx.persist( pr  );
 ```
 
 ### Auditing
-Auditing is very straightforward as a change report is generated every time domain models are persisted.
+Auditing is very straightforward as a change report is generated every time domain models are persisted. The report below shows the table name, column name, old value and new value. 
 ```
 audit AUDIT SS_XML_MAPPING                 ID                             null                           3                             
 audit AUDIT SS_XML_MAPPING                 SYNTAX_MODEL_ID                null                           1                             
@@ -71,6 +71,8 @@ audit AUDIT SS_XML_MAPPING                 SYNTAX_MODEL_ID                null  
 audit AUDIT SS_XML_MAPPING                 XPATH                          null                           sub2                          
 audit AUDIT SS_XML_MAPPING                 TARGET_FIELD_NAME              null                           subtarget2     
 ```
+### Access control
+An access control check is performed on each and every update insert or delete operation. A 3rd party access control library can easily be plugged in to the framework.
 
 ### Relationship management
 Ownership vs simple referral relationships impact how data is persisted across relations.
