@@ -1,4 +1,53 @@
 # BarleyDB
+BarleyDB is a Java ORM library which makes it as easy as possible to load and save application domain models to and from the database. It is also extremely powerfull with a lot of features.
+
+### Generated domain query models
+Query DSL classes are auto-generated and allow the programmer to easily build queries to load their application data.
+```java
+  QUser quser = new QUser();
+  quser.joinToAddress();
+  QDepartment qdepartment = quser.joinToDepartment();
+  qdepartment.joinToCountry();
+  
+  List<User> users = ctx.performQuery( quser ).getList();
+```
+### Batching multiple queries
+The queries will be combined into a composite query returning multiple result-sets (depending on database vendor support).
+```java
+QueryBatcher batch = new QueryBatcher();
+batch.addQuery(new QUser());
+batch.addQuery(new QDepartment());
+batch.addQiery(new QCountry());
+
+ctx.performQueries( batch );
+```
+
+### Persisting changes to the database
+Persist requests are used to bundle together domain models to be persisted.
+```java
+PersistRequest pr = new PersistRequest();
+pr.save( userA, userB, userC );
+pr.delete( userX, userY );
+
+ctx.persist( pr  );
+```
+
+### Relationship management
+Ownership vs simple referral relationships impact how data is persisted across relations.
+* Ownership causes inserts, updates and orphan removal to be performed.
+* Simple refferal causes inserts to be performed when the referred to entity is new.
+
+### Transaction management
+```java
+ctx.setAutocommit(false);
+..
+..
+ctx.commit();
+```
+
+### Domain model relationships
+Many 
+
 
 BarleyDB is a Java ORM library which takes a different approach. Some of the interesting features of BarleyDB are:
 * Allowing the programmer to control **per usecase** how much data will be fetched when lazy loading an entity.
