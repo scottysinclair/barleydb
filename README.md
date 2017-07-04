@@ -63,7 +63,7 @@ try ( ObjectInputStream<User> in = ctx.streamObjectQuery( quser ); ) {
   }
 }
 ```
-A stream can also be opened on any 1:N relation.
+A stream can also be opened on any 1:N relation on any domain model.
 ```java
 try ( ObjectInputStream<Address> in = user.streamAddresses(); ) {
   Address address;
@@ -77,12 +77,91 @@ try ( ObjectInputStream<Address> in = user.streamAddresses(); ) {
 BarleyDB supports garabage collection so that entities which are no longer referred to are removed. 
 This works very well in combination with large data-set streaming as memory will be reclaimed automatically as the program proceeds through the data stream.
 
+### Easy domain schema definition
+Both Java and XML Schema definition is supported though Java is preferred as the compiler can catch any inconsistencies.
+```java
+public class Applicationpec extends PlatformSpec {
+
+    public PlaySpec() {
+        super("scott.playspec");
+    }
+
+    @Enumeration(JdbcType.INT)
+    public static class EmployeeType {
+        public static final int ADMIN = 1;
+        public static final int ENGINEER = 2;
+        public static final int MANAGER = 3;
+        public static final int HR = 4;
+        public static final int CHIEF = 5;
+    }
+
+    @Enumeration(JdbcType.INT)
+    public static class Language {
+        public static final int ENGLISH = 1;
+        public static final int FRENCH = 2;
+        public static final int SPANISH = 3;
+        public static final int GERMAN = 4;
+        public static final int SWISS = 5;
+    }
 
 
+    @Entity("GEN_EMPLOYEE")
+    public static class Employee {
 
+        public static final NodeSpec id = longPrimaryKey();
 
+        public static final NodeSpec employeeType = mandatoryEnum(EmployeeType.class);
 
+        public static final NodeSpec name = name();
 
+        public static final NodeSpec department = mandatoryRefersTo(Department.class);
+
+        public static final NodeSpec countryOfOrigin = mandatoryRefersTo(Country.class);
+
+        public static final NodeSpec motherLang = mandatoryEnum(Language.class);
+
+    }
+    
+    @Entity("GEN_LOB")
+    public static class LineOfBusiness{
+
+        public static final NodeSpec id = longPrimaryKey();
+
+        public static final NodeSpec name = name();
+
+        public static final NodeSpec parent = optionallyRefersTo(LineOfBusiness.class, "PARENT_ID");
+
+        public static final NodeSpec children = ownsMany(LineOfBusiness.class, LineOfBusiness.parent);
+
+    }    
+    ...
+```
+
+### Modular definition of Schemas and importing of schemas
+Each schema definition has it's own namespace and can import other schemas to build highly modular applications. 
+
+### Easy bootstrapping with schema creation
+To get up and running simply specify the datasource and the schema definitions like so.
+As can be see below the schema can also be dropped and recreated.
+```java
+Environment env = EnvironmentDef.build()
+        .withDataSource()
+            .withDriver("org.postgresql.xa.PGXADataSource")
+            .withUser("test_user")
+            .withPassword("password")
+            .withUrl("jdbc:postgresql://localhost:5432/test_db")
+            .end()
+         .withSpecs(ApplicationSpec.class)
+         .withDroppingSchema(true)
+         .withSchemaCreation(true)
+         .create();
+
+ApplicationCtx ctx = new ApplicationCtx( env );
+ctx.performQuery(new QUser());
+```
+
+## Database script generation
+Create scripts, drop scripts and clean scripts can be automatically generated.
 
 
 BarleyDB is a Java ORM library which takes a different approach. Some of the interesting features of BarleyDB are:
