@@ -45,7 +45,7 @@ The queries will be combined into a composite query returning multiple result-se
 QueryBatcher batch = new QueryBatcher();
 batch.addQuery(new QUser());
 batch.addQuery(new QDepartment());
-batch.addQiery(new QCountry());
+batch.addQuery(new QCountry());
 
 ctx.performQueries( batch );
 ```
