@@ -37,6 +37,11 @@ Ownership vs simple referral relationships impact how data is persisted across r
 * Ownership causes inserts, updates and orphan removal to be performed.
 * Simple refferal causes inserts to be performed when the referred to entity is new.
 
+### Freshness checking (optimistic locking)
+BarleyDB will verify any optimistic locks defined on entities. 
+* Relationship management works in combination with optimistic locking, so that owned data can cause the owner's optimistic lock to be updated.
+* The dependsOn relationship requires that the entity depended on must also be fresh, even if it is not being saved.
+
 ### Transaction management
 ```java
 ctx.setAutocommit(false);
@@ -45,8 +50,39 @@ ctx.setAutocommit(false);
 ctx.commit();
 ```
 
-### Domain model relationships
-Many 
+### Large data-set support / streaming
+Domain models can be streamed from the database.
+```java
+QUser quser = new QUser();
+quser.joinToAddress();
+
+try ( ObjectInputStream<User> in = ctx.streamObjectQuery( quser ); ) {
+  User user;
+  while( (user = in.read()) != null ) {
+    ...
+  }
+}
+```
+A stream can also be opened on any 1:N relation.
+```java
+try ( ObjectInputStream<Address> in = user.streamAddresses(); ) {
+  Address address;
+  while( (address = in.read()) != null ) {
+    ...
+  }
+}
+```
+
+### Garbage collection of unreferences entities
+BarleyDB supports garabage collection so that entities which are no longer referred to are removed. 
+This works very well in combination with large data-set streaming as memory will be reclaimed automatically as the program proceeds through the data stream.
+
+
+
+
+
+
+
 
 
 BarleyDB is a Java ORM library which takes a different approach. Some of the interesting features of BarleyDB are:
