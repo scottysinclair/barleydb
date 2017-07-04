@@ -87,7 +87,7 @@ try ( ObjectInputStream<Address> in = user.streamAddresses(); ) {
 }
 ```
 
-### Garbage collection of unreferences entities
+### Garbage collection of unreferenced entities
 BarleyDB supports garabage collection so that entities which are no longer referred to are removed. 
 This works very well in combination with large data-set streaming as memory will be reclaimed automatically as the program proceeds through the data stream.
 
@@ -100,7 +100,7 @@ Both Java and XML Schema definition is supported though Java is preferred as the
 public class Applicationpec extends PlatformSpec {
 
     public PlaySpec() {
-        super("scott.playspec");
+        super("com.mycomp.application");
     }
 
     @Enumeration(JdbcType.INT)
@@ -180,6 +180,8 @@ ctx.performQuery(new QUser());
 ## Database script generation
 Create scripts, drop scripts and clean scripts can be automatically generated.
 
+
+-----
 
 BarleyDB is a Java ORM library which takes a different approach. Some of the interesting features of BarleyDB are:
 * Allowing the programmer to control **per usecase** how much data will be fetched when lazy loading an entity.
