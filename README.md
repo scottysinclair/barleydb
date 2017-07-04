@@ -22,6 +22,20 @@ batch.addQiery(new QCountry());
 ctx.performQueries( batch );
 ```
 
+### Control fetch plans per usecase
+Fetch plans for lazy loading can be registered at any time by specifying query models with the desired joins. 
+```java
+//create and register the fetch plan to be used the next time a deparment must be fetched.
+QDepartment qdepartment = new QDepartment();
+qdepartment.joinToCountry();
+ctx.registerQuery( qdepartment );
+
+//call user.getDepartment() which will cause a fetch.
+Department dep = user.getDepartment();
+//country was fetch along with the deparment as per the fetch plam
+Country country = dep.getCountry();
+```
+
 ### Persisting changes to the database
 Persist requests are used to bundle together domain models to be persisted.
 ```java
@@ -76,6 +90,9 @@ try ( ObjectInputStream<Address> in = user.streamAddresses(); ) {
 ### Garbage collection of unreferences entities
 BarleyDB supports garabage collection so that entities which are no longer referred to are removed. 
 This works very well in combination with large data-set streaming as memory will be reclaimed automatically as the program proceeds through the data stream.
+
+### 3 tier architecture support
+BarleyDB can be used on the client tier in a 3 tier architecture. A client can create a remote context to the application server to perform queries and persist domain models as normal. 
 
 ### Easy domain schema definition
 Both Java and XML Schema definition is supported though Java is preferred as the compiler can catch any inconsistencies.
