@@ -11,6 +11,15 @@ Query DSL classes are auto-generated and allow the programmer to easily build qu
   
   List<User> users = ctx.performQuery( quser ).getList();
 ```
+### Complex where clauses 
+The Query DSL support the usual operators logical and arithmetic operators as well as subqueries for example.
+```java
+  QUser quser = new QUser();
+  QDepartment qdepartment = quser.existsDepartment();
+  quser.where( quser.name().equal("fred") )
+       .andExists( qdepartment.where( qdepartment.name().like("computing") ) );
+```
+
 ### Batching multiple queries
 The queries will be combined into a composite query returning multiple result-sets (depending on database vendor support).
 ```java
@@ -22,7 +31,7 @@ batch.addQiery(new QCountry());
 ctx.performQueries( batch );
 ```
 
-### Control fetch plans per usecase
+### Fetch plan definition whenever you want
 Fetch plans for lazy loading can be registered at any time by specifying query models with the desired joins. 
 ```java
 //create and register the fetch plan to be used the next time a deparment must be fetched.
@@ -44,6 +53,23 @@ pr.save( userA, userB, userC );
 pr.delete( userX, userY );
 
 ctx.persist( pr  );
+```
+
+### Auditing
+Auditing is very straightforward as a change report is generated every time domain models are persisted.
+```
+audit AUDIT SS_XML_MAPPING                 ID                             null                           3                             
+audit AUDIT SS_XML_MAPPING                 SYNTAX_MODEL_ID                null                           1                             
+audit AUDIT SS_XML_MAPPING                 XPATH                          null                           /root3                        
+audit AUDIT SS_XML_MAPPING                 TARGET_FIELD_NAME              null                           target3                       
+audit AUDIT SS_XML_MAPPING                 ID                             null                           4                             
+audit AUDIT SS_XML_MAPPING                 SYNTAX_MODEL_ID                null                           2                             
+audit AUDIT SS_XML_MAPPING                 XPATH                          null                           sub1                          
+audit AUDIT SS_XML_MAPPING                 TARGET_FIELD_NAME              null                           subtarget1                    
+audit AUDIT SS_XML_MAPPING                 ID                             null                           5                             
+audit AUDIT SS_XML_MAPPING                 SYNTAX_MODEL_ID                null                           2                             
+audit AUDIT SS_XML_MAPPING                 XPATH                          null                           sub2                          
+audit AUDIT SS_XML_MAPPING                 TARGET_FIELD_NAME              null                           subtarget2     
 ```
 
 ### Relationship management
