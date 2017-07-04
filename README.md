@@ -74,7 +74,7 @@ pr.delete( userX, userY );
 ctx.persist( pr  );
 ```
 
-## Dependency analysis and batching of operations
+### Dependency analysis and batching of operations
 During persistence, a dependency tree is used to identify the correct operation order to satify database constraints and to promote operation batching. 
 ```
 BatchExecuter executing insert batch for EntityType [ org.example.acl.model.AccessArea ] of size 1
