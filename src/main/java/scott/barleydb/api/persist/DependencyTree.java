@@ -705,8 +705,7 @@ public class DependencyTree implements Serializable {
                         }
                     }
                 }
-            } else { // TODO Auto-generated method stub
-
+            } else {
                 /*
                  * delete operations are handles somewhere else
                  */
@@ -1185,11 +1184,10 @@ public class DependencyTree implements Serializable {
         }
 
         /*
-         * TODO: we should not overwrite entities which are already in the client's content
-         * if he had a delete operation with an out of date optimistic lock then the operation would
-         * succeed instead of fail, because the optimistic lock value would be refreshed.
+         * make sure we don't overwritew any optimistic locks, just incase the Entity which we are copying to our CTX is already there
+         * and out of date.
          */
-        List<Entity> copied = EntityContextHelper.addEntities(toCopy, ctx, true);
+        List<Entity> copied = EntityContextHelper.addEntities(toCopy, ctx, true, false);
         EntityContextHelper.copyRefStates(dctx, ctx, copied, new EntityContextHelper.EntityFilter() {
             @Override
             public boolean includesEntity(Entity entity) {

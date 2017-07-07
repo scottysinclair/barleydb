@@ -163,7 +163,7 @@ public class EntityContextHelper {
      * @param entities
      * @param newContext
      */
-    public static List<Entity> addEntities(Iterable<Entity> entities, EntityContext newContext, boolean includeNonFetchedEntities) {
+    public static List<Entity> addEntities(Iterable<Entity> entities, EntityContext newContext, boolean includeNonFetchedEntities, boolean overwriteOptimisticLocks) {
         List<Entity> copiedEntities = new LinkedList<Entity>();
         for (Entity entity : entities) {
             //check if we are including non-fetched entities
@@ -181,7 +181,7 @@ public class EntityContextHelper {
                 newContext.add(e);
             }
             e.setEntityState(entity.getEntityState());
-            e.copyValueNodesToMe(entity);
+            e.copyValueNodesToMe(entity, overwriteOptimisticLocks);
             copiedEntities.add(e);
         }
         return copiedEntities;

@@ -1027,7 +1027,6 @@ public class EntityContext implements Serializable {
                 if (qdatatype == null) {
                    qdatatype = new QueryObject<Object>(datatype.getInterfaceName());
                 }
-                //TODO: if the tomany relation has a non-key sort column, then make sure that column is also fetched
                 qo.addLeftOuterJoin(qdatatype, datatypeNodeType.getName());
             }
 

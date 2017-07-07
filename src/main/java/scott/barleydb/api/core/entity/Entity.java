@@ -278,12 +278,25 @@ public class Entity implements Serializable {
      * @param from
      */
     public void copyValueNodesToMe(Entity from) {
+        copyValueNodesToMe(from, true);
+    }
+
+    /**
+     *
+     * @param from
+     * @param overwriteOptimisticLocks if true the optimisticLock values are overwritten.
+     */
+    public void copyValueNodesToMe(Entity from, boolean overwriteOptimisticLocks) {
         if (from.isNotLoaded()) {
             return;
         }
         for (ValueNode fromChild : from.getChildren(ValueNode.class)) {
             if (fromChild.isLoaded()) {
                 ValueNode toChild = getChild(fromChild.getName(), ValueNode.class);
+                //check that we don't overwrite the OL.
+                if (!overwriteOptimisticLocks && toChild.getNodeType().isOptimisticLock() && toChild.getValue() != null) {
+                    continue;
+                }
                 toChild.setValue( fromChild.getValue() );
             }
         }

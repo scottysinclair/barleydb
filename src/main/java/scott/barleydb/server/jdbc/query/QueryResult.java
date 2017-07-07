@@ -101,7 +101,7 @@ public class QueryResult<T> implements Serializable {
         EntityContextState ecs2 = newEntityContext.switchToInternalMode();
         try {
             QueryResult<T> result = new QueryResult<T>(newEntityContext);
-            List<Entity> copied = EntityContextHelper.addEntities(entityContext.getEntities(), newEntityContext, true);
+            List<Entity> copied = EntityContextHelper.addEntities(entityContext.getEntities(), newEntityContext, true, true);
             EntityContextHelper.copyRefStates(entityContext, newEntityContext, copied, new EntityContextHelper.EntityFilter() {
                 @Override
                 public boolean includesEntity(Entity entity) {

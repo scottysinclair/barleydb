@@ -73,11 +73,11 @@ public class ToManyNode extends Node {
      */
     private EntityType entityType;
 
-    /*
+    /**
      * tracks all entities that we reference currently
      */
     private List<Entity> entities;
-    /*
+    /**
      * only refers to new entities
      */
     private List<Entity> newEntities;
