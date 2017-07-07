@@ -159,9 +159,9 @@ BarleyDB can be used on the client tier in a 3 tier architecture. A client can c
 ### Easy domain schema definition
 Both Java and XML Schema definition is supported though Java is preferred as the compiler can catch any inconsistencies.
 ```java
-public class Applicationpec extends PlatformSpec {
+public class ApplicationSpec extends PlatformSpec {
 
-    public PlaySpec() {
+    public ApplicationSpec() {
         super("com.mycomp.application");
     }
 
