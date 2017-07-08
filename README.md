@@ -251,6 +251,28 @@ Create scripts, drop scripts and clean scripts can be automatically generated.
 
 ### Auto generation of artifacts from database meta data
 All  artifacts (schema specification, query classes, model classes) can be generated from the database meta-data.
+The below example generates all artifacts from a Postgresql database.
+```java
+    EnvironmentDef liveDef = EnvironmentDef.build()
+            .withDataSource()
+                .withDriver("org.postgresql.xa.PGXADataSource")
+                .withUser("test_user")
+                .withPassword("password")
+                .withUrl("jdbc:postgresql://172.18.0.3:5432/test_db")
+                .end();
+
+  FromDatabaseSchemaToSpecification fdb = new FromDatabaseSchemaToSpecification("scott.acnplayautogen.autogenspec");
+  fdb.removePrefix("vvl", "acn");
+
+  /*
+   * process the database meta data and generate the specifications
+   */
+   SpecRegistry registry = fdb.generateSpecification(liveDef.getDataSource());
+
+   Generator.generate(registry, "src/main/java", "src/main/resources", false);
+
+```
+
 
 ### Easy bootstrapping 
 To get up and running simply specify the datasource and the schema definitions like so.
