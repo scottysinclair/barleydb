@@ -306,19 +306,6 @@ This would allow for automatic forward porting and backporting of data.
 
 Such a system would allow connecting to a database with an older schema version, then loading in data and upgrading it to match the current schema and then inserting it into the current database. If backporting was supported, the reverse could also be accomplished.
 
-## Usual ORM Featutres
-BarleyDB also supports the usual ORM features:
-* Generation of DDL database scripts.
-* Generation of Java Classes.
-* Entity Inheritence with proper class inheritence in the generated classes.
-* Lazy loading of data.
-* Persisting of data to the database.
-* Transactional scope.
-* Querying of data using a query DSL, including joins, subqueries etc.
-* Optimistic Locking.
-* Auditing of changes.
-* Access Control for insert, update and delete operations.
-
 ## Data Structure
 BarleyDB has it's own simple data model for holding database data. It consists of:
 * Entity - a data record from a table, an entity contains one or more of...
