@@ -273,7 +273,7 @@ ctx.performQuery(new QUser());
 ```
 
 -----
-
+## General Overview
 BarleyDB is a Java ORM library which takes a different approach. Some of the interesting features of BarleyDB are:
 * Allowing the programmer to control **per usecase** how much data will be fetched when lazy loading an entity.
 * Normal garbage collection behaviour for entities loaded from the database.
