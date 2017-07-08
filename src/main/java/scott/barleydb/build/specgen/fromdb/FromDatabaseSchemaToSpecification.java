@@ -1,8 +1,37 @@
 package scott.barleydb.build.specgen.fromdb;
 
+import static java.util.Arrays.asList;
+
+/*-
+ * #%L
+ * BarleyDB
+ * $Id:$
+ * $HeadURL:$
+ * %%
+ * Copyright (C) 2014 - 2017 Scott Sinclair
+ *       <scottysinclair@gmail.com>
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Lesser Public License for more details.
+ *
+ * You should have received a copy of the GNU General Lesser Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/lgpl-3.0.html>.
+ * #L%
+ */
+
 import java.sql.Types;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,6 +59,8 @@ import scott.barleydb.api.specification.JoinTypeSpec;
 import scott.barleydb.api.specification.NodeSpec;
 import scott.barleydb.api.specification.RelationSpec;
 import scott.barleydb.api.specification.SpecRegistry;
+import scott.barleydb.api.specification.constraint.ForeignKeyConstraintSpec;
+import scott.barleydb.api.specification.constraint.PrimaryKeyConstraintSpec;
 
 public class FromDatabaseSchemaToSpecification {
 
@@ -138,6 +169,8 @@ public class FromDatabaseSchemaToSpecification {
 
                         LOG.debug("Added FK relation from {}.{} to {}", fkEspec.getClassName(), fkNSpec.getName(), pkEspec.getClassName());
 
+                        createForeignKeyConstraint(fkEspec, fkNSpec, rspec);
+
                         /*
                          * do the opposite 1:N relation
                          */
@@ -162,6 +195,22 @@ public class FromDatabaseSchemaToSpecification {
                 }
             }
         }
+    }
+
+    private void createForeignKeyConstraint(EntitySpec entitySpec, NodeSpec nodeSpec, RelationSpec relationSpec) {
+        String keySpecName = createForeignKeyConstraintName( entitySpec, nodeSpec, relationSpec );
+        EntitySpec toEntitySpec = relationSpec.getEntitySpec();
+
+        Collection<NodeSpec> toPrimaryKey = toEntitySpec.getPrimaryKeyNodes(true);
+        if (toPrimaryKey == null) {
+            throw new IllegalStateException("Cannot create foreign key reference to entity " + toEntitySpec.getClassName() + " which  has no primary key");
+        }
+        ForeignKeyConstraintSpec spec = new ForeignKeyConstraintSpec(keySpecName, asList(nodeSpec), toEntitySpec, toPrimaryKey);
+        entitySpec.add(spec);
+    }
+
+    protected String createForeignKeyConstraintName(EntitySpec entitySpec, NodeSpec nodeSpec, RelationSpec relationSpec) {
+        return "fk_" + entitySpec.getTableName() + "_" + relationSpec.getEntitySpec().getTableName();
     }
 
     private String incrementNodeName(String nodeName) {
@@ -228,6 +277,18 @@ public class FromDatabaseSchemaToSpecification {
             LOG.debug("Processing column {}", column.getName());
             NodeSpec nodeSpec = toNodeSpec(entitySpec, column);
             entitySpec.add( nodeSpec );
+
+            //set PK contraints
+            Collection<NodeSpec> key = new LinkedList<>();
+            for (NodeSpec ns: entitySpec.getNodeSpecs()) {
+                if (ns.isPrimaryKey()) {
+                    key.add(ns);
+                }
+            }
+            if (!key.isEmpty()) {
+                createPrimaryKeyConstraint(entitySpec, key);
+            }
+
         }
         return entitySpec;
     }
@@ -235,6 +296,9 @@ public class FromDatabaseSchemaToSpecification {
     private NodeSpec toNodeSpec(EntitySpec entitySpec, Column column) {
         NodeSpec nodeSpec = new NodeSpec();
         nodeSpec.setName( getNodeName( column ));
+        if (nodeSpec.getName().equals("id")) {
+            nodeSpec.setPrimaryKey(true);
+        }
         nodeSpec.setColumnName( column.getName());
         nodeSpec.setJdbcType( getNodeType( column ));
         nodeSpec.setJavaType( getJavaType( nodeSpec.getJdbcType() ));
@@ -308,6 +372,16 @@ public class FromDatabaseSchemaToSpecification {
         String ccName = toCamelCase(table.getName());
         ccName = Character.toUpperCase( ccName.charAt(0) ) + ccName.substring(1, ccName.length());
         return namespace + ".model." + removePrefixes( ccName );
+    }
+
+    private void createPrimaryKeyConstraint(EntitySpec entitySpec, Collection<NodeSpec> key) {
+        String keySpecName = createPrimaryKeyConstraintName( entitySpec, key );
+        PrimaryKeyConstraintSpec pkSpec = new PrimaryKeyConstraintSpec(keySpecName, key);
+        entitySpec.setPrimaryKeyConstraint( pkSpec );
+    }
+
+    protected String createPrimaryKeyConstraintName(EntitySpec entitySpec, Collection<NodeSpec> key) {
+        return "pk_" + entitySpec.getTableName();
     }
 
 
