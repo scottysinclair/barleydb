@@ -156,7 +156,7 @@ This works very well in combination with large data-set streaming as memory will
 ### 3 tier architecture support
 BarleyDB can be used on the client tier in a 3 tier architecture. A client can create a remote context to the application server to perform queries and persist domain models as normal. 
 
-### Easy domain schema definition
+### Easy domain schema specification
 Both Java and XML Schema definition is supported though Java is preferred as the compiler can catch any inconsistencies.
 ```java
 public class ApplicationSpec extends PlatformSpec {
@@ -215,11 +215,44 @@ public class ApplicationSpec extends PlatformSpec {
     }    
     ...
 ```
-
+The XML schema specification looks like so
+```xml
+        <Definitions namespace="org.scott.vvl.gen">
+            <EnumSpecs/>
+            <EntitySpecs>
+                <EntitySpec className="org.scott.vvl.gen.model.Country" tableName="acn_country" abstract="false">
+                    <queryClass>org.scott.vvl.gen.query.QCountry</queryClass>
+                    <NodeSpecs>
+                        <NodeSpec name="id" javaType="LONG" jdbcType="BIGINT" columnName="id" nullable="NOT_NULL" optimisticLock="false" pk="true">
+                            <id>org.scott.vvl.gen.model.Country.id</id>
+                        </NodeSpec>
+                        <NodeSpec name="modifiedAt" javaType="UTIL_DATE" jdbcType="TIMESTAMP" columnName="modified_at" nullable="NOT_NULL" optimisticLock="false">
+                            <id>org.scott.vvl.gen.model.Country.modifiedAt</id>
+                        </NodeSpec>
+                        <NodeSpec name="name" javaType="STRING" jdbcType="VARCHAR" columnName="name" nullable="NOT_NULL" length="50" optimisticLock="false">
+                            <id>org.scott.vvl.gen.model.Country.name</id>
+                        </NodeSpec>
+                        <NodeSpec name="address" optimisticLock="false">
+                            <id>org.scott.vvl.gen.model.Country.address</id>
+                            <relation type="REFERS" entitySpec="org.scott.vvl.gen.model.Address" backReference="org.scott.vvl.gen.model.Address.country" joinType="LEFT_OUTER_JOIN"/>
+                        </NodeSpec>
+                    </NodeSpecs>
+                    <Constraints>
+                        <PrimaryKey name="pk_acn_country" nodes="org.scott.vvl.gen.model.Country.id"/>
+                    </Constraints>
+                </EntitySpec>
+      ...
+```
 ### Modular definition of Schemas and importing of schemas
 Each schema definition has it's own namespace and can import other schemas to build highly modular applications. 
 
-### Easy bootstrapping with schema creation
+### Database script generation
+Create scripts, drop scripts and clean scripts can be automatically generated.
+
+### Auto generation of artifacts from database meta data
+All  artifacts (schema specification, query classes, model classes) can be generated from the database meta-data.
+
+### Easy bootstrapping 
 To get up and running simply specify the datasource and the schema definitions like so.
 As can be see below the schema can also be dropped and recreated.
 ```java
@@ -238,10 +271,6 @@ Environment env = EnvironmentDef.build()
 ApplicationCtx ctx = new ApplicationCtx( env );
 ctx.performQuery(new QUser());
 ```
-
-## Database script generation
-Create scripts, drop scripts and clean scripts can be automatically generated.
-
 
 -----
 
