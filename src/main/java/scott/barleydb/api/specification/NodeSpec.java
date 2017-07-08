@@ -10,12 +10,12 @@ package scott.barleydb.api.specification;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -154,6 +154,9 @@ public class NodeSpec implements Serializable, Cloneable {
 
     public void setName(String name) {
         this.name = name;
+        if (entity != null) {
+            entity.notifyNameChanged(this);
+        }
     }
 
     public JavaType getJavaType() {
@@ -221,6 +224,10 @@ public class NodeSpec implements Serializable, Cloneable {
         this.fixedValue = fixedValue;
     }
 
+    /**
+     * length of VARCHAR, NVARCHAR
+     * @return
+     */
     public Integer getLength() {
         return length;
     }
@@ -237,6 +244,10 @@ public class NodeSpec implements Serializable, Cloneable {
         this.relation = relation;
     }
 
+    /**
+     * The precision of a decimal value
+     * @return
+     */
     public Integer getPrecision() {
         return precision;
     }
@@ -245,6 +256,10 @@ public class NodeSpec implements Serializable, Cloneable {
         this.precision = precision;
     }
 
+    /**
+     * the scale of a decimal value
+     * @return
+     */
     public Integer getScale() {
         return scale;
     }

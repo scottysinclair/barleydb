@@ -60,6 +60,14 @@
       <scope>compile</scope>
     </dependency>
 
+    <!-- https://mvnrepository.com/artifact/us.fatehi/schemacrawler -->
+    <dependency>
+        <groupId>us.fatehi</groupId>
+        <artifactId>schemacrawler</artifactId>
+        <version>14.16.02</version>
+    </dependency>
+
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
