@@ -641,6 +641,14 @@ public class EntityContext implements Serializable {
         return (T) getProxy(entity);
     }
 
+    public void removeAll(Class<?> type) {
+        EntityType entityType = definitions.getEntityTypeMatchingInterface(type.getName(), true);
+        for (Entity entity: entities.getEntitiesByType(entityType)) {
+            remove(entity);
+        }
+    }
+
+
     public void remove(Entity entity) {
        remove(entity, Collections.<Entity> emptyList());
     }
@@ -1383,5 +1391,4 @@ public class EntityContext implements Serializable {
             throw new IllegalStateException("Could not print xml", x);
         }
     }
-
 }

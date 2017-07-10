@@ -24,6 +24,7 @@ package scott.barleydb.build.specification.modelgen;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Collection;
 
 import scott.barleydb.api.specification.EntitySpec;
 import scott.barleydb.api.specification.NodeSpec;
@@ -32,6 +33,10 @@ import scott.barleydb.api.specification.RelationSpec;
 public class GenerateModelsHelper {
 
     protected void writeJavaType(Writer out, NodeSpec nodeSpec) throws IOException {
+        writeJavaType(out, nodeSpec, false);
+    }
+
+    protected void writeJavaType(Writer out, NodeSpec nodeSpec, boolean useFkType) throws IOException {
         RelationSpec relationSpec = nodeSpec.getRelationSpec();
         if (relationSpec != null) {
             NodeSpec ownwardJoin = nodeSpec.getRelationSpec().getOwnwardJoin();
@@ -40,7 +45,13 @@ public class GenerateModelsHelper {
                     out.write(getModelSimpleClassName(ownwardJoin.getEntity()));
                 }
                 else {
-                    out.write(getModelSimpleClassName(relationSpec.getEntitySpec()));
+                    if (useFkType) {
+                        Collection<NodeSpec> pks = nodeSpec.getRelationSpec().getEntitySpec().getPrimaryKeyNodes(true);
+                        out.write(pks.iterator().next().getJavaType().getJavaTypeClass().getSimpleName());
+                    }
+                    else {
+                        out.write(getModelSimpleClassName(relationSpec.getEntitySpec()));
+                    }
                 }
             }
             else {

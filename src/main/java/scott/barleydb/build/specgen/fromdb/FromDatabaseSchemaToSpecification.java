@@ -62,6 +62,11 @@ import scott.barleydb.api.specification.SpecRegistry;
 import scott.barleydb.api.specification.constraint.ForeignKeyConstraintSpec;
 import scott.barleydb.api.specification.constraint.PrimaryKeyConstraintSpec;
 
+/**
+ * Generates a schema specification from database meta-data
+ * @author scott
+ *
+ */
 public class FromDatabaseSchemaToSpecification {
 
     private static Logger LOG = LoggerFactory.getLogger(FromDatabaseSchemaToSpecification.class);
@@ -73,44 +78,6 @@ public class FromDatabaseSchemaToSpecification {
     private final Map<Table, EntitySpec> entitySpecs = new HashMap<>();
     private final Map<Column, NodeSpec> nodeSpecs = new HashMap<>();
     private final Set<ProcessedFk> processedFks = new HashSet<>();
-
-    private static class ProcessedFk {
-        private final NodeSpec from;
-        private final EntitySpec to;
-        public ProcessedFk(NodeSpec from, EntitySpec to) {
-            this.from = from;
-            this.to = to;
-        }
-        @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result + ((from == null) ? 0 : from.hashCode());
-            result = prime * result + ((to == null) ? 0 : to.hashCode());
-            return result;
-        }
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj)
-                return true;
-            if (obj == null)
-                return false;
-            if (getClass() != obj.getClass())
-                return false;
-            ProcessedFk other = (ProcessedFk) obj;
-            if (from == null) {
-                if (other.from != null)
-                    return false;
-            } else if (!from.equals(other.from))
-                return false;
-            if (to == null) {
-                if (other.to != null)
-                    return false;
-            } else if (!to.equals(other.to))
-                return false;
-            return true;
-        }
-    }
 
     public FromDatabaseSchemaToSpecification(String namespace) {
         this.namespace = namespace;
@@ -136,9 +103,94 @@ public class FromDatabaseSchemaToSpecification {
 
         firstPass(catalog);
         secondPass(catalog);
+        postProcess(catalog);
         return registry;
     }
 
+    /**
+     * provides the oppertunity for further processing.
+     * @param catalog
+     */
+    protected void postProcess(Catalog catalog ) {
+    }
+
+
+    private void createForeignKeyConstraint(EntitySpec entitySpec, NodeSpec nodeSpec, RelationSpec relationSpec) {
+        String keySpecName = createForeignKeyConstraintName( entitySpec, nodeSpec, relationSpec );
+        EntitySpec toEntitySpec = relationSpec.getEntitySpec();
+
+        Collection<NodeSpec> toPrimaryKey = toEntitySpec.getPrimaryKeyNodes(true);
+        if (toPrimaryKey == null) {
+            throw new IllegalStateException("Cannot create foreign key reference to entity " + toEntitySpec.getClassName() + " which  has no primary key");
+        }
+        ForeignKeyConstraintSpec spec = new ForeignKeyConstraintSpec(keySpecName, asList(nodeSpec), toEntitySpec, toPrimaryKey);
+        entitySpec.add(spec);
+    }
+
+    protected String createForeignKeyConstraintName(EntitySpec entitySpec, NodeSpec nodeSpec, RelationSpec relationSpec) {
+        return "fk_" + entitySpec.getTableName() + "_" + relationSpec.getEntitySpec().getTableName();
+    }
+
+    private String incrementNodeName(String nodeName) {
+        char c = nodeName.charAt( nodeName.length() - 1);
+        if (Character.isDigit(c)) {
+            int i = Integer.parseInt("" + c);
+            i++;
+            return nodeName.substring(0, nodeName.length() -  1) + i;
+        }
+        else {
+            return nodeName + "1";
+        }
+    }
+
+    private String genRealtionNodeName(EntitySpec pkEspec) {
+        int i = pkEspec.getClassName().lastIndexOf('.');
+        String name = pkEspec.getClassName().substring(i+1, pkEspec.getClassName().length());
+        char c = Character.toLowerCase( name.charAt(0) );
+        String result = c + name.substring(1, name.length());
+        return ensureFirstLetterIsLower( removePrefixes(result) );
+
+    }
+
+    private String ensureFirstLetterIsLower(String name) {
+        char c = name.charAt(0);
+        if (Character.isLowerCase(c)) {
+            return name;
+        }
+        return Character.toLowerCase(c) + name.substring(1, name.length());
+    }
+
+    private String removePrefixes(String name) {
+        String lcName = name.toLowerCase();
+        for (String prefix: prefixesToRemove) {
+            if (lcName.startsWith(prefix)) {
+                return name.substring(prefix.length());
+            }
+        }
+        return name;
+    }
+
+    /**
+     * create the entityspecs and nodespecs.
+     * @param catalog
+     */
+    private void firstPass(Catalog catalog) {
+        LOG.debug("First pass...");
+        for (Schema schema: catalog.getSchemas()) {
+          LOG.debug("Processing schema...");
+          for (Table table: catalog.getTables(schema)) {
+            LOG.debug("Processing table {}", table.getName());
+            EntitySpec espec = toEntitySpec(table);
+            entitySpecs.put(table, espec);
+            spec.add( espec );
+          }
+        }
+
+    }
+
+    /**
+     * process the foreign key relations and constraints.
+     */
     private void secondPass(Catalog catalog) {
         for (Schema schema: catalog.getSchemas()) {
             System.out.println(schema);
@@ -197,76 +249,8 @@ public class FromDatabaseSchemaToSpecification {
         }
     }
 
-    private void createForeignKeyConstraint(EntitySpec entitySpec, NodeSpec nodeSpec, RelationSpec relationSpec) {
-        String keySpecName = createForeignKeyConstraintName( entitySpec, nodeSpec, relationSpec );
-        EntitySpec toEntitySpec = relationSpec.getEntitySpec();
 
-        Collection<NodeSpec> toPrimaryKey = toEntitySpec.getPrimaryKeyNodes(true);
-        if (toPrimaryKey == null) {
-            throw new IllegalStateException("Cannot create foreign key reference to entity " + toEntitySpec.getClassName() + " which  has no primary key");
-        }
-        ForeignKeyConstraintSpec spec = new ForeignKeyConstraintSpec(keySpecName, asList(nodeSpec), toEntitySpec, toPrimaryKey);
-        entitySpec.add(spec);
-    }
-
-    protected String createForeignKeyConstraintName(EntitySpec entitySpec, NodeSpec nodeSpec, RelationSpec relationSpec) {
-        return "fk_" + entitySpec.getTableName() + "_" + relationSpec.getEntitySpec().getTableName();
-    }
-
-    private String incrementNodeName(String nodeName) {
-        char c = nodeName.charAt( nodeName.length() - 1);
-        if (Character.isDigit(c)) {
-            int i = Integer.parseInt("" + c);
-            i++;
-            return nodeName.substring(0, nodeName.length() -  1) + i;
-        }
-        else {
-            return nodeName + "1";
-        }
-    }
-
-    private String genRealtionNodeName(EntitySpec pkEspec) {
-        int i = pkEspec.getClassName().lastIndexOf('.');
-        String name = pkEspec.getClassName().substring(i+1, pkEspec.getClassName().length());
-        char c = Character.toLowerCase( name.charAt(0) );
-        String result = c + name.substring(1, name.length());
-        return ensureFirstLetterIsLower( removePrefixes(result) );
-
-    }
-
-    private String ensureFirstLetterIsLower(String name) {
-        char c = name.charAt(0);
-        if (Character.isLowerCase(c)) {
-            return name;
-        }
-        return Character.toLowerCase(c) + name.substring(1, name.length());
-    }
-
-    private String removePrefixes(String name) {
-        String lcName = name.toLowerCase();
-        for (String prefix: prefixesToRemove) {
-            if (lcName.startsWith(prefix)) {
-                return name.substring(prefix.length());
-            }
-        }
-        return name;
-    }
-
-    private void firstPass(Catalog catalog) {
-        LOG.debug("First pass...");
-        for (Schema schema: catalog.getSchemas()) {
-          LOG.debug("Processing schema...");
-          for (Table table: catalog.getTables(schema)) {
-            LOG.debug("Processing table {}", table.getName());
-            EntitySpec espec = toEntitySpec(table);
-            entitySpecs.put(table, espec);
-            spec.add( espec );
-          }
-        }
-
-    }
-
-    private EntitySpec toEntitySpec(Table table) {
+    protected EntitySpec toEntitySpec(Table table) {
         EntitySpec entitySpec = new EntitySpec();
         entitySpec.setTableName( table.getName());
         entitySpec.setClassName( generateClassName(table) );
@@ -293,7 +277,7 @@ public class FromDatabaseSchemaToSpecification {
         return entitySpec;
     }
 
-    private NodeSpec toNodeSpec(EntitySpec entitySpec, Column column) {
+    protected NodeSpec toNodeSpec(EntitySpec entitySpec, Column column) {
         NodeSpec nodeSpec = new NodeSpec();
         nodeSpec.setName( getNodeName( column ));
         if (nodeSpec.getName().equals("id")) {
@@ -334,7 +318,7 @@ public class FromDatabaseSchemaToSpecification {
         return name;
     }
 
-    private static JavaType getJavaType(JdbcType jdbcType) {
+    protected JavaType getJavaType(JdbcType jdbcType) {
         switch(jdbcType) {
         case INT: return JavaType.INTEGER;
         case DECIMAL: return JavaType.BIGDECIMAL;
@@ -350,7 +334,7 @@ public class FromDatabaseSchemaToSpecification {
         }
     }
 
-    private static JdbcType getNodeType(Column column) {
+    protected JdbcType getNodeType(Column column) {
         switch(column.getColumnDataType().getJavaSqlType().getJavaSqlType()) {
         case Types.VARCHAR: return JdbcType.VARCHAR;
         case Types.INTEGER: return JdbcType.INT;
@@ -363,12 +347,12 @@ public class FromDatabaseSchemaToSpecification {
         }
     }
 
-    private String generateQueryClassName(Table table) {
+    protected String generateQueryClassName(Table table) {
         String ccName = "Q" + removePrefixes( toCamelCase(table.getName()) );
         return  namespace + ".query." + ccName;
     }
 
-    private String generateClassName(Table table) {
+    protected String generateClassName(Table table) {
         String ccName = toCamelCase(table.getName());
         ccName = Character.toUpperCase( ccName.charAt(0) ) + ccName.substring(1, ccName.length());
         return namespace + ".model." + removePrefixes( ccName );
@@ -384,5 +368,42 @@ public class FromDatabaseSchemaToSpecification {
         return "pk_" + entitySpec.getTableName();
     }
 
+    private static class ProcessedFk {
+        private final NodeSpec from;
+        private final EntitySpec to;
+        public ProcessedFk(NodeSpec from, EntitySpec to) {
+            this.from = from;
+            this.to = to;
+        }
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((from == null) ? 0 : from.hashCode());
+            result = prime * result + ((to == null) ? 0 : to.hashCode());
+            return result;
+        }
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            ProcessedFk other = (ProcessedFk) obj;
+            if (from == null) {
+                if (other.from != null)
+                    return false;
+            } else if (!from.equals(other.from))
+                return false;
+            if (to == null) {
+                if (other.to != null)
+                    return false;
+            } else if (!to.equals(other.to))
+                return false;
+            return true;
+        }
+    }
 
 }

@@ -71,12 +71,4 @@ public class GenerateMySqlDatabaseScript extends GenerateDatabaseScript {
         }
     }
 
-    private void generatePrecisionAndScale(NodeSpec nodeSpec, StringBuilder sb) {
-        sb.append('(');
-        sb.append(nodeSpec.getPrecision());
-        sb.append(',');
-        sb.append(nodeSpec.getScale());
-        sb.append(')');
-    }
-
 }

@@ -42,6 +42,10 @@ public class GenerateHsqlDatabaseScript extends GenerateDatabaseScript {
                 sb.append("NVARCHAR");
                 generateLength(nodeSpec, sb);
                 break;
+            case DECIMAL:
+                sb.append("DECIMAL");
+                generatePrecisionAndScale(nodeSpec, sb);
+                break;
             case TIMESTAMP:
                 sb.append("TIMESTAMP");
                 break;

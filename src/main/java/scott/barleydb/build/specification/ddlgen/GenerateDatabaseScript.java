@@ -202,6 +202,15 @@ public abstract class GenerateDatabaseScript {
         sb.append("\n);\n");
     }
 
+    protected void generatePrecisionAndScale(NodeSpec nodeSpec, StringBuilder sb) {
+        sb.append('(');
+        sb.append(nodeSpec.getPrecision());
+        sb.append(',');
+        sb.append(nodeSpec.getScale());
+        sb.append(')');
+    }
+
+
     private void generatePkConstraint(EntitySpec entitySpec, StringBuilder sb) {
         PrimaryKeyConstraintSpec pkSpec = entitySpec.getPrimaryKeyConstraint();
         if (pkSpec != null) {

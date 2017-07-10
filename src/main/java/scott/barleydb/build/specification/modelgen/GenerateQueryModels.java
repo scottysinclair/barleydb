@@ -10,12 +10,12 @@ package scott.barleydb.build.specification.modelgen;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -275,12 +276,21 @@ public class GenerateQueryModels extends GenerateModelsHelper {
             /*
              * this is a simple node so we write the QProperty
              */
-            writeQPropertyMethod(out, nodeSpec);
+            writeQPropertyMethod(out, nodeSpec, false);
         }
         else {
+            //if we have a column and a relation (fk relation)
+            //write the qproperty so we can query directly on the foreign key.
+            if (nodeSpec.getColumnName() != null) {
+                //we can only have FK properties if the entity on the other side has a single primary key
+                if (nodeSpec.getRelationSpec().getEntitySpec().getPrimaryKeyNodes(true).size() == 1) {
+                    writeQPropertyMethod(out, nodeSpec, true);
+                }
+            }
+
             writeJoinMethod(out, nodeSpec);
             /*
-             * No time to add exists methods for exists across join tables.
+             * TODO: No time to add exists methods for exists across join tables.
              */
             if (nodeSpec.getRelationSpec().getOwnwardJoin() == null) {
                 writeExistsMethod(out, nodeSpec);
@@ -424,14 +434,17 @@ public class GenerateQueryModels extends GenerateModelsHelper {
         out.write("  }\n");
     }
 
-    private void writeQPropertyMethod(Writer out, NodeSpec nodeSpec) throws IOException {
+    private void writeQPropertyMethod(Writer out, NodeSpec nodeSpec, boolean useFkType) throws IOException {
         out.write("\n  public QProperty<");
-        writeJavaType(out, nodeSpec);
+        writeJavaType(out, nodeSpec, useFkType);
         out.write("> ");
         out.write(nodeSpec.getName());
+        if (useFkType) {
+            out.write("Id");
+        }
         out.write("() {\n");
         out.write("    return new QProperty<");
-        writeJavaType(out, nodeSpec);
+        writeJavaType(out, nodeSpec, useFkType);
         out.write(">(this, \"");
         out.write(nodeSpec.getName());
         out.write("\");\n");

@@ -1,5 +1,8 @@
 package scott.barleydb.bootstrap;
 
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+
 /*-
  * #%L
  * BarleyDB
@@ -27,6 +30,7 @@ package scott.barleydb.bootstrap;
 
 import java.io.LineNumberReader;
 import java.io.StringReader;
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Statement;
@@ -35,6 +39,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import javax.sql.DataSource;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Unmarshaller;
 
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.test.jdbc.JdbcTestUtils;
@@ -77,6 +83,7 @@ public class EnvironmentDef {
 
     private DataSource dataSource;
     private List<Class<?>> specClasses = new LinkedList<>();
+    private List<String> specFiles = new LinkedList<>();
     private boolean createDDL;
     private boolean dropSchema;
 
@@ -99,6 +106,11 @@ public class EnvironmentDef {
 
     public EnvironmentDef withSpecs(Class<?> ...specClass) {
         specClasses.addAll(Arrays.asList(specClass));
+        return this;
+    }
+
+    public EnvironmentDef withSpecs(String ...specFiles) {
+        this.specFiles.addAll( Arrays.asList(specFiles) );
         return this;
     }
 
@@ -156,6 +168,7 @@ public class EnvironmentDef {
          */
         SpecRegistry registry = new SpecRegistry();
 
+
         /*
          * process all of the schema definitions and load them into the barleydb environment.
          */
@@ -164,6 +177,25 @@ public class EnvironmentDef {
             processor.process((StaticDefinitions)specClass.newInstance(), registry);
         }
         allSpecs = new LinkedList<>(registry.getDefinitions());
+
+        /*
+         * process all XML files too
+         *
+         */
+        for (String specFile: specFiles) {
+            URL url = getClass().getClassLoader().getResource( specFile );
+            if (url == null) {
+                throw new FileNotFoundException("Cannot find resource " + specFile);
+            }
+            JAXBContext jc = JAXBContext.newInstance(SpecRegistry.class);
+            Unmarshaller um = jc.createUnmarshaller();
+            SpecRegistry tmpRegistry = (SpecRegistry) um.unmarshal( url );
+            for (DefinitionsSpec dspec: tmpRegistry.getDefinitions()) {
+                registry.add(dspec);
+                allSpecs.add( dspec );
+            }
+        }
+
         for (DefinitionsSpec spec: allSpecs) {
             env.addDefinitions( Definitions.create( spec ) );
         }
