@@ -45,6 +45,7 @@ import scott.barleydb.api.stream.ObjectGraph;
 import scott.barleydb.api.stream.QueryEntityDataInputStream;
 import scott.barleydb.server.jdbc.JdbcEntityContextServices;
 import scott.barleydb.server.jdbc.query.QueryGenerator.Param;
+import scott.barleydb.server.jdbc.resources.ConnectionResources;
 import scott.barleydb.server.jdbc.vendor.Database;
 import scott.barleydb.server.jdbc.query.QueryExecuter;
 import scott.barleydb.server.jdbc.query.QueryExecution;
@@ -65,17 +66,21 @@ public class QueryExecuter {
     private static final Logger LOG = LoggerFactory.getLogger(QueryExecuter.class);
 
     private JdbcEntityContextServices jdbcEntityContextServices;
+    private final ConnectionResources connectionResources;
     private final Connection connection;
     private final EntityContext entityContext;
     private final Database database;
     private final RuntimeProperties runtimeProperties;
+    private final boolean closeConnection;
 
-    public QueryExecuter(JdbcEntityContextServices jdbcEntityContextServices, Database database, Connection connection, EntityContext entityContext, RuntimeProperties runtimeProperties)  {
+    public QueryExecuter(JdbcEntityContextServices jdbcEntityContextServices, ConnectionResources connectionResources, EntityContext entityContext, RuntimeProperties runtimeProperties, boolean closeConnection)  {
         this.jdbcEntityContextServices = jdbcEntityContextServices;
-        this.database = database;
-        this.connection = connection;
+        this.connectionResources = connectionResources;
+        this.database = connectionResources.getDatabase();
+        this.connection = connectionResources.getConnection();
         this.entityContext = entityContext;
         this.runtimeProperties = runtimeProperties;
+        this.closeConnection = closeConnection;
     }
 
     /**
@@ -275,7 +280,7 @@ public class QueryExecuter {
 
     interface IResultManager {
         /**
-         * The first query has ind0x ß
+         * The first query has index 0
          * @return
          */
         public int getQueryIndex();
@@ -287,6 +292,10 @@ public class QueryExecuter {
         */
         public boolean next() throws EntityStreamException;
         public ObjectGraph readObjectGraph() throws EntityStreamException;
+        /**
+         * Closes the data stream from which we get the results.
+         * @throws EntityStreamException
+         */
         public void close() throws EntityStreamException;
         public boolean hasNext();
     }
@@ -328,7 +337,7 @@ public class QueryExecuter {
                     return true;
                 }
                 //closes current resultset and statement
-                close();
+                closeCurrentResultSetAndStatement();
                 queryIndex++;
                 //try again
                 return next();
@@ -347,14 +356,14 @@ public class QueryExecuter {
             ObjectGraph og = new ObjectGraph();
             boolean moreData =  queryExecutions[ queryIndex ].readObjectGraph( resultSet, og );
             if (!moreData) {
-                close();
+                closeCurrentResultSetAndStatement();
                 queryIndex++;
                 next(); //try and move to the next query resultset (if there is one)
             }
             return og;
         }
 
-        public void close() throws EntityStreamException {
+        private void closeCurrentResultSetAndStatement() throws EntityStreamException {
             if (resultSet != null) {
                 try {
                     LOG.debug("Closing result-set");
@@ -387,6 +396,32 @@ public class QueryExecuter {
                 finally {
                     stmt = null;
                 }
+            }
+        }
+
+        public void close() throws EntityStreamException {
+            EntityStreamException toThrow = null;
+            try {
+                closeCurrentResultSetAndStatement();
+            }
+            catch(EntityStreamException x) {
+                toThrow = x;
+            }
+            if (closeConnection) {
+                try {
+                    connectionResources.close();
+                }
+                catch(SQLException x) {
+                    if (toThrow == null) {
+                        toThrow = new EntityStreamException("Could not close connection", x);
+                    }
+                    else {
+                        toThrow.addSuppressed(x);
+                    }
+                }
+            }
+            if (toThrow != null) {
+                throw toThrow;
             }
         }
 
@@ -458,26 +493,41 @@ public class QueryExecuter {
         }
 
         public void close() throws EntityStreamException {
+            SQLException sqlx = null;
             try {
                 LOG.debug("Closing result-set");
                 resultSet.close();
             }
             catch (SQLException x) {
-                try {
-                    LOG.debug("Closing statement");
-                    stmt.close();
-                }
-                catch(SQLException x2) {
-                    x.addSuppressed(x2);
-                }
-                throw new EntityStreamException("Error closing ResultSet", x);
+                sqlx = x;
             }
             try {
                 LOG.debug("Closing statement");
                 stmt.close();
             }
             catch(SQLException x) {
-                throw new EntityStreamException("Error closing Statement", x);
+                if (sqlx == null) {
+                    sqlx = x;
+                }
+                else {
+                    sqlx.addSuppressed(x);
+                }
+            }
+            if (closeConnection) {
+                try {
+                    connectionResources.close();
+                }
+                catch(SQLException x) {
+                    if (sqlx == null) {
+                        sqlx = x;
+                    }
+                    else {
+                        sqlx.addSuppressed(x);
+                    }
+                }
+            }
+            if (sqlx != null) {
+                throw new EntityStreamException("Could not close result manager resources", sqlx);
             }
         }
 

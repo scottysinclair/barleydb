@@ -376,6 +376,7 @@ public class EntityContext implements Serializable {
      * Gets an existing entity from the context, or creates a new entity to be inserted into the database
      * @param class1
      * @param key
+     * @param constrains the constraints to use if creating the Entity
      * @return
      * @throws ProxyCreationException
      * @throws EntityConstraintMismatchException
@@ -385,9 +386,6 @@ public class EntityContext implements Serializable {
         if (entity == null) {
             entity = new Entity(this, entityType, key, constraints);
             add(entity);
-        }
-        else  if (!Objects.equals(entity.getConstraints(), constraints)) {
-            throw new EntityConstraintMismatchException(entity, constraints, entity.getConstraints());
         }
         return entity;
     }
@@ -456,6 +454,14 @@ public class EntityContext implements Serializable {
         //we will find out if we are getting too many exceptions around this.....
         return getModelOrNewModel(type, key, EntityConstraint.noConstraints());
     }
+
+    /**
+     *
+     * @param type
+     * @param key
+     * @param constraints the constrains to use if creating the model
+     * @return
+     */
     public <T> T getModelOrNewModel(Class<T> type, Object key, EntityConstraint constraints)  {
         EntityType entityType = definitions.getEntityTypeForClass(type, true);
         Entity entity = getEntityOrNewEntity(entityType, key, constraints);

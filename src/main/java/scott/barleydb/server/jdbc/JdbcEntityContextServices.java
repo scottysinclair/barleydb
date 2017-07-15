@@ -269,8 +269,8 @@ public class JdbcEntityContextServices implements IEntityContextServices {
 
         QueryExecution<T> execution = new QueryExecution<T>(this, entityContext, query, env.getDefinitions(entityContext.getNamespace()));
 
-        try (OptionalyClosingResources con = new OptionalyClosingResources(conRes, returnToPool)){
-            QueryExecuter executer = new QueryExecuter(this, conRes.getDatabase(), con.getConnection(), entityContext, props);
+        try{
+            QueryExecuter executer = new QueryExecuter(this, conRes, entityContext, props, returnToPool);
             /*
              * convert the result stream to a full in-memory result
              */
@@ -295,7 +295,7 @@ public class JdbcEntityContextServices implements IEntityContextServices {
         QueryExecution<T> execution = new QueryExecution<T>(this, entityContext, query, env.getDefinitions(entityContext.getNamespace()));
 
         try (OptionalyClosingResources con = new OptionalyClosingResources(conRes, returnToPool)){
-            QueryExecuter executer = new QueryExecuter(this, conRes.getDatabase(), con.getConnection(), entityContext, props);
+            QueryExecuter executer = new QueryExecuter(this, conRes, entityContext, props, returnToPool);
             /*
              * convert the result stream to a full in-memory result
              */
@@ -326,7 +326,7 @@ public class JdbcEntityContextServices implements IEntityContextServices {
         }
 
         try (OptionalyClosingResources con = new OptionalyClosingResources(conRes, returnToPool);) {
-            QueryExecuter exec = new QueryExecuter(this, conRes.getDatabase(), con.getConnection(), entityContext, props);
+            QueryExecuter exec = new QueryExecuter(this, conRes, entityContext, props, returnToPool);
             return toQueryBatchResult(entityContext, queryBatcher, exec.execute(queryExecutions) );
         }
         catch(EntityStreamException x) {

@@ -40,7 +40,7 @@ public class StreamingQueryExecutionProcessor implements QueryEntityDataInputStr
     /**
      * Abstracts the ResultSet for us.
      */
-    private IResultManager resultManager;
+    private final IResultManager resultManager;
 
     public StreamingQueryExecutionProcessor(IResultManager resultManager) throws EntityStreamException {
         this.resultManager = resultManager;
