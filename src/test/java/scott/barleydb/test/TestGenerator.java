@@ -53,7 +53,7 @@ import scott.barleydb.build.specification.ddlgen.GenerateDatabaseScript;
 import scott.barleydb.build.specification.ddlgen.GenerateHsqlDatabaseScript;
 import scott.barleydb.build.specification.ddlgen.GenerateMySqlDatabaseScript;
 import scott.barleydb.build.specification.ddlgen.GenerateOracleDatabaseScript;
-import scott.barleydb.build.specification.modelgen.GenerateDataModels;
+import scott.barleydb.build.specification.modelgen.GenerateProxyModels;
 import scott.barleydb.build.specification.modelgen.GenerateEnums;
 import scott.barleydb.build.specification.modelgen.GenerateQueryModels;
 import scott.barleydb.build.specification.staticspec.processor.StaticDefinitionProcessor;
@@ -226,7 +226,7 @@ public class TestGenerator {
         GenerateEnums generateEnums = new GenerateEnums();
         generateEnums.generateEnums("target/generated/src/test/java", aclSpec);
 
-        GenerateDataModels generateModels = new GenerateDataModels();
+        GenerateProxyModels generateModels = new GenerateProxyModels();
         generateModels.generateDataModels("target/generated/src/test/java", aclSpec);
 
         GenerateQueryModels generateQueryModels = new GenerateQueryModels();
@@ -243,7 +243,7 @@ public class TestGenerator {
         GenerateEnums generateEnums = new GenerateEnums();
         generateEnums.generateEnums("target/generated/src/test/java", etlSpec);
 
-        GenerateDataModels generateDataModels = new GenerateDataModels();
+        GenerateProxyModels generateDataModels = new GenerateProxyModels();
         generateDataModels.generateDataModels("target/generated/src/test/java", etlSpec);
 
         GenerateQueryModels generateQueryModels = new GenerateQueryModels();

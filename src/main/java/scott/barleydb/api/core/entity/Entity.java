@@ -88,6 +88,10 @@ public class Entity implements Serializable {
         this(context, EntityState.NOTLOADED, entityType, key, UUID.randomUUID(), constraints);
     }
 
+    public Entity(EntityContext context, EntityType entityType, Object key, UUID uuid, EntityConstraint constraints) {
+      this(context, EntityState.NOTLOADED, entityType, key, uuid, constraints);
+  }
+
     private Entity(EntityContext context, EntityState entityState, EntityType entityType, Object key, UUID uuid, EntityConstraint constraints) {
         this.entityContext = context;
         this.entityType = entityType;

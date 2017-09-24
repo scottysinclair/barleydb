@@ -255,7 +255,8 @@ public class FromDatabaseSchemaToSpecification {
         entitySpec.setTableName( table.getName());
         entitySpec.setClassName( generateClassName(table) );
         entitySpec.setAbstractEntity(false);
-        entitySpec.setQueryClassName( generateQueryClassName(table));
+        entitySpec.setQueryClassName( generateQueryClassName(table) );
+        entitySpec.setDtoClassName( generateDtoClassName(table) );
 
         for (Column column: table.getColumns()) {
             LOG.debug("Processing column {}", column.getName());
@@ -351,6 +352,12 @@ public class FromDatabaseSchemaToSpecification {
         String ccName = "Q" + removePrefixes( toCamelCase(table.getName()) );
         return  namespace + ".query." + ccName;
     }
+
+    protected String generateDtoClassName(Table table) {
+      String ccName = toCamelCase(table.getName());
+      ccName = Character.toUpperCase( ccName.charAt(0) ) + ccName.substring(1, ccName.length());
+      return namespace + ".model." + removePrefixes( ccName )+ "Dto";
+  }
 
     protected String generateClassName(Table table) {
         String ccName = toCamelCase(table.getName());

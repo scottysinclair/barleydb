@@ -37,7 +37,7 @@ import scott.barleydb.api.specification.DefinitionsSpec;
 import scott.barleydb.api.specification.SpecRegistry;
 import scott.barleydb.build.specification.ddlgen.GenerateDatabaseScript;
 import scott.barleydb.build.specification.ddlgen.GenerateMySqlDatabaseScript;
-import scott.barleydb.build.specification.modelgen.GenerateDataModels;
+import scott.barleydb.build.specification.modelgen.GenerateProxyModels;
 import scott.barleydb.build.specification.modelgen.GenerateEnums;
 import scott.barleydb.build.specification.modelgen.GenerateQueryModels;
 import scott.barleydb.build.specification.staticspec.StaticDefinitions;
@@ -93,7 +93,7 @@ public class Generator {
             GenerateEnums generateEnums = new GenerateEnums();
             generateEnums.generateEnums(javaBasePath, playSpec);
 
-            GenerateDataModels generateDataModels = new GenerateDataModels();
+            GenerateProxyModels generateDataModels = new GenerateProxyModels();
             generateDataModels.generateDataModels(javaBasePath, playSpec);
 
             GenerateQueryModels generateQueryModels = new GenerateQueryModels();

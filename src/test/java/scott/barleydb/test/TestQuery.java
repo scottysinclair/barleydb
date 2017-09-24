@@ -350,7 +350,6 @@ public class TestQuery extends TestRemoteClientBase {
                         System.out.println("****TARGET: " + mapping.getTargetFieldName());
                         Runtime.getRuntime().gc();
 
-                        //will cause  a lazy load
                         XmlSyntaxModel subSyntax = mapping.getSubSyntax();
                         if (subSyntax != null) {
                             System.out.println("-------------------------------------------");

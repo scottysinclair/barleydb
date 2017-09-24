@@ -38,7 +38,7 @@ import scott.barleydb.api.specification.NodeSpec;
 import scott.barleydb.api.specification.RelationSpec;
 import scott.barleydb.api.specification.SuppressionSpec;
 
-public class GenerateDataModels extends GenerateModelsHelper {
+public class GenerateProxyModels extends GenerateModelsHelper {
 
     public void generateDataModels(String path, DefinitionsSpec definitions) throws IOException {
         for (EntitySpec entitySpec: definitions.getEntitySpecs()) {

@@ -372,6 +372,26 @@ public class EntityContext implements Serializable {
         return entity;
     }
 
+    public Entity newEntity(EntityType entityType, Object key, EntityConstraint constraints, UUID uuid) {
+      if (key != null) {
+          /*
+           * the entity must be new to the context
+           * we don't care if it exists in the database or not
+           */
+          Entity entity = getEntity(entityType, key, false);
+          if (entity == null) {
+            entity = getEntityByUuid(uuid, false);
+          }
+          if (entity != null) {
+              throw new IllegalStateException("Entity with key '" + entity.getKey().getValue() + "' already exists.");
+          }
+      }
+
+      Entity entity = new Entity(this, entityType, key, uuid, constraints);
+      add(entity);
+      return entity;
+  }
+
     /**
      * Gets an existing entity from the context, or creates a new entity to be inserted into the database
      * @param class1
@@ -525,11 +545,12 @@ public class EntityContext implements Serializable {
                     LOG.debug("Processing RefNode {} with key {}", refNode.getName(), value);
                     Entity reffed = getEntity(refNode.getEntityType(), value, false);
                     if (reffed != null) {
+                       //as we have a foreign key in the entity data we assume that FK entity must exist in the database
+                      //(method is called addEntityLoadedFromDB)
                         reffed.getConstraints().setMustExistInDatabase();
                     }
                     else {
-                        //TODO: MUST EXIST IN DATABASE BECAUSE of our method name  cleanp entity data logic
-                        //so that it is dynamic
+                        //MUST EXIST IN DATABASE BECAUSE of our method name
                         reffed = newEntity(refNode.getEntityType(), value, EntityConstraint.mustExistInDatabase());
                     }
                     refNode.setReference( reffed );

@@ -57,6 +57,9 @@ public class EntitySpec implements Serializable {
     @XmlElement(name = "queryClass")
     private String queryClassName;
 
+    @XmlElement(name = "dtoClassName")
+    private String dtoClassName;
+
     @XmlAttribute
     private String tableName;
 
@@ -113,6 +116,14 @@ public class EntitySpec implements Serializable {
 
     public void setClassName(String className) {
         this.className = className;
+    }
+
+    public String getDtoClassName() {
+      return dtoClassName;
+    }
+
+    public void setDtoClassName(String dtoClassName) {
+      this.dtoClassName = dtoClassName;
     }
 
     public EntitySpec getParentEntity() {

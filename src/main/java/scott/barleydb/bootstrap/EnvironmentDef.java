@@ -61,7 +61,7 @@ import scott.barleydb.build.specification.ddlgen.GenerateDatabaseScript;
 import scott.barleydb.build.specification.ddlgen.GenerateHsqlDatabaseScript;
 import scott.barleydb.build.specification.ddlgen.GenerateMySqlDatabaseScript;
 import scott.barleydb.build.specification.ddlgen.GeneratePostgreSQLDatabaseScript;
-import scott.barleydb.build.specification.modelgen.GenerateDataModels;
+import scott.barleydb.build.specification.modelgen.GenerateProxyModels;
 import scott.barleydb.build.specification.staticspec.StaticDefinitions;
 import scott.barleydb.build.specification.staticspec.processor.StaticDefinitionProcessor;
 import scott.barleydb.server.jdbc.JdbcEntityContextServices;
@@ -215,7 +215,7 @@ public class EnvironmentDef {
          * registery proxy factories for each namespace
          */
         for (DefinitionsSpec spec: allSpecs) {
-            String className = GenerateDataModels.getProxyFactoryFullyQuallifiedClassName(spec);
+            String className = GenerateProxyModels.getProxyFactoryFullyQuallifiedClassName(spec);
             Class<?> facClass = getClass().getClassLoader().loadClass( className );
             env.getDefinitions(spec.getNamespace()).registerProxyFactory((ProxyFactory)facClass.newInstance());
         }

@@ -112,6 +112,10 @@ public abstract class StaticDefinitions {
         return namespace + ".query.Q" + entityDefinition.getSimpleName();
     }
 
+    public String createFullyQualifiedDtoClassName(Class<?> entityDefinition) {
+      return namespace + ".dto." + entityDefinition.getSimpleName() + "Dto";
+    }
+
     public String createFullyQualifiedEnumClassName(Class<?> enumDefinition) {
         return namespace + ".model." + enumDefinition.getSimpleName();
     }

@@ -13,12 +13,12 @@ package scott.barleydb.bootstrap;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -27,7 +27,8 @@ package scott.barleydb.bootstrap;
 
 import scott.barleydb.api.specification.DefinitionsSpec;
 import scott.barleydb.api.specification.SpecRegistry;
-import scott.barleydb.build.specification.modelgen.GenerateDataModels;
+import scott.barleydb.build.specification.modelgen.GenerateProxyModels;
+import scott.barleydb.build.specification.modelgen.GenerateDtoModels;
 import scott.barleydb.build.specification.modelgen.GenerateEnums;
 import scott.barleydb.build.specification.modelgen.GenerateQueryModels;
 import scott.barleydb.build.specification.staticspec.StaticDefinitions;
@@ -45,12 +46,15 @@ public class GenerateModels {
             GenerateEnums generateEnums = new GenerateEnums();
             generateEnums.generateEnums("src/main/java", vvlSpec);
 
-            GenerateDataModels generateDataModels = new GenerateDataModels();
+            GenerateProxyModels generateDataModels = new GenerateProxyModels();
             generateDataModels.generateDataModels("src/main/java", vvlSpec);
 
             GenerateQueryModels generateQueryModels = new GenerateQueryModels();
             generateQueryModels.generateQueryModels("src/main/java", vvlSpec);
-        }
+
+            GenerateDtoModels generateDtoModels = new GenerateDtoModels();
+            generateDtoModels.generateDtoModels("src/main/java", vvlSpec);
+}
         catch(Exception x) {
             x.printStackTrace(System.err);
         }

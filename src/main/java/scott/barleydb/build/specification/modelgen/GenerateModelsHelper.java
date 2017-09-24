@@ -27,6 +27,7 @@ import java.io.Writer;
 import java.util.Collection;
 
 import scott.barleydb.api.specification.EntitySpec;
+import scott.barleydb.api.specification.EnumSpec;
 import scott.barleydb.api.specification.NodeSpec;
 import scott.barleydb.api.specification.RelationSpec;
 
@@ -122,6 +123,12 @@ public class GenerateModelsHelper {
         int i = entitySpec.getQueryClassName().lastIndexOf('.');
         return entitySpec.getQueryClassName().substring(i+1);
     }
+
+    protected String getSimpleEnumName(EnumSpec enumSpec) {
+      int i = enumSpec.getClassName().lastIndexOf('.');
+      return enumSpec.getClassName().substring(i+1);
+    }
+
 
 
 
