@@ -13,12 +13,12 @@ package scott.barleydb.test;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -54,6 +54,7 @@ import scott.barleydb.build.specification.ddlgen.GenerateHsqlDatabaseScript;
 import scott.barleydb.build.specification.ddlgen.GenerateMySqlDatabaseScript;
 import scott.barleydb.build.specification.ddlgen.GenerateOracleDatabaseScript;
 import scott.barleydb.build.specification.modelgen.GenerateProxyModels;
+import scott.barleydb.build.specification.modelgen.GenerateDtoModels;
 import scott.barleydb.build.specification.modelgen.GenerateEnums;
 import scott.barleydb.build.specification.modelgen.GenerateQueryModels;
 import scott.barleydb.build.specification.staticspec.processor.StaticDefinitionProcessor;
@@ -77,7 +78,7 @@ public class TestGenerator {
     }
 
     @Test
-    public void testgenerateAclXmlSpec() throws Exception {
+    public void testGenerateAclXmlSpec() throws Exception {
         SpecRegistry registry = new SpecRegistry();
         StaticDefinitionProcessor processor = new StaticDefinitionProcessor();
         @SuppressWarnings("unused")
@@ -231,7 +232,10 @@ public class TestGenerator {
 
         GenerateQueryModels generateQueryModels = new GenerateQueryModels();
         generateQueryModels.generateQueryModels("target/generated/src/test/java", aclSpec);
-}
+
+        GenerateDtoModels genDto = new GenerateDtoModels();
+        genDto.generateDtoModels("target/generated/src/test/java", aclSpec);
+    }
 
     @Test
     public void generateEtlModels() throws IOException {
@@ -248,6 +252,9 @@ public class TestGenerator {
 
         GenerateQueryModels generateQueryModels = new GenerateQueryModels();
         generateQueryModels.generateQueryModels("target/generated/src/test/java", etlSpec);
+
+        GenerateDtoModels genDto = new GenerateDtoModels();
+        genDto.generateDtoModels("target/generated/src/test/java", etlSpec);
     }
 
     @Test

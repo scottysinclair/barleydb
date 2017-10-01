@@ -1,5 +1,30 @@
 package scott.barleydb.api.dto;
 
+/*-
+ * #%L
+ * BarleyDB
+ * $Id:$
+ * $HeadURL:$
+ * %%
+ * Copyright (C) 2014 - 2017 Scott Sinclair
+ *       <scottysinclair@gmail.com>
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Lesser Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Lesser Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/lgpl-3.0.html>.
+ * #L%
+ */
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -37,7 +62,7 @@ public class DtoHelper {
   }
 
   @SuppressWarnings("unchecked")
-  private <T> T callPropertyGetter(BaseDto dto, NodeType nodeType) {
+  public <T> T callPropertyGetter(BaseDto dto, NodeType nodeType) {
     Method method = findMethod(dto, nodeType, true);
     return (T)invoke(method, dto);
   }
@@ -64,13 +89,13 @@ public class DtoHelper {
     for (Method m: dto.getClass().getMethods()) {
       final String name = m.getName().toLowerCase();
       if (getter) {
-        if ((name.startsWith("get") || name.startsWith("is")) && name.contains( propertyName )) {
+        if (name.equals("get" + propertyName) || name.equals( "is" + propertyName )) {
            methodCache.put(key, m);
            return m;
         }
       }
       else {
-        if (name.startsWith("set") && name.contains(propertyName)) {
+        if (name.equals("set" + propertyName)) {
           methodCache.put(key, m);
           return m;
         }
@@ -87,6 +112,11 @@ public class DtoHelper {
   public void setCollectionFetched(BaseDto dto, NodeType nodeType, boolean fetched) {
     DtoList<?> list = callPropertyGetter(dto, nodeType);
     list.setFetched(fetched);
+  }
+
+  public void clearCollection(BaseDto dto, NodeType nodeType, BaseDto reffedDto) {
+    DtoList<BaseDto> list = callPropertyGetter(dto, nodeType);
+    list.clear();
   }
 
   public void addToCollection(BaseDto dto, NodeType nodeType, BaseDto reffedDto) {

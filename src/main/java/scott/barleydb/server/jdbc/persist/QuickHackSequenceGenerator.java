@@ -25,10 +25,12 @@ package scott.barleydb.server.jdbc.persist;
 import java.util.HashMap;
 import java.util.Map;
 
+import scott.barleydb.api.config.Definitions;
 import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.core.Environment;
 import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityContext;
+import scott.barleydb.api.exception.SortRuntimeException;
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
 import scott.barleydb.api.query.QueryObject;
 
@@ -38,7 +40,29 @@ public class QuickHackSequenceGenerator implements SequenceGenerator {
 
     public QuickHackSequenceGenerator(Environment env) {
         this.env = env;
+        for (Definitions defs: env.getDefinitionsSet().getDefinitions()) {
+          for (EntityType entityType: defs.getEntityTypes()) {
+            try {
+              QueryObject<?> qo = new QueryObject<>(entityType.getInterfaceName());
+              // a new entity context will consume a new connection
+              // as it is not sharing in a transaction.
+              EntityContext entityContext = new EntityContext(env, entityType.getDefinitions().getNamespace());
+              entityContext.performQuery(qo);
+              Long highest = 0l;
+              for (Entity e : entityContext.getEntitiesByType(entityType)) {
+                  Long key = (Long) e.getKey().getValue();
+                  if (key > highest) {
+                      highest = key;
+                  }
+              }
+              values.put(entityType, highest);
+            } catch (Exception x) {
+              throw new SortRuntimeException("Could not get next key for " + entityType, x);
+            }
+          }
+        }
     }
+
 
     @Override
     public synchronized Object getNextKey(EntityType entityType) throws SortPersistException {

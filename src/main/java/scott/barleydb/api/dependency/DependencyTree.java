@@ -46,7 +46,6 @@ import scott.barleydb.api.core.util.CollectionUtil;
 import scott.barleydb.api.dependency.diagram.DependencyDiagram;
 import scott.barleydb.api.dependency.diagram.Link;
 import scott.barleydb.api.dependency.diagram.LinkType;
-import scott.barleydb.api.persist.OperationType;
 
 /**
  * An abstract dependency tree

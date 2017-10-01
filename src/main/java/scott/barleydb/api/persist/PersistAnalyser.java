@@ -267,6 +267,12 @@ public class PersistAnalyser implements Serializable {
         } finally {
             analysing.clear();
         }
+
+        for (Entity entity: createGroup.getEntities()) {
+          if (entity.getConstraints().isMustExistInDatabase()) {
+            throw new SortPersistException("Entity " + entity + " is in the create group but is constrained to exist in the database");
+          }
+        }
     }
 
     private final void setCorrectStateForEntitiesWhichMayOrMayNotBeInTheDatabase(Collection<Operation> operations) throws SortPersistException {

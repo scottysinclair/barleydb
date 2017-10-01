@@ -1,4 +1,4 @@
-package scott.barleydb.api.dto;
+package org.example.acl.dto;
 
 /*-
  * #%L
@@ -25,48 +25,63 @@ package scott.barleydb.api.dto;
  * #L%
  */
 
-import java.io.Serializable;
-import java.util.UUID;
+import scott.barleydb.api.dto.BaseDto;
 
-import scott.barleydb.api.core.entity.EntityConstraint;
-import scott.barleydb.api.core.entity.EntityState;
 
-public class BaseDto implements Serializable {
-
+/**
+ * Generated from Entity Specification
+ *
+ * @author scott
+ */
+public class UserDto extends BaseDto {
   private static final long serialVersionUID = 1L;
- /**
-   * UUID for housekeeping.
-   */
-  private UUID uuid = UUID.randomUUID();
-  /**
-   * entity constraints
-   */
-  private EntityConstraint constraints = EntityConstraint.noConstraints();
 
-  private EntityState entityState = EntityState.NOTLOADED;
+  private Long id;
+  private AccessAreaDto accessArea;
+  private String uuid;
+  private Long modifiedAt;
+  private String name;
 
-  public EntityConstraint getConstraints() {
-    return constraints;
+  public UserDto() {
   }
 
-  public void setConstraints(EntityConstraint constraints) {
-    this.constraints = constraints;
+  public Long getId() {
+    return id;
   }
 
-  public UUID getBaseDtoUuid() {
+  public void setId(Long id) {
+    this.id = id;
+  }
+
+  public AccessAreaDto getAccessArea() {
+    return accessArea;
+  }
+
+  public void setAccessArea(AccessAreaDto accessArea) {
+    this.accessArea = accessArea;
+  }
+
+  public String getUuid() {
     return uuid;
   }
 
-  public void setBaseDtoUuid(UUID uuid) {
+  public void setUuid(String uuid) {
     this.uuid = uuid;
   }
 
-  public EntityState getEntityState() {
-    return entityState;
+  public Long getModifiedAt() {
+    return modifiedAt;
   }
 
-  public void setEntityState(EntityState entityState) {
-    this.entityState = entityState;
+  public void setModifiedAt(Long modifiedAt) {
+    this.modifiedAt = modifiedAt;
   }
 
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
 }

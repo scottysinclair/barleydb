@@ -93,7 +93,7 @@ public class PersistRequest implements Serializable {
 
     private Entity verifyArg(Object object, String operation) {
         if (object == null) {
-            throw new NullPointerException("Cannot " + operation + "a null reference");
+            throw new NullPointerException("Cannot " + operation + " a null reference");
         }
         if (object instanceof Entity) {
             return (Entity)object;

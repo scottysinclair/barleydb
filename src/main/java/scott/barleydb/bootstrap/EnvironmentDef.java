@@ -160,7 +160,6 @@ public class EnvironmentDef {
         }
 
 
-        services.setSequenceGenerator(new QuickHackSequenceGenerator(env));
         services.register(new LongToStringTimestampConverter());
 
         /*
@@ -227,6 +226,7 @@ public class EnvironmentDef {
         if (createDDL) {
             createSchema();
         }
+        services.setSequenceGenerator(new QuickHackSequenceGenerator(env));
 
         return env;
     }

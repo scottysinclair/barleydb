@@ -57,6 +57,7 @@ public class GenerateDtoModels extends GenerateModelsHelper {
             out.write("\n");
             if (hasToManyReference(entitySpec)) {
                 out.write("import scott.barleydb.api.dto.DtoList;\n");
+                out.write("import scott.barleydb.api.dto.DtoNToMList;\n");
                 out.write("\n");
             }
             writeDtoImports(definitions, entitySpec, out);
@@ -112,7 +113,12 @@ public class GenerateDtoModels extends GenerateModelsHelper {
     protected String getDtoSimpleClassName(EntitySpec entitySpec) {
       int i = entitySpec.getClassName().lastIndexOf('.');
       return entitySpec.getClassName().substring(i+1) + "Dto";
-  }
+    }
+
+    protected String getDtoClassName(EntitySpec entitySpec) {
+      return (entitySpec.getClassName() + "Dto").replace(".model.", ".dto.");
+    }
+
 
     private String calcNodeType(NodeSpec nodeSpec) {
       if (nodeSpec.getEnumSpec() != null) {
@@ -127,7 +133,13 @@ public class GenerateDtoModels extends GenerateModelsHelper {
         }
       }
       if (nodeSpec.getColumnName() == null){
-        return "DtoList<" + getDtoSimpleClassName(nodeSpec.getRelationSpec().getEntitySpec()) + ">";
+        if (nodeSpec.getRelationSpec().getOwnwardJoin() != null) {
+          NodeSpec oj = nodeSpec.getRelationSpec().getOwnwardJoin();
+          return "DtoNToMList<" + getDtoSimpleClassName(nodeSpec.getRelationSpec().getEntitySpec()) + ", " + getDtoSimpleClassName(oj.getRelationSpec().getEntitySpec()) + ">";
+        }
+        else {
+          return "DtoList<" + getDtoSimpleClassName(nodeSpec.getRelationSpec().getEntitySpec()) + ">";
+        }
       }
       throw new IllegalStateException("Invalid node type");
     }
@@ -144,7 +156,7 @@ public class GenerateDtoModels extends GenerateModelsHelper {
                         writtenFirstNewLine = true;
                     }
                     out.write("import ");
-                    out.write(relationSpec.getEntitySpec().getClassName());
+                    out.write(getDtoClassName( relationSpec.getEntitySpec() ));
                     out.write(";\n");
                 }
             }
@@ -190,9 +202,9 @@ public class GenerateDtoModels extends GenerateModelsHelper {
     private void writeNodeGetterAndSetter(Writer out, DefinitionsSpec definitions, NodeSpec nodeSpec) throws IOException {
         out.write("\n");
         writeNodeGetter(out, definitions, nodeSpec);
-         if (nodeSpec.getSuppression() != SuppressionSpec.GENERATED_CODE_SETTER) {
+//         if (nodeSpec.getSuppression() != SuppressionSpec.GENERATED_CODE_SETTER) {
              writeNodeSetter(out, nodeSpec);
-         }
+  //       }
     }
 
     private void writeNodeSetter(Writer out, NodeSpec nodeSpec) throws IOException {
@@ -258,7 +270,17 @@ public class GenerateDtoModels extends GenerateModelsHelper {
         writeNodeFieldType(out, nodeSpec);
         out.write(" ");
         out.write(nodeSpec.getName());
-        out.write(";\n");
+        if (nodeSpec.getColumnName() != null) {
+          out.write(";\n");
+        }
+        else if (nodeSpec.getRelation() != null) {
+          if (nodeSpec.getRelation().getOwnwardJoin() != null) {
+            out.write(" = new DtoNToMList<>(null, null, null);\n");
+          }
+          else {
+            out.write(" = new DtoList<>();\n");
+          }
+        }
     }
 
     private String toGetterName(NodeSpec nodeSpec) {
@@ -336,14 +358,18 @@ public class GenerateDtoModels extends GenerateModelsHelper {
               }
           }
           else {
-              out.write("DtoList<");
               if (ownwardJoin != null) {
+                  out.write("DtoNToMList<");
+                  out.write(getDtoSimpleClassName(nodeSpec.getRelationSpec().getEntitySpec()));
+                  out.write(", ");
                   out.write(getDtoSimpleClassName(ownwardJoin.getRelationSpec().getEntitySpec()));
+                  out.write(">");
               }
               else {
+                  out.write("DtoList<");
                   out.write(getDtoSimpleClassName(relationSpec.getEntitySpec()));
+                  out.write(">");
               }
-              out.write(">");
           }
       }
       else if (nodeSpec.getEnumSpec() != null) {

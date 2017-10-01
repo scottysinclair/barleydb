@@ -92,7 +92,8 @@ public abstract class AbstractCustomEntityProxy implements ProxyController, Seri
 
     @SuppressWarnings("unchecked")
     protected final <T> List<T> getListProxy(ToManyNode node) {
-        return (List<T>) new ToManyProxy<Object>(node);
+      entity.fetchIfRequiredAndAllowed();
+       return (List<T>) new ToManyProxy<Object>(node);
     }
 
     protected final void setList(ToManyNode node, List<?> list) {

@@ -32,6 +32,7 @@ import java.util.Map;
 
 import scott.barleydb.api.core.QueryRegistry;
 import scott.barleydb.api.core.proxy.ProxyFactory;
+import scott.barleydb.api.dto.BaseDto;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.specification.DefinitionsSpec;
 import scott.barleydb.api.specification.EntitySpec;
@@ -208,6 +209,28 @@ public class Definitions implements Serializable {
             throw new IllegalStateException("Query for entity type '" + interfaceName + "' does not exist.");
         }
         return null;
+    }
+
+    public EntityType getEntityTypeForDtoClass(Class<? extends BaseDto> dto, boolean mustExist) {
+      for (EntityType entityType: getEntityTypes()) {
+        if (entityType.getDtoClassName().equals( dto.getName())) {
+          return entityType;
+        }
+      }
+      if (definitionsSet != null) {
+        EntityType eType = null;
+        for (String namespace : references) {
+            Definitions d = definitionsSet.getDefinitions(namespace);
+            eType = d.getEntityTypeForDtoClass(dto, false);
+            if (eType != null) {
+                return eType;
+            }
+        }
+      }
+      if (mustExist) {
+        throw new IllegalStateException("EntityType for dto '" + dto.getName() + "' does not exist.");
+      }
+      return null;
     }
 
 }

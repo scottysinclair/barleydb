@@ -1,4 +1,4 @@
-package scott.barleydb.api.dto;
+package org.example.etl.dto;
 
 /*-
  * #%L
@@ -25,27 +25,45 @@ package scott.barleydb.api.dto;
  * #L%
  */
 
-import java.util.LinkedList;
+import scott.barleydb.api.dto.BaseDto;
 
-public class DtoList<T> extends LinkedList<T> {
 
+/**
+ * Generated from Entity Specification
+ *
+ * @author scott
+ */
+public class TemplateBusinessTypeDto extends BaseDto {
   private static final long serialVersionUID = 1L;
 
-  /**
-   * if the list has been fetched or not (true, false or undefined)
-   */
-  private Boolean fetched;
+  private Long id;
+  private TemplateDto template;
+  private BusinessTypeDto businessType;
 
-  public DtoList() {
-    super();
+  public TemplateBusinessTypeDto() {
   }
 
-
-   public Boolean isFetched() {
-    return fetched;
+  public Long getId() {
+    return id;
   }
 
-  public void setFetched(Boolean value) {
-    this.fetched = value;
+  public void setId(Long id) {
+    this.id = id;
+  }
+
+  public TemplateDto getTemplate() {
+    return template;
+  }
+
+  public void setTemplate(TemplateDto template) {
+    this.template = template;
+  }
+
+  public BusinessTypeDto getBusinessType() {
+    return businessType;
+  }
+
+  public void setBusinessType(BusinessTypeDto businessType) {
+    this.businessType = businessType;
   }
 }
