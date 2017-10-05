@@ -13,12 +13,12 @@ package org.example.etl;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -26,10 +26,14 @@ package org.example.etl;
  */
 
 import org.example.etl.dto.SyntaxModelDto;
+import org.example.etl.dto.TemplateDto;
 import org.example.etl.dto.XmlSyntaxModelDto;
+import org.example.etl.model.BusinessType;
 import org.example.etl.model.SyntaxModel;
+import org.example.etl.model.Template;
 import org.example.etl.model.XmlMapping;
 import org.example.etl.model.XmlSyntaxModel;
+import org.example.etl.query.QTemplate;
 import org.example.etl.query.QXmlSyntaxModel;
 
 import scott.barleydb.api.core.Environment;
@@ -50,7 +54,7 @@ public class EtlServices {
     this.namespace = namespace;
   }
 
-  public void saveSyntax(SyntaxModelDto syntaxDto) throws SortServiceProviderException, SortPersistException {
+  public void saveSyntax(SyntaxModelDto syntaxDto) throws SortServiceProviderException, SortPersistException, SortQueryException {
     EntityContext ctx = new EtlEntityContext(env);
     DtoConverter converter = new DtoConverter(env, namespace, ctx);
     converter.importDtos(syntaxDto);
@@ -87,4 +91,45 @@ public class EtlServices {
        }
     }
   }
+
+  public void saveTemplate(TemplateDto templateDto) throws SortServiceProviderException, SortPersistException, SortQueryException {
+    save(templateDto, false);
+  }
+
+  public void saveTemplateAndBusinessTypes(TemplateDto templateDto) throws SortServiceProviderException, SortQueryException, SortPersistException {
+    save(templateDto, true);
+  }
+  private void save(TemplateDto templateDto, boolean withBusinessTypes) throws SortServiceProviderException, SortQueryException, SortPersistException {
+    EntityContext ctx = new EtlEntityContext(env);
+    DtoConverter converter = new DtoConverter(env, namespace, ctx);
+    converter.importDtos(templateDto);
+    Template template = converter.getModel(templateDto);
+
+    PersistRequest pr = new PersistRequest();
+    pr.save(template);
+    if (withBusinessTypes) {
+      for (BusinessType bt: template.getBusinessTypes()) {
+        pr.save(bt);
+      }
+    }
+    ctx.persist(pr);
+    converter.convertToDtos();
+  }
+
+
+  public TemplateDto loadTemplate(Long id) throws SortServiceProviderException, SortQueryException {
+    EntityContext ctx = new EntityContext(env, namespace);
+
+    QTemplate q = new QTemplate();
+    q.joinToAccessArea();
+    q.joinToBusinessType();
+    q.where(q.id().equal(id));
+
+    Template template = ctx.performQuery(q).getSingleResult();
+
+    DtoConverter converter = new DtoConverter(env, namespace, ctx);
+    converter.convertToDtos();
+    return converter.getDto(template);
+  }
+
 }

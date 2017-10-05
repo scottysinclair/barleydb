@@ -28,7 +28,6 @@ package org.example.etl.dto;
 import scott.barleydb.api.dto.BaseDto;
 
 import scott.barleydb.api.dto.DtoList;
-import scott.barleydb.api.dto.DtoNToMList;
 
 
 import org.example.acl.dto.AccessAreaDto;
@@ -47,7 +46,7 @@ public class TemplateDto extends BaseDto {
   private Long modifiedAt;
   private String name;
   private DtoList<TemplateContentDto> contents = new DtoList<>();
-  private DtoNToMList<TemplateBusinessTypeDto, BusinessTypeDto> businessTypes = new DtoNToMList<>(null, null, null);
+  private DtoList<BusinessTypeDto> businessTypes = new DtoList<>();
 
   public TemplateDto() {
   }
@@ -96,7 +95,7 @@ public class TemplateDto extends BaseDto {
     return contents;
   }
 
-  public DtoNToMList<TemplateBusinessTypeDto, BusinessTypeDto> getBusinessTypes() {
+  public DtoList<BusinessTypeDto> getBusinessTypes() {
     return businessTypes;
   }
 }

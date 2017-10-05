@@ -13,12 +13,12 @@ package scott.barleydb.api.dto;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -27,12 +27,23 @@ package scott.barleydb.api.dto;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.core.Environment;
 import scott.barleydb.api.core.entity.Entity;
+import scott.barleydb.api.core.entity.EntityConstraint;
 import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.entity.EntityContextState;
 import scott.barleydb.api.core.entity.ProxyController;
@@ -40,9 +51,17 @@ import scott.barleydb.api.core.entity.RefNode;
 import scott.barleydb.api.core.entity.ToManyNode;
 import scott.barleydb.api.core.entity.ValueNode;
 import scott.barleydb.api.exception.SortRuntimeException;
+import scott.barleydb.api.exception.execution.SortServiceProviderException;
+import scott.barleydb.api.exception.execution.query.SortQueryException;
+import scott.barleydb.api.query.QProperty;
+import scott.barleydb.api.query.QPropertyCondition;
+import scott.barleydb.api.query.QueryObject;
+import scott.barleydb.server.jdbc.query.QueryResult;
 
 @SuppressWarnings("unchecked")
 public class DtoConverter {
+
+  private static final Logger LOG = LoggerFactory.getLogger(DtoConverter.class);
 
   private final String namespace;
   private final Environment env;
@@ -81,8 +100,11 @@ public class DtoConverter {
    * @param dto
    * @param type
    * @return
+   * @throws SortQueryException
+   * @throws SortServiceProviderException
    */
-  public void importDtos(BaseDto ...dtos) {
+  public void importDtos(BaseDto ...dtos) throws SortServiceProviderException, SortQueryException {
+    LOG.debug("Converting DTOS into entities...");
     if (ctx == null) {
       ctx = new EntityContext(env, namespace);
     }
@@ -91,6 +113,7 @@ public class DtoConverter {
 
       importDtosAsEntities();
     }
+    logMappingReport();
   }
 
   /**
@@ -100,6 +123,7 @@ public class DtoConverter {
    * @return
    */
   public void convertToDtos(ProxyController ...proxies) {
+    LOG.debug("Converting entities into DTOs...");
     for (ProxyController proxy: proxies) {
       Entity entity = proxy.getEntity();
       if (ctx == null) {
@@ -124,6 +148,7 @@ public class DtoConverter {
     if (ctx == null) {
       return;
     }
+    LOG.debug("Converting entities into DTOs...");
     EntityContextState mode = ctx.switchToInternalMode();
     try {
       for (Entity entity: ctx.getEntities()) {
@@ -131,6 +156,7 @@ public class DtoConverter {
 
         exportDtos(entities);
       }
+      logMappingReport();
     }
     finally {
       ctx.switchToMode(mode);
@@ -144,6 +170,9 @@ public class DtoConverter {
     }
     if (existingDto != null) {
       throw new IllegalStateException("Duplicate UUID in DTO graph");
+    }
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Collecting DTOs referenced by {} {}", dto, dto.getBaseDtoUuidFirst7());
     }
     dtos.put(dto.getBaseDtoUuid(), dto);
     for (Object propValue: helper.getProperties(dto).values()) {
@@ -159,21 +188,50 @@ public class DtoConverter {
     }
   }
 
-  private void importDtosAsEntities() {
+  private void importDtosAsEntities() throws SortServiceProviderException, SortQueryException {
     for (BaseDto dto: dtos.values()) {
       EntityType et = env.getDefinitions(namespace).getEntityTypeForDtoClass(dto.getClass(), true);
       Map<String,Object> properties = helper.getProperties(dto);
       Object key = properties.get(et.getKeyColumn());
-      ctx.newEntity(et, key, dto.getConstraints(), dto.getBaseDtoUuid());
+      Entity e = ctx.newEntity(et, key, dto.getConstraints(), dto.getBaseDtoUuid());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("{}:  Created entity {} for DTO {} {}", dto.getBaseDtoUuidFirst7(), e, dto);
+      }
     }
 
+    IdentityHashMap<BaseDto, Map<String,Object>> cache = new IdentityHashMap<>();
     for (BaseDto dto: dtos.values()) {
+      Entity entity = ctx.getEntityByUuid(dto.getBaseDtoUuid(), true);
+      entity.setEntityState(dto.getEntityState());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("{}:  Copying {} entity state from DTO", entity.getUuidFirst7(), entity.getEntityState());
+      }
         Map<String,Object> propValues = helper.getProperties(dto);
-        Entity entity = ctx.getEntityByUuid(dto.getBaseDtoUuid(), true);
-        entity.setEntityState(dto.getEntityState());
+        cache.put(dto, propValues);
         copyValues(propValues, entity);
+    }
+    for (BaseDto dto: dtos.values()) {
+        Map<String,Object> propValues = cache.get(dto);
+        Entity entity = ctx.getEntityByUuid(dto.getBaseDtoUuid(), true);
         copyReferences(propValues, entity);
+    }
+    for (BaseDto dto: dtos.values()) {
+        Map<String,Object> propValues = cache.get(dto);
+        Entity entity = ctx.getEntityByUuid(dto.getBaseDtoUuid(), true);
         copyCollections(propValues, entity);
+    }
+  }
+
+  private void logMappingReport() {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Mapped " + dtos.values().size() + " dtos and entities");
+      for(Map.Entry<UUID, BaseDto> entry: dtos.entrySet()) {
+        LOG.debug("-----------------------------------------------------");
+        BaseDto dto = entry.getValue();
+        LOG.debug(String.format("DTO    %-12s %40s %-15s", dto.getBaseDtoUuidFirst7(), dto, dto.getEntityState()));
+        Entity e = ctx.getEntityByUuid(dto.getBaseDtoUuid(), true);
+        LOG.debug(String.format("Entity %-12s %-15s", e.getUuidFirst7(), e));
+      }
     }
   }
 
@@ -209,7 +267,13 @@ public class DtoConverter {
        Entity e = ctx.getEntityByUuid(dto.getBaseDtoUuid(), true);
        dto.setEntityState(e.getEntityState());
        copyValuesNodes(e, dto);
-       copyRefNodes(e, dto);
+    }
+    for (BaseDto dto: dtos.values()) {
+      Entity e = ctx.getEntityByUuid(dto.getBaseDtoUuid(), true);
+      copyRefNodes(e, dto);
+    }
+    for (BaseDto dto: dtos.values()) {
+       Entity e = ctx.getEntityByUuid(dto.getBaseDtoUuid(), true);
        copyToManyNodes(e, dto);
     }
   }
@@ -218,8 +282,15 @@ public class DtoConverter {
     for (ToManyNode node: entity.getChildren(ToManyNode.class)) {
       helper.clearCollection(dto, node.getNodeType(), dto);
       for (Entity reffedEntity:  node.getList()) {
-        BaseDto reffedDto = dtos.get(reffedEntity.getUuid());
-        helper.addToCollection(dto, node.getNodeType(), reffedDto);
+        if (node.getNodeType().getJoinProperty() == null) {
+          BaseDto reffedDto = dtos.get(reffedEntity.getUuid());
+          helper.addToCollection(dto, node.getNodeType(), reffedDto);
+        }
+        else {
+          RefNode onwardRef = reffedEntity.getChild(node.getNodeType().getJoinProperty(), RefNode.class);
+          BaseDto reffedDto = dtos.get(onwardRef.getReference().getUuid());
+          helper.addToCollection(dto, node.getNodeType(), reffedDto);
+        }
       }
       helper.setCollectionFetched(dto, node.getNodeType(), node.isFetched());
     }
@@ -254,18 +325,49 @@ public class DtoConverter {
     }
   }
 
-  private void copyCollections(Map<String,Object> propValues, Entity entity) {
+  /**
+   * sets up the entity ToManyNode contents to mirror the corresponding Dto list
+   * @param propValues
+   * @param entity
+   * @throws SortQueryException
+   * @throws SortServiceProviderException
+   */
+  private void copyCollections(Map<String,Object> propValues, Entity entity) throws SortServiceProviderException, SortQueryException {
     try {
       for (ToManyNode node: entity.getChildren(ToManyNode.class)) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("{}:  Mapping collection for entity {} and property '{}'", entity.getUuidFirst7(), entity, node.getName());
+        }
         DtoList<? extends BaseDto> list = (DtoList<? extends BaseDto>) propValues.get(node.getName());
         if (list != null) {
           if (list.isFetched() == null) {
             throw new SortRuntimeException("DtoList fetch status is not set for " + entity.getName() + " and " + node.getName());
           }
           node.setFetched(list.isFetched());
-          for (BaseDto dto: list) {
-            Entity e = ctx.getEntityByUuid(dto.getBaseDtoUuid(), true);
-            node.add(e);
+          if (node.getNodeType().getJoinProperty() == null) {
+            //we are dealing with a normal 1:N relation - get the entities which match the dto list entries
+            //and add them to the tomany node
+            for (Entity e: getEntitiesForDtoList(list))  {
+              node.add(e);
+              if (LOG.isDebugEnabled()) {
+                LOG.debug("{}:  Added {} into list '{}'", entity.getUuidFirst7(), e, node.getName());
+              }
+            }
+          }
+          else {
+            if (LOG.isDebugEnabled()) {
+              LOG.debug("{}:  Entity property {}.'{}' is an N:M relation with joinProperty '{}'", entity.getUuidFirst7(), entity.getEntityType().getInterfaceShortName(), node.getName(), node.getNodeType().getJoinProperty());
+            }
+            /* we have an join property so this is a N:M  relation, the DTO just directly listed the M side and so we have to load the N from the database now
+             so that the entity model is correct. */
+            //so get the M entities
+            List<Entity> entities = getEntitiesForDtoList(list);
+            //use those M entities to setup the N:M relation (returned as the map)
+            Map<Entity,Entity> nToM = setupNToMRelation(node, entities);
+            //add the nside of the map (the keyset) to the tomany node
+            for (Entity nSide: nToM.keySet()) {
+              node.add(nSide);
+            }
           }
         }
       }
@@ -275,6 +377,94 @@ public class DtoConverter {
     }
   }
 
+  private Map<Entity, Entity> setupNToMRelation(ToManyNode node, List<Entity> entities) throws SortServiceProviderException, SortQueryException {
+    //get the query for the entity type with the ToManyNode (the template which refers to the templatebusinesstype)
+    Entity entity = node.getParent();
+    QueryResult<Object> queryResult = null;
+    Map<Entity,Entity> result = new LinkedHashMap<>();
+    EntityType joinEntityType = ctx.getDefinitions().getEntityTypeMatchingInterface(node.getNodeType().getRelationInterfaceName(), true);
+    String joinProperty = node.getNodeType().getJoinProperty();
+
+    Set<Entity> toProcess = new HashSet<>(entities);
+    if (entity.getKey().getValue() != null) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("{}:  Executing query (in separate ctx) to load and reuse existing join table records for entity {}", entity.getUuidFirst7(), entity);
+      }
+      /*
+       * The entity (the N side of the N:M relation has a PK), so we load the missing Join entity data.
+       * Which may not exist if the entity is not yet in the database
+       */
+      EntityContext ctx = this.ctx.newEntityContextSharingTransaction();
+      QueryObject<Object> q = ctx.getUnitQuery( entity.getEntityType() );
+      QPropertyCondition qcond = new QProperty<>(q, entity.getKey().getName() ).equal(entity.getKey().getValue());
+      q.where(qcond);
+
+      //left outer join to the join entity (template -> template busines type).
+      QueryObject<Object> qToJoin = ctx.getUnitQuery( joinEntityType );
+      q.addLeftOuterJoin(qToJoin, node.getName());
+
+      queryResult = ctx.performQuery(q);
+      /*
+       * get the existing join entities and integrate them into our entity graph
+       */
+      for (Entity resultEntity: queryResult.getEntityList()) {
+        ToManyNode resultNode = resultEntity.getChild(node.getName(), ToManyNode.class);
+        for (Entity joinEntity: resultNode.getList()) {
+          if (joinEntityReferencesOneOf(joinEntity, joinProperty, entities)) {
+            if (LOG.isDebugEnabled()) {
+              LOG.debug("{}:  Found join entity to import into context {}", entity.getUuidFirst7(), joinEntity);
+            }
+            Entity addedJoinEntity = this.ctx.copyInto(joinEntity);
+            //mside must also be in 'entities'
+            Entity mside = addedJoinEntity.getChild(joinProperty, RefNode.class).getReference();
+            if (!toProcess.remove(mside)) {
+              throw new IllegalStateException("Did not find entity as expected");
+            }
+            result.put(addedJoinEntity, mside);
+          }
+        }
+       }
+    }
+
+      /*
+       * We need to construct the join entities for unprocessed M entities
+       *
+       */
+      for (Entity e: toProcess) {
+          Entity joinE = this.ctx.newEntity(joinEntityType, null, EntityConstraint.mustNotExistInDatabase());
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("{}: Created new entity {} for missing join record between {} and {}", entity.getUuidFirst7(), joinE, entity, e);
+          }
+          //set the M reference in the join entity
+          joinE.getChild(joinProperty, RefNode.class).setReference(e);
+          //set the N reference in the join entity
+          //get the name of the node which in the join entity which point back to us (the template reference in the template business type entity).
+          String foreignNodeName = node.getNodeType().getForeignNodeName();
+          joinE.getChild(foreignNodeName, RefNode.class).setReference(node.getParent());
+          //add to result
+          result.put(joinE, e);
+      }
+    return result;
+  }
+
+  private boolean joinEntityReferencesOneOf(Entity joinEntity, String joinProperty, List<Entity> entities) {
+    Entity toMatch = joinEntity.getChild(joinProperty, RefNode.class).getReference();
+    for (Entity e: entities) {
+      if (Objects.equals(toMatch.getKey().getValue(), e.getKey().getValue())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private List<Entity> getEntitiesForDtoList(DtoList<? extends BaseDto> list) {
+    List<Entity> result = new LinkedList<>();
+    for (BaseDto dto: list) {
+      result.add(ctx.getEntityByUuid(dto.getBaseDtoUuid(), true));
+    }
+    return result;
+  }
+
   private void copyReferences(Map<String,Object> propValues, Entity entity) {
     try {
       for (RefNode node: entity.getChildren(RefNode.class)) {
@@ -282,6 +472,9 @@ public class DtoConverter {
         if (reffedDto != null) {
           Entity reffedEntity = ctx.getEntityByUuid(reffedDto.getBaseDtoUuid(), true);
           node.setReference( reffedEntity );
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("{}:  {} Set entity reference --> {}", entity.getUuidFirst7(), entity, reffedEntity);
+          }
         }
       }
     }
@@ -294,6 +487,9 @@ public class DtoConverter {
     for (ValueNode node: entity.getChildren(ValueNode.class)) {
       if (node.getNodeType().getFixedValue() == null) {
           node.setValue(propValues.get(node.getName()));
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("{}:  Copied value {} to entity {}", node.getParent().getUuidFirst7(), node.getValueNoFetch(), node.getParent());
+          }
       }
     }
   }

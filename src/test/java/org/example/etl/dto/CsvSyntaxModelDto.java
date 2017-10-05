@@ -28,7 +28,6 @@ package org.example.etl.dto;
 import scott.barleydb.api.dto.BaseDto;
 
 import scott.barleydb.api.dto.DtoList;
-import scott.barleydb.api.dto.DtoNToMList;
 
 
 import org.example.etl.model.StructureType;

@@ -13,12 +13,12 @@ package scott.barleydb.test;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -28,6 +28,8 @@ package scott.barleydb.test;
 import org.example.acl.dto.AccessAreaDto;
 import org.example.acl.dto.UserDto;
 import org.example.etl.EtlServices;
+import org.example.etl.dto.BusinessTypeDto;
+import org.example.etl.dto.TemplateDto;
 import org.example.etl.dto.XmlMappingDto;
 import org.example.etl.dto.XmlStructureDto;
 import org.example.etl.dto.XmlSyntaxModelDto;
@@ -37,7 +39,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import scott.barleydb.api.core.entity.EntityConstraint;
+import junit.framework.Assert;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
 import scott.barleydb.api.exception.execution.query.SortQueryException;
@@ -157,6 +159,41 @@ public class TestDtoServices extends TestBase {
     syntax = etlServices.loadFullXmlSyntax(syntax.getId());
     LOG.debug("Loaded syntax " + syntax.getId() + " with name " + syntax.getName());
     LOG.debug("Finished in " + (System.currentTimeMillis() - start) + " milli seconds");
+  }
+
+  @Test
+  public void testSaveTemplateDatatype() throws SortServiceProviderException, SortPersistException, SortQueryException {
+    TemplateDto template = new TemplateDto();
+    template.setAccessArea(root);
+    template.setName("test-temp");
+    template.getContents().setFetched(true);
+    template.getBusinessTypes().setFetched(true);
+    template.setUuid("");
+
+    BusinessTypeDto bt1 = new BusinessTypeDto();
+    bt1.setAccessArea(root);
+    bt1.setName("bt1");
+    bt1.setUuid("");
+
+    BusinessTypeDto bt2 = new BusinessTypeDto();
+    bt2.setAccessArea(root);
+    bt2.setName("bt2");
+    bt2.setUuid("");
+
+    template.getBusinessTypes().add(bt1);
+    template.getBusinessTypes().add(bt2);
+
+
+    etlServices.saveTemplate(template);
+
+    template.setName("test-temp-fix");
+    template.getBusinessTypes().get(0).setName("bt1-fix");
+    etlServices.saveTemplateAndBusinessTypes(template);
+
+
+    template = etlServices.loadTemplate(template.getId());
+    Assert.assertEquals(2, template.getBusinessTypes().size());
+    //TODO:assert that the join table data was not affected by the resave.
   }
 
 }

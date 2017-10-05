@@ -57,7 +57,6 @@ public class GenerateDtoModels extends GenerateModelsHelper {
             out.write("\n");
             if (hasToManyReference(entitySpec)) {
                 out.write("import scott.barleydb.api.dto.DtoList;\n");
-                out.write("import scott.barleydb.api.dto.DtoNToMList;\n");
                 out.write("\n");
             }
             writeDtoImports(definitions, entitySpec, out);
@@ -135,7 +134,7 @@ public class GenerateDtoModels extends GenerateModelsHelper {
       if (nodeSpec.getColumnName() == null){
         if (nodeSpec.getRelationSpec().getOwnwardJoin() != null) {
           NodeSpec oj = nodeSpec.getRelationSpec().getOwnwardJoin();
-          return "DtoNToMList<" + getDtoSimpleClassName(nodeSpec.getRelationSpec().getEntitySpec()) + ", " + getDtoSimpleClassName(oj.getRelationSpec().getEntitySpec()) + ">";
+          return "DtoList<" + getDtoSimpleClassName(oj.getRelationSpec().getEntitySpec()) + ">";
         }
         else {
           return "DtoList<" + getDtoSimpleClassName(nodeSpec.getRelationSpec().getEntitySpec()) + ">";
@@ -274,12 +273,7 @@ public class GenerateDtoModels extends GenerateModelsHelper {
           out.write(";\n");
         }
         else if (nodeSpec.getRelation() != null) {
-          if (nodeSpec.getRelation().getOwnwardJoin() != null) {
-            out.write(" = new DtoNToMList<>(null, null, null);\n");
-          }
-          else {
-            out.write(" = new DtoList<>();\n");
-          }
+          out.write(" = new DtoList<>();\n");
         }
     }
 
@@ -359,9 +353,7 @@ public class GenerateDtoModels extends GenerateModelsHelper {
           }
           else {
               if (ownwardJoin != null) {
-                  out.write("DtoNToMList<");
-                  out.write(getDtoSimpleClassName(nodeSpec.getRelationSpec().getEntitySpec()));
-                  out.write(", ");
+                  out.write("DtoList<");
                   out.write(getDtoSimpleClassName(ownwardJoin.getRelationSpec().getEntitySpec()));
                   out.write(">");
               }

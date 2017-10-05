@@ -183,6 +183,10 @@ public class Entity implements Serializable {
         return uuid;
     }
 
+    public String getUuidFirst7() {
+      return uuid.toString().substring(0, 7);
+    }
+
     public EntityType getEntityType() {
         return entityType;
     }
@@ -519,10 +523,10 @@ public class Entity implements Serializable {
     @Override
     public String toString() {
         if (getKey().getValue() != null) {
-            return getEntityType().getInterfaceShortName() + " [" + getKey().getName() + "=" + getKey().getValue() + "]";
+            return getEntityType().getInterfaceShortName() + " [" + getEntityState() + " " + getKey().getName() + "=" + getKey().getValue() + "]";
         }
         else {
-            return getEntityType().getInterfaceShortName() + " [uuid=" + getUuid().toString().substring(0, 7) + "..]";
+            return getEntityType().getInterfaceShortName() + " [" + getEntityState() + " uuid=" + getUuidFirst7()  + "..]";
         }
     }
 
