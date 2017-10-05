@@ -158,6 +158,7 @@ public class TestDtoServices extends TestBase {
     LOG.debug("Saving Syntax again ----------------------------");
     etlServices.saveSyntax(syntax);
 
+    //is a NOOP
     stats = etlServices.getLastCtxStatistics();
     Assert.assertEquals(3, stats.getNumberOfQueries());
     Assert.assertEquals(3, stats.getNumberOfQueryDatabseCalls());
@@ -186,8 +187,37 @@ public class TestDtoServices extends TestBase {
 
 
     syntax = etlServices.loadFullXmlSyntax(syntax.getId());
+    stats = etlServices.getLastCtxStatistics();
+    //fetching the subsyntax and subsubsyntax
+    Assert.assertEquals(3, stats.getNumberOfQueries());
+    Assert.assertEquals(3, stats.getNumberOfQueryDatabseCalls());
+
     LOG.debug("Loaded syntax " + syntax.getId() + " with name " + syntax.getName());
     LOG.debug("Finished in " + (System.currentTimeMillis() - start) + " milli seconds");
+
+    /*
+     * test setting the DtoList to fetched == false
+     */
+    syntax.getMappings().setFetched(false);
+    syntax.getMappings().clear();
+    //as the mappings relation is not considered fetched, the cleared list will not cause any deletes
+    etlServices.saveSyntax(syntax);
+    syntax = etlServices.loadFullXmlSyntax(syntax.getId());
+    Assert.assertEquals(3, syntax.getMappings().size()); //see everything is ok
+    Assert.assertTrue(syntax.getMappings().isFetched()); //now that we reloaded, the mappings are fetched
+    Assert.assertEquals(0, stats.getNumberOfRecordDeletes());
+
+    syntax.getMappings().clear();
+    //as the mappings relation is considered fetched, the cleared list will cause deletes
+    etlServices.saveSyntax(syntax);
+    stats = etlServices.getLastCtxStatistics();
+    Assert.assertEquals(7, stats.getNumberOfRecordDeletes()); //the mappings + subyntaxes were all deleted
+    Assert.assertEquals(2, stats.getNumberOfBatchDeletes()); //in 2 batches
+
+    syntax = etlServices.loadFullXmlSyntax(syntax.getId());
+    Assert.assertEquals(0, syntax.getMappings().size()); //see everything is deleted
+    Assert.assertTrue(syntax.getMappings().isFetched()); //now that we reloaded, the mappings are fetched
+    stats = etlServices.getLastCtxStatistics();
   }
 
   @Test
