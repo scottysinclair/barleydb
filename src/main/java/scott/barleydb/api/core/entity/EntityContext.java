@@ -133,6 +133,8 @@ public class EntityContext implements Serializable {
      */
     private Map<String,Object> resources;
 
+    private Statistics statistics = new Statistics();
+
     public EntityContext(Environment env, String namespace) {
         this.env = env;
         this.namespace = namespace;
@@ -161,6 +163,10 @@ public class EntityContext implements Serializable {
 
     public boolean isAllowGarbageCollection() {
         return entities.isAllowGarbageCollection();
+    }
+
+    public Statistics getStatistics() {
+      return statistics;
     }
 
     /**
@@ -961,6 +967,7 @@ public class EntityContext implements Serializable {
      */
     public EntityContext newEntityContextSharingTransaction() {
         EntityContext entityContext = newEntityContext();
+        entityContext.statistics = this.statistics;
         env.joinTransaction(entityContext, this);
         return entityContext;
     }

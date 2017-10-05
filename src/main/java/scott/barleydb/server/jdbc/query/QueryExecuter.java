@@ -108,11 +108,15 @@ public class QueryExecuter {
             throw new SortQueryException("No query executions...");
         }
         if (!database.supportsMultipleResultSets() || queryExecutions.length == 1) {
+            entityContext.getStatistics().addNumberOfQueries(queryExecutions.length);
+            entityContext.getStatistics().addNumberOfQueryDatabseCalls(queryExecutions.length);
             SeparateQueryResultManager resultManager = new SeparateQueryResultManager(queryExecutions);
             return new StreamingQueryExecutionProcessor( resultManager );
         }
         else {
             LOG.debug("Executing queries in one batch, processing multiple resultsets...");
+            entityContext.getStatistics().addNumberOfQueries(queryExecutions.length);
+            entityContext.getStatistics().addNumberOfQueryDatabseCalls(1);
             List<Param> params = new LinkedList<Param>();
             String sql = createCombinedQuery(params, queryExecutions);
             if (!params.isEmpty()) {

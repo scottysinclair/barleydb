@@ -10,12 +10,12 @@ package scott.barleydb.server.jdbc.persist;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import scott.barleydb.api.config.Definitions;
 import scott.barleydb.api.core.entity.Entity;
+import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.exception.execution.jdbc.AddBatchException;
 import scott.barleydb.api.exception.execution.jdbc.SortJdbcException;
 import scott.barleydb.api.exception.execution.persist.IllegalPersistStateException;
@@ -90,6 +91,7 @@ abstract class BatchExecuter {
     }
 
     private void executeBatch(PreparedStatement ps, List<Entity> entities) throws SortPersistException  {
+        updateStats(entities.get(0).getEntityContext(), entities);
         final String contextInfo = "executing " + operationName + " batch for " + entities.get(0).getEntityType() + " of size " + entities.size();
         LOG.debug(contextInfo);
         try {
@@ -154,6 +156,8 @@ abstract class BatchExecuter {
         }
 
     }
+
+    protected abstract void updateStats(EntityContext entityContext, List<Entity> entities);
 
     protected abstract void handleFailure(Entity entity, Throwable throwable) throws SortPersistException;
 

@@ -38,6 +38,7 @@ import org.example.etl.query.QXmlSyntaxModel;
 
 import scott.barleydb.api.core.Environment;
 import scott.barleydb.api.core.entity.EntityContext;
+import scott.barleydb.api.core.entity.Statistics;
 import scott.barleydb.api.dto.DtoConverter;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
@@ -48,6 +49,7 @@ public class EtlServices {
 
   private final Environment env;
   private final String namespace;
+  private Statistics lastCtxStatistics;
 
   public EtlServices(Environment env, String namespace) {
     this.env = env;
@@ -61,6 +63,7 @@ public class EtlServices {
     SyntaxModel syntax = converter.getModel(syntaxDto);
     ctx.persist(new PersistRequest().save(syntax));
     converter.convertToDtos();
+    lastCtxStatistics = ctx.getStatistics();
   }
 
   public XmlSyntaxModelDto loadFullXmlSyntax(Long id) throws SortServiceProviderException, SortQueryException {
@@ -81,6 +84,7 @@ public class EtlServices {
 
     DtoConverter converter = new DtoConverter(env, namespace, ctx);
     converter.convertToDtos();
+    lastCtxStatistics = ctx.getStatistics();
     return converter.getDto(result);
   }
 
@@ -114,6 +118,7 @@ public class EtlServices {
     }
     ctx.persist(pr);
     converter.convertToDtos();
+    lastCtxStatistics = ctx.getStatistics();
   }
 
 
@@ -129,7 +134,12 @@ public class EtlServices {
 
     DtoConverter converter = new DtoConverter(env, namespace, ctx);
     converter.convertToDtos();
+    lastCtxStatistics = ctx.getStatistics();
     return converter.getDto(template);
+  }
+
+  public Statistics getLastCtxStatistics() {
+    return lastCtxStatistics;
   }
 
 }

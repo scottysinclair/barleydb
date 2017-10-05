@@ -571,6 +571,13 @@ public class Persister {
             protected void handleFailure(Entity entity, Throwable throwable) throws SortPersistException {
                 handleInsertFailure(entity, throwable);
             }
+
+            @Override
+            protected void updateStats(EntityContext entityContext, List<Entity> entities) {
+              entityContext.getStatistics().addNumberOfBatchInserts(1);
+              entityContext.getStatistics().addNumberOfRecordInserts(entities.size());
+            }
+
         };
         batchExecuter.execute(entityContextServices, env.getDefinitions(namespace));
     }
@@ -590,6 +597,11 @@ public class Persister {
             protected void handleFailure(Entity entity, Throwable throwable) throws SortPersistException {
                 handleUpdateFailure(entity, throwable);
             }
+            @Override
+            protected void updateStats(EntityContext entityContext, List<Entity> entities) {
+              entityContext.getStatistics().addNumberOfBatchUpdates(1);
+              entityContext.getStatistics().addNumberOfRecordUpdates(entities.size());
+            }
         };
         batchExecuter.execute(entityContextServices, env.getDefinitions(namespace));
     }
@@ -608,6 +620,11 @@ public class Persister {
             @Override
             protected void handleFailure(Entity entity, Throwable throwable) throws SortPersistException {
                 handleDeleteFailure(entity, throwable);
+            }
+            @Override
+            protected void updateStats(EntityContext entityContext, List<Entity> entities) {
+              entityContext.getStatistics().addNumberOfBatchDeletes(1);
+              entityContext.getStatistics().addNumberOfRecordDeletes(entities.size());
             }
         };
         batchExecuter.execute(entityContextServices, env.getDefinitions(namespace));

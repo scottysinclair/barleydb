@@ -40,6 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import junit.framework.Assert;
+import scott.barleydb.api.core.entity.Statistics;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
 import scott.barleydb.api.exception.execution.query.SortQueryException;
@@ -84,6 +85,7 @@ public class TestDtoServices extends TestBase {
     syntax.setUser( scott );
     syntax.setSyntaxType(SyntaxType.ROOT);
     syntax.setUuid("");
+    //TODO: doa test with fetched == false, and see that no deletes were performed.
     syntax.getMappings().setFetched(true);
 
     XmlMappingDto mapping = new XmlMappingDto();
@@ -143,9 +145,26 @@ public class TestDtoServices extends TestBase {
     etlServices.saveSyntax(syntax);
     System.out.println("Saved syntax " + syntax.getName() + " with ID " + syntax.getId());
 
+    Statistics stats = etlServices.getLastCtxStatistics();
+    Assert.assertEquals(0, stats.getNumberOfQueries());
+    Assert.assertEquals(11, stats.getNumberOfRecordInserts());
+    Assert.assertEquals(5, stats.getNumberOfBatchInserts());
+    Assert.assertEquals(0, stats.getNumberOfRecordUpdates());
+    Assert.assertEquals(0, stats.getNumberOfRecordDeletes());
+
+
+
     LOG.debug("=====================================================================================================================");
     LOG.debug("Saving Syntax again ----------------------------");
     etlServices.saveSyntax(syntax);
+
+    stats = etlServices.getLastCtxStatistics();
+    Assert.assertEquals(3, stats.getNumberOfQueries());
+    Assert.assertEquals(3, stats.getNumberOfQueryDatabseCalls());
+    Assert.assertEquals(0, stats.getNumberOfRecordInserts());
+    Assert.assertEquals(0, stats.getNumberOfBatchInserts());
+    Assert.assertEquals(0, stats.getNumberOfRecordUpdates());
+    Assert.assertEquals(0, stats.getNumberOfRecordDeletes());
 
 
     syntax.setName("An improved MT940");
@@ -154,6 +173,16 @@ public class TestDtoServices extends TestBase {
     LOG.debug("=====================================================================================================================");
     LOG.debug("Saving Syntax again ----------------------------");
     etlServices.saveSyntax(syntax);
+
+    //the syntax and subsyntax (OL) and subsyntax mapping records are all updated.
+    stats = etlServices.getLastCtxStatistics();
+    Assert.assertEquals(3, stats.getNumberOfQueries());
+    Assert.assertEquals(3, stats.getNumberOfQueryDatabseCalls());
+    Assert.assertEquals(0, stats.getNumberOfRecordInserts());
+    Assert.assertEquals(0, stats.getNumberOfBatchInserts());
+    Assert.assertEquals(3, stats.getNumberOfRecordUpdates());
+    Assert.assertEquals(2, stats.getNumberOfBatchUpdates());
+    Assert.assertEquals(0, stats.getNumberOfRecordDeletes());
 
 
     syntax = etlServices.loadFullXmlSyntax(syntax.getId());
@@ -183,16 +212,34 @@ public class TestDtoServices extends TestBase {
     template.getBusinessTypes().add(bt1);
     template.getBusinessTypes().add(bt2);
 
-
     etlServices.saveTemplate(template);
+
+    Statistics stats = etlServices.getLastCtxStatistics();
+    Assert.assertEquals(0, stats.getNumberOfQueries());
+    Assert.assertEquals(6, stats.getNumberOfRecordInserts());
+    Assert.assertEquals(4, stats.getNumberOfBatchInserts());
+    Assert.assertEquals(0, stats.getNumberOfRecordUpdates());
+    Assert.assertEquals(0, stats.getNumberOfRecordDeletes());
 
     template.setName("test-temp-fix");
     template.getBusinessTypes().get(0).setName("bt1-fix");
     etlServices.saveTemplateAndBusinessTypes(template);
 
+    stats = etlServices.getLastCtxStatistics();
+    Assert.assertEquals(4, stats.getNumberOfQueries()); //queries loading original data for comparison
+    Assert.assertEquals(4, stats.getNumberOfQueryDatabseCalls()); //queries loading original data for comparison
+    Assert.assertEquals(0, stats.getNumberOfRecordInserts());
+    Assert.assertEquals(2, stats.getNumberOfRecordUpdates()); //the template and busines type data
+    Assert.assertEquals(2, stats.getNumberOfBatchUpdates());
+    Assert.assertEquals(0, stats.getNumberOfRecordDeletes());
 
     template = etlServices.loadTemplate(template.getId());
     Assert.assertEquals(2, template.getBusinessTypes().size());
+
+    stats = etlServices.getLastCtxStatistics();
+    Assert.assertEquals(1, stats.getNumberOfQueries());
+    Assert.assertEquals(1, stats.getNumberOfQueryDatabseCalls());
+
     //TODO:assert that the join table data was not affected by the resave.
   }
 
