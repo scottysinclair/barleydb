@@ -27,27 +27,27 @@ import scott.barleydb.api.core.entity.EntityContext;
  * #L%
  */
 
-public class SortException extends Exception {
+public class BarleyDBException extends Exception {
 
     private static final long serialVersionUID = 1L;
 
-    public SortException() {
+    public BarleyDBException() {
         super();
     }
 
-    public SortException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    public BarleyDBException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 
-    public SortException(String message, Throwable cause) {
+    public BarleyDBException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public SortException(String message) {
+    public BarleyDBException(String message) {
         super(message);
     }
 
-    public SortException(Throwable cause) {
+    public BarleyDBException(Throwable cause) {
         super(cause);
     }
 

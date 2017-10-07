@@ -22,9 +22,9 @@ package scott.barleydb.api.exception.model;
  * #L%
  */
 
-import scott.barleydb.api.exception.SortRuntimeException;
+import scott.barleydb.api.exception.BarleyDBRuntimeException;
 
-public class ProxyRequiredException extends SortRuntimeException {
+public class ProxyRequiredException extends BarleyDBRuntimeException {
 
     private static final long serialVersionUID = 1L;
 

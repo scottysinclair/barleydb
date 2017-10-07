@@ -30,7 +30,7 @@ import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.core.Environment;
 import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityContext;
-import scott.barleydb.api.exception.SortRuntimeException;
+import scott.barleydb.api.exception.BarleyDBRuntimeException;
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
 import scott.barleydb.api.query.QueryObject;
 
@@ -57,7 +57,7 @@ public class QuickHackSequenceGenerator implements SequenceGenerator {
               }
               values.put(entityType, highest);
             } catch (Exception x) {
-              throw new SortRuntimeException("Could not get next key for " + entityType, x);
+              throw new BarleyDBRuntimeException("Could not get next key for " + entityType, x);
             }
           }
         }

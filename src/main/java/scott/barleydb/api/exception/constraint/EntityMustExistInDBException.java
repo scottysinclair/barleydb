@@ -26,9 +26,9 @@ package scott.barleydb.api.exception.constraint;
  */
 
 import scott.barleydb.api.core.entity.Entity;
-import scott.barleydb.api.exception.SortRuntimeException;
+import scott.barleydb.api.exception.BarleyDBRuntimeException;
 
-public class EntityMustExistInDBException extends SortRuntimeException {
+public class EntityMustExistInDBException extends BarleyDBRuntimeException {
 
     private static final long serialVersionUID = 1L;
 

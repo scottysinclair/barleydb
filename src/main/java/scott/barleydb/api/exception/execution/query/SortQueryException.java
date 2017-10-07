@@ -22,9 +22,9 @@ package scott.barleydb.api.exception.execution.query;
  * #L%
  */
 
-import scott.barleydb.api.exception.SortException;
+import scott.barleydb.api.exception.BarleyDBException;
 
-public class SortQueryException extends SortException {
+public class SortQueryException extends BarleyDBException {
 
     private static final long serialVersionUID = 1L;
 

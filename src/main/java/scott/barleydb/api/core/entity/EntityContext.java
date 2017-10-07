@@ -1301,6 +1301,7 @@ public class EntityContext implements Serializable {
     private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
         namespace = stream.readUTF();
         entityContextState = (EntityContextState)stream.readObject();
+        statistics = (Statistics)stream.readObject();
         env = EnvironmentAccessor.get();
         Objects.requireNonNull(env, "Could not get environment");
         boolean allowGarbageCollection = stream.readBoolean();
@@ -1310,6 +1311,7 @@ public class EntityContext implements Serializable {
     private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
         stream.writeUTF(namespace);
         stream.writeObject(entityContextState);
+        stream.writeObject(statistics);
         stream.writeBoolean(entities.isAllowGarbageCollection());
     }
 

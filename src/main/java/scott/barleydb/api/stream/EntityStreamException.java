@@ -25,9 +25,9 @@ package scott.barleydb.api.stream;
  * #L%
  */
 
-import scott.barleydb.api.exception.SortException;
+import scott.barleydb.api.exception.BarleyDBException;
 
-public class EntityStreamException extends SortException {
+public class EntityStreamException extends BarleyDBException {
 
     private static final long serialVersionUID = 1L;
 

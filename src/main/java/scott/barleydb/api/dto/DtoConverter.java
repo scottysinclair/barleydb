@@ -50,7 +50,7 @@ import scott.barleydb.api.core.entity.ProxyController;
 import scott.barleydb.api.core.entity.RefNode;
 import scott.barleydb.api.core.entity.ToManyNode;
 import scott.barleydb.api.core.entity.ValueNode;
-import scott.barleydb.api.exception.SortRuntimeException;
+import scott.barleydb.api.exception.BarleyDBRuntimeException;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.execution.query.SortQueryException;
 import scott.barleydb.api.query.QProperty;
@@ -130,7 +130,7 @@ public class DtoConverter {
         ctx = entity.getEntityContext();
       }
       else if (ctx != entity.getEntityContext()) {
-        throw new SortRuntimeException("Entity '" + entity + "' does not share the same context");
+        throw new BarleyDBRuntimeException("Entity '" + entity + "' does not share the same context");
       }
       Collection<Entity> entities = collectedEntitiesFromEntityGraph(entity);
 
@@ -321,7 +321,7 @@ public class DtoConverter {
       return dto;
     }
     catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-       throw new SortRuntimeException("Could not instantiate DTO", e);
+       throw new BarleyDBRuntimeException("Could not instantiate DTO", e);
     }
   }
 
@@ -341,7 +341,7 @@ public class DtoConverter {
         DtoList<? extends BaseDto> list = (DtoList<? extends BaseDto>) propValues.get(node.getName());
         if (list != null) {
           if (list.isFetched() == null) {
-            throw new SortRuntimeException("DtoList fetch status is not set for " + entity.getName() + " and " + node.getName());
+            throw new BarleyDBRuntimeException("DtoList fetch status is not set for " + entity.getName() + " and " + node.getName());
           }
           node.setFetched(list.isFetched());
           if (node.getNodeType().getJoinProperty() == null) {
@@ -373,7 +373,7 @@ public class DtoConverter {
       }
     }
     catch(ClassCastException x) {
-      throw new SortRuntimeException("Dto list does not extend DtoList", x);
+      throw new BarleyDBRuntimeException("Dto list does not extend DtoList", x);
     }
   }
 
@@ -479,7 +479,7 @@ public class DtoConverter {
       }
     }
     catch(ClassCastException x) {
-      throw new SortRuntimeException("Dto reference does not extend BaseDto", x);
+      throw new BarleyDBRuntimeException("Dto reference does not extend BaseDto", x);
     }
   }
 

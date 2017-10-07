@@ -62,7 +62,7 @@ import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.entity.EntityContextHelper;
 import scott.barleydb.api.core.entity.ProxyController;
-import scott.barleydb.api.exception.SortException;
+import scott.barleydb.api.exception.BarleyDBException;
 import scott.barleydb.api.exception.execution.persist.EntityMissingException;
 import scott.barleydb.api.exception.execution.persist.OptimisticLockMismatchException;
 import scott.barleydb.api.persist.PersistRequest;
@@ -899,7 +899,7 @@ public class TestPersistence extends TestRemoteClientBase {
    }
 
     @Test
-    public void testSaveSyntaxWithMappingWhichIsPerhapsInTheDatabaseAndIsNot() throws SortException {
+    public void testSaveSyntaxWithMappingWhichIsPerhapsInTheDatabaseAndIsNot() throws BarleyDBException {
         //first create a syntax with 2 mappings
         XmlSyntaxModel syntax = theEntityContext.newModel(XmlSyntaxModel.class);
         syntax.setUser( theEntityContext.newModel(User.class) );
@@ -960,10 +960,10 @@ public class TestPersistence extends TestRemoteClientBase {
 
     /**
      * since we no longer track the deleted entries in tomanynodes, this test no longer makes sense.
-     * @throws SortException
+     * @throws BarleyDBException
      */
     @Test
-    public void testSaveSyntaxWithDeletedMappingWhichIsPerhapsInTheDatabaseAndIsNot() throws SortException {
+    public void testSaveSyntaxWithDeletedMappingWhichIsPerhapsInTheDatabaseAndIsNot() throws BarleyDBException {
         //first create a syntax with 2 mappings
         XmlSyntaxModel syntax = theEntityContext.newModel(XmlSyntaxModel.class);
         syntax.setUser( theEntityContext.newModel(User.class) );

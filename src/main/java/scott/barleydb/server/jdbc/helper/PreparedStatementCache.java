@@ -36,11 +36,11 @@ import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.entity.Node;
 import scott.barleydb.api.core.entity.ToManyNode;
-import scott.barleydb.api.exception.SortException;
+import scott.barleydb.api.exception.BarleyDBException;
 import scott.barleydb.api.exception.execution.jdbc.ClosingStatementException;
 import scott.barleydb.server.jdbc.resources.ConnectionResources;
 
-public abstract class PreparedStatementCache<PREPARING_PERSIST_EX extends SortException, CONNECTION_REQ_EX extends SortException> implements AutoCloseable {
+public abstract class PreparedStatementCache<PREPARING_PERSIST_EX extends BarleyDBException, CONNECTION_REQ_EX extends BarleyDBException> implements AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(PreparedStatementCache.class);
 

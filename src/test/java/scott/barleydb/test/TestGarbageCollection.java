@@ -41,7 +41,7 @@ import org.example.etl.query.QXmlSyntaxModel;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import scott.barleydb.api.exception.SortException;
+import scott.barleydb.api.exception.BarleyDBException;
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
 import scott.barleydb.api.persist.PersistRequest;
 import scott.barleydb.server.jdbc.query.QueryResult;
@@ -173,7 +173,7 @@ public class TestGarbageCollection extends TestBase {
         }
     }
 
-    private void insert100FullSyntaxes() throws SortException, SortPersistException {
+    private void insert100FullSyntaxes() throws BarleyDBException, SortPersistException {
         PersistRequest request = new PersistRequest();
         long start = System.currentTimeMillis();
         for (int i=1; i<=100; i++) {

@@ -33,7 +33,7 @@ import java.util.Map;
 import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.config.NodeType;
 import scott.barleydb.api.core.Environment;
-import scott.barleydb.api.exception.SortRuntimeException;
+import scott.barleydb.api.exception.BarleyDBRuntimeException;
 
 /**
  * Helper methods for DTO reflection
@@ -72,10 +72,10 @@ public class DtoHelper {
       return method.invoke(dto, args);
     }
     catch(InvocationTargetException x) {
-      throw new SortRuntimeException("DTO method '" + method.getName()+ "'  threw exception", x.getTargetException());
+      throw new BarleyDBRuntimeException("DTO method '" + method.getName()+ "'  threw exception", x.getTargetException());
     }
     catch(IllegalAccessException x) {
-      throw new SortRuntimeException("Error accessing DTO method '" + method.getName()+ "'", x);
+      throw new BarleyDBRuntimeException("Error accessing DTO method '" + method.getName()+ "'", x);
     }
   }
 
@@ -101,7 +101,7 @@ public class DtoHelper {
         }
       }
     }
-    throw new SortRuntimeException("Could not find property for nodeType '" + nodeType.getName() + "'");
+    throw new BarleyDBRuntimeException("Could not find property for nodeType '" + nodeType.getName() + "'");
   }
 
   public void setProperty(BaseDto dto, NodeType nodeType, Object value) {

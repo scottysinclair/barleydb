@@ -31,7 +31,7 @@ import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.Node;
 import scott.barleydb.api.core.entity.NotLoaded;
 import scott.barleydb.api.core.entity.ValueNode;
-import scott.barleydb.api.exception.SortRuntimeException;
+import scott.barleydb.api.exception.BarleyDBRuntimeException;
 
 public class ValueNode extends Node {
     private static final long serialVersionUID = 1L;
@@ -75,7 +75,7 @@ public class ValueNode extends Node {
     public void setValue(Object value) {
       if (getNodeType().getFixedValue() != null && !Objects.equals(value, getNodeType().getFixedValue())) {
         if (value != NotLoaded.VALUE)  {
-          throw new SortRuntimeException("Entity property " + getName() + " has a fixed-value defined and cannot be changed.");
+          throw new BarleyDBRuntimeException("Entity property " + getName() + " has a fixed-value defined and cannot be changed.");
         }
       }
       Object origValue = this.value;

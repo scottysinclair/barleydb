@@ -36,7 +36,7 @@ import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.entity.ValueNode;
 import scott.barleydb.api.core.types.JavaType;
-import scott.barleydb.api.exception.SortException;
+import scott.barleydb.api.exception.BarleyDBException;
 import scott.barleydb.api.persist.PersistRequest;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.server.jdbc.query.QueryResult;
@@ -44,14 +44,14 @@ import scott.barleydb.server.jdbc.query.QueryResult;
 public class TestEtl extends TestBase {
 
     @Test
-    public void testEtlXmlSyntax() throws SortException {
+    public void testEtlXmlSyntax() throws BarleyDBException {
         EntityContext ctx = new MiEntityContext(env);
         EtlTransform<XmlSyntaxModel, XmlSyntaxModel> transform = new EtlTransform<>(ctx, XmlSyntaxModel.class, XmlSyntaxModel.class);
         transform.execute(new QXmlSyntaxModel());
     }
 
     @Test
-    public void testEtlXmlMapping() throws SortException {
+    public void testEtlXmlMapping() throws BarleyDBException {
         EntityContext ctx = new MiEntityContext(env);
         EtlTransform<XmlMapping, XmlMapping> transform = new EtlTransform<>(ctx, XmlMapping.class, XmlMapping.class);
         transform.execute(new QXmlMapping());
@@ -74,7 +74,7 @@ class EtlTransform<SRC,DEST> {
         this.ctx = ctx;
     }
 
-    public void execute(QueryObject<SRC> query) throws SortException  {
+    public void execute(QueryObject<SRC> query) throws BarleyDBException  {
         PersistRequest pr = new PersistRequest();
         QueryResult<SRC>result  = ctx.performQuery(query);
         for (Entity entity: result.getEntityList()) {

@@ -22,27 +22,27 @@ package scott.barleydb.api.exception;
  * #L%
  */
 
-public class SortRuntimeException extends RuntimeException {
+public class BarleyDBRuntimeException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
 
-    public SortRuntimeException() {
+    public BarleyDBRuntimeException() {
         super();
     }
 
-    public SortRuntimeException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    public BarleyDBRuntimeException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 
-    public SortRuntimeException(String message, Throwable cause) {
+    public BarleyDBRuntimeException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public SortRuntimeException(String message) {
+    public BarleyDBRuntimeException(String message) {
         super(message);
     }
 
-    public SortRuntimeException(Throwable cause) {
+    public BarleyDBRuntimeException(Throwable cause) {
         super(cause);
     }
 }

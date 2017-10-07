@@ -1,6 +1,6 @@
 package scott.barleydb.api.exception.execution.persist;
 
-import scott.barleydb.api.exception.SortException;
+import scott.barleydb.api.exception.BarleyDBException;
 
 /*
  * #%L
@@ -24,7 +24,7 @@ import scott.barleydb.api.exception.SortException;
  * #L%
  */
 
-public class SortPersistException extends SortException {
+public class SortPersistException extends BarleyDBException {
 
     private static final long serialVersionUID = 1L;
 

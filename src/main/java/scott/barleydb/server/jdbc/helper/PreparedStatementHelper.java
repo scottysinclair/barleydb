@@ -39,7 +39,7 @@ import scott.barleydb.api.core.entity.RefNode;
 import scott.barleydb.api.core.entity.ValueNode;
 import scott.barleydb.api.core.types.JavaType;
 import scott.barleydb.api.core.types.JdbcType;
-import scott.barleydb.api.exception.SortException;
+import scott.barleydb.api.exception.BarleyDBException;
 import scott.barleydb.api.exception.execution.TypeConversionException;
 import scott.barleydb.api.exception.execution.TypeConverterNotFoundException;
 import scott.barleydb.api.specification.EnumSpec;
@@ -47,7 +47,7 @@ import scott.barleydb.api.specification.EnumValueSpec;
 import scott.barleydb.server.jdbc.JdbcEntityContextServices;
 import scott.barleydb.server.jdbc.converter.TypeConverter;
 
-public abstract class PreparedStatementHelper<PREPARING_EX extends SortException> {
+public abstract class PreparedStatementHelper<PREPARING_EX extends BarleyDBException> {
 
     private static final Logger LOG = LoggerFactory.getLogger(PreparedStatementHelper.class);
 
