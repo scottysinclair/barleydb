@@ -199,6 +199,9 @@ public class GenerateDtoModels extends GenerateModelsHelper {
     }
 
     private void writeNodeGetterAndSetter(Writer out, DefinitionsSpec definitions, NodeSpec nodeSpec) throws IOException {
+        if (nodeSpec.getSuppression() == SuppressionSpec.DTO) {
+          return;
+        }
         out.write("\n");
         writeNodeGetter(out, definitions, nodeSpec);
 //         if (nodeSpec.getSuppression() != SuppressionSpec.GENERATED_CODE_SETTER) {
@@ -265,6 +268,9 @@ public class GenerateDtoModels extends GenerateModelsHelper {
     }
 
     private void writeNodeFieldDeclarations(Writer out, NodeSpec nodeSpec) throws IOException {
+        if (nodeSpec.getSuppression() == SuppressionSpec.DTO) {
+          return;
+        }
         out.write("  private ");
         writeNodeFieldType(out, nodeSpec);
         out.write(" ");

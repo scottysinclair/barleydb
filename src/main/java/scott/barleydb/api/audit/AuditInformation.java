@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 
 import scott.barleydb.api.core.entity.Entity;
+import scott.barleydb.api.core.entity.ProxyController;
+import scott.barleydb.api.query.QProperty;
 
 public class AuditInformation implements Serializable {
 
@@ -46,8 +48,17 @@ public class AuditInformation implements Serializable {
         }
     }
 
+    public boolean hasChanges(ProxyController pc) {
+      return contains(pc.getEntity());
+    }
+
     public boolean contains(Entity entity) {
         return recordsLookup.containsKey(new AuditKey(entity));
+    }
+
+    public AuditRecord getAuditRecord(Entity entity) {
+      AuditKey key = new AuditKey(entity);
+      return recordsLookup.get(key);
     }
 
     public AuditRecord getOrCreateRecord(Entity entity) {
@@ -83,5 +94,10 @@ public class AuditInformation implements Serializable {
             }
         }
         return sb.toString();
+    }
+
+    public boolean hasNodeChanged(ProxyController pc, QProperty<?> property) {
+      AuditRecord record = getAuditRecord( pc.getEntity() );
+      return record.hasChangeForNode(property.getName());
     }
 }

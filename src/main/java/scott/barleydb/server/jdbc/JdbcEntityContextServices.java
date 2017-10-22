@@ -373,6 +373,12 @@ public class JdbcEntityContextServices implements IEntityContextServices {
 
     @Override
     public PersistAnalyser execute(PersistRequest persistRequest, RuntimeProperties runtimeProperties) throws SortJdbcException, SortPersistException {
+        LOG.debug("");
+        LOG.debug("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        LOG.debug(".............................................................................................");
+        LOG.debug("STARTING PERSIST REQUEST EXECUTION                                                          .");
+        LOG.debug(".............................................................................................");
+        LOG.debug("");
         PersistAnalyser analyser = new PersistAnalyser(persistRequest.getEntityContext());
         try (OptionalyClosingResources con = newOptionallyClosingConnection(persistRequest.getEntityContext())) {
             analyser.analyse(persistRequest);

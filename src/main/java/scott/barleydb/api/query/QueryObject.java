@@ -10,12 +10,12 @@ package scott.barleydb.api.query;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -69,6 +69,12 @@ public class QueryObject<R> implements Serializable {
     private QJoin joined;
     private QCondition condition; //the user condition
     private List<QOrderBy> orderBy;
+
+    /*
+     * limit and offset are only usefull on the root query.
+     */
+//    private Integer limit;
+//    private Integer offset;
     /**
      * Select .. for update
      */
@@ -279,6 +285,16 @@ public class QueryObject<R> implements Serializable {
         this.condition = new QLogicalOp(this.condition, exists(queryObject), QBooleanOps.OR);
         return this;
     }
+
+//    public QueryObject<R> limit(int limit) {
+//      this.limit = limit;
+//      return this;
+//    }
+//
+//    public QueryObject<R> offset(int offset) {
+//      this.offset = offset;
+//      return this;
+//    }
 
     public QProperty<?> getMandatoryQProperty(String propertyName) throws QPropertyMissingException, QPropertyInvalidException {
         return new QProperty<>(this, propertyName);

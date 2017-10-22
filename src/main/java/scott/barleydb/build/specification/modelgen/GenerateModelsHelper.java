@@ -91,7 +91,9 @@ public class GenerateModelsHelper {
                 return true;
             case GENERATED_CODE_SETTER:
                 return false;
-            default:
+            case DTO:
+              return false;
+           default:
                 throw new IllegalStateException("Missing case for SuppressionSpec " + nodeSpec.getSuppression());
         }
     }

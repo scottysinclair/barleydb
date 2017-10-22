@@ -37,6 +37,7 @@ import scott.barleydb.api.specification.EnumSpec;
 import scott.barleydb.api.specification.EnumValueSpec;
 import scott.barleydb.api.specification.NodeSpec;
 import scott.barleydb.api.specification.RelationSpec;
+import scott.barleydb.api.specification.SuppressionSpec;
 
 public class NodeType implements Serializable, Cloneable {
     private static final long serialVersionUID = 1L;
@@ -67,6 +68,7 @@ public class NodeType implements Serializable, Cloneable {
 
     private Class<?> enumType;
     private EnumSpec enumSpec;
+    private SuppressionSpec suppressionSpec;
 
     private Object fixedValue;
 
@@ -106,6 +108,7 @@ public class NodeType implements Serializable, Cloneable {
                 nodeType.fixedValue = nodeSpec.getFixedValue();
             }
         }
+        nodeType.suppressionSpec = nodeSpec.getSuppression();
         nodeType.typeConverterFqn = nodeSpec.getTypeConverter();
         return nodeType;
     }
@@ -138,7 +141,7 @@ public class NodeType implements Serializable, Cloneable {
                     /*
                      * we do not have the enum class so we return the string name of the enum value
                      */
-                    LOG.debug("Converted " + value + " to enum string value " + enumValue.getName());
+                    LOG.trace("Converted " + value + " to enum string value " + enumValue.getName());
                     return enumValue.getName();
                 }
             }
@@ -177,6 +180,10 @@ public class NodeType implements Serializable, Cloneable {
 
     public String getSortNode() {
         return relation != null ? relation.getSortNodeName() : null;
+    }
+
+    public boolean isSuppressedFromDto() {
+      return suppressionSpec == SuppressionSpec.DTO;
     }
 
     @SuppressWarnings("unchecked")
@@ -270,5 +277,4 @@ public class NodeType implements Serializable, Cloneable {
                 + " [javaType=" + javaType + ", relation=" + relation
                 + ", columnName=" + columnName + ", jdbcType=" + jdbcType + "]";
     }
-
 }

@@ -69,4 +69,11 @@ public class PostgresqlDatabase implements Database {
         return false;
     }
 
+    @Override
+    public boolean supportsLimitAndOffset() {
+      return true;
+    }
+
+
+
 }

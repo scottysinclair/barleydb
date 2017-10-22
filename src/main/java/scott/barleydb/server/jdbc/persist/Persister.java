@@ -736,14 +736,21 @@ public class Persister {
     }
 
     private void handleInsertFailure(Entity entity, Throwable throwable) throws SortPersistException {
-        EntityContext tempCtx = entity.getEntityContext().newEntityContextSharingTransaction();
-        Entity loadedEntity = tempCtx.getEntityOrLoadEntity(entity.getEntityType(), entity.getKey().getValue(), false);
-        if (loadedEntity != null) {
-            throw new PrimaryKeyExistsException(entity.getEntityType(), entity.getKey().getValue());
-        }
-        else {
-            throw new SortPersistException("Could not insert entity: " + entity, throwable);
-        }
+      Entity loadedEntity =  null;
+      try {
+          EntityContext tempCtx = entity.getEntityContext().newEntityContextSharingTransaction();
+          loadedEntity = tempCtx.getEntityOrLoadEntity(entity.getEntityType(), entity.getKey().getValue(), false);
+      }
+      catch(IllegalStateException x) {
+        //error trying to find the problem, ignore it
+      }
+      if (loadedEntity != null) {
+          throw new PrimaryKeyExistsException(entity.getEntityType(), entity.getKey().getValue());
+      }
+
+      else {
+          throw new SortPersistException("Could not insert entity: " + entity, throwable);
+      }
     }
 
     /**
@@ -815,7 +822,17 @@ public class Persister {
     }
 
     private void handleDeleteFailure(Entity entity, Throwable throwable) throws SortPersistException {
-        handleUpdateFailure(entity, throwable);
+      EntityContext tempCtx = entity.getEntityContext().newEntityContextSharingTransaction();
+      Entity loadedEntity = tempCtx.getEntityOrLoadEntity(entity.getEntityType(), entity.getKey().getValue(), false);
+      if (loadedEntity == null) {
+          throw new EntityMissingException(entity.getEntityType(), entity.getKey().getValue());
+      }
+      else if (loadedEntity.getOptimisticLock() != null && !Objects.equals(loadedEntity.getOptimisticLock().getValue(), entity.getOptimisticLock().getValue())) {
+          throw new OptimisticLockMismatchException(entity, loadedEntity);
+      }
+      else {
+          throw new SortPersistException("Could not delete entity: " + entity, throwable);
+      }
     }
 
 }

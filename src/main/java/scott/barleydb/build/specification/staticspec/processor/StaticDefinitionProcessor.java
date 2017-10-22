@@ -46,6 +46,7 @@ import scott.barleydb.build.specification.staticspec.Entity;
 import scott.barleydb.build.specification.staticspec.Enumeration;
 import scott.barleydb.build.specification.staticspec.ExtendsEntity;
 import scott.barleydb.build.specification.staticspec.StaticDefinitions;
+import scott.barleydb.build.specification.staticspec.SuppressDtoMethods;
 import scott.barleydb.build.specification.staticspec.SuppressFromGeneratedCode;
 import scott.barleydb.build.specification.staticspec.SuppressSetter;
 
@@ -381,6 +382,9 @@ public class StaticDefinitionProcessor {
         private void processNodeSpecAndAddToEntity(StaticDefinitions staticDefs, EntitySpec entitySpec, NodeSpec nodeSpec, Field field) {
             if (nodeSpec.getName() == null) {
                 nodeSpec.setName( field.getName() );
+            }
+            if (field.getAnnotation(SuppressDtoMethods.class) != null) {
+              nodeSpec.setSuppression(SuppressionSpec.DTO);
             }
             if (field.getAnnotation(SuppressFromGeneratedCode.class) != null) {
                 nodeSpec.setSuppression(SuppressionSpec.GENERATED_CODE);

@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -541,14 +542,14 @@ public class EntityContext implements Serializable {
                 continue;
             }
             if (node instanceof ValueNode) {
-                LOG.debug("Setting value of {} to {}", node.getName(), value);
+                LOG.trace("Setting value of {} to {}", node.getName(), value);
                 ((ValueNode)node).setValueNoEvent( value );
             }
             else if (node instanceof RefNode) {
                 RefNode refNode = (RefNode)node;
                 refNode.setLoaded(true);
                 if (value != null) {
-                    LOG.debug("Processing RefNode {} with key {}", refNode.getName(), value);
+                    LOG.trace("Processing RefNode {} with key {}", refNode.getName(), value);
                     Entity reffed = getEntity(refNode.getEntityType(), value, false);
                     if (reffed != null) {
                        //as we have a foreign key in the entity data we assume that FK entity must exist in the database
@@ -587,8 +588,7 @@ public class EntityContext implements Serializable {
     /**
      * Copies a single entity into our context
      * If the entity already exists, then the values and the fk refs are updated accordingly, the
-     * state of any ToMany nodes is left untouched, which is correct
-     * as we do not load any to many relations.
+     * state of any ToMany nodes is left untouched
      *
      * @param entity
      *            return the new entity
@@ -879,11 +879,19 @@ public class EntityContext implements Serializable {
         return queryResult.copyResultTo(this);
     }
 
-    public AuditInformation comapreWithDatabase(PersistRequest persistRequest) throws SortServiceProviderException, SortPersistException  {
+    public AuditInformation comapreWithDatabase(ProxyController ...models) throws SortServiceProviderException, SortPersistException  {
+      return compareWithDatabase(Arrays.asList(models));
+    }
+
+    public AuditInformation compareWithDatabase(List<? extends ProxyController> models) throws SortServiceProviderException, SortPersistException  {
         switchToInternalMode();
         RuntimeProperties runtimeProperties = env.overrideProps( null  );
         try {
-              return env.services().comapreWithDatabase(persistRequest, runtimeProperties);
+            PersistRequest persistRequest = new PersistRequest();
+            for (Object o: models) {
+              persistRequest.save( o );
+            }
+            return env.services().comapreWithDatabase(persistRequest, runtimeProperties);
 
         } finally {
             switchToExternalMode();

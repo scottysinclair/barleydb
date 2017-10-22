@@ -262,12 +262,24 @@ public abstract class PreparedStatementHelper<PREPARING_EX extends BarleyDBExcep
     }
 
     private void setBoolean(PreparedStatement ps, int index, JdbcType jdbcType, Boolean value) throws PREPARING_EX {
-        try {
-            ps.setBoolean(index, value);
-        }
-        catch (SQLException x) {
-            throw newSetValueError("Boolean", x);
-        }
+        switch (jdbcType) {
+          case INT:
+            try {
+              ps.setInt(index, value ? 1 : 0);
+            }
+            catch (SQLException x) {
+                throw newSetValueError("Boolean", x);
+            }
+            break;
+          default:
+            try {
+              ps.setBoolean(index, value);
+            }
+            catch (SQLException x) {
+                throw newSetValueError("Boolean", x);
+            }
+            break;
+          }
     }
 
     private void setInteger(PreparedStatement ps, int index, JdbcType jdbcType, Integer value) throws PREPARING_EX {

@@ -10,12 +10,12 @@ package scott.barleydb.server.jdbc.query;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -25,6 +25,7 @@ package scott.barleydb.server.jdbc.query;
 import static scott.barleydb.server.jdbc.query.QueryGenerator.getQueryDepth;
 import static scott.barleydb.server.jdbc.query.QueryGenerator.toSpaces;
 
+import java.util.Collection;
 import java.util.List;
 
 import scott.barleydb.api.config.Definitions;
@@ -36,6 +37,7 @@ import scott.barleydb.api.query.ConditionVisitor;
 import scott.barleydb.api.query.QCondition;
 import scott.barleydb.api.query.QExists;
 import scott.barleydb.api.query.QLogicalOp;
+import scott.barleydb.api.query.QMathOps;
 import scott.barleydb.api.query.QPropertyCondition;
 import scott.barleydb.server.jdbc.query.QueryGenerator.Param;
 import scott.barleydb.server.jdbc.vendor.Database;
@@ -91,11 +93,28 @@ public class ConditionRenderer implements ConditionVisitor {
             sb.append(" <= ");
             break;
         }
+        case IN: {
+          sb.append(" in (");
+        }
+
         default:
             throw new IllegalQueryStateException("Unexpected operator");
         }
-        params.add(new QueryGenerator.Param(nodeType, qpc.getValue()));
-        sb.append('?');
+        if (qpc.getValue() instanceof Collection) {
+          for (Object value: (Collection<?>)qpc.getValue()) {
+            params.add(new QueryGenerator.Param(nodeType, value));
+            sb.append("?,");
+          }
+          sb.setLength(sb.length()-1);
+        }
+        else {
+          params.add(new QueryGenerator.Param(nodeType, qpc.getValue()));
+          sb.append('?');
+        }
+        //close the open bracket for in
+        if (qpc.getOperator() == QMathOps.IN) {
+          sb.append(')');
+        }
     }
 
     private boolean parensRequired(QLogicalOp parent, QCondition child) {

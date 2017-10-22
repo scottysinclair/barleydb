@@ -1,5 +1,7 @@
 package scott.barleydb.api.dto;
 
+import java.util.Arrays;
+
 /*-
  * #%L
  * BarleyDB
@@ -66,7 +68,9 @@ public class DtoConverter {
   private final String namespace;
   private final Environment env;
   private final DtoHelper helper;
-  private Map<UUID, BaseDto> dtos;
+  private final Map<UUID, BaseDto> dtos;
+  private final Set<UUID> imported;
+  private final Set<Entity> entites = new HashSet<>();
   private EntityContext ctx;
 
   public DtoConverter(Environment env, String namespace, EntityContext ctx) {
@@ -74,6 +78,7 @@ public class DtoConverter {
     this.namespace = namespace;
     this.helper = new DtoHelper(env, namespace);
     this.dtos = new HashMap<>();
+    this.imported = new HashSet<>();
     this.ctx = ctx;
   }
 
@@ -104,15 +109,17 @@ public class DtoConverter {
    * @throws SortServiceProviderException
    */
   public void importDtos(BaseDto ...dtos) throws SortServiceProviderException, SortQueryException {
+    importDtos(Arrays.asList(dtos));
+  }
+  public void importDtos(List<? extends BaseDto> dtos) throws SortServiceProviderException, SortQueryException {
     LOG.debug("Converting DTOS into entities...");
     if (ctx == null) {
       ctx = new EntityContext(env, namespace);
     }
     for (BaseDto dto: dtos) {
       collectedDtosFromObjectGraph(dto);
-
-      importDtosAsEntities();
     }
+    importDtosAsEntities();
     logMappingReport();
   }
 
@@ -193,9 +200,20 @@ public class DtoConverter {
       EntityType et = env.getDefinitions(namespace).getEntityTypeForDtoClass(dto.getClass(), true);
       Map<String,Object> properties = helper.getProperties(dto);
       Object key = properties.get(et.getKeyColumn());
-      Entity e = ctx.newEntity(et, key, dto.getConstraints(), dto.getBaseDtoUuid());
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("{}:  Created entity {} for DTO {} {}", dto.getBaseDtoUuidFirst7(), e, dto);
+      Entity e = ctx.getEntityByUuid(dto.getBaseDtoUuid(), false);
+      if (e == null) {
+        e = ctx.newEntity(et, key, dto.getConstraints(), dto.getBaseDtoUuid());
+        entites.add(e);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("{}:  Created entity {} for DTO {}", dto.getBaseDtoUuidFirst7(), e, dto);
+        }
+      }
+      else {
+        entites.add(e);
+        e.getConstraints().set(dto.getConstraints());
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("{}:  Entity {} already exists for DTO {}", dto.getBaseDtoUuidFirst7(), e, dto);
+        }
       }
     }
 
@@ -206,19 +224,20 @@ public class DtoConverter {
       if (LOG.isDebugEnabled()) {
         LOG.debug("{}:  Copying {} entity state from DTO", entity.getUuidFirst7(), entity.getEntityState());
       }
-        Map<String,Object> propValues = helper.getProperties(dto);
-        cache.put(dto, propValues);
-        copyValues(propValues, entity);
+      Map<String,Object> propValues = helper.getProperties(dto);
+      cache.put(dto, propValues);
+      copyValues(propValues, entity);
     }
     for (BaseDto dto: dtos.values()) {
-        Map<String,Object> propValues = cache.get(dto);
-        Entity entity = ctx.getEntityByUuid(dto.getBaseDtoUuid(), true);
-        copyReferences(propValues, entity);
+      Map<String,Object> propValues = cache.get(dto);
+      Entity entity = ctx.getEntityByUuid(dto.getBaseDtoUuid(), true);
+      copyReferences(propValues, entity);
     }
     for (BaseDto dto: dtos.values()) {
-        Map<String,Object> propValues = cache.get(dto);
-        Entity entity = ctx.getEntityByUuid(dto.getBaseDtoUuid(), true);
-        copyCollections(propValues, entity);
+      Map<String,Object> propValues = cache.get(dto);
+      Entity entity = ctx.getEntityByUuid(dto.getBaseDtoUuid(), true);
+      copyCollections(propValues, entity);
+      imported.add(dto.getBaseDtoUuid());
     }
   }
 
@@ -263,23 +282,26 @@ public class DtoConverter {
         dtos.put(entity.getUuid(), createNewDto(entity));
       }
     }
-    for (BaseDto dto: dtos.values()) {
-       Entity e = ctx.getEntityByUuid(dto.getBaseDtoUuid(), true);
+    for (Entity e: entities) {
+       BaseDto dto = dtos.get(e.getUuid());
        dto.setEntityState(e.getEntityState());
        copyValuesNodes(e, dto);
     }
-    for (BaseDto dto: dtos.values()) {
-      Entity e = ctx.getEntityByUuid(dto.getBaseDtoUuid(), true);
+    for (Entity e: entities) {
+      BaseDto dto = dtos.get(e.getUuid());
       copyRefNodes(e, dto);
     }
-    for (BaseDto dto: dtos.values()) {
-       Entity e = ctx.getEntityByUuid(dto.getBaseDtoUuid(), true);
+    for (Entity e: entities) {
+       BaseDto dto = dtos.get(e.getUuid());
        copyToManyNodes(e, dto);
     }
   }
 
   private void copyToManyNodes(Entity entity, BaseDto dto) {
     for (ToManyNode node: entity.getChildren(ToManyNode.class)) {
+      if (node.getNodeType().isSuppressedFromDto()) {
+        continue;
+      }
       helper.clearCollection(dto, node.getNodeType(), dto);
       for (Entity reffedEntity:  node.getList()) {
         if (node.getNodeType().getJoinProperty() == null) {
@@ -298,6 +320,9 @@ public class DtoConverter {
 
   private void copyRefNodes(Entity entity, BaseDto dto) {
     for (RefNode node: entity.getChildren(RefNode.class)) {
+      if (node.getNodeType().isSuppressedFromDto()) {
+        continue;
+      }
       Entity reffedEntity = node.getReference();
       if (reffedEntity != null) {
         BaseDto reffedDto = dtos.get(reffedEntity.getUuid());
@@ -308,6 +333,9 @@ public class DtoConverter {
 
   private void copyValuesNodes(Entity entity, BaseDto dto) {
     for (ValueNode node: entity.getChildren(ValueNode.class)) {
+      if (node.getNodeType().isSuppressedFromDto()) {
+        continue;
+      }
       helper.setProperty(dto, node.getNodeType(), node.getValueNoFetch());
     }
   }
@@ -335,6 +363,9 @@ public class DtoConverter {
   private void copyCollections(Map<String,Object> propValues, Entity entity) throws SortServiceProviderException, SortQueryException {
     try {
       for (ToManyNode node: entity.getChildren(ToManyNode.class)) {
+        if (node.getNodeType().isSuppressedFromDto()) {
+          continue;
+        }
         if (LOG.isDebugEnabled()) {
           LOG.debug("{}:  Mapping collection for entity {} and property '{}'", entity.getUuidFirst7(), entity, node.getName());
         }
@@ -432,6 +463,7 @@ public class DtoConverter {
        */
       for (Entity e: toProcess) {
           Entity joinE = this.ctx.newEntity(joinEntityType, null, EntityConstraint.mustNotExistInDatabase());
+          entities.add(joinE);
           if (LOG.isDebugEnabled()) {
             LOG.debug("{}: Created new entity {} for missing join record between {} and {}", entity.getUuidFirst7(), joinE, entity, e);
           }
@@ -468,6 +500,9 @@ public class DtoConverter {
   private void copyReferences(Map<String,Object> propValues, Entity entity) {
     try {
       for (RefNode node: entity.getChildren(RefNode.class)) {
+        if (node.getNodeType().isSuppressedFromDto()) {
+          continue;
+        }
         BaseDto reffedDto = (BaseDto) propValues.get(node.getName());
         if (reffedDto != null) {
           Entity reffedEntity = ctx.getEntityByUuid(reffedDto.getBaseDtoUuid(), true);
@@ -485,6 +520,9 @@ public class DtoConverter {
 
   private void copyValues(Map<String,Object> propValues, Entity entity) {
     for (ValueNode node: entity.getChildren(ValueNode.class)) {
+      if (node.getNodeType().isSuppressedFromDto()) {
+        continue;
+      }
       if (node.getNodeType().getFixedValue() == null) {
           node.setValue(propValues.get(node.getName()));
           if (LOG.isDebugEnabled()) {
@@ -492,6 +530,22 @@ public class DtoConverter {
           }
       }
     }
+  }
+
+  public <T extends ProxyController> List<T> getModels(List<? extends BaseDto> dtoModels) {
+    List<T> result = new LinkedList<>();
+    for (BaseDto model: dtoModels) {
+      result.add( (T)getModel(model) );
+    }
+    return result;
+  }
+
+  public <T extends BaseDto> Collection<T> getDtos(List<? extends ProxyController> models, Class<T> type) {
+    List<T> result = new LinkedList<>();
+    for (ProxyController model: models) {
+      result.add( (T)getDto(model) );
+    }
+    return result;
   }
 
 }

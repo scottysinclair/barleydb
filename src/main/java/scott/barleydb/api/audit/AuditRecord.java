@@ -61,11 +61,20 @@ public final class AuditRecord implements Serializable {
 
     public void addChange(Node node, Object oldValue, Object newValue) throws IllegalPersistStateException {
         if (nodesChanged.add(node)) {
-            changes.add(new Change(node, oldValue, newValue));
+            changes.add(new Change(node.getNodeType(), oldValue, newValue));
         }
         else {
             throw new IllegalPersistStateException("Already consumed change for node " + node);
         }
+    }
+
+    public boolean hasChangeForNode(String nodeName) {
+      for (Change ch: changes) {
+        if (ch.node.getName().equals(nodeName)) {
+          return true;
+        }
+      }
+      return false;
     }
 
     public boolean hasChanges() {
@@ -83,11 +92,11 @@ public final class AuditRecord implements Serializable {
      */
     public void setOptimisticLock(Entity entity, Long newOptimisticLock) {
         ValueNode olNode = entity.getOptimisticLock();
-        changes.add(new Change(olNode, olNode.getValue(), newOptimisticLock));
+        changes.add(new Change(olNode.getNodeType(), olNode.getValue(), newOptimisticLock));
     }
 
     public String formatChange(Change change) {
-        return String.format("AUDIT %1$-30s %2$-30s %3$-30s %4$-30s", getEntityType().getTableName(), change.node.getNodeType().getColumnName(), change.oldValue, change.newValue);
+        return String.format("AUDIT %1$-30s %2$-30s %3$-30s %4$-30s", getEntityType().getTableName(), change.node.getColumnName(), change.oldValue, change.newValue);
     }
 
     @Override
@@ -95,5 +104,6 @@ public final class AuditRecord implements Serializable {
         return "AuditRecord [entityType=" + entityType + ", entityKey=" + entityKey
                 + ", changes=" + changes + "]";
     }
+
 
 }
