@@ -284,6 +284,10 @@ public class DependencyTree implements Serializable {
      * populates the dependencyOrder list by processing the dependency nodes.
      */
     private void calculateDependencyOrder() {
+//        generateDiagram();
+        if (LOG.isDebugEnabled()) {
+          logDebugSummaryReport();
+        }
         Collection<Node> readyNodes = getUnprocessedNodesWithNoUnprocessedDependencies(false);
         int count = 0;
         while (count < 1000 && dependencyOrder.size() < countNodeRequiredInDependencyOrder(true)) {
@@ -326,7 +330,7 @@ public class DependencyTree implements Serializable {
         while (count < 100 && dependencyOrder.size() < countNodeRequiredInDependencyOrder(false)) {
             if (readyNodes.isEmpty()) {
                 LOG.error(dumpCurrentState());
-                generateDiagram();
+//                generateDiagram();
                 throw new IllegalStateException("Could not calculate the dependency order.");
             }
             if (tryAndOrderInBatches) {
@@ -364,6 +368,18 @@ public class DependencyTree implements Serializable {
         if (LOG.isDebugEnabled()) {
             LOG.debug(dumpCurrentState());
         }
+    }
+
+    private void logDebugSummaryReport() {
+      if (!LOG.isDebugEnabled()) {
+        return;
+      }
+      LOG.debug("Number of Nodes: {}", nodes.size());
+      int countDeps = 0;
+      for (Node node: nodes.values()) {
+        countDeps += node.dependency.size();
+      }
+      LOG.debug("Number of Dependencies: {}", countDeps);
     }
 
     /**

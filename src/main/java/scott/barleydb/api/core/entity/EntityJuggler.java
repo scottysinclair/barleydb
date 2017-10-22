@@ -73,7 +73,10 @@ public class EntityJuggler {
   private List<Entity> importOrApplyChanges(Collection<Entity> entities, EntityContext dest, boolean importEntities) {
     List<Entity> result = new LinkedList<>();
     Set<Entity> skip = new HashSet<>();
-    for (Entity e : entities) {
+
+    Collection<Entity> fullImportCollection = expandToIncludeReferences(entities);
+
+    for (Entity e : fullImportCollection) {
       Entity eDest = findMatchingEntity(dest, e);
       if (!startedImport.add(e)) {
         //eDest is already being imported, we need to prevent stack overflow
@@ -88,21 +91,58 @@ public class EntityJuggler {
       copyMetaData(e, eDest);
       eDest.copyValueNodesToMe(e, overwriteOptimisticLocks);
     }
-    for (Entity e: entities) {
+    for (Entity e: fullImportCollection) {
         if (skip.contains(e)) {
-          Entity eDest = findMatchingEntity(dest, e);
-          copyRefNodes(e, eDest);
+          continue;
         }
-    }
-    for (Entity e: entities) {
-      if (skip.contains(e)) {
         Entity eDest = findMatchingEntity(dest, e);
-        copyToManyRefs(e, eDest);
+        copyRefNodes(e, eDest);
+    }
+    for (Entity e: fullImportCollection) {
+      if (skip.contains(e)) {
+        continue;
       }
+      Entity eDest = findMatchingEntity(dest, e);
+      copyToManyRefs(e, eDest);
     }
     return result;
   }
 
+
+  private Collection<Entity> expandToIncludeReferences(Collection<Entity> entities) {
+    List<Entity> result = new LinkedList<>(entities);
+    for (Entity e : entities) {
+      /*
+       * include entities which we want to import from direct FK references
+       */
+      for (RefNode refNode: e.getChildren(RefNode.class)) {
+        if (!refNode.isLoaded()) {
+          //refNode is not loaded so we have nothing to add.
+          continue;
+        }
+        Entity refEntity = refNode.getReference();
+        if (refEntity != null && importRefNode(refNode)) {
+          result.add(refEntity);
+        }
+      }
+      /*
+       * also include entities which we want to import from 1:N relations.
+       */
+      for (ToManyNode toManyNode: e.getChildren(ToManyNode.class)) {
+        if (!toManyNode.isFetched()) {
+          //toMany node is not fetched, we have nothing to add.
+          continue;
+        }
+        for (Entity nEntity: toManyNode.getList()) {
+          if (importToManyNode(toManyNode, nEntity)) {
+            // we import the reference - so even if destRefEntity already exists -
+             result.add(nEntity);
+          }
+        }
+      }
+    }
+    return result;
+  }
 
   private void copyRefNodes(Entity e, Entity eDest) {
     EntityContext destCtx = eDest.getEntityContext();
@@ -120,7 +160,7 @@ public class EntityJuggler {
       } else {
         Entity destRefEntity = findMatchingEntity(destCtx, refEntity);
         // check we we import otherwise set it as NOT_LOADED ref
-        if (importRefNode(refNode)) {
+        if (startedImport.contains(refEntity)) {
           // we import the reference - so even if destRefEntity already exists -
           destRefEntity = importOrApplyChanges(refEntity, destCtx, true);
           rDest.setReference(destRefEntity);
@@ -148,7 +188,7 @@ public class EntityJuggler {
       //setup the relation importing and applying changes on the N side.
       for (Entity nEntity: toManyNode.getList()) {
         Entity destNEntity;
-        if (importToManyNode(toManyNode, nEntity)) {
+        if (startedImport.contains(nEntity)) {
           // we import the reference - so even if destRefEntity already exists -
            destNEntity = importOrApplyChanges(nEntity, destCtx, true);
         }
