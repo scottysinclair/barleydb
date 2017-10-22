@@ -173,6 +173,7 @@ public class EntityContextHelper {
             Entity e = newContext.getEntityByUuidOrKey(entity.getUuid(), entity.getEntityType(), entity.getKey().getValue(), false);
             if (e != null) {
                 if (e.isLoaded() && entity.isNotLoaded()) {
+                    //nothing to do...
                     continue;
                 }
             }
@@ -231,23 +232,17 @@ public class EntityContextHelper {
                     throw new IllegalStateException("CopyRefStatesFailed: entity " + origRefNode.getParent() + " has ref " + origRefNode.getName() + " with the wrong entity type: " + origRefNode.getEntityType());
                 }
 
-//                LOG.trace("BEFORE SrcRef: {} DstRef {}", origRefNode.getReference(), refNode.getReference());
-
-                if (!refNode.isLoaded() && origRefNode.isLoaded()) {
-                    refNode.setLoaded(true);
-                }
-                /*
-                 * If we have an actual entity on the reference then set it on refNode if it is included.
-                 */
-                Entity origRefE = origRefNode.getReference(false);
-                if (origRefE != null && entityFilter.includesEntity(origRefE)) {
+                refNode.setLoaded( origRefNode.isLoaded());
+                if (refNode.isLoaded()) {
+                  Entity origRefE = origRefNode.getReference(false);
+                  if (origRefE != null) {
                     Entity e = newContext.getEntityByUuidOrKey(origRefE.getUuid(), origRefE.getEntityType(), origRefE.getKey().getValue(), true);
                     refNode.setReference(e);
-                }
-                else if (origRefE == null) {
+                  }
+                  else{
                     refNode.setReference(null);
+                  }
                 }
-//                LOG.trace("AFTER SrcRef: {} DstRef {}", origRefNode.getReference(), refNode.getReference());
             }
         }
         for (Entity entity : newEntities) {

@@ -70,7 +70,7 @@ import scott.barleydb.server.jdbc.persist.Persister;
 import scott.barleydb.server.jdbc.resources.ConnectionResources;
 import scott.barleydb.test.TestEntityContextServices.PersisterFactory;
 
-@RunWith(Parameterized.class)
+//@RunWith(Parameterized.class)
 public class TestPersistence extends TestRemoteClientBase {
 
     private static final Logger LOG = LoggerFactory.getLogger(TestPersistence.class);
@@ -87,8 +87,8 @@ public class TestPersistence extends TestRemoteClientBase {
     private EntityContextGetter getter;
     private EntityContext theEntityContext;
 
-    public TestPersistence(EntityContextGetter getter) {
-        this.getter = getter;
+    public TestPersistence(/*EntityContextGetter getter*/) {
+        this.getter = new EntityContextGetter(false);
     }
 
     @Override

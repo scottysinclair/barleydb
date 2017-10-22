@@ -50,6 +50,7 @@ import scott.barleydb.api.core.QueryBatcher;
 import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.entity.EntityContextHelper;
+import scott.barleydb.api.core.entity.EntityJuggler;
 import scott.barleydb.api.core.entity.RefNode;
 import scott.barleydb.api.core.entity.ToManyNode;
 import scott.barleydb.api.dependency.diagram.DependencyDiagram;
@@ -1175,7 +1176,7 @@ public class DependencyTree implements Serializable {
         LOG.debug("Copying {} and all children into main ctx and create delete operations for them all.", entity);
 
         // watch out for ownership over join tables (N:M)
-        Collection<Entity> toCopy;
+        final Collection<Entity> toCopy;
         if (toManyNode != null && toManyNode.getNodeType().getJoinProperty() != null) {
             toCopy = findOwnedEntites(new LinkedHashSet<Entity>(), new HashSet<Entity>(), entity,
                     toManyNode.getNodeType().getJoinProperty());
@@ -1184,16 +1185,34 @@ public class DependencyTree implements Serializable {
         }
 
         /*
-         * make sure we don't overwritew any optimistic locks, just incase the Entity which we are copying to our CTX is already there
+         * make sure we don't overwrite any optimistic locks, just incase the Entity which we are copying to our CTX is already there
          * and out of date.
+         *
+         * --we are only copying ref entities of owning relationships
+         * -- other ref entites are "NOT lOADED"
          */
-        List<Entity> copied = EntityContextHelper.addEntities(toCopy, ctx, true, false);
-        EntityContextHelper.copyRefStates(dctx, ctx, copied, new EntityContextHelper.EntityFilter() {
-            @Override
-            public boolean includesEntity(Entity entity) {
-                return true;
-            }
-        });
+        EntityJuggler juggler = new EntityJuggler(false, false) {
+          @Override
+          protected boolean importRefNode(RefNode refNode) {
+            return toCopy.contains(refNode.getReference());
+          }
+          @Override
+          protected boolean importToManyNode(ToManyNode toMany, Entity entity) {
+            return toCopy.contains(entity);
+          }
+        };
+
+        List<Entity> copied = juggler.importEntities(toCopy, ctx);
+//        List<Entity> copied = EntityContextHelper.addEntities(toCopy, ctx, true, false);
+//        EntityContextHelper.copyRefStates(dctx, ctx, copied, new EntityContextHelper.EntityFilter() {
+//            @Override
+//            public boolean includesEntity(Entity entity) {
+//                //we only copy ref states for entites which have been copied into the ctx.
+//                //need to make sure any references which we can't load are lasy
+//                return toCopy.contains(entity);
+//              //return true;
+//            }
+//        });
 
         List<Node> nodes = new LinkedList<>();
         for (Entity e : copied) {
@@ -1249,6 +1268,7 @@ public class DependencyTree implements Serializable {
     }
 
     /**
+     * Finds all owned entities in the entity graph (no-loading).
      *
      * @param matches
      * @param checked
