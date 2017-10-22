@@ -834,18 +834,25 @@ public class DependencyTree implements Serializable {
                         /*
                          * express the dependency, we must be deleted before our
                          * ref
+                         *
+                         * If something is refering to me then I cannot be deleted, so express a dependency
+                         * regardless of the operation
                          */
-                        if (dependentNode.operation.opType != OperationType.NONE &&
-                            dependentNode.operation.opType != OperationType.DEPENDS) {
-                            /*
-                             * a non-op or a depends-op doesn't need any dependency
-                             */
-                            dependentNode.dependency.add(this);
-                            LOG.debug("Added dependency from {} to {}", dependentNode, this);
-                        }
-                        else {
-                            LOG.debug("No dependencies created from {} to {} for OPTYPE {}", dependentNode, this, dependentNode.operation.opType);
-                        }
+                        dependentNode.dependency.add(this);
+                        LOG.debug("Added dependency from {} to {}", dependentNode, this);
+//
+//                        if (dependentNode.operation.opType != OperationType.NONE &&
+//                            dependentNode.operation.opType != OperationType.DEPENDS) {
+//                            /*
+//                             * a non-op or a depends-op doesn't need any dependency
+//                             */
+//                            dependentNode.dependency.add(this);
+//                            LOG.debug("Added dependency from {} to {}", dependentNode, this);
+//                        }
+//                        else {
+//                            //TODO: dependentNode.dependency.add(this);
+//                            LOG.debug("No dependencies created from {} to {} for OPTYPE {}", dependentNode, this, dependentNode.operation.opType);
+//                        }
                     }
                 }
             } else { // TODO Auto-generated method stub
