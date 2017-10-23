@@ -205,6 +205,12 @@ public class ToManyNode extends Node {
         entities.add(index, entity);
     }
 
+    public void addIfAbsent(Entity e) {
+      if (!entities.contains(e)) {
+        add(e);
+      }
+    }
+
     public void add(Entity entity) {
         if (entities.contains(entity)) {
             throw new IllegalStateException("ToMany relation already contains '" + entity + "'");
@@ -351,6 +357,5 @@ public class ToManyNode extends Node {
             }
         }
     }
-
 }
 

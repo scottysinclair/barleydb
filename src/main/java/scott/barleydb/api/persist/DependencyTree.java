@@ -284,7 +284,7 @@ public class DependencyTree implements Serializable {
      * populates the dependencyOrder list by processing the dependency nodes.
      */
     private void calculateDependencyOrder() {
-//        generateDiagram();
+//           generateDiagram();
         if (LOG.isDebugEnabled()) {
           logDebugSummaryReport();
         }

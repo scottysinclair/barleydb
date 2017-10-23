@@ -379,7 +379,7 @@ public class DtoConverter {
             //we are dealing with a normal 1:N relation - get the entities which match the dto list entries
             //and add them to the tomany node
             for (Entity e: getEntitiesForDtoList(list))  {
-              node.add(e);
+              node.addIfAbsent(e);
               if (LOG.isDebugEnabled()) {
                 LOG.debug("{}:  Added {} into list '{}'", entity.getUuidFirst7(), e, node.getName());
               }
@@ -535,12 +535,14 @@ public class DtoConverter {
   public <T extends ProxyController> List<T> getModels(List<? extends BaseDto> dtoModels) {
     List<T> result = new LinkedList<>();
     for (BaseDto model: dtoModels) {
-      result.add( (T)getModel(model) );
+      T m = (T)getModel(model);
+      Objects.requireNonNull(m, "Could not find entity model for DTO " + model.getBaseDtoUuidFirst7());
+      result.add( m );
     }
     return result;
   }
 
-  public <T extends BaseDto> Collection<T> getDtos(List<? extends ProxyController> models, Class<T> type) {
+  public <T extends BaseDto> List<T> getDtos(List<? extends ProxyController> models, Class<T> type) {
     List<T> result = new LinkedList<>();
     for (ProxyController model: models) {
       result.add( (T)getDto(model) );

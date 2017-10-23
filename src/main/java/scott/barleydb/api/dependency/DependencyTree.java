@@ -144,6 +144,7 @@ public class DependencyTree implements Serializable {
      * populates the dependencyOrder list by processing the dependency nodes.
      */
     private void calculateDependencyOrder() {
+ //       generateDiagram();
         Collection<DependencyTreeNode> readyNodes = getNodes( nodesReadyForOrdering() );
         int count = 0;
         while (count < 100 && dependencyOrder.size() < nodes.size()) {

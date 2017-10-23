@@ -296,18 +296,19 @@ public class EntityContext implements Serializable {
      * @param entity
      * @return
      */
-    public Object getProxy(Entity entity) {
+    @SuppressWarnings("unchecked")
+    public <T> T getProxy(Entity entity) {
         WeakReference<Object> p = proxies.get(entity.getUuid());
         if (p == null || p.get() == null ) {
             try {
                 Object o = env.generateProxy(entity);
                 proxies.put(entity.getUuid(), new WeakReference<>(o));
-                return o;
+                return (T)o;
             } catch (Exception x) {
                 throw new IllegalStateException("Could not generated proxy", x);
             }
         }
-        return p.get();
+        return (T)p.get();
     }
 
     public Definitions getDefinitions() {

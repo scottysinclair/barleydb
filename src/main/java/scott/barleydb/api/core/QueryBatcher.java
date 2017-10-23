@@ -85,4 +85,8 @@ public class QueryBatcher implements Serializable {
         }
     }
 
+    public boolean isEmpty() {
+      return queries.isEmpty();
+    }
+
 }

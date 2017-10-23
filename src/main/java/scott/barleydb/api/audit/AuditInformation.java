@@ -26,9 +26,11 @@ import java.io.Serializable;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.ProxyController;
@@ -98,6 +100,6 @@ public class AuditInformation implements Serializable {
 
     public boolean hasNodeChanged(ProxyController pc, QProperty<?> property) {
       AuditRecord record = getAuditRecord( pc.getEntity() );
-      return record.hasChangeForNode(property.getName());
+      return record != null && record.hasChangeForNode(property.getName());
     }
 }

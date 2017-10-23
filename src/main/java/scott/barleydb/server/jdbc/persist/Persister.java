@@ -88,7 +88,6 @@ public class Persister {
         audit.add(auditCreate(analyser.getCreateGroup()));
         audit.add(auditUpdate(databaseDataSet, analyser.getUpdateGroup()));
         audit.add(auditDelete(databaseDataSet, analyser.getDeleteGroup()));
-
         return audit;
     }
 

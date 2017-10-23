@@ -26,6 +26,8 @@ package scott.barleydb.api.query;
 import java.io.Serializable;
 import java.util.Set;
 
+import scott.barleydb.api.exception.BarleyDBRuntimeException;
+
 public class QProperty<VAL> implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -76,6 +78,9 @@ public class QProperty<VAL> implements Serializable {
     }
 
     public QPropertyCondition in(Set<VAL> values) {
+      if (values.isEmpty()) {
+        throw new BarleyDBRuntimeException("Cannot use empty set with IN condition");
+      }
       return new QPropertyCondition(this, QMathOps.IN, values);
     }
 

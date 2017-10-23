@@ -95,11 +95,12 @@ public class ConditionRenderer implements ConditionVisitor {
         }
         case IN: {
           sb.append(" in (");
+          break;
+        }
+        default:
+            throw new IllegalQueryStateException("Unexpected operator " + qpc.getOperator());
         }
 
-        default:
-            throw new IllegalQueryStateException("Unexpected operator");
-        }
         if (qpc.getValue() instanceof Collection) {
           for (Object value: (Collection<?>)qpc.getValue()) {
             params.add(new QueryGenerator.Param(nodeType, value));
