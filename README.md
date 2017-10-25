@@ -106,7 +106,9 @@ public List<UserDto> loadUsers() {
  //get the list of userDtos which match the list of user entities from the query.
  List<UserDto> usersDto = converter.getDtos(users);
  return usersDto;
+}
 ```
+The DTOs extend BaseDto and have both [EntityState](https://github.com/scottysinclair/barleydb/blob/master/src/java/scott/barleydb/api/core/entity/EntityState.java) and [EntityConstraints](https://github.com/scottysinclair/barleydb/blob/master/src/java/scott/barleydb/api/core/entity/EntityConstraint.java) so that information is not lost when mapping to and from entities. 1:N relationships are managed with [DtoList](https://github.com/scottysinclair/barleydb/blob/master/src/java/scott/barleydb/api/dto/DtoList.java) which keeps track of the fetched state of the 1:N relation.
 
 ### Auditing
 Auditing is very straightforward as a change report is generated every time domain models are persisted. The report below shows the table name, column name, old value and new value. 
