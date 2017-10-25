@@ -66,6 +66,7 @@ Country country = dep.getCountry();
 
 ### Persisting changes to the database
 Persist requests are used to bundle together domain models to be persisted.
+Persist operations cascade down to owned relations as expected.
 ```java
 PersistRequest pr = new PersistRequest();
 pr.save( userA, userB, userC );
@@ -87,6 +88,24 @@ BatchExecuter executing insert batch for EntityType [ org.example.etl.model.Busi
 BatchExecuter 2 rows were modified in total
 BatchExecuter executing insert batch for EntityType [ org.example.etl.model.TemplateBusinessType ] of size 2
 BatchExecuter 2 rows were modified in total
+```
+
+### DTO Models
+DTO classes are automatically generated which allow programmers to work with simple DTO objects.
+DTOConverter utilities are provided to make it very easy to convert between DTOS and Entities
+```
+public List<UserDto> loadUsers() {
+ //create a ctx and perform the  query
+ EntityContext ctx = new EntityContext(env, namespace);
+ List<User> users = ctx.performQuery(new QUsers()).getList(); 
+
+ //convert all entities in the ctx to dtos
+ DtoConverter converter = new DtoConverter(ctx);
+ converter.convertToDtos();
+
+ //get the list of userDtos which match the list of user entities from the query.
+ List<UserDto> usersDto = converter.getDtos(users);
+ return usersDto;
 ```
 
 ### Auditing
@@ -439,10 +458,6 @@ BarleyDB allows the schema to be specified in an XML file or via Java classes. J
 The best way to see how BarleyDB works is to look at the test cases.
 * The [scott.barleydb.test.TestQuery](https://github.com/scottysinclair/barleydb/blob/master/src/test/java/scott/barleydb/test/TestQuery.java) class executes queries using the query DSL against an in memory HSQLDB instance.
 * The [scott.barleydb.test.TestPersistence](https://github.com/scottysinclair/barleydb/blob/master/src/test/java/scott/barleydb/test/TestPersistence.java) class executes persist requests saving data into an in memory HSQLDB instance.
-* The [org.example.etl.EtlSpec](https://github.com/scottysinclair/barleydb/blob/master/src/test/java/org/example/etl/EtlSpec.java) defines a schema for an ETL tool which itself references elements from the [org.example.acl.AclSpec]()
+* The [org.example.etl.EtlSpec](https://github.com/scottysinclair/barleydb/blob/master/src/test/java/org/example/etl/EtlSpec.java) defines a schema for an ETL tool which itself references elements from the [org.example.acl.AclSpec](https://github.com/scottysinclair/barleydb/blob/master/src/test/java/org/example/acl/AclSpec.java)
 * The [scott.barleydb.test.TestGenerator](https://github.com/scottysinclair/barleydb/blob/master/src/test/java/scott/barleydb/test/TestGenerator.java) class generates schema DDL files, query DSL classes and pojo classes for a given schema specification.
 
-
-#Future Features
-* Autogeneration of UUIDs
-* Streaming of large result-sets.
