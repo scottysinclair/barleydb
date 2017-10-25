@@ -73,6 +73,15 @@ public class DtoConverter {
   private final Set<Entity> entites = new HashSet<>();
   private EntityContext ctx;
 
+  public DtoConverter(EntityContext ctx) {
+    this.env = ctx.getEnv();
+    this.namespace = ctx.getNamespace();
+    this.ctx = ctx;
+    this.helper = new DtoHelper(env, namespace);
+    this.dtos = new HashMap<>();
+    this.imported = new HashSet<>();
+  }
+
   public DtoConverter(Environment env, String namespace, EntityContext ctx) {
     this.env = env;
     this.namespace = namespace;
