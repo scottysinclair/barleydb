@@ -13,12 +13,12 @@ package scott.barleydb.api.dto;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -29,6 +29,7 @@ import java.util.List;
 
 import scott.barleydb.api.audit.AuditInformation;
 import scott.barleydb.api.audit.AuditRecord;
+import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.core.Environment;
 import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityContext;
@@ -36,6 +37,7 @@ import scott.barleydb.api.core.entity.ProxyController;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
 import scott.barleydb.api.exception.execution.query.SortQueryException;
+import scott.barleydb.api.query.QProperty;
 
 public class DtoAuditInformation {
 
@@ -55,14 +57,25 @@ public class DtoAuditInformation {
   }
 
   public boolean hasChanges(BaseDto dto) {
-    ProxyController model = converter.getModel(dto);
-    Entity entity = model.getEntity();
+    Entity entity = converter.getEntity(dto);
     AuditRecord record = auditInformation.getAuditRecord(entity);
     return record != null && record.hasChanges();
   }
 
   public AuditInformation getEntityAuditInformation() {
     return auditInformation;
+  }
+
+  /**
+   *
+   * @param dtoClass the DTO class
+   * @param property the property of the DTO
+   * @param value the value
+   * @return true if a DTO object property was changed from or to the given value
+   */
+  public List<AuditRecord> getValueChangesMatching(Class<? extends BaseDto> dtoClass, QProperty<?> property, Object value) {
+    EntityType et =  ctx.getDefinitions().getEntityTypeForDtoClass(dtoClass, true);
+    return auditInformation.getValueChangesMatching(et, property, value);
   }
 
 }

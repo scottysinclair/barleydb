@@ -30,8 +30,10 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
+import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.ProxyController;
 import scott.barleydb.api.query.QProperty;
@@ -101,5 +103,22 @@ public class AuditInformation implements Serializable {
     public boolean hasNodeChanged(ProxyController pc, QProperty<?> property) {
       AuditRecord record = getAuditRecord( pc.getEntity() );
       return record != null && record.hasChangeForNode(property.getName());
+    }
+
+    public List<AuditRecord> getValueChangesMatching(EntityType entityType, QProperty<?> property, Object value) {
+      List<AuditRecord> result = new LinkedList<>();
+      for (AuditRecord rec: records) {
+         if (rec.getEntityType() != entityType) {
+           continue;
+         }
+         Change change = rec.getChange(property.getName());
+         if (change == null) {
+           continue;
+         }
+         if (Objects.equals(change.oldValue, value) || Objects.equals(change.newValue, value)) {
+           result.add(rec);
+         }
+      }
+      return result;
     }
 }

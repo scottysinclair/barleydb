@@ -97,6 +97,10 @@ public class ConditionRenderer implements ConditionVisitor {
           sb.append(" in (");
           break;
         }
+        case NOT_IN: {
+          sb.append(" not in (");
+          break;
+        }
         default:
             throw new IllegalQueryStateException("Unexpected operator " + qpc.getOperator());
         }
@@ -113,7 +117,7 @@ public class ConditionRenderer implements ConditionVisitor {
           sb.append('?');
         }
         //close the open bracket for in
-        if (qpc.getOperator() == QMathOps.IN) {
+        if (qpc.getOperator() == QMathOps.IN  || qpc.getOperator() == QMathOps.NOT_IN) {
           sb.append(')');
         }
     }

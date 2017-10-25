@@ -13,12 +13,12 @@ package scott.barleydb.api.core.entity;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -165,11 +165,25 @@ public class EntityCloner {
   private void cloneToManyNodeRelation(ToManyNode child, Entity dest, QueryObject<?> restOfGraph, String logPrefix) {
     ToManyNode destNode = dest.getChild(child.getName(), ToManyNode.class);
     for (Entity entity: child.getList()) {
+      if (excludedFromCloning(child, entity)) {
+        LOG.debug("{}{} is excluded from cloning", logPrefix, entity);
+        continue;
+      }
       if (LOG.isDebugEnabled() && !cloneLookup.containsKey(entity)) {
         LOG.debug("{}Cloning 1:N relation '{}' ({})", logPrefix, child.getName(), entity);
       }
       destNode.add( clone(entity, restOfGraph, logPrefix + "  ") );
     }
+  }
+
+  /**
+   * can be overriden for custom behaviour
+   * @param child
+   * @param entity
+   * @return
+   */
+  protected boolean excludedFromCloning(ToManyNode child, Entity entity) {
+    return false;
   }
 
   private void cloneRefNodeRelation(RefNode child, Entity dest, QueryObject<?> restOfGraph, String logPrefix) {

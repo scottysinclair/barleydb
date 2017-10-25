@@ -69,13 +69,18 @@ public final class AuditRecord implements Serializable {
     }
 
     public boolean hasChangeForNode(String nodeName) {
+      return getChange(nodeName) != null;
+    }
+
+    public Change getChange(String name) {
       for (Change ch: changes) {
-        if (ch.node.getName().equals(nodeName)) {
-          return true;
+        if (ch.node.getName().equals(name)) {
+          return ch;
         }
       }
-      return false;
+      return null;
     }
+
 
     public boolean hasChanges() {
         return !changes.isEmpty();
@@ -104,6 +109,5 @@ public final class AuditRecord implements Serializable {
         return "AuditRecord [entityType=" + entityType + ", entityKey=" + entityKey
                 + ", changes=" + changes + "]";
     }
-
 
 }

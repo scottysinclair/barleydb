@@ -87,11 +87,15 @@ public class DtoConverter {
   }
 
   public <T extends ProxyController> T getModel(BaseDto dto) {
+    Entity entity = getEntity(dto);
+    return (T)(entity != null ? ctx.getProxy(entity) : null);
+  }
+
+  public Entity getEntity(BaseDto dto) {
     if (ctx == null) {
       return null;
     }
-    Entity entity = ctx.getEntityByUuid(dto.getBaseDtoUuid(), false);
-    return (T)(entity != null ? ctx.getProxy(entity) : null);
+    return ctx.getEntityByUuid(dto.getBaseDtoUuid(), false);
   }
 
   public <T extends BaseDto> T getDto(ProxyController proxy) {
@@ -178,8 +182,8 @@ public class DtoConverter {
     if (existingDto != null) {
       throw new IllegalStateException("Duplicate UUID in DTO graph");
     }
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Collecting DTOs referenced by {} {}", dto, dto.getBaseDtoUuidFirst7());
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("Collecting DTOs referenced by {} {}", dto, dto.getBaseDtoUuidFirst7());
     }
     dtos.put(dto.getBaseDtoUuid(), dto);
     for (Object propValue: helper.getProperties(dto).values()) {
@@ -205,14 +209,14 @@ public class DtoConverter {
         e = ctx.newEntity(et, key, dto.getConstraints(), dto.getBaseDtoUuid());
         entites.add(e);
         if (LOG.isDebugEnabled()) {
-          LOG.debug("{}:  Created entity {} for DTO {}", dto.getBaseDtoUuidFirst7(), e, dto);
+          LOG.trace("{}:  Created entity {} for DTO {}", dto.getBaseDtoUuidFirst7(), e, dto);
         }
       }
       else {
         entites.add(e);
         e.getConstraints().set(dto.getConstraints());
         if (LOG.isDebugEnabled()) {
-          LOG.debug("{}:  Entity {} already exists for DTO {}", dto.getBaseDtoUuidFirst7(), e, dto);
+          LOG.trace("{}:  Entity {} already exists for DTO {}", dto.getBaseDtoUuidFirst7(), e, dto);
         }
       }
     }
@@ -221,8 +225,8 @@ public class DtoConverter {
     for (BaseDto dto: dtos.values()) {
       Entity entity = ctx.getEntityByUuid(dto.getBaseDtoUuid(), true);
       entity.setEntityState(dto.getEntityState());
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("{}:  Copying {} entity state from DTO", entity.getUuidFirst7(), entity.getEntityState());
+      if (LOG.isTraceEnabled()) {
+        LOG.trace("{}:  Copying {} entity state from DTO", entity.getUuidFirst7(), entity.getEntityState());
       }
       Map<String,Object> propValues = helper.getProperties(dto);
       cache.put(dto, propValues);
@@ -244,13 +248,13 @@ public class DtoConverter {
   private void logMappingReport() {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Mapped " + dtos.values().size() + " dtos and entities");
-      for(Map.Entry<UUID, BaseDto> entry: dtos.entrySet()) {
-        LOG.debug("-----------------------------------------------------");
-        BaseDto dto = entry.getValue();
-        LOG.debug(String.format("DTO    %-12s %40s %-15s", dto.getBaseDtoUuidFirst7(), dto, dto.getEntityState()));
-        Entity e = ctx.getEntityByUuid(dto.getBaseDtoUuid(), true);
-        LOG.debug(String.format("Entity %-12s %-15s", e.getUuidFirst7(), e));
-      }
+//      for(Map.Entry<UUID, BaseDto> entry: dtos.entrySet()) {
+//        LOG.debug("-----------------------------------------------------");
+//        BaseDto dto = entry.getValue();
+//        LOG.debug(String.format("DTO    %-12s %40s %-15s", dto.getBaseDtoUuidFirst7(), dto, dto.getEntityState()));
+//        Entity e = ctx.getEntityByUuid(dto.getBaseDtoUuid(), true);
+//        LOG.debug(String.format("Entity %-12s %-15s", e.getUuidFirst7(), e));
+//      }
     }
   }
 
@@ -366,8 +370,8 @@ public class DtoConverter {
         if (node.getNodeType().isSuppressedFromDto()) {
           continue;
         }
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("{}:  Mapping collection for entity {} and property '{}'", entity.getUuidFirst7(), entity, node.getName());
+        if (LOG.isTraceEnabled()) {
+          LOG.trace("{}:  Mapping collection for entity {} and property '{}'", entity.getUuidFirst7(), entity, node.getName());
         }
         DtoList<? extends BaseDto> list = (DtoList<? extends BaseDto>) propValues.get(node.getName());
         if (list != null) {
@@ -380,14 +384,14 @@ public class DtoConverter {
             //and add them to the tomany node
             for (Entity e: getEntitiesForDtoList(list))  {
               node.addIfAbsent(e);
-              if (LOG.isDebugEnabled()) {
-                LOG.debug("{}:  Added {} into list '{}'", entity.getUuidFirst7(), e, node.getName());
+              if (LOG.isTraceEnabled()) {
+                LOG.trace("{}:  Added {} into list '{}'", entity.getUuidFirst7(), e, node.getName());
               }
             }
           }
           else {
-            if (LOG.isDebugEnabled()) {
-              LOG.debug("{}:  Entity property {}.'{}' is an N:M relation with joinProperty '{}'", entity.getUuidFirst7(), entity.getEntityType().getInterfaceShortName(), node.getName(), node.getNodeType().getJoinProperty());
+            if (LOG.isTraceEnabled()) {
+              LOG.trace("{}:  Entity property {}.'{}' is an N:M relation with joinProperty '{}'", entity.getUuidFirst7(), entity.getEntityType().getInterfaceShortName(), node.getName(), node.getNodeType().getJoinProperty());
             }
             /* we have an join property so this is a N:M  relation, the DTO just directly listed the M side and so we have to load the N from the database now
              so that the entity model is correct. */
@@ -418,8 +422,8 @@ public class DtoConverter {
 
     Set<Entity> toProcess = new HashSet<>(entities);
     if (entity.getKey().getValue() != null) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("{}:  Executing query (in separate ctx) to load and reuse existing join table records for entity {}", entity.getUuidFirst7(), entity);
+      if (LOG.isTraceEnabled()) {
+        LOG.trace("{}:  Executing query (in separate ctx) to load and reuse existing join table records for entity {}", entity.getUuidFirst7(), entity);
       }
       /*
        * The entity (the N side of the N:M relation has a PK), so we load the missing Join entity data.
@@ -442,8 +446,8 @@ public class DtoConverter {
         ToManyNode resultNode = resultEntity.getChild(node.getName(), ToManyNode.class);
         for (Entity joinEntity: resultNode.getList()) {
           if (joinEntityReferencesOneOf(joinEntity, joinProperty, entities)) {
-            if (LOG.isDebugEnabled()) {
-              LOG.debug("{}:  Found join entity to import into context {}", entity.getUuidFirst7(), joinEntity);
+            if (LOG.isTraceEnabled()) {
+              LOG.trace("{}:  Found join entity to import into context {}", entity.getUuidFirst7(), joinEntity);
             }
             Entity addedJoinEntity = this.ctx.copyInto(joinEntity);
             //mside must also be in 'entities'
@@ -464,8 +468,8 @@ public class DtoConverter {
       for (Entity e: toProcess) {
           Entity joinE = this.ctx.newEntity(joinEntityType, null, EntityConstraint.mustNotExistInDatabase());
           entities.add(joinE);
-          if (LOG.isDebugEnabled()) {
-            LOG.debug("{}: Created new entity {} for missing join record between {} and {}", entity.getUuidFirst7(), joinE, entity, e);
+          if (LOG.isTraceEnabled()) {
+            LOG.trace("{}: Created new entity {} for missing join record between {} and {}", entity.getUuidFirst7(), joinE, entity, e);
           }
           //set the M reference in the join entity
           joinE.getChild(joinProperty, RefNode.class).setReference(e);
@@ -507,8 +511,8 @@ public class DtoConverter {
         if (reffedDto != null) {
           Entity reffedEntity = ctx.getEntityByUuid(reffedDto.getBaseDtoUuid(), true);
           node.setReference( reffedEntity );
-          if (LOG.isDebugEnabled()) {
-            LOG.debug("{}:  {} Set entity reference --> {}", entity.getUuidFirst7(), entity, reffedEntity);
+          if (LOG.isTraceEnabled()) {
+            LOG.trace("{}:  {} Set entity reference --> {}", entity.getUuidFirst7(), entity, reffedEntity);
           }
         }
       }
@@ -525,8 +529,8 @@ public class DtoConverter {
       }
       if (node.getNodeType().getFixedValue() == null) {
           node.setValue(propValues.get(node.getName()));
-          if (LOG.isDebugEnabled()) {
-            LOG.debug("{}:  Copied value {} to entity {}", node.getParent().getUuidFirst7(), node.getValueNoFetch(), node.getParent());
+          if (LOG.isTraceEnabled()) {
+            LOG.trace("{}:  Copied value {} to entity {}", node.getParent().getUuidFirst7(), node.getValueNoFetch(), node.getParent());
           }
       }
     }

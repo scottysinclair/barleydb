@@ -83,9 +83,20 @@ public class GenerateDtoModels extends GenerateModelsHelper {
                 }
             }
 
+            writeToString(out, entitySpec);
+
             out.write("}\n");
             out.flush();
         }
+    }
+
+    private void writeToString(Writer out, EntitySpec entitySpec) throws IOException {
+      out.write("  public String toString() {\n");
+      out.write("    return getClass().getSimpleName() + \"[");
+      NodeSpec ns = entitySpec.getPrimaryKeyNodes(true).iterator().next();
+      out.write(ns.getName());
+      out.write(" = \" + " + ns.getName() + " + \"]\";\n");
+      out.write("  }\n");
     }
 
     private String getDtoPackageName(EntitySpec entitySpec) {

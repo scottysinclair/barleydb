@@ -84,4 +84,11 @@ public class QProperty<VAL> implements Serializable {
       return new QPropertyCondition(this, QMathOps.IN, values);
     }
 
+    public QPropertyCondition notIn(Set<VAL> values) {
+      if (values.isEmpty()) {
+        throw new BarleyDBRuntimeException("Cannot use empty set with IN condition");
+      }
+      return new QPropertyCondition(this, QMathOps.NOT_IN, values);
+    }
+
 }
