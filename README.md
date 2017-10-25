@@ -93,7 +93,7 @@ BatchExecuter 2 rows were modified in total
 ### DTO Models
 DTO classes are automatically generated which allow programmers to work with simple DTO objects.
 DTOConverter utilities are provided to make it very easy to convert between DTOS and Entities
-```
+```java
 public List<UserDto> loadUsers() {
  //create a ctx and perform the  query
  EntityContext ctx = new EntityContext(env, namespace);
@@ -108,8 +108,18 @@ public List<UserDto> loadUsers() {
  return usersDto;
 }
 ```
-The DTOs extend BaseDto and have both [EntityState](https://github.com/scottysinclair/barleydb/blob/master/src/java/scott/barleydb/api/core/entity/EntityState.java) and [EntityConstraints](https://github.com/scottysinclair/barleydb/blob/master/src/java/scott/barleydb/api/core/entity/EntityConstraint.java) so that information is not lost when mapping to and from entities. 1:N relationships are managed with [DtoList](https://github.com/scottysinclair/barleydb/blob/master/src/java/scott/barleydb/api/dto/DtoList.java) which keeps track of the fetched state of the 1:N relation.
-
+The DTOs extend BaseDto and have both [EntityState](https://github.com/scottysinclair/barleydb/blob/master/src/main/java/scott/barleydb/api/core/entity/EntityState.java) and [EntityConstraints](https://github.com/scottysinclair/barleydb/blob/master/src/main/java/scott/barleydb/api/core/entity/EntityConstraint.java) so that information is not lost when mapping to and from entities. 1:N relationships are managed with [DtoList](https://github.com/scottysinclair/barleydb/blob/master/src/main/java/scott/barleydb/api/dto/DtoList.java) which keeps track of the fetched state of the 1:N relation.
+```java
+// update account 100
+ AccountDto account = new Account();
+ account.setId(100);
+ //set the fetched state to true - indicates that the relation is considered fetched and therefore already contains all data
+ account.getTransactions().setFetched(true);
+ account.getTransactions().add( tran1 );
+ account.getTransactions().add( tran2 );
+ 
+ service.save(account);
+```
 ### Auditing
 Auditing is very straightforward as a change report is generated every time domain models are persisted. The report below shows the table name, column name, old value and new value. 
 ```
