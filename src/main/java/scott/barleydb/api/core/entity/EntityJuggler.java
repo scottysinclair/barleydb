@@ -28,8 +28,10 @@ package scott.barleydb.api.core.entity;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -110,7 +112,7 @@ public class EntityJuggler {
 
 
   private Collection<Entity> expandToIncludeReferences(Collection<Entity> entities) {
-    List<Entity> result = new LinkedList<>(entities);
+    Set<Entity> result = new LinkedHashSet<>(entities);
     for (Entity e : entities) {
       /*
        * include entities which we want to import from direct FK references
@@ -161,8 +163,7 @@ public class EntityJuggler {
         Entity destRefEntity = findMatchingEntity(destCtx, refEntity);
         // check we we import otherwise set it as NOT_LOADED ref
         if (startedImport.contains(refEntity)) {
-          // we import the reference - so even if destRefEntity already exists -
-          destRefEntity = importOrApplyChanges(refEntity, destCtx, true);
+          Objects.requireNonNull(destRefEntity, "must exist as import has started");
           rDest.setReference(destRefEntity);
         } else {
           // we don't import, so just set the equivalent reference so the
@@ -187,20 +188,17 @@ public class EntityJuggler {
       toManyDest.setFetched(true);
       //setup the relation importing and applying changes on the N side.
       for (Entity nEntity: toManyNode.getList()) {
-        Entity destNEntity;
+        Entity destNEntity = findMatchingEntity(destCtx, nEntity);
+
         if (startedImport.contains(nEntity)) {
-          // we import the reference - so even if destRefEntity already exists -
-           destNEntity = importOrApplyChanges(nEntity, destCtx, true);
+           Objects.requireNonNull(destNEntity, "must exist as it is being imported");
         }
         else {
-          destNEntity = findMatchingEntity(destCtx, nEntity);
           if (destNEntity == null) {
             destNEntity = createNotLoadedEquivalent(nEntity, destCtx);
           }
         }
-        if (!toManyNode.contains(destNEntity)) {
-          toManyDest.add(destNEntity);
-        }
+        toManyDest.addIfAbsent(destNEntity);
       }
     }
   }

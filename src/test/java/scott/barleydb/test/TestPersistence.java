@@ -70,7 +70,7 @@ import scott.barleydb.server.jdbc.persist.Persister;
 import scott.barleydb.server.jdbc.resources.ConnectionResources;
 import scott.barleydb.test.TestEntityContextServices.PersisterFactory;
 
-//@RunWith(Parameterized.class)
+@RunWith(Parameterized.class)
 public class TestPersistence extends TestRemoteClientBase {
 
     private static final Logger LOG = LoggerFactory.getLogger(TestPersistence.class);
@@ -87,8 +87,8 @@ public class TestPersistence extends TestRemoteClientBase {
     private EntityContextGetter getter;
     private EntityContext theEntityContext;
 
-    public TestPersistence(/*EntityContextGetter getter*/) {
-        this.getter = new EntityContextGetter(false);
+    public TestPersistence(EntityContextGetter getter) {
+        this.getter = getter;
     }
 
     @Override
@@ -732,6 +732,7 @@ public class TestPersistence extends TestRemoteClientBase {
          */
         XmlSyntaxModel syntaxModel = buildSyntax();
         theEntityContext.persist(new PersistRequest().save(syntaxModel));
+        theEntityContext.setAllowGarbageCollection(true);
 
 
         /*
@@ -747,8 +748,8 @@ public class TestPersistence extends TestRemoteClientBase {
         /*
          * verify that the syntax was removed
          */
-        assertEquals(1, theEntityContext.performQuery(new QXmlSyntaxModel()).getList().size());
         assertEquals(10, theEntityContext.size());
+        assertEquals(1, theEntityContext.performQuery(new QXmlSyntaxModel()).getList().size());
         assertEquals(1, EntityContextHelper.countLoaded( theEntityContext.getEntitiesByType(AccessArea.class) ) );
         assertEquals(1, EntityContextHelper.countLoaded( theEntityContext.getEntitiesByType(XmlSyntaxModel.class) ) );
         assertEquals(1, EntityContextHelper.countNew( theEntityContext.getEntitiesByType(XmlSyntaxModel.class) ) );
