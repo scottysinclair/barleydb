@@ -25,8 +25,6 @@ package org.example.etl.dto;
  * #L%
  */
 
-import scott.barleydb.api.dto.BaseDto;
-
 import scott.barleydb.api.dto.DtoList;
 
 

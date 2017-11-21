@@ -67,6 +67,7 @@ public class EntityJuggler {
     return importOrApplyChanges(entities, dest, false);
   }
 
+  @SuppressWarnings("unused")
   private Entity importOrApplyChanges(Entity entity, EntityContext dest, boolean importEntities) {
     importOrApplyChanges(Arrays.asList(entity), dest, importEntities);
     return findMatchingEntity(dest, entity);

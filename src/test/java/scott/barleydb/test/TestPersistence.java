@@ -50,7 +50,6 @@ import org.example.etl.query.QRawData;
 import org.example.etl.query.QTemplate;
 import org.example.etl.query.QXmlSyntaxModel;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -751,6 +750,7 @@ public class TestPersistence extends TestRemoteClientBase {
          * Then delete the subsyntax model, by clearing the owning reference.
          */
         //hold a reference to the subsyntax so it is not GCd
+        @SuppressWarnings("unused")
         SyntaxModel subSyntax = syntaxModel.getMappings().get(1).getSubSyntax();
         syntaxModel.getMappings().get(1).setSubSyntax(null);
         theEntityContext.persist(new PersistRequest().save(syntaxModel));

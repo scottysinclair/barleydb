@@ -23,7 +23,6 @@ package scott.barleydb.test;
  */
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.sql.Connection;
@@ -33,8 +32,6 @@ import java.util.List;
 import java.util.Properties;
 
 import javax.sql.DataSource;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
@@ -51,9 +48,7 @@ import org.example.etl.model.CsvMapping;
 import org.example.etl.model.CsvStructure;
 import org.example.etl.model.CsvStructureField;
 import org.example.etl.model.CsvSyntaxModel;
-import org.example.etl.model.StructureType;
 import org.example.etl.model.SyntaxModel;
-import org.example.etl.model.SyntaxType;
 import org.example.etl.model.Template;
 import org.example.etl.model.TemplateContent;
 import org.example.etl.model.XmlMapping;
@@ -71,13 +66,9 @@ import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.entity.ProxyController;
 import scott.barleydb.api.persist.PersistAnalyser;
-import scott.barleydb.api.specification.DefinitionsSpec;
-import scott.barleydb.api.specification.SpecRegistry;
 import scott.barleydb.bootstrap.EnvironmentDef;
-import scott.barleydb.build.specification.vendor.MySqlSpecConverter;
 import scott.barleydb.server.jdbc.JdbcEntityContextServices;
 
-@SuppressWarnings("deprecation")
 public abstract class TestBase {
 
     public interface DatabaseTestSetup  {
@@ -157,7 +148,6 @@ public abstract class TestBase {
     }
 
 
-    private static boolean databaseInitialized = false;
     protected static Environment env;
     protected static TestEntityContextServices entityContextServices;
     protected static String transformXml;
@@ -263,21 +253,6 @@ public abstract class TestBase {
         if (!serverEntityContext.getAutocommit()) {
             serverEntityContext.rollback();
         }
-    }
-
-    private static DefinitionsSpec loadDefinitions(String path, String namespace) throws Exception {
-        JAXBContext jc = JAXBContext.newInstance(SpecRegistry.class, StructureType.class, SyntaxType.class, EtlSpec.class);
-        Unmarshaller unmarshaller = jc.createUnmarshaller();
-        SpecRegistry registry = (SpecRegistry)unmarshaller.unmarshal(new File(path));
-        DefinitionsSpec spec = registry.getDefinitionsSpec(namespace);
-        if (spec == null) {
-            throw new IllegalStateException("Could not load definitions " + namespace);
-        }
-
-        if (db instanceof MySqlDbTest) {
-            spec = MySqlSpecConverter.convertSpec( spec );
-        }
-        return spec;
     }
 
     protected Entity toEntity(Object object) {

@@ -35,7 +35,6 @@ import java.util.Objects;
 import scott.barleydb.api.core.types.JavaType;
 import scott.barleydb.api.core.types.JdbcType;
 import scott.barleydb.api.core.types.Nullable;
-import scott.barleydb.api.specification.CoreSpec;
 import scott.barleydb.api.specification.DefinitionsSpec;
 import scott.barleydb.api.specification.EntitySpec;
 import scott.barleydb.api.specification.JoinTypeSpec;

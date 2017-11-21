@@ -69,7 +69,6 @@ import scott.barleydb.api.core.QueryRegistry;
 import scott.barleydb.api.core.entity.context.Entities;
 import scott.barleydb.api.core.entity.context.EntityInfo;
 import scott.barleydb.api.core.proxy.ProxyList;
-import scott.barleydb.api.core.util.CollectionUtil;
 import scott.barleydb.api.core.util.EnvironmentAccessor;
 import scott.barleydb.api.dependency.diagram.DependencyDiagram;
 import scott.barleydb.api.dependency.diagram.Link;
@@ -464,12 +463,14 @@ public class EntityContext implements Serializable {
         return entity;
     }
 
+    @SuppressWarnings("unchecked")
     public <T> T getModel(Class<T> type, Object key, boolean mustExist)  {
         EntityType entityType = definitions.getEntityTypeForClass(type, true);
         Entity entity = getEntity(entityType, key, mustExist);
         return entity != null ? (T) getProxy(entity) : null;
     }
 
+    @SuppressWarnings("unchecked")
     public <T> T getModelOrLoadModel(Class<T> type, Object key, boolean mustExist) {
         EntityType entityType = definitions.getEntityTypeForClass(type, true);
         Entity entity = getEntityOrLoadEntity(entityType, key, mustExist);
@@ -490,6 +491,7 @@ public class EntityContext implements Serializable {
      * @param constraints the constrains to use if creating the model
      * @return
      */
+    @SuppressWarnings("unchecked")
     public <T> T getModelOrNewModel(Class<T> type, Object key, EntityConstraint constraints)  {
         EntityType entityType = definitions.getEntityTypeForClass(type, true);
         Entity entity = getEntityOrNewEntity(entityType, key, constraints);
@@ -1232,14 +1234,6 @@ public class EntityContext implements Serializable {
     public void removeReference(RefNode refNode, Entity entity) {
         EntityInfo entityInfo = entities.getByUuid(entity.getUuid(), true);
         entityInfo.removeAssociation(refNode);
-    }
-
-    private void setAllLoadingEntitiesToLoaded() {
-        for (Entity entity : entities) {
-            if (entity.getEntityState() == EntityState.LOADING) {
-                entity.setEntityState(EntityState.LOADED);
-            }
-        }
     }
 
     public void refresh() {

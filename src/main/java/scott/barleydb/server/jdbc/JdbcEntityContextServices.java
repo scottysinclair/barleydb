@@ -446,7 +446,7 @@ public class JdbcEntityContextServices implements IEntityContextServices {
 
     private QueryBatcher toQueryBatchResult(EntityContext entityContext, QueryBatcher queryBatcher, QueryEntityDataInputStream in) throws EntityStreamException {
         LOG.debug("Consuming QueryEntityDataInputStream and generating a QueryResult...");
-        for (QueryObject<?> query: queryBatcher.getQueries()) {
+        for (int i=0, n=queryBatcher.getQueries().size(); i<n; i++) {
             queryBatcher.addResult( new QueryResult<>(entityContext) );
         }
 

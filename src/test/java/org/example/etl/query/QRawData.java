@@ -25,7 +25,6 @@ package org.example.etl.query;
  * #L%
  */
 
-import scott.barleydb.api.query.JoinType;
 import scott.barleydb.api.query.QProperty;
 import scott.barleydb.api.query.QueryObject;
 import org.example.etl.model.RawData;

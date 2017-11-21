@@ -224,36 +224,6 @@ public abstract class PreparedStatementHelper<PREPARING_EX extends BarleyDBExcep
         throw newPreparingStatementException("Could not find enum value '" + value + "' in enumSpec '" + enumSpec.getClassName() + "'");
     }
 
-    private void sxxssx(PreparedStatement ps, int index, JdbcType jdbcType, Enum<? extends Enum<?>> value) throws PREPARING_EX {
-        switch (jdbcType) {
-        case INT:
-            try {
-                ps.setInt(index, value.ordinal());
-            }
-            catch (SQLException x) {
-                throw newSetValueError("Int", x);
-            }
-            break;
-        case NVARCHAR:
-            try {
-                ps.setNString(index, value.toString());
-            }
-            catch (SQLException x) {
-                throw newSetValueError("NString", x);
-            }
-        case VARCHAR:
-            try {
-                ps.setString(index, value.toString());
-            }
-            catch (SQLException x) {
-                throw newSetValueError("String", x);
-            }
-            break;
-        default:
-            fail(value, jdbcType);
-        }
-    }
-
     private void setBigDecimal(PreparedStatement ps, int index, JdbcType jdbcType, BigDecimal value) throws PREPARING_EX {
         try {
             ps.setBigDecimal(index, value);

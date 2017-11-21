@@ -26,12 +26,10 @@ import java.io.Serializable;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.core.entity.Entity;

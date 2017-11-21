@@ -1,7 +1,6 @@
 package scott.barleydb.bootstrap;
 
 import java.io.FileNotFoundException;
-import java.io.InputStream;
 
 /*-
  * #%L

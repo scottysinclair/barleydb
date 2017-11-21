@@ -49,7 +49,6 @@ import scott.barleydb.api.config.NodeType;
 import scott.barleydb.api.core.QueryBatcher;
 import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityContext;
-import scott.barleydb.api.core.entity.EntityContextHelper;
 import scott.barleydb.api.core.entity.EntityJuggler;
 import scott.barleydb.api.core.entity.RefNode;
 import scott.barleydb.api.core.entity.ToManyNode;

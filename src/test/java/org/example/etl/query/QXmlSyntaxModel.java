@@ -29,7 +29,6 @@ import scott.barleydb.api.query.JoinType;
 import scott.barleydb.api.query.QProperty;
 import scott.barleydb.api.query.QueryObject;
 import org.example.etl.model.XmlSyntaxModel;
-import org.example.etl.model.StructureType;
 import org.example.etl.query.QXmlStructure;
 import org.example.etl.query.QXmlMapping;
 

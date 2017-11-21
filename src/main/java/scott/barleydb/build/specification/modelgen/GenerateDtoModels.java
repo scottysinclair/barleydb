@@ -306,25 +306,9 @@ public class GenerateDtoModels extends GenerateModelsHelper {
         return "set" + fc + name.substring(1, name.length());
     }
 
-    private String toStreamName(NodeSpec nodeSpec) {
-        String name = nodeSpec.getName();
-        char fc = Character.toUpperCase( name.charAt(0) );
-        return "stream" + fc + name.substring(1, name.length());
-    }
-
-
     private boolean hasToManyReference(EntitySpec entitySpec) {
         for (NodeSpec nodeSpec: entitySpec.getNodeSpecs()) {
             if (nodeSpec.getRelationSpec() != null && nodeSpec.getRelationSpec().getBackReference() != null) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean hasFkReference(EntitySpec entitySpec) {
-        for (NodeSpec nodeSpec: entitySpec.getNodeSpecs()) {
-            if (nodeSpec.getRelationSpec() != null && nodeSpec.getRelationSpec().isForeignKeyRelation()) {
                 return true;
             }
         }

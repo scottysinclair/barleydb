@@ -310,14 +310,6 @@ public class PersistAnalyser implements Serializable {
         }
     }
 
-    private void removeAnalysis(Entity entity) {
-        if (analysing.remove(entity)) {
-            for (OperationGroup og : allGroups) {
-                og.getEntities().remove(entity);
-            }
-        }
-    }
-
     private void analyseCreate(Entity entity) throws SortPersistException {
         if (!analysing.add(entity)) {
             return;

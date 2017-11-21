@@ -63,7 +63,6 @@ import scott.barleydb.build.specification.ddlgen.GenerateMySqlDatabaseScript;
 import scott.barleydb.build.specification.ddlgen.GenerateOracleDatabaseScript;
 import scott.barleydb.build.specification.staticspec.StaticDefinitions;
 import scott.barleydb.build.specification.staticspec.processor.StaticDefinitionProcessor;
-import scott.barleydb.build.specification.vendor.MySqlSpecConverter;
 import scott.barleydb.server.jdbc.JdbcEntityContextServices;
 import scott.barleydb.server.jdbc.converter.LongToStringTimestampConverter;
 import scott.barleydb.server.jdbc.persist.QuickHackSequenceGenerator;
@@ -332,6 +331,7 @@ public class JdbcEnvironmentBootstrap {
             return registry;
         } else {
             ClassLoader loader = getOrCreateSpecClassLoader();
+            @SuppressWarnings("unchecked")
             Class<? extends StaticDefinitions> specClass = (Class<? extends StaticDefinitions>) loader.loadClass(path);
             if (!Modifier.isAbstract( specClass.getModifiers() )) {
                 SpecRegistry registry = new SpecRegistry();

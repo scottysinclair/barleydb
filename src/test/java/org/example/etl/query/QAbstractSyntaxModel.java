@@ -30,8 +30,6 @@ import scott.barleydb.api.query.QProperty;
 import scott.barleydb.api.query.QueryObject;
 import org.example.etl.model.SyntaxModel;
 import org.example.acl.query.QAccessArea;
-import org.example.etl.model.StructureType;
-import org.example.etl.model.SyntaxType;
 import org.example.acl.query.QUser;
 
 /**

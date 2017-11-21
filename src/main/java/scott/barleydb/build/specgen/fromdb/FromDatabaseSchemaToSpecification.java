@@ -74,7 +74,7 @@ public class FromDatabaseSchemaToSpecification {
     private final String namespace;
     private final SpecRegistry registry = new SpecRegistry();
     private final DefinitionsSpec spec;
-    private final Set<String> prefixesToRemove = new HashSet();
+    private final Set<String> prefixesToRemove = new HashSet<>();
     private final Map<Table, EntitySpec> entitySpecs = new HashMap<>();
     private final Map<Column, NodeSpec> nodeSpecs = new HashMap<>();
     private final Set<ProcessedFk> processedFks = new HashSet<>();

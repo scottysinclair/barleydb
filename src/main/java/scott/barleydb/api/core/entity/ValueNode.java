@@ -42,6 +42,7 @@ public class ValueNode extends Node {
         value = parent.getEntityType().getNodeType(name, true).getFixedValue();
     }
 
+    @SuppressWarnings("unchecked")
     public <T> T getValueNoFetch() {
       return (T)value;
     }
