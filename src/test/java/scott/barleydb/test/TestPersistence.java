@@ -599,7 +599,7 @@ public class TestPersistence extends TestRemoteClientBase {
             Entity entityFromDb = x.getDatabaseEntity();
             Assert.assertSame(entityWantedSave, x.getEntity()); //the fail was from the syntax we wanted to update
             Assert.assertEquals(entityWantedSave.getEntityType(), entityFromDb.getEntityType());
-            Assert.assertEquals(entityWantedSave.getKey().getValue(), entityFromDb.getKey().getValue());
+            Assert.assertEquals((Object)entityWantedSave.getKey().getValue(), (Object)entityFromDb.getKey().getValue());
             //assert that the database entity has a newer optimistic lock timestamp than the entity we wanted to save
             Assert.assertTrue(((Comparable<Object>) entityFromDb.getOptimisticLock().getValue()).compareTo(
                     (Comparable<Object>) entityWantedSave.getOptimisticLock().getValue()) > 0);
