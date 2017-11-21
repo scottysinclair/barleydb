@@ -97,7 +97,7 @@ public abstract class TestBase {
 
         @Override
         public String getUrl() {
-            return "jdbc:hsqldb:mem:testdb";
+            return "jdbc:hsqldb:mem:testdb;hsqldb.tx=MVCC";
         }
 
         @Override

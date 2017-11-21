@@ -26,7 +26,6 @@ import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Date;
-import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -196,6 +195,9 @@ public abstract class PreparedStatementHelper<PREPARING_EX extends BarleyDBExcep
         case BYTE_ARRAY:
             setByteArray(ps, index, jdbcType, (byte[]) value);
             return;
+        case SHORT:
+            setShort(ps, index, jdbcType, (Short)value);
+            return;
         default:
             throw newPreparingStatementException("Java type " + javaType + " is not supported");
         }
@@ -284,33 +286,32 @@ public abstract class PreparedStatementHelper<PREPARING_EX extends BarleyDBExcep
 
     private void setInteger(PreparedStatement ps, int index, JdbcType jdbcType, Integer value) throws PREPARING_EX {
         switch (jdbcType) {
-        case INT:
+          case INT:
+              try {
+                  ps.setInt(index, value);
+              }
+              catch (SQLException x) {
+                  throw newSetValueError("Int", x);
+              }
+              break;
+          default:
+              fail(value, jdbcType);
+          }
+    }
+
+    private void setShort(PreparedStatement ps, int index, JdbcType jdbcType, Short value) throws PREPARING_EX {
+        switch (jdbcType) {
+          case SMALLINT:
             try {
-                ps.setInt(index, value);
+              ps.setShort(index, value);
             }
             catch (SQLException x) {
-                throw newSetValueError("Int", x);
+              throw newSetValueError("Short", x);
             }
             break;
-        case TIMESTAMP:
-            try {
-                ps.setTimestamp(index, new java.sql.Timestamp((long) (int) value));
-            }
-            catch (SQLException x) {
-                throw newSetValueError("java.sql.Timestamp", x);
-            }
-            break;
-        case DATE:
-            try {
-                ps.setDate(index, new java.sql.Date((long) (int) value));
-            }
-            catch (SQLException x) {
-                throw newSetValueError("java.sql.Date", x);
-            }
-            break;
-        default:
+          default:
             fail(value, jdbcType);
-        }
+      }
     }
 
     private void setLong(PreparedStatement ps, int index, JdbcType jdbcType, Long value) throws PREPARING_EX  {

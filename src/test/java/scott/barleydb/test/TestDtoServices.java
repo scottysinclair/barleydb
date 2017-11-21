@@ -160,8 +160,8 @@ public class TestDtoServices extends TestBase {
 
     //is a NOOP
     stats = etlServices.getLastCtxStatistics();
-    Assert.assertEquals(3, stats.getNumberOfQueries());
-    Assert.assertEquals(3, stats.getNumberOfQueryDatabseCalls());
+    Assert.assertEquals(5, stats.getNumberOfQueries());
+    Assert.assertEquals(5, stats.getNumberOfQueryDatabseCalls());
     Assert.assertEquals(0, stats.getNumberOfRecordInserts());
     Assert.assertEquals(0, stats.getNumberOfBatchInserts());
     Assert.assertEquals(0, stats.getNumberOfRecordUpdates());
@@ -177,8 +177,8 @@ public class TestDtoServices extends TestBase {
 
     //the syntax and subsyntax (OL) and subsyntax mapping records are all updated.
     stats = etlServices.getLastCtxStatistics();
-    Assert.assertEquals(3, stats.getNumberOfQueries());
-    Assert.assertEquals(3, stats.getNumberOfQueryDatabseCalls());
+    Assert.assertEquals(5, stats.getNumberOfQueries());
+    Assert.assertEquals(5, stats.getNumberOfQueryDatabseCalls());
     Assert.assertEquals(0, stats.getNumberOfRecordInserts());
     Assert.assertEquals(0, stats.getNumberOfBatchInserts());
     Assert.assertEquals(3, stats.getNumberOfRecordUpdates());
@@ -256,8 +256,8 @@ public class TestDtoServices extends TestBase {
     etlServices.saveTemplateAndBusinessTypes(template);
 
     stats = etlServices.getLastCtxStatistics();
-    Assert.assertEquals(4, stats.getNumberOfQueries()); //queries loading original data for comparison
-    Assert.assertEquals(4, stats.getNumberOfQueryDatabseCalls()); //queries loading original data for comparison
+    Assert.assertEquals(5, stats.getNumberOfQueries()); //queries loading original data for comparison
+    Assert.assertEquals(5, stats.getNumberOfQueryDatabseCalls()); //queries loading original data for comparison
     Assert.assertEquals(0, stats.getNumberOfRecordInserts());
     Assert.assertEquals(2, stats.getNumberOfRecordUpdates()); //the template and busines type data
     Assert.assertEquals(2, stats.getNumberOfBatchUpdates());

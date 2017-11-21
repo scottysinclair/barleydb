@@ -79,13 +79,13 @@ public class DependencyTree implements Serializable {
 
     public DependencyTree(EntityContext refCtx, boolean tryAndOrderInBatches) {
         this.ctx = refCtx;
-        this.dctx = refCtx.newEntityContext();
+        this.dctx = refCtx.newEntityContextSharingTransaction();
         this.tryAndOrderInBatches = tryAndOrderInBatches;
     }
 
     public void generateDiagram() {
         try {
-            File file = new File(System.getProperty("java.io.tmpdir") + "/dep-tree.jpeg");
+            File file = new File(System.getProperty("java.io.tmpdir") + "/dep-tree-" + System.currentTimeMillis() + ".jpeg");
             generateDiagram(file);
             LOG.warn("GENERATED DIAGRAM AT " + file.getPath());
         }

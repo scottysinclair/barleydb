@@ -58,10 +58,12 @@ public class EtlServices {
 
   public void saveSyntax(SyntaxModelDto syntaxDto) throws SortServiceProviderException, SortPersistException, SortQueryException {
     EntityContext ctx = new EtlEntityContext(env);
+    ctx.setAutocommit(false);
     DtoConverter converter = new DtoConverter(env, namespace, ctx);
     converter.importDtos(syntaxDto);
     SyntaxModel syntax = converter.getModel(syntaxDto);
     ctx.persist(new PersistRequest().save(syntax));
+    ctx.commit();
     converter.convertToDtos();
     lastCtxStatistics = ctx.getStatistics();
   }
@@ -105,6 +107,8 @@ public class EtlServices {
   }
   private void save(TemplateDto templateDto, boolean withBusinessTypes) throws SortServiceProviderException, SortQueryException, SortPersistException {
     EntityContext ctx = new EtlEntityContext(env);
+    ctx.setAutocommit(false);
+
     DtoConverter converter = new DtoConverter(env, namespace, ctx);
     converter.importDtos(templateDto);
     Template template = converter.getModel(templateDto);
@@ -117,6 +121,7 @@ public class EtlServices {
       }
     }
     ctx.persist(pr);
+    ctx.commit();
     converter.convertToDtos();
     lastCtxStatistics = ctx.getStatistics();
   }

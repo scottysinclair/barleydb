@@ -147,7 +147,7 @@ public interface IEntityContextServices {
      * @throws SortJdbcException
      * @throws SortPersistException
      */
-    AuditInformation comapreWithDatabase(PersistRequest persistRequest, RuntimeProperties runtimeProperties) throws SortJdbcException, SortPersistException;
+    AuditInformation compareWithDatabase(PersistRequest persistRequest, RuntimeProperties runtimeProperties) throws SortJdbcException, SortPersistException;
     /**
      * Executes the persist analysis
      *

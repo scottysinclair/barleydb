@@ -50,6 +50,7 @@ import org.example.etl.query.QRawData;
 import org.example.etl.query.QTemplate;
 import org.example.etl.query.QXmlSyntaxModel;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -316,7 +317,10 @@ public class TestPersistence extends TestRemoteClientBase {
         qsyntax.where(qsyntax.name().equal("Scott's SyntaxModel"));
 
         System.out.println("-------------- OTHER USER SAVING SYNTAX ------------------");
-        EntityContext otherUser = new MiEntityContext(env);
+        /*
+         * we use the same transaction to prevent locking.
+         */
+        EntityContext otherUser = theEntityContext.newEntityContextSharingTransaction();
         XmlSyntaxModel otherSyntax = otherUser.performQuery(qsyntax).getList().get(0);
         print("", otherSyntax);
 
@@ -366,8 +370,9 @@ public class TestPersistence extends TestRemoteClientBase {
 
         /*
          * We use another node context to get and update the structure, simulating a concurrent user modification
+         * we use the same transaction to prevent locking (irelevant to OL checking logic)
          */
-        EntityContext otherUser = new MiEntityContext(env);
+        EntityContext otherUser = theEntityContext.newEntityContextSharingTransaction();
         XmlSyntaxModel otherSyntax = otherUser.performQuery(qsyntax).getList().get(0);
         otherSyntax.getStructure().setName("updated-structure-name");
         otherUser.persist(new PersistRequest().save(otherSyntax.getStructure()));
@@ -414,9 +419,9 @@ public class TestPersistence extends TestRemoteClientBase {
         qsyntax.where(qsyntax.name().equal("Scott's SyntaxModel"));
 
         /*
-         * We use another node context to get and update the structure, simulating a concurrent user modification
+         * We use another entity context to get and update the structure, simulating a concurrent user modification
          */
-        EntityContext otherUser = new MiEntityContext(env);
+        EntityContext otherUser = theEntityContext.newEntityContextSharingTransaction();
         XmlSyntaxModel otherSyntax = otherUser.performQuery(qsyntax).getList().get(0);
         otherUser.persist(new PersistRequest().delete(otherSyntax));
 
@@ -491,6 +496,10 @@ public class TestPersistence extends TestRemoteClientBase {
          */
         XmlSyntaxModel syntaxModel = buildSyntax();
         theEntityContext.persist(new PersistRequest().save(syntaxModel));
+
+        if (!theEntityContext.getAutocommit()) {
+          theEntityContext.commit();
+        }
 
         entityContextServices.setPersisterFactory(new PersisterFactory() {
             @Override
@@ -571,6 +580,9 @@ public class TestPersistence extends TestRemoteClientBase {
          */
         XmlSyntaxModel syntaxModel = buildSyntax();
         theEntityContext.persist(new PersistRequest().save(syntaxModel));
+        if (!theEntityContext.getAutocommit()) {
+          theEntityContext.commit();
+        }
 
         entityContextServices.setPersisterFactory(new PersisterFactory() {
             @Override
@@ -864,6 +876,8 @@ public class TestPersistence extends TestRemoteClientBase {
     @Test
     public void testSaveTemplateFailsWhenDatatypeOutOfDate() throws Exception {
         testSaveTemplateWithContentAndDatatypes();
+//        theEntityContext.commit();
+
         theEntityContext.clear();
 
         System.out.println("===================  LOAD DATA FOR USER 1 =================");
@@ -873,7 +887,11 @@ public class TestPersistence extends TestRemoteClientBase {
         Template template = theEntityContext.performQuery(qtemplate).getSingleResult();
 
         System.out.println("===================  LOAD DATA FOR USER 2 =================");
-        EntityContext ctx2 = new MiEntityContext(env);
+        /*
+         * we share the transaction as it prevents HSQLDB from locking and
+         * it does not impact the optimistic locking check being tested
+         */
+        EntityContext ctx2 = theEntityContext.newEntityContextSharingTransaction();
         Template template2 = ctx2.performQuery(qtemplate).getSingleResult();
         template2.getBusinessTypes().get(0).setName("updated-name");
         ctx2.persist(new PersistRequest().save(template2.getBusinessTypes().get(0)));

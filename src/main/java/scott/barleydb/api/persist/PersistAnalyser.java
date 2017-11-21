@@ -698,7 +698,7 @@ public class PersistAnalyser implements Serializable {
                 return cachedKey;
             }
             LOG.debug("Querying for original refnode value for {}.{}", refNode.getParent().getEntityType().getInterfaceShortName(), refNode.getNodeType().getName());
-            EntityContext tmp = entityContext.newEntityContext();
+            EntityContext tmp = entityContext.newEntityContextSharingTransaction();
             QueryObject<Object> query = new QueryObject<>(refNode.getParent().getEntityType().getInterfaceName());
             QProperty<Object> pkCol = new QProperty<>(query, refNode.getParent().getEntityType().getKeyNodeName());
             query.where(pkCol.equal( refNode.getParent().getKey().getValue() ));

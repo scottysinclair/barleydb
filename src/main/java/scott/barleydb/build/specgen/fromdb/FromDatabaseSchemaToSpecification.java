@@ -344,7 +344,9 @@ public class FromDatabaseSchemaToSpecification {
         case Types.DATE: return JdbcType.DATE;
         case Types.TIMESTAMP: return JdbcType.TIMESTAMP;
         case Types.DECIMAL: return JdbcType.DECIMAL;
-        default: throw new IllegalArgumentException("Unsupported column type " + column.getColumnDataType().getJavaSqlType());
+        case Types.NUMERIC: return JdbcType.DECIMAL;
+        case Types.SMALLINT: return JdbcType.SMALLINT;
+        default: throw new IllegalArgumentException("Unsupported column type " + column.getColumnDataType().getJavaSqlType() + " (" + column.getColumnDataType().getJavaSqlType().getJavaSqlType() + ")");
         }
     }
 

@@ -239,7 +239,7 @@ public class RemoteClientEntityContextServices implements IEntityContextServices
     }
 
     @Override
-    public AuditInformation comapreWithDatabase(PersistRequest persistRequest, RuntimeProperties runtimeProperties)
+    public AuditInformation compareWithDatabase(PersistRequest persistRequest, RuntimeProperties runtimeProperties)
             throws SortJdbcException, SortPersistException {
         // TODO Auto-generated method stub
         return null;

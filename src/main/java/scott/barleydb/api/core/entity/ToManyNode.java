@@ -38,16 +38,9 @@ import org.w3c.dom.Element;
 
 import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.config.NodeType;
-import scott.barleydb.api.core.entity.Entity;
-import scott.barleydb.api.core.entity.Node;
-import scott.barleydb.api.core.entity.RefNode;
-import scott.barleydb.api.core.entity.ToManyNode;
-import scott.barleydb.api.core.entity.ValueNode;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.execution.query.SortQueryException;
-import scott.barleydb.api.query.QCondition;
 import scott.barleydb.api.query.QProperty;
-import scott.barleydb.api.query.QPropertyCondition;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.stream.QueryEntityDataInputStream;
 import scott.barleydb.api.stream.QueryEntityInputStream;

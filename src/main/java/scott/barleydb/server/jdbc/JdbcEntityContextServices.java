@@ -338,7 +338,7 @@ public class JdbcEntityContextServices implements IEntityContextServices {
         return new Persister(env, namespace, this);
     }
 
-    public AuditInformation comapreWithDatabase(PersistRequest persistRequest, RuntimeProperties runtimeProperties) throws SortJdbcException, SortPersistException  {
+    public AuditInformation compareWithDatabase(PersistRequest persistRequest, RuntimeProperties runtimeProperties) throws SortJdbcException, SortPersistException  {
         PersistAnalyser analyser = new PersistAnalyser(persistRequest.getEntityContext());
         try (OptionalyClosingResources con = newOptionallyClosingConnection(persistRequest.getEntityContext())) {
             analyser.analyse(persistRequest);
@@ -403,12 +403,7 @@ public class JdbcEntityContextServices implements IEntityContextServices {
         try (OptionalyClosingResources con = newOptionallyClosingConnection(entityContext)) {
             try {
                 persister.persist(analyser);
-                con.getConnection().commit();
                 return analyser;
-            }
-            catch(SQLException x) {
-                rollback(con.getConnection(), "Error rolling back the persist request");
-                throw new SortJdbcException("Error commiting the transaction", x);
             }
             catch(SortPersistException x) {
                 rollback(con.getConnection(), "Error rolling back the persist request");
@@ -481,7 +476,8 @@ public class JdbcEntityContextServices implements IEntityContextServices {
         ConnectionResources conRes = ConnectionResources.get(entityContext);
         boolean returnToPool = false;
         if (conRes == null) {
-            conRes = newConnectionResources(entityContext, false);
+            //there was no connection associated with the ctx, so we are in autocommit mode
+            conRes = newConnectionResources(entityContext, true);
             returnToPool = true;
         }
         return new OptionalyClosingResources(conRes, returnToPool);

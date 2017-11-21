@@ -291,6 +291,10 @@ final class EntityLoader {
                 case BYTE_ARRAY:
                     result = convertToByteArray(value);
                     break;
+                case SHORT: {
+                     result = convertToShort(value);
+                     break;
+                }
                 default:
                    throw new InvalidNodeTypeException(nd, "Java type " + javaType + " is not supported");
                }
@@ -358,6 +362,13 @@ final class EntityLoader {
             return ((Number)value).intValue();
         }
         return null;
+    }
+
+    private Short convertToShort(Object value) {
+      if (value instanceof Number) {
+        return ((Number)value).shortValue();
+      }
+      return null;
     }
 
     private Long convertToLong(Object value) {

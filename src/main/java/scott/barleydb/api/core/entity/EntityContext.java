@@ -892,7 +892,7 @@ public class EntityContext implements Serializable {
             for (Object o: models) {
               persistRequest.save( o );
             }
-            return env.services().comapreWithDatabase(persistRequest, runtimeProperties);
+            return env.services().compareWithDatabase(persistRequest, runtimeProperties);
 
         } finally {
             switchToExternalMode();

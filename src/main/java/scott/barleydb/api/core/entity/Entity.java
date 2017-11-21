@@ -27,6 +27,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -363,6 +364,10 @@ public class Entity implements Serializable {
             element.appendChild(el);
         }
         return element;
+    }
+
+    public Map<String,Node> toMap() {
+      return Collections.unmodifiableMap(children);
     }
 
     private List<Node> initNodes() {

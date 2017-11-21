@@ -128,6 +128,15 @@ public abstract class CommonDefaultsPlatformSpec extends StaticDefinitions {
         return spec;
     }
 
+    public static NodeSpec mandatoryChar(int length) {
+      NodeSpec spec = new NodeSpec();
+      spec.setJavaType(JavaType.STRING);
+      spec.setJdbcType(JdbcType.CHAR);
+      spec.setNullable(Nullable.NOT_NULL);
+      spec.setLength(length);
+      return spec;
+  }
+
     public static NodeSpec mandatoryVarchar50() {
         return varchar(null, 50, Nullable.NOT_NULL);
     }
@@ -140,8 +149,22 @@ public abstract class CommonDefaultsPlatformSpec extends StaticDefinitions {
         return varchar(null, 150, Nullable.NULL);
     }
 
+    public static NodeSpec mandatoryVarchar(int size) {
+      return varchar(null, size, Nullable.NULL);
+  }
+
     public static NodeSpec mandatoryVarchar50(String columnName) {
         return varchar(columnName, 50, Nullable.NOT_NULL);
+    }
+
+    public static NodeSpec mandatoryBigDecimal(int precision, int scale) {
+      NodeSpec spec = new NodeSpec();
+      spec.setJavaType(JavaType.BIGDECIMAL);
+      spec.setJdbcType(JdbcType.DECIMAL);
+      spec.setPrecision(9);
+      spec.setScale(2);
+      spec.setNullable(Nullable.NOT_NULL);
+      return spec;
     }
 
     public static NodeSpec mandatoryNonStreamingLob() {
