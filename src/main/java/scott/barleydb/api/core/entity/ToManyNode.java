@@ -39,7 +39,7 @@ import org.w3c.dom.Element;
 import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.config.NodeType;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
-import scott.barleydb.api.exception.execution.query.SortQueryException;
+import scott.barleydb.api.exception.execution.query.BarleyDBQueryException;
 import scott.barleydb.api.query.QProperty;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.stream.QueryEntityDataInputStream;
@@ -255,9 +255,9 @@ public class ToManyNode extends Node {
      *
      * @return a QueryEntityInputStream to stream the the data from the N relation.
      * @throws SortServiceProviderException
-     * @throws SortQueryException
+     * @throws BarleyDBQueryException
      */
-    public QueryEntityInputStream stream() throws SortServiceProviderException, SortQueryException {
+    public QueryEntityInputStream stream() throws SortServiceProviderException, BarleyDBQueryException {
         QueryObject<Object> query = getEntityContext().getUnitQuery(entityType);
         return stream(query);
     }
@@ -266,9 +266,9 @@ public class ToManyNode extends Node {
     *
     * @return a QueryEntityInputStream to stream the the data from the N relation.
     * @throws SortServiceProviderException
-    * @throws SortQueryException
+    * @throws BarleyDBQueryException
     */
-    public QueryEntityInputStream stream(QueryObject<?> query) throws SortServiceProviderException, SortQueryException {
+    public QueryEntityInputStream stream(QueryObject<?> query) throws SortServiceProviderException, BarleyDBQueryException {
         EntityContext ctx = getEntityContext();
 
         final String foreignNodeName = getNodeType().getForeignNodeName();

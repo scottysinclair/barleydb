@@ -22,29 +22,29 @@ package scott.barleydb.api.exception.model;
  * #L%
  */
 
-import scott.barleydb.api.exception.BarleyDBRuntimeException;
+import scott.barleydb.api.exception.BarleyDBException;
 
-public class SortQueryModelRuntimeException extends BarleyDBRuntimeException {
+public class BarleyDBQueryModelException extends BarleyDBException {
 
     private static final long serialVersionUID = 1L;
 
-    public SortQueryModelRuntimeException() {
+    public BarleyDBQueryModelException() {
         super();
     }
 
-    public SortQueryModelRuntimeException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    public BarleyDBQueryModelException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 
-    public SortQueryModelRuntimeException(String message, Throwable cause) {
+    public BarleyDBQueryModelException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public SortQueryModelRuntimeException(String message) {
+    public BarleyDBQueryModelException(String message) {
         super(message);
     }
 
-    public SortQueryModelRuntimeException(Throwable cause) {
+    public BarleyDBQueryModelException(Throwable cause) {
         super(cause);
     }
 }

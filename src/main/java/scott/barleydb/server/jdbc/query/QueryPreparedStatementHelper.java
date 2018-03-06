@@ -24,11 +24,11 @@ package scott.barleydb.server.jdbc.query;
 
 import scott.barleydb.api.config.Definitions;
 import scott.barleydb.api.exception.execution.query.PreparingQueryStatementException;
-import scott.barleydb.api.exception.execution.query.SortQueryException;
+import scott.barleydb.api.exception.execution.query.BarleyDBQueryException;
 import scott.barleydb.server.jdbc.JdbcEntityContextServices;
 import scott.barleydb.server.jdbc.helper.PreparedStatementHelper;
 
-public class QueryPreparedStatementHelper extends PreparedStatementHelper<SortQueryException> {
+public class QueryPreparedStatementHelper extends PreparedStatementHelper<BarleyDBQueryException> {
 
     public QueryPreparedStatementHelper(JdbcEntityContextServices jdbcEntityContextServices, Definitions definitions) {
         super(jdbcEntityContextServices, definitions);

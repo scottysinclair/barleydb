@@ -132,7 +132,6 @@ public class EntityProxy implements InvocationHandler, Serializable {
         else if (node instanceof ToManyNode) {
             if (set) {
                 ToManyNode tmnode = ((ToManyNode) node);
-                //todo:set current entities to removed if not in the new list
                 tmnode.getList().clear();
                 List<?> list = (List<?>) args[0];
                 /*

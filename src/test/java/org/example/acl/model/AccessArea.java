@@ -31,7 +31,7 @@ import scott.barleydb.api.stream.QueryEntityInputStream;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.stream.EntityStreamException;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
-import scott.barleydb.api.exception.execution.query.SortQueryException;
+import scott.barleydb.api.exception.execution.query.BarleyDBQueryException;
 
 import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.ValueNode;
@@ -95,12 +95,12 @@ public class AccessArea extends AbstractCustomEntityProxy {
   public List<AccessArea> getChildren() {
     return super.getListProxy(children.toManyNode);
   }
-  public ObjectInputStream<AccessArea> streamChildren() throws SortServiceProviderException, SortQueryException, EntityStreamException {
+  public ObjectInputStream<AccessArea> streamChildren() throws SortServiceProviderException, BarleyDBQueryException, EntityStreamException {
     final QueryEntityInputStream in = children.toManyNode.stream();
     return new ObjectInputStream<>(in);
   }
 
-  public ObjectInputStream<AccessArea> streamChildren(QueryObject<AccessArea> query) throws SortServiceProviderException, SortQueryException, EntityStreamException {
+  public ObjectInputStream<AccessArea> streamChildren(QueryObject<AccessArea> query) throws SortServiceProviderException, BarleyDBQueryException, EntityStreamException {
     final QueryEntityInputStream in = children.toManyNode.stream(query);
     return new ObjectInputStream<>(in);
   }

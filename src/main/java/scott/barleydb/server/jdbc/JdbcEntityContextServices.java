@@ -58,7 +58,7 @@ import scott.barleydb.api.exception.execution.jdbc.SetAutoCommitException;
 import scott.barleydb.api.exception.execution.jdbc.SortJdbcException;
 import scott.barleydb.api.exception.execution.persist.IllegalPersistStateException;
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
-import scott.barleydb.api.exception.execution.query.SortQueryException;
+import scott.barleydb.api.exception.execution.query.BarleyDBQueryException;
 import scott.barleydb.api.persist.PersistAnalyser;
 import scott.barleydb.api.persist.PersistRequest;
 import scott.barleydb.api.query.QueryObject;
@@ -257,7 +257,7 @@ public class JdbcEntityContextServices implements IEntityContextServices {
         }
     }
 
-    public <T> QueryEntityDataInputStream streamQuery(EntityContext entityContext, QueryObject<T> query, RuntimeProperties props) throws SortJdbcException, SortQueryException {
+    public <T> QueryEntityDataInputStream streamQuery(EntityContext entityContext, QueryObject<T> query, RuntimeProperties props) throws SortJdbcException, BarleyDBQueryException {
         env.preProcess(query, entityContext.getDefinitions());
 
         ConnectionResources conRes = ConnectionResources.get(entityContext);
@@ -277,12 +277,12 @@ public class JdbcEntityContextServices implements IEntityContextServices {
             return executer.execute(execution);
         }
         catch(EntityStreamException x) {
-            throw new SortQueryException("Error processing entity stream", x);
+            throw new BarleyDBQueryException("Error processing entity stream", x);
         }
     }
 
     @Override
-    public <T> QueryResult<T> execute(EntityContext entityContext, QueryObject<T> query, RuntimeProperties props) throws SortJdbcException, SortQueryException {
+    public <T> QueryResult<T> execute(EntityContext entityContext, QueryObject<T> query, RuntimeProperties props) throws SortJdbcException, BarleyDBQueryException {
         env.preProcess(query, entityContext.getDefinitions());
 
         ConnectionResources conRes = ConnectionResources.get(entityContext);
@@ -302,12 +302,12 @@ public class JdbcEntityContextServices implements IEntityContextServices {
             return toQueryResult(entityContext, executer.execute(execution));
         }
         catch(EntityStreamException x) {
-            throw new SortQueryException("Error processing entity stream", x);
+            throw new BarleyDBQueryException("Error processing entity stream", x);
         }
     }
 
     @Override
-    public QueryBatcher execute(EntityContext entityContext, QueryBatcher queryBatcher, RuntimeProperties props) throws SortJdbcException, SortQueryException {
+    public QueryBatcher execute(EntityContext entityContext, QueryBatcher queryBatcher, RuntimeProperties props) throws SortJdbcException, BarleyDBQueryException {
         if (queryBatcher.getQueries().isEmpty()) {
             return queryBatcher;
         }
@@ -330,7 +330,7 @@ public class JdbcEntityContextServices implements IEntityContextServices {
             return toQueryBatchResult(entityContext, queryBatcher, exec.execute(queryExecutions) );
         }
         catch(EntityStreamException x) {
-            throw new SortQueryException("Error processing entity stream", x);
+            throw new BarleyDBQueryException("Error processing entity stream", x);
         }
     }
 

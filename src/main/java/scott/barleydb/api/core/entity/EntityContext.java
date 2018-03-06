@@ -78,7 +78,7 @@ import scott.barleydb.api.exception.constraint.EntityMustExistInDBException;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.execution.persist.OptimisticLockMismatchException;
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
-import scott.barleydb.api.exception.execution.query.SortQueryException;
+import scott.barleydb.api.exception.execution.query.BarleyDBQueryException;
 import scott.barleydb.api.exception.model.ProxyCreationException;
 import scott.barleydb.api.persist.OperationType;
 import scott.barleydb.api.persist.PersistAnalyser;
@@ -734,10 +734,10 @@ public class EntityContext implements Serializable {
          }
     }
 
-    public <T> void performQueries(QueryBatcher queryBatcher) throws SortServiceProviderException, SortQueryException {
+    public <T> void performQueries(QueryBatcher queryBatcher) throws SortServiceProviderException, BarleyDBQueryException {
         performQueries(queryBatcher, null);
     }
-    public <T> void performQueries(QueryBatcher queryBatcher, RuntimeProperties runtimeProperties) throws SortServiceProviderException, SortQueryException {
+    public <T> void performQueries(QueryBatcher queryBatcher, RuntimeProperties runtimeProperties) throws SortServiceProviderException, BarleyDBQueryException {
         /*
          * We can perform the query in a fresh context which is copied back to us
          * it gives us control over any replace vs merge logic.
@@ -757,15 +757,15 @@ public class EntityContext implements Serializable {
         result.copyTo(this, queryBatcher);
     }
 
-    public <T> ObjectInputStream<T> streamObjectQuery(QueryObject<T> queryObject) throws SortServiceProviderException, SortQueryException {
+    public <T> ObjectInputStream<T> streamObjectQuery(QueryObject<T> queryObject) throws SortServiceProviderException, BarleyDBQueryException {
         return streamObjectQuery(queryObject, null, false);
     }
 
-    public <T> ObjectInputStream<T> streamObjectQuery(QueryObject<T> queryObject, boolean createNewCtx) throws SortServiceProviderException, SortQueryException {
+    public <T> ObjectInputStream<T> streamObjectQuery(QueryObject<T> queryObject, boolean createNewCtx) throws SortServiceProviderException, BarleyDBQueryException {
         return streamObjectQuery(queryObject, null, createNewCtx);
     }
 
-    public <T> ObjectInputStream<T> streamObjectQuery(QueryObject<T> queryObject, RuntimeProperties runtimeProperties, boolean createNewCtx) throws SortServiceProviderException, SortQueryException {
+    public <T> ObjectInputStream<T> streamObjectQuery(QueryObject<T> queryObject, RuntimeProperties runtimeProperties, boolean createNewCtx) throws SortServiceProviderException, BarleyDBQueryException {
         /*
          * We can perform the query in a fresh context which is copied back to us
          * it gives us control over any replace vs merge logic
@@ -844,7 +844,7 @@ public class EntityContext implements Serializable {
         }
     }
 
-    public QueryEntityDataInputStream streamQueryEntityData(QueryObject<?> queryObject, RuntimeProperties runtimeProperties) throws SortServiceProviderException, SortQueryException {
+    public QueryEntityDataInputStream streamQueryEntityData(QueryObject<?> queryObject, RuntimeProperties runtimeProperties) throws SortServiceProviderException, BarleyDBQueryException {
         /*
          * We can perform the query in a fresh context which is copied back to us
          * it gives us control over any replace vs merge logic
@@ -862,10 +862,10 @@ public class EntityContext implements Serializable {
 
 
 
-    public <T> QueryResult<T> performQuery(QueryObject<T> queryObject) throws SortServiceProviderException, SortQueryException {
+    public <T> QueryResult<T> performQuery(QueryObject<T> queryObject) throws SortServiceProviderException, BarleyDBQueryException {
         return performQuery(queryObject, null);
     }
-    public <T> QueryResult<T> performQuery(QueryObject<T> queryObject, RuntimeProperties runtimeProperties) throws SortServiceProviderException, SortQueryException {
+    public <T> QueryResult<T> performQuery(QueryObject<T> queryObject, RuntimeProperties runtimeProperties) throws SortServiceProviderException, BarleyDBQueryException {
         /*
          * We can perform the query in a fresh context which is copied back to us
          * it gives us control over any replace vs merge logic

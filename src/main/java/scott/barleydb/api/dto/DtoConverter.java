@@ -54,7 +54,7 @@ import scott.barleydb.api.core.entity.ToManyNode;
 import scott.barleydb.api.core.entity.ValueNode;
 import scott.barleydb.api.exception.BarleyDBRuntimeException;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
-import scott.barleydb.api.exception.execution.query.SortQueryException;
+import scott.barleydb.api.exception.execution.query.BarleyDBQueryException;
 import scott.barleydb.api.query.QProperty;
 import scott.barleydb.api.query.QPropertyCondition;
 import scott.barleydb.api.query.QueryObject;
@@ -118,13 +118,13 @@ public class DtoConverter {
    * @param dto
    * @param type
    * @return
-   * @throws SortQueryException
+   * @throws BarleyDBQueryException
    * @throws SortServiceProviderException
    */
-  public void importDtos(BaseDto ...dtos) throws SortServiceProviderException, SortQueryException {
+  public void importDtos(BaseDto ...dtos) throws SortServiceProviderException, BarleyDBQueryException {
     importDtos(Arrays.asList(dtos));
   }
-  public void importDtos(List<? extends BaseDto> dtos) throws SortServiceProviderException, SortQueryException {
+  public void importDtos(List<? extends BaseDto> dtos) throws SortServiceProviderException, BarleyDBQueryException {
     LOG.debug("Converting DTOS into entities...");
     if (ctx == null) {
       ctx = new EntityContext(env, namespace);
@@ -208,7 +208,7 @@ public class DtoConverter {
     }
   }
 
-  private void importDtosAsEntities() throws SortServiceProviderException, SortQueryException {
+  private void importDtosAsEntities() throws SortServiceProviderException, BarleyDBQueryException {
     for (BaseDto dto: dtos.values()) {
       EntityType et = env.getDefinitions(namespace).getEntityTypeForDtoClass(dto.getClass(), true);
       Map<String,Object> properties = helper.getProperties(dto);
@@ -370,10 +370,10 @@ public class DtoConverter {
    * sets up the entity ToManyNode contents to mirror the corresponding Dto list
    * @param propValues
    * @param entity
-   * @throws SortQueryException
+   * @throws BarleyDBQueryException
    * @throws SortServiceProviderException
    */
-  private void copyCollections(Map<String,Object> propValues, Entity entity) throws SortServiceProviderException, SortQueryException {
+  private void copyCollections(Map<String,Object> propValues, Entity entity) throws SortServiceProviderException, BarleyDBQueryException {
     try {
       for (ToManyNode node: entity.getChildren(ToManyNode.class)) {
         if (node.getNodeType().isSuppressedFromDto()) {
@@ -421,7 +421,7 @@ public class DtoConverter {
     }
   }
 
-  private Map<Entity, Entity> setupNToMRelation(ToManyNode node, List<Entity> entities) throws SortServiceProviderException, SortQueryException {
+  private Map<Entity, Entity> setupNToMRelation(ToManyNode node, List<Entity> entities) throws SortServiceProviderException, BarleyDBQueryException {
     //get the query for the entity type with the ToManyNode (the template which refers to the templatebusinesstype)
     Entity entity = node.getParent();
     QueryResult<Object> queryResult = null;

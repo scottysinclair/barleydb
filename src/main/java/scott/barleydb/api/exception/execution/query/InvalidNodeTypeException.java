@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import scott.barleydb.api.config.NodeType;
 import scott.barleydb.api.exception.execution.query.InvalidNodeTypeException;
-import scott.barleydb.api.exception.execution.query.SortQueryException;
+import scott.barleydb.api.exception.execution.query.BarleyDBQueryException;
 
 /**
  * TODO: Problems using this exception should be detected on startup and so this exception
@@ -39,7 +39,7 @@ import scott.barleydb.api.exception.execution.query.SortQueryException;
  * @author scott
  *
  */
-public class InvalidNodeTypeException extends SortQueryException {
+public class InvalidNodeTypeException extends BarleyDBQueryException {
 
     private static final long serialVersionUID = 1L;
 

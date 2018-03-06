@@ -37,7 +37,7 @@ import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.execution.jdbc.SortJdbcException;
-import scott.barleydb.api.exception.execution.query.SortQueryException;
+import scott.barleydb.api.exception.execution.query.BarleyDBQueryException;
 import scott.barleydb.api.query.QCondition;
 import scott.barleydb.api.query.QProperty;
 import scott.barleydb.api.query.QueryObject;
@@ -81,7 +81,7 @@ public class DatabaseDataSet {
         return myentityContext.getEntity(entityType, key, false);
     }
 
-    public void loadEntities(Collection<Entity> toSave) throws SortServiceProviderException, SortQueryException {
+    public void loadEntities(Collection<Entity> toSave) throws SortServiceProviderException, BarleyDBQueryException {
         /*
          * Build queries to load all of these entites
          */
@@ -111,9 +111,9 @@ public class DatabaseDataSet {
     /**
      * Load all of the entities in the groups into the dataset
      * @throws SortJdbcException
-     * @throws SortQueryException
+     * @throws BarleyDBQueryException
      */
-    public void loadEntities(OperationGroup updateGroup, OperationGroup deleteGroup, OperationGroup dependsOnGroup) throws SortServiceProviderException, SortQueryException  {
+    public void loadEntities(OperationGroup updateGroup, OperationGroup deleteGroup, OperationGroup dependsOnGroup) throws SortServiceProviderException, BarleyDBQueryException  {
 
         /*
          * Build queries to load all of these entites
@@ -170,7 +170,7 @@ public class DatabaseDataSet {
             addKeyCondition(entityType, key);
         }
 
-        public void load() throws SortServiceProviderException, SortQueryException  {
+        public void load() throws SortServiceProviderException, BarleyDBQueryException  {
             Database database = ConnectionResources.getMandatoryForQuery(myentityContext).getDatabase();
             if (!database.supportsBatchUpdateCounts()) {
                 if (database.supportsSelectForUpdate()) {

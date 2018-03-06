@@ -48,7 +48,7 @@ import scott.barleydb.api.exception.execution.jdbc.SortJdbcException;
 import scott.barleydb.api.exception.execution.query.IllegalQueryStateException;
 import scott.barleydb.api.exception.execution.query.InvalidNodeTypeException;
 import scott.barleydb.api.exception.execution.query.ResultDataConversionException;
-import scott.barleydb.api.exception.execution.query.SortQueryException;
+import scott.barleydb.api.exception.execution.query.BarleyDBQueryException;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.stream.EntityData;
 import scott.barleydb.server.jdbc.converter.TypeConverter;
@@ -97,11 +97,11 @@ final class EntityLoader {
      * @return
      * @throws InvalidNodeTypeException
      */
-    public boolean isEntityThere() throws SortJdbcException, SortQueryException {
+    public boolean isEntityThere() throws SortJdbcException, BarleyDBQueryException {
         return getEntityKey(false) != null;
     }
 
-    public boolean isNotYetLoaded() throws SortJdbcException, SortQueryException  {
+    public boolean isNotYetLoaded() throws SortJdbcException, BarleyDBQueryException  {
         EntityKey key = new EntityKey(getEntityType(), getEntityKey(true));
         return !entityLoaders.getLoadedEntityData().containsKey( key );
     }
@@ -114,7 +114,7 @@ final class EntityLoader {
         loadedEntityData.clear();
     }
 
-    public Object getEntityKey(boolean mustExist) throws SortJdbcException, SortQueryException {
+    public Object getEntityKey(boolean mustExist) throws SortJdbcException, BarleyDBQueryException {
         for (ProjectionColumn column : myProjectionCols) {
             if (column.getNodeType().isPrimaryKey()) {
                 Object value = getValue(column);
@@ -129,7 +129,7 @@ final class EntityLoader {
         throw new IllegalQueryStateException("Cannot find primary key node definition for: " + getEntityType());
     }
 
-    public EntityData load() throws SortQueryException, SortJdbcException {
+    public EntityData load() throws BarleyDBQueryException, SortJdbcException {
         final EntityType entityType = getEntityType();
 
         EntityData entityData = new EntityData();
@@ -148,13 +148,13 @@ final class EntityLoader {
         return entityData;
     }
 
-    public void associateAsLoaded() throws SortJdbcException, SortQueryException {
+    public void associateAsLoaded() throws SortJdbcException, BarleyDBQueryException {
         final EntityType entityType = getEntityType();
         EntityKey key = new EntityKey(entityType, getEntityKey(true));
         EntityData entityData = entityLoaders.getLoadedEntityData().get(key);
         if (entityData == null) {
             //we only associate if the entity was already loaded, something went wrong...
-            throw new SortQueryException("Could not find entity data with " + entityType + " and key " + key);
+            throw new BarleyDBQueryException("Could not find entity data with " + entityType + " and key " + key);
         }
         loadedEntityData.put(key, entityData);
     }
@@ -167,7 +167,7 @@ final class EntityLoader {
         rowCache.clear();
     }
 
-    public Object getValue(ProjectionColumn column) throws SortJdbcException, SortQueryException {
+    public Object getValue(ProjectionColumn column) throws SortJdbcException, BarleyDBQueryException {
         final int index = column.getIndex();
         Object value = rowCache.get(index);
         if (value == null) {
@@ -180,7 +180,7 @@ final class EntityLoader {
     }
 
     //we fall through and fail at the bottom
-    private Object getResultSetValue(ResultSet rs, ProjectionColumn column) throws SortJdbcException, SortQueryException {
+    private Object getResultSetValue(ResultSet rs, ProjectionColumn column) throws SortJdbcException, BarleyDBQueryException {
         final NodeType nd = column.getNodeType();
         final Integer index = column.getIndex();
         if (nd.getJdbcType() == null) {
@@ -221,7 +221,7 @@ final class EntityLoader {
         }
     }
 
-    private Object convertValue(NodeType nd, Object value, JavaType javaType) throws SortQueryException {
+    private Object convertValue(NodeType nd, Object value, JavaType javaType) throws BarleyDBQueryException {
         if  (value == null) {
             return null;
         }

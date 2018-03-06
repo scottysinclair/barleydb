@@ -37,12 +37,23 @@ import java.util.UUID;
 
 import scott.barleydb.api.exception.BarleyDBRuntimeException;
 
+/**
+ * Utility for importing Entites into another EntityContext.
+ * 
+ * @author scott.sinclair
+ *
+ */
 public class EntityJuggler {
 
   private boolean uuidsMatchAcrossContexts = true;
   private boolean overwriteOptimisticLocks = true;
   private Set<Entity> startedImport = new HashSet<>();
 
+  /**
+   * 
+   * @param uuidsMatchAcrossContexts
+   * @param overwriteOptimisticLocks
+   */
   public EntityJuggler(boolean uuidsMatchAcrossContexts, boolean overwriteOptimisticLocks) {
     this.uuidsMatchAcrossContexts = uuidsMatchAcrossContexts;
     this.overwriteOptimisticLocks = overwriteOptimisticLocks;

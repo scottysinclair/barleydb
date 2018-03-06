@@ -31,7 +31,7 @@ import scott.barleydb.api.stream.QueryEntityInputStream;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.stream.EntityStreamException;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
-import scott.barleydb.api.exception.execution.query.SortQueryException;
+import scott.barleydb.api.exception.execution.query.BarleyDBQueryException;
 
 import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.ValueNode;
@@ -117,12 +117,12 @@ public class CsvStructure extends AbstractCustomEntityProxy {
   public List<CsvStructureField> getFields() {
     return super.getListProxy(fields.toManyNode);
   }
-  public ObjectInputStream<CsvStructureField> streamFields() throws SortServiceProviderException, SortQueryException, EntityStreamException {
+  public ObjectInputStream<CsvStructureField> streamFields() throws SortServiceProviderException, BarleyDBQueryException, EntityStreamException {
     final QueryEntityInputStream in = fields.toManyNode.stream();
     return new ObjectInputStream<>(in);
   }
 
-  public ObjectInputStream<CsvStructureField> streamFields(QueryObject<CsvStructureField> query) throws SortServiceProviderException, SortQueryException, EntityStreamException {
+  public ObjectInputStream<CsvStructureField> streamFields(QueryObject<CsvStructureField> query) throws SortServiceProviderException, BarleyDBQueryException, EntityStreamException {
     final QueryEntityInputStream in = fields.toManyNode.stream(query);
     return new ObjectInputStream<>(in);
   }

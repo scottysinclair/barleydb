@@ -22,7 +22,7 @@ package scott.barleydb.api.exception.model;
  * #L%
  */
 
-public class QPropertyInvalidException extends SortQueryModelException {
+public class QPropertyInvalidException extends BarleyDBQueryModelException {
 
     private static final long serialVersionUID = 1L;
 

@@ -1,6 +1,6 @@
 package scott.barleydb.api.exception.execution.query;
 
-import scott.barleydb.api.exception.execution.query.SortQueryException;
+import scott.barleydb.api.exception.execution.query.BarleyDBQueryException;
 
 /*
  * #%L
@@ -25,7 +25,7 @@ import scott.barleydb.api.exception.execution.query.SortQueryException;
  */
 
 
-public class ResultDataConversionException extends SortQueryException {
+public class ResultDataConversionException extends BarleyDBQueryException {
 
     private static final long serialVersionUID = 1L;
 

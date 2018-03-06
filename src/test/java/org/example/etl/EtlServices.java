@@ -42,7 +42,7 @@ import scott.barleydb.api.core.entity.Statistics;
 import scott.barleydb.api.dto.DtoConverter;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
-import scott.barleydb.api.exception.execution.query.SortQueryException;
+import scott.barleydb.api.exception.execution.query.BarleyDBQueryException;
 import scott.barleydb.api.persist.PersistRequest;
 
 public class EtlServices {
@@ -56,7 +56,7 @@ public class EtlServices {
     this.namespace = namespace;
   }
 
-  public void saveSyntax(SyntaxModelDto syntaxDto) throws SortServiceProviderException, SortPersistException, SortQueryException {
+  public void saveSyntax(SyntaxModelDto syntaxDto) throws SortServiceProviderException, SortPersistException, BarleyDBQueryException {
     EntityContext ctx = new EtlEntityContext(env);
     ctx.setAutocommit(false);
     DtoConverter converter = new DtoConverter(env, namespace, ctx);
@@ -68,7 +68,7 @@ public class EtlServices {
     lastCtxStatistics = ctx.getStatistics();
   }
 
-  public XmlSyntaxModelDto loadFullXmlSyntax(Long id) throws SortServiceProviderException, SortQueryException {
+  public XmlSyntaxModelDto loadFullXmlSyntax(Long id) throws SortServiceProviderException, BarleyDBQueryException {
     EntityContext ctx = new EntityContext(env, namespace);
 
     QXmlSyntaxModel q = new QXmlSyntaxModel();
@@ -90,7 +90,7 @@ public class EtlServices {
     return converter.getDto(result);
   }
 
-  private void walkHierarchy(XmlSyntaxModel syntaxModel) throws SortServiceProviderException, SortQueryException {
+  private void walkHierarchy(XmlSyntaxModel syntaxModel) throws SortServiceProviderException, BarleyDBQueryException {
     for (XmlMapping mapping: syntaxModel.getMappings()) {
        if (mapping.getSubSyntax() != null) {
          walkHierarchy(mapping.getSubSyntax());
@@ -98,14 +98,14 @@ public class EtlServices {
     }
   }
 
-  public void saveTemplate(TemplateDto templateDto) throws SortServiceProviderException, SortPersistException, SortQueryException {
+  public void saveTemplate(TemplateDto templateDto) throws SortServiceProviderException, SortPersistException, BarleyDBQueryException {
     save(templateDto, false);
   }
 
-  public void saveTemplateAndBusinessTypes(TemplateDto templateDto) throws SortServiceProviderException, SortQueryException, SortPersistException {
+  public void saveTemplateAndBusinessTypes(TemplateDto templateDto) throws SortServiceProviderException, BarleyDBQueryException, SortPersistException {
     save(templateDto, true);
   }
-  private void save(TemplateDto templateDto, boolean withBusinessTypes) throws SortServiceProviderException, SortQueryException, SortPersistException {
+  private void save(TemplateDto templateDto, boolean withBusinessTypes) throws SortServiceProviderException, BarleyDBQueryException, SortPersistException {
     EntityContext ctx = new EtlEntityContext(env);
     ctx.setAutocommit(false);
 
@@ -127,7 +127,7 @@ public class EtlServices {
   }
 
 
-  public TemplateDto loadTemplate(Long id) throws SortServiceProviderException, SortQueryException {
+  public TemplateDto loadTemplate(Long id) throws SortServiceProviderException, BarleyDBQueryException {
     EntityContext ctx = new EntityContext(env, namespace);
 
     QTemplate q = new QTemplate();

@@ -36,7 +36,7 @@ import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.RefNode;
 
 /**
- *  An ordered list of entities
+ *  An ordered list of entities.
  * @author scott
  *
  */
@@ -53,6 +53,10 @@ public class OperationGroup implements Serializable {
         this.entities.addAll( entities );
     }
 
+    /**
+     * 
+     * @return an OperationGroup with the entities in reverse order.
+     */
     public OperationGroup reverse() {
         OperationGroup og = new OperationGroup();
         og.entities.addAll(entities);
@@ -60,6 +64,10 @@ public class OperationGroup implements Serializable {
         return og;
     }
 
+    /**
+     * Adds an entitiy to the OperationGroup
+     * @param entity
+     */
     public void add(Entity entity) {
         if (!entities.contains(entity)) {
             entities.add(entity);
@@ -74,6 +82,11 @@ public class OperationGroup implements Serializable {
         return entities.contains(entity);
     }
 
+    /**
+     * Returns a new OperationGroup containing the entities from all given OperationGroups.
+     * @param ogs
+     * @return the new OperationGroup
+     */
     public OperationGroup mergedCopy(OperationGroup... ogs) {
         OperationGroup ogm = new OperationGroup();
         ogm.entities.addAll(entities);

@@ -24,7 +24,7 @@ package scott.barleydb.api.exception.model;
 
 import scott.barleydb.api.query.QueryObject;
 
-public class QPropertyMissingException extends SortQueryModelException {
+public class QPropertyMissingException extends BarleyDBQueryModelException {
 
     private static final long serialVersionUID = 1L;
 

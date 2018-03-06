@@ -41,7 +41,7 @@ public class PostgresqlDatabase implements Database {
     @Override
     public boolean matches(DatabaseMetaData metaData) throws SQLException {
         return metaData.getDatabaseProductName().equals("PostgreSQL") &&
-                metaData.getDatabaseProductVersion().compareTo("9.6.2") >= 0;
+                metaData.getDatabaseProductVersion().compareTo("9.6.1") >= 0;
     }
 
     @Override

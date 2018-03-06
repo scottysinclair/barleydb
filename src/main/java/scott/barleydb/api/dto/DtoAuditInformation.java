@@ -36,7 +36,7 @@ import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.entity.ProxyController;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
-import scott.barleydb.api.exception.execution.query.SortQueryException;
+import scott.barleydb.api.exception.execution.query.BarleyDBQueryException;
 import scott.barleydb.api.query.QProperty;
 
 public class DtoAuditInformation {
@@ -50,7 +50,7 @@ public class DtoAuditInformation {
     this.converter = new DtoConverter(env, namespace, ctx);
   }
 
-  public void compareWithDatabase(List<? extends BaseDto> models) throws SortServiceProviderException, SortQueryException, SortPersistException {
+  public void compareWithDatabase(List<? extends BaseDto> models) throws SortServiceProviderException, BarleyDBQueryException, SortPersistException {
     converter.importDtos(models);
     List<ProxyController> list = converter.getModels(models);
     auditInformation = ctx.compareWithDatabase(list);

@@ -47,7 +47,7 @@ import scott.barleydb.api.exception.execution.jdbc.CommitWithoutTransactionExcep
 import scott.barleydb.api.exception.execution.jdbc.RollbackWithoutTransactionException;
 import scott.barleydb.api.exception.execution.jdbc.SortJdbcException;
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
-import scott.barleydb.api.exception.execution.query.SortQueryException;
+import scott.barleydb.api.exception.execution.query.BarleyDBQueryException;
 import scott.barleydb.api.persist.PersistAnalyser;
 import scott.barleydb.api.persist.PersistRequest;
 import scott.barleydb.api.query.QueryObject;
@@ -137,13 +137,13 @@ public class RemoteClientEntityContextServices implements IEntityContextServices
 
     @Override
     public <T> QueryEntityDataInputStream streamQuery(EntityContext entityContext, QueryObject<T> query,
-            RuntimeProperties props) throws SortJdbcException, SortQueryException {
+            RuntimeProperties props) throws SortJdbcException, BarleyDBQueryException {
         throw new UnsupportedOperationException("Remote streaming is not supported.");
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> QueryResult<T> execute(EntityContext entityContext, QueryObject<T> query, RuntimeProperties props) throws SortServiceProviderException, SortQueryException {
+    public <T> QueryResult<T> execute(EntityContext entityContext, QueryObject<T> query, RuntimeProperties props) throws SortServiceProviderException, BarleyDBQueryException {
         LOG.info("Executing on server via serialization/de-serialization");
         try {
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
@@ -191,7 +191,7 @@ public class RemoteClientEntityContextServices implements IEntityContextServices
     }
 
     @Override
-    public QueryBatcher execute(EntityContext entityContext, QueryBatcher queryBatcher, RuntimeProperties props) throws SortServiceProviderException, SortQueryException {
+    public QueryBatcher execute(EntityContext entityContext, QueryBatcher queryBatcher, RuntimeProperties props) throws SortServiceProviderException, BarleyDBQueryException {
         LOG.info("Executing on server via serialization/de-serialization");
         try {
             ByteArrayOutputStream bout = new ByteArrayOutputStream();

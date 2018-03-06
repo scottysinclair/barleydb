@@ -56,24 +56,53 @@ import scott.barleydb.api.dependency.diagram.DependencyDiagram;
 import scott.barleydb.api.dependency.diagram.Link;
 import scott.barleydb.api.dependency.diagram.LinkType;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
-import scott.barleydb.api.exception.execution.query.SortQueryException;
+import scott.barleydb.api.exception.execution.query.BarleyDBQueryException;
 import scott.barleydb.api.query.QProperty;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.server.jdbc.query.QueryResult;
 
+/**
+ * Generates an operations dependency tree so that the order of entity operations can be calculated.<br/>
+ * <br/>
+ * The DependencyTree takes into account the different types of relations between entities and will also calculate entites which have to be deleted 
+ * due to orphan removal.
+ * @author scott.sinclair
+ *
+ */
 public class DependencyTree implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     private static final Logger LOG = LoggerFactory.getLogger(DependencyTree.class);
 
+    /**
+     * the final calculated dependency order
+     */
     private final List<Node> dependencyOrder = new LinkedList<>();
+    
+    /**
+     * all of the operation Nodes in the dependency tree
+     */
     private final Map<Entity, Node> nodes = new LinkedHashMap<>();
 
+    /**
+     * the entity context containing the entities on which operations will be performed.
+     */
     private final EntityContext ctx;
+    
+    /**
+     * the 'delete entity context' used to load and therefore verify the existance of entities which will require removal.
+     */
     private final EntityContext dctx;
+    
+    /**
+     * a map of orphan checks starting from an Entity which has an update or delete operation on it.
+     */
     private final Map<Entity, OrphanCheck> orphanChecks = new HashMap<>();
 
+    /**
+     * if true the dependency order will try and ensure that entities of the same type will lie contiguously with one another.
+     */
     private final boolean tryAndOrderInBatches;
 
     public DependencyTree(EntityContext refCtx, boolean tryAndOrderInBatches) {
@@ -82,6 +111,9 @@ public class DependencyTree implements Serializable {
         this.tryAndOrderInBatches = tryAndOrderInBatches;
     }
 
+    /**
+     * generates a dependency diagram in the system temporary directory
+     */
     public void generateDiagram() {
         try {
             File file = new File(System.getProperty("java.io.tmpdir") + "/dep-tree-" + System.currentTimeMillis() + ".jpeg");
@@ -93,6 +125,11 @@ public class DependencyTree implements Serializable {
         }
     }
 
+    /**
+     * Generates a dependency diagram at the given location.
+     * @param diagram
+     * @throws IOException
+     */
     public void generateDiagram(File diagram) throws IOException {
         DependencyDiagram diag = new DependencyDiagram();
         Link firstLink = null;
@@ -148,7 +185,14 @@ public class DependencyTree implements Serializable {
         return result;
     }
 
-    public void build(Collection<Operation> operations) throws SortServiceProviderException, SortQueryException {
+    /**
+     * Builds the dependency tree based on the collection of operations to perform.
+     * 
+     * @param operations
+     * @throws SortServiceProviderException
+     * @throws BarleyDBQueryException
+     */
+    public void build(Collection<Operation> operations) throws SortServiceProviderException, BarleyDBQueryException {
         if (LOG.isDebugEnabled()) {
             LOG.debug("---------------------------------------------------------------------------------------");
             LOG.debug(" STARTING DEPENDENCY TREE BUILD ");
@@ -280,7 +324,7 @@ public class DependencyTree implements Serializable {
     }
 
     /**
-     * populates the dependencyOrder list by processing the dependency nodes.
+     * Populates the dependencyOrder list by processing the dependency nodes.
      */
     private void calculateDependencyOrder() {
 //           generateDiagram();
@@ -834,7 +878,7 @@ public class DependencyTree implements Serializable {
                          * express the dependency, we must be deleted before our
                          * ref
                          *
-                         * If something is refering to me then I cannot be deleted, so express a dependency
+                         * If something is referring to me then I cannot be deleted, so express a dependency
                          * regardless of the operation
                          */
                         dependentNode.dependency.add(this);
@@ -854,7 +898,7 @@ public class DependencyTree implements Serializable {
 //                        }
                     }
                 }
-            } else { // TODO Auto-generated method stub
+            } else {
 
                 /*
                  * non-delete operations are handles somewhere else
@@ -950,7 +994,13 @@ public class DependencyTree implements Serializable {
         return false;
     }
 
-    private void performOrphanChecks() throws SortServiceProviderException, SortQueryException {
+    /**
+     * Performs all pending orphan checks.
+     * 
+     * @throws SortServiceProviderException
+     * @throws BarleyDBQueryException
+     */
+    private void performOrphanChecks() throws SortServiceProviderException, BarleyDBQueryException {
         LOG.debug("-------------------------------------------------------------");
         LOG.debug("START Executing queries for all pending orphan checks");
         LOG.debug("-------------------------------------------------------------");
@@ -981,6 +1031,7 @@ public class DependencyTree implements Serializable {
             lookup.put(eid, orphCheck);
             int logNumberOfQueryConditions = 1;
 
+            //include any other entities of the same type which we need to load (from other orphan checks)
             for (OrphanCheck sub : orphanChecks.values()) {
                 if (sub == orphCheck) {
                     continue;
@@ -1211,7 +1262,7 @@ public class DependencyTree implements Serializable {
          * and out of date.
          *
          * --we are only copying ref entities of owning relationships
-         * -- other ref entites are "NOT lOADED"
+         * -- other ref entites have entity state NOT_lOADED
          */
         EntityJuggler juggler = new EntityJuggler(false, false) {
           @Override
@@ -1411,7 +1462,6 @@ public class DependencyTree implements Serializable {
 
     public void addOrphanCheck(Entity entity) {
         orphanChecks.put(entity, new OrphanCheck(entity));
-        // TODO Auto-generated method stub
         LOG.debug("Adding orphan check  for {}", entity);
     }
 

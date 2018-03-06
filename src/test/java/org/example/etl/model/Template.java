@@ -31,7 +31,7 @@ import scott.barleydb.api.stream.QueryEntityInputStream;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.stream.EntityStreamException;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
-import scott.barleydb.api.exception.execution.query.SortQueryException;
+import scott.barleydb.api.exception.execution.query.BarleyDBQueryException;
 
 import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.ValueNode;
@@ -113,21 +113,21 @@ public class Template extends AbstractCustomEntityProxy {
   public List<BusinessType> getBusinessTypes() {
     return super.getListProxy(businessTypes.toManyNode);
   }
-  public ObjectInputStream<TemplateContent> streamContents() throws SortServiceProviderException, SortQueryException, EntityStreamException {
+  public ObjectInputStream<TemplateContent> streamContents() throws SortServiceProviderException, BarleyDBQueryException, EntityStreamException {
     final QueryEntityInputStream in = contents.toManyNode.stream();
     return new ObjectInputStream<>(in);
   }
 
-  public ObjectInputStream<TemplateContent> streamContents(QueryObject<TemplateContent> query) throws SortServiceProviderException, SortQueryException, EntityStreamException {
+  public ObjectInputStream<TemplateContent> streamContents(QueryObject<TemplateContent> query) throws SortServiceProviderException, BarleyDBQueryException, EntityStreamException {
     final QueryEntityInputStream in = contents.toManyNode.stream(query);
     return new ObjectInputStream<>(in);
   }
-  public ObjectInputStream<TemplateBusinessType> streamBusinessTypes() throws SortServiceProviderException, SortQueryException, EntityStreamException {
+  public ObjectInputStream<TemplateBusinessType> streamBusinessTypes() throws SortServiceProviderException, BarleyDBQueryException, EntityStreamException {
     final QueryEntityInputStream in = businessTypes.toManyNode.stream();
     return new ObjectInputStream<>(in);
   }
 
-  public ObjectInputStream<TemplateBusinessType> streamBusinessTypes(QueryObject<TemplateBusinessType> query) throws SortServiceProviderException, SortQueryException, EntityStreamException {
+  public ObjectInputStream<TemplateBusinessType> streamBusinessTypes(QueryObject<TemplateBusinessType> query) throws SortServiceProviderException, BarleyDBQueryException, EntityStreamException {
     final QueryEntityInputStream in = businessTypes.toManyNode.stream(query);
     return new ObjectInputStream<>(in);
   }

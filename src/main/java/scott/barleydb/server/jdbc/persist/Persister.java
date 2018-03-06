@@ -52,7 +52,7 @@ import scott.barleydb.api.exception.execution.persist.OptimisticLockMismatchExce
 import scott.barleydb.api.exception.execution.persist.PreparingPersistStatementException;
 import scott.barleydb.api.exception.execution.persist.PrimaryKeyExistsException;
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
-import scott.barleydb.api.exception.execution.query.SortQueryException;
+import scott.barleydb.api.exception.execution.query.BarleyDBQueryException;
 import scott.barleydb.api.persist.PersistAnalyser;
 import scott.barleydb.api.specification.KeyGenSpec;
 import scott.barleydb.server.jdbc.JdbcEntityContextServices;
@@ -229,7 +229,7 @@ public class Persister {
         try {
             databaseDataSet.loadEntities(updateGroup, deleteGroup, dependsOnGroup);
         }
-        catch (SortQueryException x) {
+        catch (BarleyDBQueryException x) {
             throw new SortPersistException("Could not load entities for validation and audit", x);
         }
         for (Entity entity : iterable(updateGroup, deleteGroup, dependsOnGroup)) {

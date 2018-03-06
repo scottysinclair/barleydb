@@ -24,27 +24,27 @@ package scott.barleydb.api.exception.execution.query;
 
 import scott.barleydb.api.exception.BarleyDBException;
 
-public class SortQueryException extends BarleyDBException {
+public class BarleyDBQueryException extends BarleyDBException {
 
     private static final long serialVersionUID = 1L;
 
-    public SortQueryException() {
+    public BarleyDBQueryException() {
         super();
     }
 
-    public SortQueryException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    public BarleyDBQueryException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 
-    public SortQueryException(String message, Throwable cause) {
+    public BarleyDBQueryException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public SortQueryException(String message) {
+    public BarleyDBQueryException(String message) {
         super(message);
     }
 
-    public SortQueryException(Throwable cause) {
+    public BarleyDBQueryException(Throwable cause) {
         super(cause);
     }
 

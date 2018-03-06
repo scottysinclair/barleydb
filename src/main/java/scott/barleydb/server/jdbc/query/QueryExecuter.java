@@ -38,7 +38,7 @@ import scott.barleydb.api.exception.execution.jdbc.SortJdbcException;
 import scott.barleydb.api.exception.execution.persist.PreparingPersistStatementException;
 import scott.barleydb.api.exception.execution.query.ForUpdateNotSupportedException;
 import scott.barleydb.api.exception.execution.query.IllegalQueryStateException;
-import scott.barleydb.api.exception.execution.query.SortQueryException;
+import scott.barleydb.api.exception.execution.query.BarleyDBQueryException;
 import scott.barleydb.api.query.RuntimeProperties;
 import scott.barleydb.api.stream.EntityStreamException;
 import scott.barleydb.api.stream.ObjectGraph;
@@ -89,23 +89,23 @@ public class QueryExecuter {
      * If possible, in one database roundtrip.
      * @param queryExecutions
      * @throws PreparingPersistStatementException
-     * @throws SortQueryException
+     * @throws BarleyDBQueryException
      * @throws EntityStreamException
      * @throws SQLException
      * @throws Exception
      */
-    public QueryEntityDataInputStream execute(QueryExecution<?>... queryExecutions) throws SortJdbcException, SortQueryException, EntityStreamException  {
+    public QueryEntityDataInputStream execute(QueryExecution<?>... queryExecutions) throws SortJdbcException, BarleyDBQueryException, EntityStreamException  {
         try {
             return performExecute(queryExecutions);
         }
         catch (PreparingPersistStatementException x) {
-            throw new SortQueryException("Error preparing query statement", x);
+            throw new BarleyDBQueryException("Error preparing query statement", x);
         }
     }
 
-    private QueryEntityDataInputStream performExecute(QueryExecution<?>... queryExecutions) throws SortJdbcException, PreparingPersistStatementException, SortQueryException, EntityStreamException {
+    private QueryEntityDataInputStream performExecute(QueryExecution<?>... queryExecutions) throws SortJdbcException, PreparingPersistStatementException, BarleyDBQueryException, EntityStreamException {
         if (queryExecutions == null || queryExecutions.length == 0) {
-            throw new SortQueryException("No query executions...");
+            throw new BarleyDBQueryException("No query executions...");
         }
         if (!database.supportsMultipleResultSets() || queryExecutions.length == 1) {
             entityContext.getStatistics().addNumberOfQueries(queryExecutions.length);
@@ -170,10 +170,10 @@ public class QueryExecuter {
     /**
      * Executes a single query expecting one resultset.
      * @param queryExecution
-     * @throws SortQueryException
+     * @throws BarleyDBQueryException
      * @throws SQLException
      */
-    private ResultSet executeQuery(QueryExecution<?> queryExecution) throws SortJdbcException, PreparingPersistStatementException, SortQueryException  {
+    private ResultSet executeQuery(QueryExecution<?> queryExecution) throws SortJdbcException, PreparingPersistStatementException, BarleyDBQueryException  {
         List<Param> params = new LinkedList<Param>();
         String sql = queryExecution.getSql(params);
 
@@ -221,15 +221,15 @@ public class QueryExecuter {
         }
     }
 
-    private PreparedStatement prepareStatement(String sql, RuntimeProperties runtimeProperties) throws SortQueryException, SQLException {
+    private PreparedStatement prepareStatement(String sql, RuntimeProperties runtimeProperties) throws BarleyDBQueryException, SQLException {
         return connection.prepareStatement(sql, getResultSetType(runtimeProperties), getResultSetConcurrency(runtimeProperties));
     }
 
-    private Statement createStatement(RuntimeProperties runtimeProperties) throws SortQueryException, SQLException {
+    private Statement createStatement(RuntimeProperties runtimeProperties) throws BarleyDBQueryException, SQLException {
         return connection.createStatement(getResultSetType(runtimeProperties), getResultSetConcurrency(runtimeProperties));
     }
 
-    private static int getResultSetType(RuntimeProperties props) throws SortQueryException {
+    private static int getResultSetType(RuntimeProperties props) throws BarleyDBQueryException {
         if (props.getScrollType() == null) {
             return ResultSet.TYPE_FORWARD_ONLY;
         }
@@ -245,7 +245,7 @@ public class QueryExecuter {
         }
     }
 
-    private static int getResultSetConcurrency(RuntimeProperties props) throws SortQueryException {
+    private static int getResultSetConcurrency(RuntimeProperties props) throws BarleyDBQueryException {
         if (props == null) {
             return ResultSet.CONCUR_READ_ONLY;
         }
@@ -259,7 +259,7 @@ public class QueryExecuter {
         }
     }
 
-    private void setParameters(PreparedStatement stmt, List<Param> params) throws SortQueryException  {
+    private void setParameters(PreparedStatement stmt, List<Param> params) throws BarleyDBQueryException  {
         int i = 1;
         QueryPreparedStatementHelper helper = new QueryPreparedStatementHelper(jdbcEntityContextServices, entityContext.getDefinitions());
         for (QueryGenerator.Param param : params) {
@@ -332,7 +332,7 @@ public class QueryExecuter {
                      * the cursor is at the correct position.
                      */
                 }
-                catch (SQLException | SortJdbcException | SortQueryException  | PreparingPersistStatementException x) {
+                catch (SQLException | SortJdbcException | BarleyDBQueryException  | PreparingPersistStatementException x) {
                     throw new EntityStreamException("Error executing query", x);
                 }
             }

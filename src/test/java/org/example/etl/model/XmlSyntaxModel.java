@@ -31,7 +31,7 @@ import scott.barleydb.api.stream.QueryEntityInputStream;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.stream.EntityStreamException;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
-import scott.barleydb.api.exception.execution.query.SortQueryException;
+import scott.barleydb.api.exception.execution.query.BarleyDBQueryException;
 
 import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.ValueNode;
@@ -78,12 +78,12 @@ public class XmlSyntaxModel extends SyntaxModel {
   public List<XmlMapping> getMappings() {
     return super.getListProxy(mappings.toManyNode);
   }
-  public ObjectInputStream<XmlMapping> streamMappings() throws SortServiceProviderException, SortQueryException, EntityStreamException {
+  public ObjectInputStream<XmlMapping> streamMappings() throws SortServiceProviderException, BarleyDBQueryException, EntityStreamException {
     final QueryEntityInputStream in = mappings.toManyNode.stream();
     return new ObjectInputStream<>(in);
   }
 
-  public ObjectInputStream<XmlMapping> streamMappings(QueryObject<XmlMapping> query) throws SortServiceProviderException, SortQueryException, EntityStreamException {
+  public ObjectInputStream<XmlMapping> streamMappings(QueryObject<XmlMapping> query) throws SortServiceProviderException, BarleyDBQueryException, EntityStreamException {
     final QueryEntityInputStream in = mappings.toManyNode.stream(query);
     return new ObjectInputStream<>(in);
   }

@@ -29,7 +29,7 @@ import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.execution.jdbc.SortJdbcException;
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
-import scott.barleydb.api.exception.execution.query.SortQueryException;
+import scott.barleydb.api.exception.execution.query.BarleyDBQueryException;
 import scott.barleydb.api.persist.PersistAnalyser;
 import scott.barleydb.api.persist.PersistRequest;
 import scott.barleydb.api.query.QueryObject;
@@ -105,9 +105,9 @@ public interface IEntityContextServices {
      * @param props
      * @return
      * @throws SortJdbcException
-     * @throws SortQueryException
+     * @throws BarleyDBQueryException
      */
-    <T> QueryEntityDataInputStream streamQuery(EntityContext entityContext, QueryObject<T> query, RuntimeProperties props) throws SortJdbcException, SortQueryException;
+    <T> QueryEntityDataInputStream streamQuery(EntityContext entityContext, QueryObject<T> query, RuntimeProperties props) throws SortJdbcException, BarleyDBQueryException;
 
 
 
@@ -120,9 +120,9 @@ public interface IEntityContextServices {
      * @param props
      * @return
      * @throws SortJdbcException
-     * @throws SortQueryException
+     * @throws BarleyDBQueryException
      */
-    <T> QueryResult<T> execute(EntityContext entityContext, QueryObject<T> query, RuntimeProperties props) throws SortServiceProviderException, SortQueryException;
+    <T> QueryResult<T> execute(EntityContext entityContext, QueryObject<T> query, RuntimeProperties props) throws SortServiceProviderException, BarleyDBQueryException;
 
     /**
      * Executes the batch of queries populating the given entity context with the result.
@@ -133,9 +133,9 @@ public interface IEntityContextServices {
      * @param props
      * @return
      * @throws SortJdbcException
-     * @throws SortQueryException
+     * @throws BarleyDBQueryException
      */
-    QueryBatcher execute(EntityContext entityContext, QueryBatcher queryBatcher, RuntimeProperties props) throws SortServiceProviderException, SortQueryException;
+    QueryBatcher execute(EntityContext entityContext, QueryBatcher queryBatcher, RuntimeProperties props) throws SortServiceProviderException, BarleyDBQueryException;
 
 
     /**

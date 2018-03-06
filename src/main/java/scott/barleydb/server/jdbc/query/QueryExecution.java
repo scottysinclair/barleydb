@@ -39,7 +39,7 @@ import scott.barleydb.api.exception.execution.jdbc.SortJdbcException;
 import scott.barleydb.api.exception.execution.query.ForUpdateNotSupportedException;
 import scott.barleydb.api.exception.execution.query.IllegalQueryStateException;
 import scott.barleydb.api.exception.execution.query.QueryConnectionRequiredException;
-import scott.barleydb.api.exception.execution.query.SortQueryException;
+import scott.barleydb.api.exception.execution.query.BarleyDBQueryException;
 import scott.barleydb.api.query.QJoin;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.stream.EntityData;
@@ -145,7 +145,7 @@ public class QueryExecution<T> {
             while(resultSet.next());
             LOG.debug("-------------------------------------------------------------------");
         }
-        catch (SortJdbcException  | SortQueryException  | SQLException x) {
+        catch (SortJdbcException  | BarleyDBQueryException  | SQLException x) {
             throw new EntityStreamException("Could not load Object Graph", x);
         }
         if (moreData) {

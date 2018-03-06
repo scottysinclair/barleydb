@@ -140,15 +140,10 @@
   <!-- ================================================ -->
 
   <repositories>
+
     <repository>
-      <id>msource</id>
-      <url>http://source.mysema.com/maven2/releases/</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
+      <id>central</id>
+      <url>http://central.maven.org/maven2/</url>
     </repository>
 
 

@@ -43,7 +43,7 @@ import junit.framework.Assert;
 import scott.barleydb.api.core.entity.Statistics;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
-import scott.barleydb.api.exception.execution.query.SortQueryException;
+import scott.barleydb.api.exception.execution.query.BarleyDBQueryException;
 
 public class TestDtoServices extends TestBase {
 
@@ -69,7 +69,7 @@ public class TestDtoServices extends TestBase {
   }
 
   @Test
-  public void testSaveXmlSyntax() throws SortServiceProviderException, SortPersistException, SortQueryException {
+  public void testSaveXmlSyntax() throws SortServiceProviderException, SortPersistException, BarleyDBQueryException {
 
     long start = System.currentTimeMillis();
 
@@ -221,7 +221,7 @@ public class TestDtoServices extends TestBase {
   }
 
   @Test
-  public void testSaveTemplateDatatype() throws SortServiceProviderException, SortPersistException, SortQueryException {
+  public void testSaveTemplateDatatype() throws SortServiceProviderException, SortPersistException, BarleyDBQueryException {
     TemplateDto template = new TemplateDto();
     template.setAccessArea(root);
     template.setName("test-temp");
