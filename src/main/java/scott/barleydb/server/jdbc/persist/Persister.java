@@ -656,6 +656,7 @@ public class Persister {
             for (Change change : auditRecord.changes()) {
                 AUDITLOG.debug( auditRecord.formatChange(change) );
             }
+            AUDITLOG.debug("------------------------------------------------------------");
         }
     }
 

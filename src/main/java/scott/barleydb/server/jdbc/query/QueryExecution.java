@@ -68,6 +68,7 @@ public class QueryExecution<T> {
     private final Database database;
     private EntityLoaders entityLoaders;
     private QueryGenerator qGen;
+    private int rowCount = 1;
 
     public QueryExecution(JdbcEntityContextServices entityContextServices, EntityContext entityContext, QueryObject<T> query, Definitions definitions) throws QueryConnectionRequiredException {
         this.entityContextServices = entityContextServices;
@@ -107,7 +108,7 @@ public class QueryExecution<T> {
             Object rootEntityKey = null;
             do {
                 prepareEntityLoadersForNewRow(resultSet);
-                LOG.debug("START ROW ----------------------------------------------------------------");
+                LOG.debug("PROCESSING ROW {} -------------------------------------", rowCount);
 
                 Iterator<EntityLoader> i = entityLoaders.iterator();
                 EntityLoader entityDataLoader = i.next();
@@ -141,9 +142,9 @@ public class QueryExecution<T> {
                         }
                     }
                 }
+                rowCount++;
             }
             while(resultSet.next());
-            LOG.debug("-------------------------------------------------------------------");
         }
         catch (SortJdbcException  | BarleyDBQueryException  | SQLException x) {
             throw new EntityStreamException("Could not load Object Graph", x);

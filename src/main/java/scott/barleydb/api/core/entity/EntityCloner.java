@@ -93,6 +93,9 @@ public class EntityCloner {
       }
     }
 
+    /*
+     * TODO: give sub classes the chance to handle ToManyNode cloning.
+     */
 
     /*
      * all FK references which are not in the clone graph must be copied across
@@ -113,13 +116,13 @@ public class EntityCloner {
         }
         destNode.setReference( refEntity );
         if (refEntity == null) {
-          LOG.debug("{}Set FK to '{}' -> null", logPrefix, refNode.getName());
+          LOG.debug("{}Original reference '{}' is null", logPrefix, refNode.getName());
         }
         else if (clonedRef != null){
           LOG.debug("{}Copy FK to cloned '{}' -> {}", logPrefix, refNode.getName(), refEntity.getUuidFirst7());
         }
         else {
-          LOG.debug("{}Copy FK to original '{}' -> {}", logPrefix, refNode.getName(), refEntity.getKey().getValue());
+          LOG.debug("{}Copy FK to original '{}' -> {}", logPrefix, refNode.getName(), keyOrUuidFirst7(refEntity));
         }
       }
       else {
@@ -137,6 +140,10 @@ public class EntityCloner {
      */
 
     return dest;
+  }
+
+  private Object keyOrUuidFirst7(Entity e) {
+    return e.getKey().getValue() != null ? e.getKey().getValue() : e.getUuidFirst7();
   }
 
   /**
@@ -194,6 +201,7 @@ public class EntityCloner {
         LOG.debug("{}Cloning N:1 relation '{}' -> {}", logPrefix, child.getName(), srcRefE);
       }
       destNode.setReference( clone(srcRefE, restOfGraph, logPrefix + "  "));
+      LOG.debug("{}Copy FK to cloned '{}' -> {}", logPrefix, child.getName(), destNode.getReference().getUuidFirst7());
     }
     else {
       LOG.debug("{}Set N:1 relation '{}' to null", logPrefix, child.getName());

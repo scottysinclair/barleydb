@@ -277,13 +277,23 @@ public class QueryObject<R> implements Serializable {
     }
 
     public QueryObject<R> andExists(QueryObject<?> queryObject) {
+      if (this.condition == null) {
+        this.condition = new QExists(queryObject);
+      }
+      else {
         this.condition = new QLogicalOp(this.condition, exists(queryObject), QBooleanOps.AND);
-        return this;
+      }
+      return this;
     }
 
     public QueryObject<R> orExists(QueryObject<?> queryObject) {
+      if (this.condition == null) {
+        this.condition = new QExists(queryObject);
+      }
+      else {
         this.condition = new QLogicalOp(this.condition, exists(queryObject), QBooleanOps.OR);
-        return this;
+      }
+      return this;
     }
 
 //    public QueryObject<R> limit(int limit) {
