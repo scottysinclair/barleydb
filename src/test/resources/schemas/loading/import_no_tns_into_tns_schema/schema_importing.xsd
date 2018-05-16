@@ -1,0 +1,25 @@
+<!--
+ This schema tests importing a schema with no target namespace into
+ our own schema.
+
+ The schema which we are importing is itself made up of includes.
+                                                            -->
+<xsd:schema
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:a="urn:a"
+        targetNamespace="urn:a"
+        elementFormDefault="qualified">
+
+    <xsd:import schemaLocation="schema_imported_notns_parent.xsd"/>
+
+    <xsd:element name="root">
+        <xsd:complexType>
+            <xsd:sequence>
+                <!-- reference the element from the no namespace -->
+                <xsd:element ref="childa"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+
+</xsd:schema>

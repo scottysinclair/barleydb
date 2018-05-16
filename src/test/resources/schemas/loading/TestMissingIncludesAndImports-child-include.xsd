@@ -1,0 +1,10 @@
+<xsd:schema
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        targetNamespace="urn:a"
+        elementFormDefault="qualified">
+
+    <xsd:import namespace="urn:not-to-be-found-c"/>
+
+    <xsd:import schemaLocation="not-to-be-found-d.xsd"/>
+
+</xsd:schema>

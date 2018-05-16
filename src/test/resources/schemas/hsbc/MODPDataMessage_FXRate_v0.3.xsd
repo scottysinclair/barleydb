@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!--Created with Liquid XML Studio Developer Edition 8.1.7.2743 (http://www.liquid-technologies.com)-->
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:include schemaLocation="MODPDataRecordHeader_v0.1.xsd" />
+    <xs:include schemaLocation="MODPData_FXRate_v0.4.xsd" />
+    <xs:element name="MODPDataMessage">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Header" type="MODPDataRecordHeader">
+                    <xs:annotation>
+                        <xs:documentation>Provides the control information for an individual record</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element name="Record" minOccurs="1" maxOccurs="1">
+                    <xs:annotation>
+                        <xs:documentation>Contains an individual record</xs:documentation>
+                    </xs:annotation>
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="FXRate" type="FXRate" minOccurs="1" maxOccurs="1" />
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

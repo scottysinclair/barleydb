@@ -1,0 +1,223 @@
+
+---------- FPML-ALLOCATION.XSD
+
+---------- FPML-ASSET.XSD
+
+---------- FPML-CD.XSD
+								<view:override view="confirmation" minOccurs="1"/>
+								<view:override view="confirmation" minOccurs="1"/>
+						<view:override view="confirmation" minOccurs="1"/>
+						<view:override view="confirmation" minOccurs="1"/>
+						<view:override view="pretrade" minOccurs="0"/>
+
+---------- FPML-CM.XSD
+
+---------- FPML-CONFIRMATION.XSD
+
+---------- FPML-CONTRACT-NOTIFICATION.XSD
+
+---------- FPML-CREDIT-EVENT-NOTIFICATION.XSD
+
+---------- FPML-DOC.XSD
+						<view:override view="confirmation" minOccurs="1"/>
+				<view:override view="confirmation" skip="true"/>
+							<view:override view="confirmation" use="required"/>
+						<view:override view="pretrade" minOccurs="0"/>
+						<view:override view="pretrade" minOccurs="0"/>
+						<view:override view="pretrade" minOccurs="0"/>
+							<view:override view="confirmation" use="required"/>
+						<view:override view="confirmation" minOccurs="1"/>
+
+---------- FPML-ENUM.XSD
+
+---------- FPML-EQ-SHARED.XSD
+						<view:override view="confirmation" minOccurs="1" />
+						<view:override view="confirmation" minOccurs="1" />
+						<view:override view="confirmation" minOccurs="1" />
+						<view:override view="confirmation" minOccurs="1" />
+						<view:override view="confirmation" minOccurs="1" />
+						<view:override view="confirmation" minOccurs="1" />
+						<view:override view="confirmation" minOccurs="1" />
+								<view:override view="confirmation" minOccurs="1" />
+								<view:override view="confirmation" minOccurs="1" />
+								<view:override view="confirmation" minOccurs="1" />
+								<view:override view="confirmation" minOccurs="1" />
+								<view:override view="confirmation" minOccurs="1" />
+						<view:override view="confirmation" minOccurs="1" />
+						<view:override view="confirmation" minOccurs="1" />
+						<view:override view="confirmation" minOccurs="1" />
+						<view:override view="confirmation" minOccurs="1" />
+						<view:override view="confirmation" minOccurs="1" />
+						<view:override view="confirmation" minOccurs="1" />
+						<view:override view="confirmation" minOccurs="1" />
+						<view:override view="confirmation" minOccurs="1" />
+						<view:override view="confirmation" minOccurs="1" />
+						<view:override view="confirmation" minOccurs="1" />
+						<view:override view="confirmation" minOccurs="1" />
+						<view:override view="confirmation" minOccurs="1" />
+								<view:override view="confirmation" minOccurs="1" />
+								<view:override view="confirmation" minOccurs="1" />
+								<view:override view="confirmation" minOccurs="1" />
+								<view:override view="confirmation" minOccurs="1" />
+								<view:override view="confirmation" minOccurs="1" />
+								<view:override view="confirmation" minOccurs="1" />
+								<view:override view="confirmation" minOccurs="1" />
+								<view:override view="confirmation" minOccurs="1" />
+						<view:override view="confirmation" minOccurs="1" />
+						<view:override view="confirmation" minOccurs="1" />
+						<view:override view="confirmation" minOccurs="1" />
+						<view:override view="confirmation" minOccurs="1" />
+						<view:override view="confirmation" minOccurs="1" />
+								<view:override view="confirmation" minOccurs="1"/>
+						<view:override view="confirmation" minOccurs="1"/>
+						<view:override view="confirmation" minOccurs="1" />
+						<view:override view="confirmation" minOccurs="1"/>
+						<view:override view="confirmation" minOccurs="1"/>
+						<view:override view="confirmation" minOccurs="1"/>
+								<view:override view="confirmation" minOccurs="1" />
+								<view:override view="confirmation" minOccurs="1" />
+								<view:override view="confirmation" minOccurs="1" />
+
+---------- FPML-EQD.XSD
+							<view:override view="confirmation" minOccurs="1"/>
+								<view:override view="confirmation" minOccurs="1" />
+							<view:override view="confirmation" minOccurs="1"/>
+								<view:override view="confirmation" minOccurs="1" />
+								<view:override view="confirmation" minOccurs="1" />
+							<view:override view="confirmation" minOccurs="1" />
+								<view:override view="confirmation" minOccurs="1" />
+							<view:override view="confirmation" minOccurs="1"/>
+								<view:override view="confirmation" minOccurs="1" />
+								<view:override view="confirmation" minOccurs="1" />
+							<view:override view="confirmation" minOccurs="1"/>
+								<view:override view="confirmation" minOccurs="1"/>
+								<view:override view="confirmation" minOccurs="1"/>
+								<view:override view="confirmation" minOccurs="1"/>
+							<view:override view="confirmation" minOccurs="1"/>
+								<view:override view="confirmation" minOccurs="1" />
+					<view:override view="confirmation" minOccurs="1"/>
+						<view:override view="confirmation" minOccurs="1"/>
+						<view:override view="confirmation" minOccurs="1" />
+						<view:override view="confirmation" minOccurs="1" />
+						<view:override view="confirmation" minOccurs="1"/>
+							<view:override view="confirmation" minOccurs="1"/>
+								<view:override view="confirmation" minOccurs="1" />
+								<view:override view="confirmation" minOccurs="1" />
+
+---------- FPML-FX.XSD
+						<view:override view="confirmation" minOccurs="1"/>
+								<view:override view="pretrade" minOccurs="0"/>
+								<view:override view="pretrade" minOccurs="0"/>
+
+---------- FPML-IRD.XSD
+						<view:override view="confirmation" minOccurs="1"/>
+						<view:override view="confirmation" minOccurs="1" maxOccurs="1"/>
+						<view:override view="confirmation" minOccurs="1" maxOccurs="1"/>
+						<view:override view="confirmation" minOccurs="1" />
+						<view:override view="confirmation" minOccurs="1" />
+					<view:override view="confirmation" use="required" />
+					<view:override view="confirmation" minOccurs="1"/>
+						<view:override view="confirmation" minOccurs="1" />
+						<view:override view="confirmation" minOccurs="1" />
+					<view:override view="confirmation" minOccurs="1" />
+					<view:override view="confirmation" minOccurs="1"/>
+						<view:override view="confirmation" minOccurs="1" />
+						<view:override view="confirmation" minOccurs="1" />
+								<view:override view="confirmation" minOccurs="1"/>
+								<view:override view="confirmation" minOccurs="1"/>
+								<view:override view="confirmation" minOccurs="1"/>
+								<view:override view="confirmation" minOccurs="1"/>
+								<view:override view="confirmation" minOccurs="1"/>
+								<view:override view="confirmation" minOccurs="1"/>
+								<view:override view="pretrade" minOccurs="0"/>
+								<view:override view="pretrade" minOccurs="0"/>
+								<view:override view="confirmation" minOccurs="1"/>
+								<view:override view="confirmation" minOccurs="1"/>
+								<view:override view="confirmation" minOccurs="1"/>
+								<view:override view="confirmation" minOccurs="1"/>
+								<view:override view="confirmation" minOccurs="1"/>
+						<view:override view="confirmation" minOccurs="1"/>
+						<view:override view="confirmation" minOccurs="1"/>
+						<view:override view="confirmation" minOccurs="1"/>
+						<view:override view="confirmation" minOccurs="1"/>
+							<view:override view="confirmation" minOccurs="1"/>
+							<view:override view="confirmation" minOccurs="1"/>
+						<view:override view="confirmation" minOccurs="1"/>
+						<view:override view="confirmation" minOccurs="1"/>
+						<view:override view="confirmation" minOccurs="1"/>
+						<view:override view="confirmation" minOccurs="1"/>
+						<view:override view="confirmation" minOccurs="1"/>
+					<view:override view="confirmation" use="required"/>
+						<view:override view="confirmation" minOccurs="1"/>
+
+---------- FPML-MAIN.XSD
+				<view:override view="pretrade" skip="true"/>
+
+---------- FPML-MATCHING-STATUS.XSD
+			<view:override view="pretrade" skip="true"/>
+			<view:override view="reporting" skip="true"/>
+
+---------- FPML-MKTENV.XSD
+
+---------- FPML-MSG.XSD
+
+---------- FPML-POSTTRADE-CONFIRMATION.XSD
+
+---------- FPML-POSTTRADE-EXECUTION.XSD
+
+---------- FPML-POSTTRADE-NEGOTIATION.XSD
+
+---------- FPML-POSTTRADE.XSD
+			<view:override view="pretrade" skip="true"/>
+
+---------- FPML-PRETRADE.XSD
+
+---------- FPML-RECONCILIATION.XSD
+
+---------- FPML-REPO.XSD
+
+---------- FPML-REPORTING.XSD
+
+---------- FPML-RETURN-SWAPS.XSD
+
+---------- FPML-RISKDEF.XSD
+
+---------- FPML-SHARED.XSD
+						<view:override view="confirmation" minOccurs="1"/>
+						<view:override view="confirmation" minOccurs="1"/>
+						<view:override view="confirmation" skip="true"/>
+						<view:override view="confirmation" minOccurs="1"/>
+					<view:override view="confirmation" minOccurs="1"/>
+								<view:override view="confirmation" minOccurs="1"/>
+								<view:override view="confirmation" minOccurs="1"/>
+								<view:override view="confirmation" minOccurs="1"/>
+						<view:override view="confirmation" minOccurs="1"/>
+							<view:override view="confirmation" minOccurs="1"/>
+								<view:override view="confirmation" minOccurs="1"/>
+								<view:override view="confirmation" minOccurs="1"/>
+						<view:override view="confirmation" minOccurs="1"/>
+							<view:override view="confirmation" minOccurs="1"/>
+								<view:override view="confirmation" minOccurs="1"/>
+								<view:override view="confirmation" minOccurs="1"/>
+						<view:override view="pretrade" minOccurs="0"/>
+						<view:override view="pretrade" minOccurs="0"/>
+					<view:override view="confirmation" minOccurs="1"/>
+								<view:override view="confirmation" minOccurs="1"/>
+								<view:override view="confirmation" minOccurs="1"/>
+						<view:override view="confirmation" minOccurs="1"/>
+						<view:override view="pretrade" minOccurs="0"/>
+							<view:override view="confirmation" minOccurs="1"/>
+						<view:override view="confirmation" minOccurs="1"/>
+						<view:override view="confirmation" minOccurs="1"/>
+						<view:override view="confirmation" minOccurs="1"/>
+						<view:override view="confirmation" minOccurs="1"/>
+
+---------- FPML-TRADE-NOTIFICATION.XSD
+
+---------- FPML-TRADEEXEC.XSD
+
+---------- FPML-VALUATION-BASE.XSD
+
+---------- FPML-VALUATION.XSD
+
+---------- XMLDSIG-CORE-SCHEMA.XSD

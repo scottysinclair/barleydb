@@ -1,0 +1,57 @@
+<S:Envelope xmlns:S="http://schemas.xmlsoap.org/soap/envelope/">
+    <S:Header>
+        <SAAHeader Id="SAAHeader" xmlns="urn:swift:saa:xsd:soapha">
+            <SessionToken>1be691d7-97d5-4a49-8b70-88a63013d447</SessionToken>
+            <SequenceNumber>1</SequenceNumber>
+            <ClientRef>REF1</ClientRef>
+        </SAAHeader>
+    </S:Header>
+    <S:Body>
+        <GetAckResponse xmlns="urn:swift:saa:xsd:soapha">
+            <Saa:DataPDU xmlns:Saa="urn:swift:saa:xsd:saa.2.0"
+                    >
+                <Saa:Revision>2.0.2</Saa:Revision>
+                <Saa:Header>
+                    <Saa:Message>
+                        <Saa:SenderReference>REF10812031316</Saa:SenderReference>
+                        <Saa:MessageIdentifier>fin.999</Saa:MessageIdentifier>
+                        <Saa:Format>MT</Saa:Format>
+                        <Saa:SubFormat>Input</Saa:SubFormat>
+                        <Saa:Sender>
+                            <Saa:BIC12>SAASBEBBAXXX</Saa:BIC12>
+                            <Saa:FullName>
+                                <Saa:X1>SAASBEBBXXX</Saa:X1>
+                            </Saa:FullName>
+                        </Saa:Sender>
+                        <Saa:Receiver>
+                            <Saa:BIC12>SAATBEBBXXXX</Saa:BIC12>
+                            <Saa:FullName>
+                            <Saa:X1>SAATBEBBXXX</Saa:X1>
+                            </Saa:FullName>
+                        </Saa:Receiver>
+                        <Saa:InterfaceInfo>
+                            <Saa:UserReference>REF10812031316</Saa:UserReference>
+                            <Saa:MessageCreator>ApplicationInterface</Saa:MessageCreator>
+                            <Saa:MessageContext>Original</Saa:MessageContext>
+                            <Saa:MessageNature>Text</Saa:MessageNature>
+                        </Saa:InterfaceInfo>
+                        <Saa:NetworkInfo>
+                            <Saa:Priority>Normal</Saa:Priority>
+                            <Saa:IsPossibleDuplicate>false</Saa:IsPossibleDuplicate>
+                            <Saa:IsNotificationRequested>false</Saa:IsNotificationRequested>
+                            <Saa:Service>swift.fin</Saa:Service>
+                            <Saa:Network>Application</Saa:Network>
+                            <Saa:SessionNr>0001</Saa:SessionNr>
+                            <Saa:SeqNr>000001</Saa:SeqNr>
+                            <Saa:FINNetworkInfo>
+                                <Saa:MessageSyntaxVersion>0805</Saa:MessageSyntaxVersion>
+                                <Saa:CorrespondentInputTime>20081203122109</Saa:CorrespondentInputTime>
+                            </Saa:FINNetworkInfo>
+                        </Saa:NetworkInfo>
+                    </Saa:Message>
+                </Saa:Header>
+                <Saa:Body>DQo6MjA6VFJOIEZUSTAwMA0KOjc5OlpaWlpaWlpaWlpaWlpaWlpaWlpa</Saa:Body>
+            </Saa:DataPDU>
+        </GetAckResponse>
+    </S:Body>
+</S:Envelope>

@@ -1,0 +1,37 @@
+<xs:schema
+        xmlns:xs="http://www.w3.org/2001/XMLSchema"
+        targetNamespace="urn:a"
+        elementFormDefault="qualified">
+
+    <xs:element name="RateValues" minOccurs="1" maxOccurs="unbounded">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="RateValueType" type="xs:string"
+                            minOccurs="1" maxOccurs="1" />
+                <xs:element name="RateSource" type="xs:string"
+                            minOccurs="1" maxOccurs="1" />
+                <xs:choice>
+                    <xs:sequence>
+                        <xs:element name="ChoiceA" type="xs:decimal"/>
+                        <xs:element name="BidRate" type="xs:decimal"/>
+                        <xs:element name="AskRate" type="xs:decimal" minOccurs="0" />
+                        <xs:element name="MidRate" type="xs:decimal" minOccurs="0" />
+                    </xs:sequence>
+                    <xs:sequence>
+                        <xs:element name="ChoiceB" type="xs:decimal"/>
+                        <xs:element name="AskRate" type="xs:decimal"/>
+                        <xs:element name="BidRate" type="xs:decimal" minOccurs="0" />
+                        <xs:element name="MidRate" type="xs:decimal" minOccurs="0" />
+                    </xs:sequence>
+                    <xs:sequence>
+                        <xs:element name="ChoiceC" type="xs:decimal"/>
+                        <xs:element name="MidRate" type="xs:decimal"/>
+                        <xs:element name="BidRate" type="xs:decimal" minOccurs="0" />
+                        <xs:element name="AskRate" type="xs:decimal" minOccurs="0" />
+                    </xs:sequence>
+                </xs:choice>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>

@@ -1,0 +1,795 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+	== Copyright (c) 2002-2014. All rights reserved. 
+	== Financial Products Markup Language is subject to the FpML public license. 
+	== A copy of this license is available at http://www.fpml.org/license/license.html
+-->
+<xsd:schema xmlns="http://svn.msk.trd.ru/xsd/fixml" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" xmlns:fpml-annotation="http://www.fpml.org/annotation" xmlns:view="http://www.fpml.org/views" targetNamespace="http://svn.msk.trd.ru/xsd/fixml" elementFormDefault="qualified" attributeFormDefault="unqualified" version="$Revision: 11478 $" ecore:nsPrefix="fpml" ecore:package="org.fpml" ecore:documentRoot="FpML">
+	<xsd:annotation>
+		<xsd:appinfo>
+			<view:skip view="legal" rationale="Unsupported"/>
+			<view:skip view="pretrade" rationale="Unsupported"/>
+			<view:skip view="reporting" rationale="Unsupported"/>
+			<view:skip view="recordkeeping" rationale="Unsupported"/>
+		</xsd:appinfo>
+	</xsd:annotation>
+	<xsd:include schemaLocation="fpml-fx.xsd"/>
+
+	<!--
+================
+    complexTypes    
+================
+-->
+	<xsd:complexType name="FxTargetAccumulationRegion">
+		<xsd:sequence>
+			<xsd:group ref="FxRegionBound.model">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Defines the lower/upper bound in which the target accumulation applies.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:group>
+			<xsd:element name="multiplier" type="xsd:decimal" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">This is the factor that increases gain, not notional. Used to support Accelerated TARFs.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="ExchangedCurrency">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">Indicates the direction who pays and receives a specific currency without specifying the amount.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:group ref="PayerReceiver.model"/>
+			<xsd:element name="currency" type="Currency"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="FxSchedule">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">The FxSchedule may be expressed as explicit adjusted dates, or a parametric representation plus optional adjusted dates, or as an offset plus optional adusted dates.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:choice>
+				<xsd:sequence>
+					<xsd:element name="dateAdjustments" type="BusinessDayAdjustments" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">Date adjustments applied to the adjusted dates including the business day convention and the business centers.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="adjustedDate" type="xsd:date" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">List of schedule dates. These dates have been subject to adjustments based on the dateAdjustments structure.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+				<xsd:sequence>
+					<xsd:choice>
+						<xsd:group ref="ParametricSchedule.model">
+							<xsd:annotation>
+								<xsd:documentation xml:lang="en">Parametric representation of the schedule.</xsd:documentation>
+							</xsd:annotation>
+						</xsd:group>
+						<xsd:element name="dateOffset" type="FxDateOffset">
+							<xsd:annotation>
+								<xsd:documentation xml:lang="en">The representation of the schedule as an offset relative to another schedule. For example, the settlement schedule may be relative to the expiry schedule by an FxForward offset.</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+					</xsd:choice>
+					<xsd:element name="adjustedDate" type="xsd:date" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">List of schedule dates. These dates have been subject to adjustments based on the dateAdjustments structure.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:choice>
+		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:NCName"/>
+	</xsd:complexType>
+	<xsd:complexType name="FxExpirySchedule">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">Defines the expiry/observation schedule of the target.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="FxSchedule">
+				<xsd:sequence>
+					<xsd:element name="expiryTime" type="BusinessCenterTime" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">Time of expiration of each expiry date.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="finalExpiryDate" type="xsd:date" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The final expiry date facilitates informing the final date without having to process all expiry dates in the schedule.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="FxDateOffset">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">The representation of the schedule as an offset relative to another schedule. For example, the settlement schedule may be relative to the expiry schedule by an FxForward offset.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="convention" type="FxOffsetConventionEnum">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">The FX Offset Convention can be FxSpot or FxForward.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:sequence minOccurs="0">
+				<xsd:element name="offset" type="Period">
+					<xsd:annotation>
+						<xsd:documentation xml:lang="en">The settlement offset to the expiry schedule or the expiry offset to the settlement schedule. It is only specified when the settlement convention is FxForward.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="relativeTo" type="FxScheduleReference">
+					<xsd:annotation>
+						<xsd:documentation xml:lang="en">Indicates whether the settlement schedule is relative to the expiry schedule or the expiry schedule is relative to the settlement schedule.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+			</xsd:sequence>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="FxTargetKnockoutForwardStrip">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A structured forward product which consists of a strip of forwards. Each forward may be settled as an exchange of currencies or cash settled. At each settlement, the amount of gain that one party achieves is measured. The product has a target level of gain. Once the accumulated gain exceeds the target level, the product terminates and there are no further settlements.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="Product">
+				<xsd:sequence>
+					<xsd:sequence>
+						<xsd:element name="quotedCurrencyPair" type="QuotedCurrencyPair">
+							<xsd:annotation>
+								<xsd:documentation xml:lang="en">The Quoted Currency Pair that is used accross the product.</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="notionalAmount" type="NonNegativeAmountSchedule">
+							<xsd:annotation>
+								<xsd:documentation xml:lang="en">Notional amount of the Target.</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="counterCurrencyAmount" type="FxCounterCurrencyAmount" minOccurs="0" maxOccurs="unbounded">
+							<xsd:annotation>
+								<xsd:documentation xml:lang="en">The opposite currency amount of the Target.</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="expirySchedule" type="FxExpirySchedule">
+							<xsd:annotation>
+								<xsd:documentation xml:lang="en">Defines the expiry/observation schedule of the target product.</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="settlementSchedule" type="FxSettlementSchedule">
+							<xsd:annotation>
+								<xsd:documentation xml:lang="en">Defines the settlement/payment schedule of the target product.</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="fixingInformationSource" type="FxInformationSource">
+							<xsd:annotation>
+								<xsd:documentation xml:lang="en">Information source for fixing the exchange rate. It is the same for all fixing periods.</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="initialSpotRate" type="NonNegativeDecimal" minOccurs="0">
+							<xsd:annotation>
+								<xsd:documentation xml:lang="en">Spot rate </xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:choice>
+							<xsd:sequence>
+								<xsd:element name="pivot" type="FxPivot">
+									<xsd:annotation>
+										<xsd:documentation xml:lang="en">The boundary where the contract flips from being long and short is the pivot point. So the pivot indicates the level in which there is a change in direction of the currencies exchanged by the parties.</xsd:documentation>
+									</xsd:annotation>
+								</xsd:element>
+								<xsd:element name="vanillaPayoffRegion" type="FxVanillaPayoffRegion" minOccurs="2" maxOccurs="unbounded">
+									<xsd:annotation>
+										<xsd:documentation xml:lang="en">A region in which a vanilla payoff occurs. In case of a Pivot Target, at least two vanilla payoff regions are provided, each one with a specific direction of the currencies exchanged by the parties.</xsd:documentation>
+									</xsd:annotation>
+								</xsd:element>
+							</xsd:sequence>
+							<xsd:sequence>
+								<xsd:element name="vanillaPayoffRegion" type="FxVanillaPayoffRegion" maxOccurs="unbounded">
+									<xsd:annotation>
+										<xsd:documentation xml:lang="en">A region in which a vanilla payoff occurs.</xsd:documentation>
+									</xsd:annotation>
+								</xsd:element>
+							</xsd:sequence>
+						</xsd:choice>
+						<xsd:element name="digitalPayoffRegion" type="FxDigitalPayoffRegion" minOccurs="0" maxOccurs="unbounded">
+							<xsd:annotation>
+								<xsd:documentation xml:lang="en">It defines a region in which a digital payment occurs.</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="zeroPayoffRegion" type="FxZeroPayoffRegion" minOccurs="0" maxOccurs="unbounded">
+							<xsd:annotation>
+								<xsd:documentation xml:lang="en">It defines zero settlement region. There is no exchange of currencies. A zero payoff must not be represented using the digital payoff structure with zero amount.</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="target" type="FxTarget">
+							<xsd:annotation>
+								<xsd:documentation xml:lang="en">It defines the target level of gain. Once the accumulated gain exceeds the target level, the product terminates and there are no further settlements.</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="globalKnockout" type="FxGlobalKnockout" minOccurs="0" maxOccurs="unbounded">
+							<xsd:annotation>
+								<xsd:documentation xml:lang="en">A TARF with a full knock out feature i.e. it applies to the trade as a whole; If spot settles Above/below the Barrier, the product terminates. The Global Knockout barrier may be American (i.e. continuous) or European (i.e. applying only at the settlement fixing dates). There is a variation where a rebate is payable on the KO.</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="perExpiryBarrier" type="FxPerExpiryBarrier" minOccurs="0" maxOccurs="unbounded">
+							<xsd:annotation>
+								<xsd:documentation xml:lang="en">TARF with a European KI Barrier. Each settlement has a european KI barrier on the client side or the firm side.</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="additionalPayment" type="SimplePayment" minOccurs="0" maxOccurs="unbounded">
+							<xsd:annotation>
+								<xsd:documentation xml:lang="en">It supports the representation of premiums, fees, etc.</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+					</xsd:sequence>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="FxCounterCurrencyAmount">
+		<xsd:complexContent>
+			<xsd:extension base="NonNegativeAmountSchedule">
+				<xsd:sequence>
+					<xsd:element name="strikeReference" type="FxStrikeReference" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">In case of multiple counter currency notionals, a strike reference to the appropriate strike may be provided.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="FxSettlementSchedule">
+		<xsd:complexContent>
+			<xsd:extension base="FxSchedule">
+				<xsd:sequence>
+					<xsd:element name="finalSettlementDate" type="xsd:date" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The final settlement date facilitates informing the final date without having to process all settlement dates in the schedule.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="FxBarrier" abstract="true">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">Global Knockout and Per Expiry Barriers are derived from the abstract FxBarrier.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="id" type="xsd:NCName" use="optional"/>
+	</xsd:complexType>
+	<xsd:complexType name="FxGlobalKnockout">
+		<xsd:complexContent>
+			<xsd:extension base="FxBarrier">
+				<xsd:sequence>
+					<xsd:element name="style" type="FxBarrierStyleEnum">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">Whether it is an European or American knock out.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:group ref="FxBarrier.model"/>
+					<xsd:element name="rebate" type="FxTargetRebate" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">A rebate may be applied to the target once it is knocked out.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="FxPerExpiryBarrier">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">Each settlement has a KI or KO barrier on the client side or the firm side.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="FxBarrier">
+				<xsd:sequence>
+					<xsd:element name="barrierType" type="FxBarrierTypeEnum">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">It defines whether it is Knockin or Knockout barrier.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="style" type="FxBarrierStyleEnum" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">Whether it is an European or American knock out. In case of a Knockin, the style is always European so it may not need to be specified.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:group ref="FxBarrier.model"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="FxLeverage">
+		<xsd:sequence>
+			<xsd:element name="condition" type="ConditionEnum">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Condition in which leverage applies.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:group ref="FxConditionLevel.model"/>
+			<xsd:choice>
+				<xsd:element name="ratio" type="Schedule">
+					<xsd:annotation>
+						<xsd:documentation xml:lang="en">Leverage rate with optional steps. Format is 2 for 200%.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="notionalAmount" type="NonNegativeAmountSchedule">
+					<xsd:annotation>
+						<xsd:documentation xml:lang="en">Leveraged notional expressed as amount with optional steps. </xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+			</xsd:choice>
+		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:NCName"/>
+	</xsd:complexType>
+	<xsd:complexType name="FxRegionLowerBound">
+		<xsd:sequence>
+			<xsd:element name="condition" type="FxRegionLowerBoundDirectionEnum">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">AtOrAbove, Above.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:group ref="FxConditionLevel.model"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="FxRegionUpperBound">
+		<xsd:sequence>
+			<xsd:element name="condition" type="FxRegionUpperBoundDirectionEnum">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">AtOrBelow, Below.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:group ref="FxConditionLevel.model"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="FxTarget">
+		<xsd:sequence>
+			<xsd:element name="accumulationRegion" type="FxTargetAccumulationRegion" maxOccurs="unbounded"/>
+			<xsd:choice>
+				<xsd:element name="knockoutLevel" type="FxKnockoutLevel"/>
+				<xsd:element name="knockoutCount" type="FxKnockoutCount"/>
+			</xsd:choice>
+		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:NCName" use="optional"/>
+	</xsd:complexType>
+	<xsd:complexType name="FxTargetRebate">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A rebate can be expressed as a payment amount or as amount of outstanding gain.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:choice>
+			<xsd:element name="payment" type="SimplePayment">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Rebate amount expressed as a payment between the two parties.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="outstandingGain" type="FxOutstandingGain">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Rebate expressed as amount of outstanding gain.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:choice>
+	</xsd:complexType>
+	<xsd:complexType name="FxOutstandingGain">
+		<xsd:sequence>
+			<xsd:element name="targetReference" type="FxTargetReference">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Reference to a target structure within the product.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="settlementAdjustmentStyle" type="FxTargetSettlementAdjustmentMethodEnum" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">The Settlement Adjustment Style can be VariedStrike or VariedNotional.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="FxKnockoutCount">
+		<xsd:sequence>
+			<xsd:element name="conditionalFixings" type="xsd:integer">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Number of fixings that are in the money. No accumulation process.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="settlementAtKnockout" type="xsd:boolean">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Whether there is settlement at knockout.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="FxPayoffCap">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">The amount of gain on the client upside or firm upside is limited. If spot settles above the cap, or below the floor, the payout is adjusted to limit the gain. The adjustment may be made by varying the strike, or by maintaining the strike, but varying the payout notionals.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="condition" type="ConditionEnum">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Condition in which Cap or Floor applies.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="rate" type="Schedule">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Cap/Floor rate.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="settlementAdjustmentStyle" type="FxTargetSettlementAdjustmentMethodEnum">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">The Settlement Adjustment Style can be VariedStrike or VariedNotional.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="FxDigitalPayoffRegion">
+		<xsd:sequence>
+			<xsd:group ref="PayerReceiver.model"/>
+			<xsd:choice>
+				<xsd:element name="payoff" type="NonNegativeMoney">
+					<xsd:annotation>
+						<xsd:documentation xml:lang="en">Digital amount.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="fixingAdjustment" type="xsd:decimal">
+					<xsd:annotation>
+						<xsd:documentation xml:lang="en">The fixing adjustment expresses the bonus.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+			</xsd:choice>
+			<xsd:group ref="FlexibleFxRegionBound.model"/>
+			<xsd:element name="physicalSettlement" type="FxPhysicalSettlement" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="FxZeroPayoffRegion">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">Region to explicitly specify a zero payoff region.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:group ref="FxRegionBound.model"/>
+			<xsd:element name="physicalSettlement" type="FxPhysicalSettlement" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="FxKnockoutLevel">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">Defines the Target level of gain.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:choice>
+				<xsd:element name="amount" type="NonNegativeMoney">
+					<xsd:annotation>
+						<xsd:documentation xml:lang="en">Target level expressed as notional amount.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="intrinsicValue" type="xsd:decimal">
+					<xsd:annotation>
+						<xsd:documentation xml:lang="en">Target level expressed as intrinsic value.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+			</xsd:choice>
+			<xsd:element name="targetStyle" type="FxTargetStyleEnum">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Target style when it settles, whether it is Inclusive, Exclusive, or Exact.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="settlementAdjustmentStyle" type="FxTargetSettlementAdjustmentMethodEnum" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">If Target Style is Exact, then Settlement Style should be present.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="FxVanillaPayoffRegion">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A region in which a vanilla payoff occurs.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:group ref="FxExchangedCurrency.model"/>
+			<xsd:choice>
+				<xsd:element name="strike" type="FxStrike">
+					<xsd:annotation>
+						<xsd:documentation xml:lang="en">Strike price of the Target.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="fixingAdjustment" type="xsd:decimal">
+					<xsd:annotation>
+						<xsd:documentation xml:lang="en">Fixing adjustment or also called Bonus Forward Rate to support the representation of Bonus Targets.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+			</xsd:choice>
+			<xsd:group ref="FlexibleFxRegionBound.model"/>
+			<xsd:element name="leverage" type="FxLeverage" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Notional leverage.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="cashSettlement" type="FxCashSettlementSimple" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Cash settlement currency.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="payoffCap" type="FxPayoffCap" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">The amount of gain on the client upside or firm upside is limited. If spot settles above the cap, or below the floor, the payout is adjusted to limit the gain. The adjustment may be made by varying the strike, or by maintaining the strike, but varying the payout notionals.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="FxPhysicalSettlement">
+		<xsd:sequence>
+			<xsd:group ref="FxExchangedCurrency.model">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Indicates the direction of physical settlement exchanges.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:group>
+			<xsd:element name="settlementAdjustmentStyle" type="FxTargetSettlementAdjustmentMethodEnum">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">The Settlement Adjustment Style can be VariedStrike or VariedNotional.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:group ref="StrikeOrStrikeReference.model" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">The strike should be specified if the Settlement Style is VariedNotional.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:group>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="FxPivot">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">Pivot is expressed as Schedule, with an initial value and optional steps.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="Schedule"/>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="FxStrike">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">Strike is expressed as Schedule, with an initial value and optional steps.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="Schedule"/>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="FxLevel">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">Level is expressed as Schedule, with an initial value and optional steps.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="Schedule"/>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="FxBarrierReference">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">Reference to a barrier structure.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="Reference">
+				<xsd:attribute name="href" type="xsd:string" use="required" ecore:reference="FxBarrier"/>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="FxLevelReference">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">Reference to a level structure.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="Reference">
+				<xsd:attribute name="href" type="xsd:string" use="required" ecore:reference="FxBarrier"/>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="FxPivotReference">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">Reference to a pivot structure.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="Reference">
+				<xsd:attribute name="href" type="xsd:string" use="required" ecore:reference="FxPivot"/>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="FxScheduleReference">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">Reference to a FX Schedule structure.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="Reference">
+				<xsd:attribute name="href" type="xsd:string" use="required" ecore:reference="FxTarget"/>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="FxStrikeReference">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">Reference to a strike structure.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="Reference">
+				<xsd:attribute name="href" type="xsd:string" use="required" ecore:reference="FxStrike"/>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="FxTargetReference">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">Reference to a target structure.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="Reference">
+				<xsd:attribute name="href" type="xsd:string" use="required" ecore:reference="FxTarget"/>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<!--
+================
+    elements    
+================
+-->
+	<xsd:element name="fxTargetForward" type="FxTargetKnockoutForwardStrip" substitutionGroup="product">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A structured forward product which consists of a strip of forwards. Each forward may be settled as an exchange of currencies or cash settled. At each settlement, the amount of gain that one party achieves is measured. The product has a target level of gain. Once the accumulated gain exceeds the target level, the product terminates and there are no further settlements.</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+	<!--
+================
+    groups    
+================
+-->
+	<xsd:group name="FxBarrier.model">
+		<xsd:sequence>
+			<xsd:element name="condition" type="ConditionEnum">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Defines the condition when the barrier applies: AtOrAbove, AtOrBelow, Above, Below.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="triggerRate" type="Schedule">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">The market rate is observed relative to the trigger rate, and if it is found to be on the predefined side of (above or below) the trigger rate, a barrier event is deemed to have occurred.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:sequence minOccurs="0">
+				<xsd:element name="observationStartDate" type="xsd:date">
+					<xsd:annotation>
+						<xsd:documentation xml:lang="en">The date on which the observation period for an american barrier starts. If the start date is not present, then the date and time of the start of the period is deemed to be the date and time the transaction was entered into.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="observationStartTime" type="BusinessCenterTime" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation xml:lang="en">The time on the start date at which the observation period for an american barrier starts. If the time is not present and the start date is equivalent to the transaction date, the time is deemed to be the time the transaction was entered into. If the time is not present and the start date is other than the transaction date, then the time is deemed to be the same as the expiration time.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+			</xsd:sequence>
+			<xsd:sequence minOccurs="0">
+				<xsd:element name="observationEndDate" type="xsd:date">
+					<xsd:annotation>
+						<xsd:documentation xml:lang="en">The date on which the observation period for an american barrier ends. If the end date is not present, then the date and time of the end of the period is deemed to be the date and time of expiration.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="observationEndTime" type="BusinessCenterTime" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation xml:lang="en">The time on the end date at which the observation period for an american barrier ends. If the time is not present, then the time is deemed to be the same as the expiration time.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+			</xsd:sequence>
+		</xsd:sequence>
+	</xsd:group>
+	<xsd:group name="FxConditionLevel.model">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">Conditions can be expressed in different ways: as a specific level, as strike, pivot, or barrier.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:choice>
+			<xsd:element name="level" type="FxLevel">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Level expressed as a level with optional steps different from strike, pivot, or barrier.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="strikeReference" type="FxStrikeReference">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Reference to a strike defined within the FX product.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="pivotReference" type="FxPivotReference">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Reference to the pivot defined within the FX product.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="barrierReference" type="FxBarrierReference">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Reference to a perExpiryBarrier component to indicate theat the bound of the region is defined by the barrier component.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="levelReference" type="FxLevelReference">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Reference to a level defined within the FX product.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:choice>
+	</xsd:group>
+	<xsd:group name="FxExchangedCurrency.model">
+		<xsd:sequence>
+			<xsd:element name="exchangedCurrency1" type="ExchangedCurrency">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Indicates the first direction of who pays and receives a specific currency without specifying the amount.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="exchangedCurrency2" type="ExchangedCurrency">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Indicates the second direction of who pays and receives a specific currency without specifying the amount.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:group>
+	<xsd:group name="FxRegionBound.model">
+		<xsd:choice>
+			<xsd:element name="upperBound" type="FxRegionUpperBound">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Defines the upper bound of a payoff region.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:sequence>
+				<xsd:element name="lowerBound" type="FxRegionLowerBound">
+					<xsd:annotation>
+						<xsd:documentation xml:lang="en">Defines the lower bound of a payoff region.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="upperBound" type="FxRegionUpperBound" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation xml:lang="en">Defines the upper bound of a payoff region.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+			</xsd:sequence>
+		</xsd:choice>
+	</xsd:group>
+	<xsd:group name="FlexibleFxRegionBound.model">
+		<xsd:sequence>
+			<xsd:element name="lowerBound" type="FxRegionLowerBound" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Defines the lower bound of a payoff region.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="upperBound" type="FxRegionUpperBound" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Defines the upper bound of a payoff region.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:group>
+	<xsd:group name="ParametricSchedule.model">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">The schedule defined by the set of parameters to be able to calculate the schedule of adjusted date.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="startDate" type="xsd:date">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Start of the schedule.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="endDate" type="xsd:date">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">End of the schedule.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="calculationPeriodFrequency" type="CalculationPeriodFrequency">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">It defines the frequency at which calculation period end dates occur within the period schedule and thier roll date convention.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="dateAdjustments" type="BusinessDayAdjustments">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Date adjustments applied to the schedule including the business day convention and the business centers.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:group>
+	<xsd:group name="StrikeOrStrikeReference.model">
+		<xsd:choice>
+			<xsd:element name="strike" type="FxStrike">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Strike price of the Target.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="strikeReference" type="FxStrikeReference">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Reference to an existing strike structure within the FX product.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:choice>
+	</xsd:group>
+</xsd:schema>

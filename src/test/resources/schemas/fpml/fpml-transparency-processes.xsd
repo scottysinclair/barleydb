@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+== Copyright (c) 2002-2014. All rights reserved. 
+== Financial Products Markup Language is subject to the FpML public license. 
+== A copy of this license is available at http://www.fpml.org/license/license.html
+-->
+<xsd:schema xmlns="http://svn.msk.trd.ru/xsd/fixml" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" xmlns:fpml-annotation="http://www.fpml.org/annotation" xmlns:view="http://www.fpml.org/views" xmlns:dsig="http://www.w3.org/2000/09/xmldsig#" targetNamespace="http://svn.msk.trd.ru/xsd/fixml" elementFormDefault="qualified" attributeFormDefault="unqualified" version="$Revision: 7629 $" ecore:nsPrefix="fpml" ecore:package="org.fpml" ecore:documentRoot="FpML">
+	<xsd:annotation>
+		<xsd:appinfo>
+			<view:exclusive view="transparency" />
+		</xsd:appinfo>
+	</xsd:annotation>
+	<xsd:include schemaLocation="fpml-business-events.xsd"/>
+	<xsd:complexType name="PublicExecutionReport">
+		<xsd:complexContent>
+			<xsd:extension base="CorrectableRequestMessage">
+				<xsd:sequence>
+					<!--<xsd:group ref="Events.model"/> BPWG2014 Replaced by the below - comment to be deleted before 5.8LCWD  -->
+					<xsd:choice>
+						<xsd:group ref="TradingAndPostTradeEvents.model"/>
+						<xsd:element name="withdrawal" type="Withdrawal">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<view:skip view="pretrade" rationale="Unsupported"/>
+									<view:skip view="transparency" rationale="Unsupported"/>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+					</xsd:choice>
+					<xsd:group ref="EventValuation.model" minOccurs="0"/>
+					<xsd:group ref="PartiesAndAccounts.model" minOccurs="0"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="PublicExecutionReportRetracted">
+		<xsd:complexContent>
+			<xsd:extension base="NonCorrectableRequestMessage">
+				<xsd:sequence>
+					<xsd:choice>
+						<!--<xsd:group ref="Events.model" minOccurs="0"/> BPWG2014 Replaced by the below - comment to be deleted before 5.8LCWD  -->
+						<xsd:choice minOccurs="0">
+							<xsd:group ref="TradingAndPostTradeEvents.model"/>
+							<xsd:element name="withdrawal" type="Withdrawal">
+								<xsd:annotation>
+									<xsd:appinfo>
+										<view:skip view="pretrade" rationale="Unsupported"/>
+										<view:skip view="transparency" rationale="Unsupported"/>
+									</xsd:appinfo>
+								</xsd:annotation>
+							</xsd:element>
+						</xsd:choice>
+						<xsd:sequence>
+							<xsd:element name="primaryAssetClass" type="AssetClass" minOccurs="0"/>
+							<xsd:element name="tradeIdentifier" type="PartyTradeIdentifier"/>
+							<xsd:element name="eventIdentifier" type="BusinessEventIdentifier">
+								<xsd:annotation>
+									<xsd:documentation xml:lang="en">Individual parties should only use a single event identifier to identify a retraction. Platforms providing services on behalf of both parties in a transaction may provide event identifiers for both parties; in this case it is up to the recipient (the trade repository) to validate that the event IDs refer to the same event.</xsd:documentation>
+									<xsd:appinfo>
+										<view:override view="transparency" maxOccurs="2" />
+									</xsd:appinfo>
+								</xsd:annotation>
+							</xsd:element>
+						</xsd:sequence>
+					</xsd:choice>
+					<xsd:group ref="PartiesAndAccounts.model" minOccurs="0"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:element name="publicExecutionReport" type="PublicExecutionReport"/>
+	<xsd:element name="publicExecutionReportAcknowledgement" type="Acknowledgement"/>
+	<xsd:element name="publicExecutionReportException" type="Exception"/>
+	<xsd:element name="publicExecutionReportRetracted" type="PublicExecutionReportRetracted"/>
+</xsd:schema>

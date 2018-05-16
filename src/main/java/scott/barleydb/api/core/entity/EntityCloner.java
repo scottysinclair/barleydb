@@ -37,6 +37,12 @@ import scott.barleydb.api.exception.BarleyDBRuntimeException;
 import scott.barleydb.api.query.QJoin;
 import scott.barleydb.api.query.QueryObject;
 
+/**
+ * Generic logic for entity cloning.
+ *
+ * @author scott
+ *
+ */
 public class EntityCloner {
 
   private static final Logger LOG = LoggerFactory.getLogger(EntityCloner.class);

@@ -1,0 +1,42 @@
+<!--
+ An example of a schema with no target namespace
+ This is valid and can be used to validate XML elements with no namespace qualification by either an explicit prefix or by default (xmlns:)
+-->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <!-- look we can include other schemas with no target namespace -->
+    <xsd:include schemaLocation="Person-no-target-ns-include.xsd"/>
+
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+            Purchase order schema for Example.com.
+            Copyright 2000 Example.com. All rights reserved.
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:element name="purchaseOrder" type="PurchaseOrderType"/>
+
+    <xsd:complexType name="PurchaseOrderType">
+        <xsd:sequence>
+            <xsd:element name="shipTo" type="USAddress"/>
+            <xsd:element name="billTo" type="USAddress"/>
+            <xsd:element ref="comment" minOccurs="0"/>
+            <xsd:element name="items"  type="Items"/>
+        </xsd:sequence>
+        <xsd:attribute name="orderDate" type="xsd:date"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="USAddress">
+        <xsd:sequence>
+            <xsd:element name="name"   type="xsd:string"/>
+            <xsd:element name="street" type="xsd:string"/>
+            <xsd:element name="city"   type="xsd:string"/>
+            <xsd:element name="state"  type="xsd:string"/>
+            <xsd:element name="zip"    type="xsd:decimal"/>
+        </xsd:sequence>
+        <xsd:attribute name="country" type="xsd:NMTOKEN"
+                       fixed="US"/>
+    </xsd:complexType>
+
+
+</xsd:schema>

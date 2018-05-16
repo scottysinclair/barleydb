@@ -1,0 +1,12 @@
+<!--
+   a schema for target namespace urn:b
+-->
+<xsd:schema
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        targetNamespace="urn:a"
+        elementFormDefault="qualified">
+
+    <!-- we directly import ourselves this is stupid and could cause stack overflow it must be detected -->
+    <xsd:include schemaLocation="Test_recursive_include.xsd"/>
+
+</xsd:schema>

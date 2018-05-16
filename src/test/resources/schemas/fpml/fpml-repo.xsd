@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+== Copyright (c) 2002-2014. All rights reserved. 
+== Financial Products Markup Language is subject to the FpML public license. 
+== A copy of this license is available at http://www.fpml.org/license/license.html
+-->
+<xsd:schema targetNamespace="http://svn.msk.trd.ru/xsd/fixml" xmlns="http://svn.msk.trd.ru/xsd/fixml" xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified" version="$Revision: 11548 $" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" ecore:nsPrefix="fpml" ecore:package="org.fpml" ecore:documentRoot="FpML" xmlns:fpml-annotation="http://www.fpml.org/annotation" xmlns:view="http://www.fpml.org/views">
+
+	<xsd:include schemaLocation="fpml-asset.xsd"/>
+
+	<xsd:complexType name="_Element">
+        <xsd:sequence>
+            <xsd:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="Repo">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A type for defining the equity Repo.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="Product">
+				<xsd:choice>
+					<xsd:sequence>
+						<xsd:element name="floatingRateCalculation" type="FloatingRateCalculation" minOccurs="0" maxOccurs="unbounded"/>
+						<xsd:element name="fixedRateSchedule" type="_Element" minOccurs="0" maxOccurs="unbounded"/>
+						<xsd:element name="dayCountFraction" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+						<xsd:element name="duration" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+						<xsd:element name="margin" type="_Element" minOccurs="0" maxOccurs="unbounded"/>
+						<xsd:element name="spotLeg" type="_Element" minOccurs="0" maxOccurs="unbounded"/>
+						<xsd:element name="forwardLeg" type="_Element" minOccurs="0" maxOccurs="unbounded"/>
+						<xsd:element name="cashFlows" type="_Element" minOccurs="0" maxOccurs="unbounded"/>
+						<xsd:element name="equity" type="_Element" minOccurs="0" maxOccurs="unbounded"/>
+						<xsd:element name="bond" type="Bond" minOccurs="0" maxOccurs="unbounded"/>
+					</xsd:sequence>
+				</xsd:choice>
+			</xsd:extension>
+		</xsd:complexContent>	
+	</xsd:complexType>
+		
+	<xsd:element name="repo" type="Repo" substitutionGroup="product">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A swap product definition.</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+		
+</xsd:schema>
+

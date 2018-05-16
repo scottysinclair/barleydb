@@ -1,0 +1,19 @@
+<xsd:schema
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        targetNamespace="urn:parent"
+        xmlns:child="urn:child"
+        elementFormDefault="qualified">
+
+    <xsd:import namespace="urn:child"/>
+
+    <xsd:element name="scott" >
+        <xsd:complexType>
+            <xsd:all>
+                <xsd:element ref="child:sophie" />
+                <xsd:element ref="child:anna" />
+                <xsd:element ref="child:william" />
+            </xsd:all>
+        </xsd:complexType>
+    </xsd:element>
+
+</xsd:schema>

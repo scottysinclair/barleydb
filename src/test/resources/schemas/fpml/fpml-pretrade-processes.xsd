@@ -1,0 +1,388 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+== Copyright (c) 2002-2014. All rights reserved. 
+== Financial Products Markup Language is subject to the FpML public license. 
+== A copy of this license is available at http://www.fpml.org/license/license.html
+-->
+<xsd:schema xmlns="http://svn.msk.trd.ru/xsd/fixml" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" xmlns:fpml-annotation="http://www.fpml.org/annotation" xmlns:view="http://www.fpml.org/views" xmlns:dsig="http://www.w3.org/2000/09/xmldsig#" targetNamespace="http://svn.msk.trd.ru/xsd/fixml" elementFormDefault="qualified" attributeFormDefault="unqualified" version="$Revision: 11548 $" ecore:nsPrefix="fpml" ecore:package="org.fpml" ecore:documentRoot="FpML">
+	<xsd:annotation>
+		<xsd:appinfo>
+			<view:exclusive view="pretrade"/>
+		</xsd:appinfo>
+	</xsd:annotation>
+	<xsd:include schemaLocation="fpml-business-events.xsd"/>
+	<xsd:complexType name="CreditApprovalModel">
+		<xsd:simpleContent>
+			<xsd:extension base="Scheme">
+				<xsd:attribute name="creditApprovalModelScheme" type="xsd:anyURI" default="http://www.fpml.org/coding-scheme/credit-approval-model"/>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:complexType name="CreditLimitReport">
+		<xsd:complexContent>
+			<xsd:extension base="NotificationMessage">
+				<xsd:sequence>
+					<xsd:element name="creditLimitInformation" type="CreditLimitInformation" maxOccurs="unbounded"/>
+					<xsd:group ref="PartiesAndAccounts.model" minOccurs="0"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="CreditLimitResponse">
+		<xsd:complexContent>
+			<xsd:extension base="NotificationMessage">
+				<xsd:sequence>
+					<xsd:element name="response" type="SetCreditLimitResponseEnum"/>
+					<xsd:element name="reason" type="CreditLimitCheckReason" minOccurs="0"/>
+					<xsd:group ref="PartiesAndAccounts.model" minOccurs="0"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="CreditLimitCheckReason">
+		<xsd:choice>
+			<xsd:sequence>
+				<xsd:element name="reasonCode" type="CreditLimitCheckReasonCode">
+					<xsd:annotation>
+						<xsd:documentation xml:lang="en">reason codes for credit limit check messages</xsd:documentation>
+						<xsd:appinfo>
+							<view:override view="pretrade" minOccurs="1"/>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="description" type="String" minOccurs="0"/>
+			</xsd:sequence>
+			<xsd:element name="description" type="String">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">free form description of the reason</xsd:documentation>
+					<xsd:appinfo>
+						<view:override view="pretrade" minOccurs="1"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:choice>
+	</xsd:complexType>
+	<xsd:complexType name="CreditLimitCheckReasonCode">
+		<xsd:simpleContent>
+			<xsd:extension base="Scheme">
+				<xsd:attribute name="creditLimitCheckReasonScheme" type="xsd:anyURI" default="http://www.fpml.org/coding-scheme/credit-limit-check-reason"/>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:complexType name="CreditLimitExtended">
+		<xsd:complexContent>
+			<xsd:extension base="CreditLimit">
+				<xsd:sequence>
+					<xsd:element name="rfqRevalidation" type="xsd:boolean" minOccurs="0"/>
+					<xsd:element name="orderRevalidation" type="xsd:boolean" minOccurs="0"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="CreditLimitInformationExtended">
+		<xsd:sequence>
+			<xsd:element name="partyInformation" type="PartyTradeInformation"/>
+			<xsd:element name="limitModel" type="LimitModelEnum"/>
+			<xsd:element name="creditLimit" type="CreditLimitExtended" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="CreditRiskLimit">
+		<xsd:sequence>
+			<xsd:choice>
+				<xsd:element name="fullApproval" type="xsd:boolean"/>
+				<xsd:sequence>
+					<xsd:element name="requestedNotionalAmount" type="Money" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">Specifies the fixed amount requested expressed as notional amount.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="approvedNotionalAmount" type="Money">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">(partial approval) Specifies the fixed amount approved expressed as notional amount.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+				<xsd:sequence>
+					<xsd:element name="requestedNumberOfOptions" type="xsd:decimal" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">(partial approval) Specifies the fixed amount approved expressed as number of options.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="approvedNumberOfOptions" type="xsd:decimal">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">(partial approval) Specifies the fixed amount approved expressed as number of options.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+				<xsd:sequence>
+					<xsd:element name="requestedNumberOfUnits" type="xsd:decimal" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">(partial approval) Specifies the fixed amount approved expressed as number of units.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="approvedNumberOfUnits" type="xsd:decimal">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">(partial approval) Specifies the fixed amount approved expressed as number of units.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:choice>
+			<xsd:element name="reason" type="CreditLimitCheckReason" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="limitExpiryTimeStamp" type="xsd:dateTime"/>
+			<xsd:element name="creditLimitReference" type="CreditLimitReference" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="originalRequestDetails" type="OriginalRequestDetails" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="CreditRiskLimitRefused">
+		<xsd:sequence>
+			<xsd:element name="limitRefused" type="xsd:boolean"/>
+			<xsd:element name="reason" type="CreditLimitCheckReason" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="limitExpiryTimeStamp" type="xsd:dateTime"/>
+			<xsd:element name="creditLimitReference" type="CreditLimitReference" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="originalRequestDetails" type="OriginalRequestDetails" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="LimitCheckApproved">
+		<xsd:complexContent>
+			<xsd:extension base="NotificationMessage">
+				<xsd:sequence>
+					<xsd:element name="creditRiskLimit" type="CreditRiskLimit"/>
+					<xsd:group ref="PartiesAndAccounts.model" minOccurs="0"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="LimitCheckRefused">
+		<xsd:complexContent>
+			<xsd:extension base="NotificationMessage">
+				<xsd:sequence>
+					<xsd:element name="creditRiskLimit" type="CreditRiskLimitRefused"/>
+					<xsd:group ref="PartiesAndAccounts.model" minOccurs="0"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="OrderFill">
+		<xsd:sequence>
+			<xsd:element name="orderId" type="NormalizedString"/>
+			<xsd:element name="fillId" type="NormalizedString"/>
+			<xsd:element name="size" type="xsd:decimal"/>
+			<xsd:element name="price" type="xsd:decimal"/>
+			<xsd:element name="executionDateTime" type="xsd:dateTime"/>
+			<xsd:element name="counterpartyReference" type="PartyReference" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="OrderStatus">
+		<xsd:sequence>
+			<xsd:annotation>
+				<xsd:appinfo>
+					<view:override view="pretrade" minOccurs="1"/>
+				</xsd:appinfo>
+			</xsd:annotation>
+			<xsd:choice>
+				<xsd:annotation>
+					<xsd:appinfo>
+						<view:override view="pretrade" minOccurs="1"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+				<xsd:sequence>
+					<xsd:annotation>
+						<xsd:appinfo>
+							<view:override view="pretrade" minOccurs="1"/>
+						</xsd:appinfo>
+					</xsd:annotation>
+					<xsd:element name="requesterOrderId" type="NormalizedString">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<view:override view="pretrade" minOccurs="1"/>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="orderId" type="NormalizedString" minOccurs="0"/>
+				</xsd:sequence>
+				<xsd:element name="orderId" type="NormalizedString">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<view:override view="pretrade" minOccurs="1"/>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:element>
+				</xsd:choice>
+			<xsd:element name="submittedTime" type="xsd:dateTime" minOccurs="0"/>
+			<xsd:element name="order" type="String" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">echo back the order (placeholder type for now)</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="status" type="OrderStatusEnum"/>
+			<xsd:choice minOccurs="0">
+				<xsd:sequence>
+					<xsd:element name="reason" type="Reason" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">Reason for a rejected quote </xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="counterofferQuote" type="String" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">Supply a counter-offer quote, e.g. if order is rejected / DUMMY placeholder.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+				<xsd:sequence>
+					<xsd:element name="totalSize" type="xsd:decimal" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">Number of units of the product being ordered.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="fills" type="xsd:integer" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">Number of fills so far.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="filledSize" type="xsd:decimal" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">Number of units of the product filled so far</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="remainingSize" type="xsd:decimal" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">Number of units of the product remaining to be filled</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="fill" type="OrderFill" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">Info about the fills</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:choice minOccurs="0">
+						<xsd:element name="trade" type="Trade">
+							<xsd:annotation>
+								<xsd:documentation xml:lang="en">trade description.</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="tradeIdentifier" type="TradeIdentifier" maxOccurs="unbounded"/>
+						<xsd:element name="tradePackage" type="TradePackage">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<view:skip view="transparency"/>
+									<view:skip view="recordkeeping"/>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+					</xsd:choice>
+					<xsd:element name="creditLimitReference" type="CreditLimitReference" minOccurs="0" maxOccurs="unbounded"/>
+				</xsd:sequence>
+			</xsd:choice>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="OrderStatusNotification">
+		<xsd:complexContent>
+			<xsd:extension base="NotificationMessage">
+				<xsd:sequence>
+					<xsd:element name="orderStatus" type="OrderStatus" maxOccurs="unbounded"/>
+					<xsd:group ref="PartiesAndAccounts.model" minOccurs="0"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="OriginalRequestDetails">
+		<xsd:sequence>
+			<xsd:element name="requestingPartyReference" type="PartyReference" minOccurs="0" fpml-annotation:deprecated="true" fpml-annotation:deprecatedReason="Deprecated in favor of existing onBehalfOf element."/>
+			<xsd:element name="creditApprovalRequestType" type="CreditApprovalRequestTypeEnum"/>
+			<xsd:element name="creditApprovalModel" type="CreditApprovalModel"/>
+			<xsd:choice>
+				<xsd:element name="originalTrade" type="Trade">
+					<xsd:annotation>
+						<xsd:documentation xml:lang="en">Fully describes the original trade (prior to the exercise).</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="tradeIdentifier" type="TradeIdentifier" maxOccurs="unbounded"/>
+				<xsd:element name="originalPackage" type="TradePackage">
+					<xsd:annotation>
+						<xsd:documentation xml:lang="en">Fully describes the original trade package (prior to the exercise).</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="packageIdentifier" type="IssuerTradeId"  />
+			</xsd:choice>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="RequestLimitCheck">
+		<xsd:complexContent>
+			<xsd:extension base="CorrectableRequestMessage">
+				<xsd:sequence>
+					<xsd:element name="requestingPartyReference" type="PartyReference" minOccurs="0" fpml-annotation:deprecated="true" fpml-annotation:deprecatedReason="Deprecated in favor of existing onBehalfOf element."/>
+					<xsd:element name="creditApprovalRequestType" type="CreditApprovalRequestTypeEnum"/>
+					<xsd:element name="creditApprovalModel" type="CreditApprovalModel">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">Code to indicate the credit approval model e.g., PushToPing, PushToStop, Plus1ToStop, Plus1ToPing, Ping.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<!--<xsd:group ref="Events.model"/> BPWG2014 Replaced by the below - comment to be deleted before 5.8LCWD  -->
+					<xsd:choice>
+						<xsd:group ref="TradingEvents.model"/>
+						<xsd:element name="deClear" type="DeClear">
+							<xsd:annotation>
+								<xsd:documentation xml:lang="en">A structure describing a declear event. The deClear event allows a firm to request that a trade be removed from clearing, or a clearing service to request consent for this, or to report that it has been done.</xsd:documentation>
+								<xsd:appinfo>
+									<view:skip view="pretrade" rationale="Unsupported"/>
+									<view:skip view="transparency" rationale="Unsupported"/>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+					</xsd:choice>
+					<xsd:sequence>
+						<xsd:element name="quote" type="BasicQuotation" minOccurs="0" maxOccurs="unbounded"/>
+					</xsd:sequence>
+					<xsd:group ref="PartiesAndAccounts.model"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="RestoreCredit">
+		<xsd:complexContent>
+			<xsd:extension base="NonCorrectableRequestMessage">
+				<xsd:sequence>
+					<xsd:element name="reason" type="CreditLimitCheckReason" minOccurs="0"/>
+					<xsd:element name="creditLimitInformation" type="CreditLimitInformationExtended" minOccurs="0" maxOccurs="unbounded"/>
+					<xsd:group ref="PartiesAndAccounts.model"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="SetCreditLimit">
+		<xsd:complexContent>
+			<xsd:extension base="NonCorrectableRequestMessage">
+				<xsd:sequence>
+					<xsd:element name="creditLimitInformation" type="CreditLimitInformationExtended" maxOccurs="unbounded"/>
+					<xsd:group ref="PartiesAndAccounts.model"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="SuspendCredit">
+		<xsd:complexContent>
+			<xsd:extension base="NonCorrectableRequestMessage">
+				<xsd:sequence>
+					<xsd:group ref="PartyAndAccountReferences.model"/>
+					<xsd:element name="creditLimit" type="CreditLimitBase" minOccurs="0" maxOccurs="unbounded"/>
+					<xsd:element name="reason" type="CreditLimitCheckReason" minOccurs="0"/>
+					<xsd:group ref="PartiesAndAccounts.model"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<!-- ***************************************************************** -->
+	<!-- Request Limit Check / Messages                                    -->
+	<!-- ***************************************************************** -->
+	<xsd:element name="requestLimitCheck" type="RequestLimitCheck"/>
+	<xsd:element name="limitCheckApproved" type="LimitCheckApproved"/>
+	<xsd:element name="limitCheckRefused" type="LimitCheckRefused"/>
+	<xsd:element name="creditLimitReport" type="CreditLimitReport"/>
+	<xsd:element name="creditLimitException" type="Exception"/>
+	<xsd:element name="setCreditLimit" type="SetCreditLimit"/>
+	<xsd:element name="creditLimitResponse" type="CreditLimitResponse"/>
+	<xsd:element name="suspendCredit" type="SuspendCredit"/>
+	<xsd:element name="restoreCredit" type="RestoreCredit"/>
+	<xsd:element name="orderStatusNotification" type="OrderStatusNotification"/>
+	<!-- Other existing messages used: serviceNotification -->
+</xsd:schema>

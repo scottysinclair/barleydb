@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Created with Liquid XML Studio Developer Edition 8.1.7.2743 (http://www.liquid-technologies.com) -->
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema" version="0.1">
+    <xs:complexType name="MODPDataRecordHeader">
+        <xs:annotation>
+            <xs:documentation>Provides the control information for an individual record</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="DatasetID" type="xs:positiveInteger" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>The unique identifier for the Dataset that this record belongs to</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="RecordType" type="xs:string" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>The type of record, e.g. Asset, Portfolio, Position etc</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="SequenceNumber" type="xs:positiveInteger" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>The sequence number of this record within the records of this type in the Dataset</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="PublishStatus" type="PublishStatus" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>The status of the record</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="RecordInclusionType" type="RecordInclusionType" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Indicates whether or not this record is a Primary or Secondary record</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:simpleType name="PublishStatus">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="New">
+                <xs:annotation>
+                    <xs:documentation>Indicates that this is the first time this record is being published</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="Updated">
+                <xs:annotation>
+                    <xs:documentation>Indicates that this record has been updated</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="Cancelled">
+                <xs:annotation>
+                    <xs:documentation>Indicates that this record has been cancelled and should not be used</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="RecordInclusionType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Primary">
+                <xs:annotation>
+                    <xs:documentation>Indicates that this record is included in the Dataset as it is one of the primary records</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="Secondary">
+                <xs:annotation>
+                    <xs:documentation>Indicates that this record is included in the Dataset as one or more other records is dependant on it</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+</xs:schema>

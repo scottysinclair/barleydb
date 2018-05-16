@@ -1,0 +1,15 @@
+<S:Envelope xmlns:S="http://schemas.xmlsoap.org/soap/envelope/">
+    <S:Header>
+        <SAAHeader xmlns="urn:swift:saa:xsd:soapha">
+            <SessionToken>1be691d7-97d5-4a49-8b70-88a63013d447</SessionToken>
+        </SAAHeader>
+    </S:Header>
+    <S:Body>
+        <OpenResponse xmlns="urn:swift:saa:xsd:soapha">
+            <openResponseDetails>
+                <sequenceNumberFromSAA>1</sequenceNumberFromSAA>
+                <windowSize>5</windowSize>
+            </openResponseDetails>
+        </OpenResponse>
+    </S:Body>
+</S:Envelope>

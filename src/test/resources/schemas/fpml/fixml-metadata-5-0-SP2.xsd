@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	$HeadURL: file:///opt/svnroot/xsd/fixml/trunk/fixml-metadata-5-0-SP2.xsd $
+	$Revision: 20 $
+	$Author: MPryakhin $
+	$Id: fixml-metadata-5-0-SP2.xsd 20 2012-10-31 11:48:19Z MPryakhin $
+	- - - - - - - - - - - - - - - - - - - - - - - - - -
+    Generated:2009-04-19T13:43:43.089-05:00
+    Revision: FIXML  Schema Version  FIX.5.0SP2
+    Copyright(c) FIX Protocol Limited.  All rights reserved.
+    Comments and errors should be posted on the FIX protocol web-site
+    http://www.fixprotocol.org
+	- - - - - - - - - - - - - - - - - - - - - - - - - -
+--><xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns="http://svn.msk.trd.ru/xsd/fixml"
+           xmlns:fm="http://svn.msk.trd.ru/xsd/fixml"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://svn.msk.trd.ru/xsd/fixml fixml-metadata-5-0-SP2.xsd"
+           targetNamespace="http://svn.msk.trd.ru/xsd/fixml"
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified"><!--FIXML meta data-->
+	<xs:element name="Xref">
+		<xs:complexType>
+			<xs:attribute name="Protocol" type="xs:string" use="optional"/>
+			<xs:attribute name="name" type="xs:string" use="optional"/>
+			<xs:attribute name="Tag" type="xs:positiveInteger" use="optional"/>
+			<xs:attribute name="MsgID" type="xs:positiveInteger" use="optional"/>
+			<xs:attribute name="Type" type="xs:string" use="optional"/>
+			<xs:attribute name="ComponentType" type="xs:string" use="optional"/>
+			<xs:attribute name="AbbrName" type="xs:string" use="optional"/>
+			<xs:attribute name="Section" type="xs:string" use="optional"/>
+			<xs:attribute name="Category" type="xs:string" use="optional"/>
+			<xs:attribute name="CategoryAbbrName" type="xs:string" use="optional"/>
+			<xs:attribute name="UsesEnumsFromTag" type="xs:string" use="optional"/>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="EnumDoc">
+		<xs:complexType>
+			<xs:attribute name="value" type="xs:string" use="required"/>
+			<xs:attribute name="text" type="xs:string" use="optional"/>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

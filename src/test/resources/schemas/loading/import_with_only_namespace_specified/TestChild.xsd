@@ -1,0 +1,10 @@
+<xsd:schema
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        targetNamespace="urn:child"
+        elementFormDefault="qualified">
+
+    <xsd:element name="sophie" type="xsd:string"/>
+    <xsd:element name="william" type="xsd:string"/>
+    <xsd:element name="anna" type="xsd:string"/>
+
+</xsd:schema>

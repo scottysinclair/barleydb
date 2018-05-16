@@ -1,0 +1,180 @@
+<xsd:schema
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        targetNamespace="urn:a"
+        xmlns:a="urn:a"
+        xmlns:b="urn:b"
+        elementFormDefault="qualified">
+
+    <xsd:import namespace="urn:b" schemaLocation="TestXsdB.xsd"/>
+
+    <xsd:element name="person" type="b:person">
+        <xsd:annotation>
+            <xsd:documentation source="Definition" xml:lang="EN">Documentation blah blah en</xsd:documentation>
+            <xsd:documentation source="Definition" xml:lang="DE">Documentation blah blah de</xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="personRestricted" type="a:personRestricted"/>
+
+    <xsd:element name="personRestrictedThenExtended" type="a:personRestrictedThenExtended"/>
+
+    <xsd:element name="elementWithSequence">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="seq_a" type="xsd:string"/>
+                <xsd:element name="seq_b" type="xsd:string"/>
+                <xsd:element name="seq_c" type="xsd:string"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="elementWithChoice">
+        <xsd:complexType>
+            <xsd:annotation>
+                <xsd:documentation source="Definition" xml:lang="ES">Documentation for element with choice</xsd:documentation>
+            </xsd:annotation>
+            <xsd:choice>
+                <xsd:element name="choice_a" type="xsd:string"/>
+                <xsd:element name="choice_b" type="xsd:string"/>
+                <xsd:element name="choice_c" type="xsd:string"/>
+            </xsd:choice>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="elementWithAll">
+        <xsd:complexType>
+            <xsd:all>
+                <xsd:element name="all_a" type="xsd:string"/>
+                <xsd:element name="all_b" type="xsd:string"/>
+                <xsd:element name="all_c" type="xsd:string"/>
+            </xsd:all>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="order" type="a:ordertype"/>
+
+    <xsd:element name="happyMealRefExample">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="b:burger"/>
+                <xsd:element ref="b:chips"/>
+                <xsd:element ref="b:coke"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <!--
+        an example element with with an 'any' declaration,
+        this declaration simply tests that we can see seq_a and seq_b children
+    -->
+    <xsd:element name="elementWithAny">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="seq_a" type="xsd:string"/>
+                <xsd:element name="seq_b" type="xsd:string"/>
+                <xsd:any minOccurs="0"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <!--
+     test element with attributes and child elements
+     -->
+    <xsd:element name="complexElementWithAttributesAndAttributeGroup">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="childElement" type="xsd:string"/>
+            </xsd:sequence>
+            <xsd:attribute name="attr1" type="xsd:integer"/>
+            <xsd:attributeGroup ref="b:attrGroup"/>
+            <xsd:attribute ref="b:refedAttr2"/>
+        </xsd:complexType>
+    </xsd:element>
+
+
+    <!--
+    this element extends a simple element integer content to add some attributes.
+    <elementWithSimpleContentAndExtensionAttribute scea1="hello" refedAttr2="19">100233</elementWithSimpleContentAndExtensionAttribute>
+    -->
+    <xsd:element name="elementWithSimpleContentAndExtensionAttribute" type="a:simpleContentAndExtensionAttribute"/>
+
+
+    <!--
+    element with simple content and attribute defined in restriction
+    the restriction removes an attribute from the base type
+    -->
+    <xsd:element name="elementWithSimpleContentAndRestrictionAttribute">
+        <xsd:complexType>
+            <xsd:simpleContent>
+                <xsd:restriction base="simpleContentAndExtensionAttribute">
+                    <xsd:attribute ref="b:refedAttr2"/>
+                </xsd:restriction>
+            </xsd:simpleContent>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="simpleTypeWithRestrictionEmbedded">
+        <xsd:simpleType>
+            <xsd:restriction base="xsd:integer">
+                <xsd:minInclusive value="0"/>
+                <xsd:maxInclusive value="100"/>
+            </xsd:restriction>
+        </xsd:simpleType>
+    </xsd:element>
+
+    <xsd:element name="simpleTypeWithRestrictionRef" type="a:simpleTypeWithRestrictionRef"/>
+
+    <!-- simpleType cannot contain attributes in the restriction -->
+    <xsd:simpleType name="simpleTypeWithRestrictionRef">
+        <xsd:annotation>
+            <xsd:documentation source="Definition" xml:lang="ES">Documentation for simpleTypeWithRestrictionRef</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:integer">
+            <xsd:minInclusive value="0"/>
+            <xsd:maxInclusive value="100"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+
+    <xsd:complexType name="simpleContentAndExtensionAttribute">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:integer">
+                <xsd:attribute name="scea1" type="xsd:string"/>
+                <xsd:attribute ref="b:refedAttr2"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+
+
+    <xsd:complexType name="ordertype">
+        <xsd:group ref="b:orderGroup"/>
+        <xsd:attribute name="status" type="xsd:string"/>
+    </xsd:complexType>
+
+
+    <xsd:complexType name="personRestricted">
+        <xsd:complexContent>
+            <xsd:restriction base="b:person">
+                <!-- the restriction removes the age -->
+                <xsd:sequence>
+                    <xsd:element name="firstName" maxOccurs="1" minOccurs="1" type="xsd:string"/>
+                    <xsd:element name="lastName" maxOccurs="1" minOccurs="1" type="xsd:string"/>
+                </xsd:sequence>
+            </xsd:restriction>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="personRestrictedThenExtended">
+        <xsd:complexContent>
+            <xsd:extension base="a:personRestricted">
+                <!-- extension adds sex and height -->
+                <xsd:sequence>
+                    <xsd:element name="sex" maxOccurs="1" minOccurs="1" type="xsd:string"/>
+                    <xsd:element name="height" maxOccurs="1" minOccurs="1" type="xsd:string"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+</xsd:schema>

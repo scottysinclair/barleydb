@@ -1,0 +1,11 @@
+<!--
+  schema with no target namespace including other shemas with no target namespace
+-->
+<xsd:schema
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        elementFormDefault="qualified">
+
+    <xsd:include schemaLocation="schema_imported_notns_childa.xsd"/>
+    <xsd:include schemaLocation="schema_imported_notns_childb.xsd"/>
+
+</xsd:schema>

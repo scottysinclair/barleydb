@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- 
+	== Copyright (c) 2002-2014. All rights reserved. 
+	== Financial Products Markup Language is subject to the FpML public license. 
+	== A copy of this license is available at http://www.fpml.org/license/license.html
+-->
+<xsd:schema targetNamespace="http://svn.msk.trd.ru/xsd/fixml" xmlns="http://svn.msk.trd.ru/xsd/fixml" xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified" version="$Revision: 7614 $" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" xmlns:dsig="http://www.w3.org/2000/09/xmldsig#" ecore:nsPrefix="fpml" ecore:package="org.fpml" ecore:documentRoot="FpML" xmlns:fpml-annotation="http://www.fpml.org/annotation" xmlns:view="http://www.fpml.org/views">
+	<xsd:annotation>
+		<xsd:documentation xml:lang="en">Standard products - for use in Transparency reporting to define a product that represents a standardized OTC derivative transaction whose economics do not need to be fully described using an FpML schema because they are implied by the product ID. In other views, standard products are present for convenience to support internal messaging and workflows that are cross-product. Standard products are not full trade representations as such they are not intended to be used for confirming trades.</xsd:documentation>
+		<xsd:appinfo>
+			<view:exclusive view="confirmation"/>
+			<view:exclusive view="reporting"/>
+			<view:exclusive view="recordkeeping"/>
+			<view:exclusive view="transparency"/>
+		</xsd:appinfo>
+	</xsd:annotation>
+	<xsd:include schemaLocation="fpml-shared.xsd"/>
+	<xsd:include schemaLocation="fpml-asset.xsd"/>
+	<xsd:complexType name="StandardProduct">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">Simple product representation providing key information about a variety of different products. Standard products - for use in Transparency reporting to define a product that represents a standardized OTC derivative transaction whose economics do not need to be fully described using an FpML schema because they are implied by the product ID. In other views, standard products are present for convenience to support internal messaging and workflows that are cross-product. Standard products are not full trade representations as such they are not intended to be used for confirming trades.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="Product">
+				<xsd:sequence>
+					<xsd:element name="notional" type="CashflowNotional" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The notional amount that was traded. </xsd:documentation>
+							<xsd:appinfo>
+								<view:override view="transparency" minOccurs="1"/>
+								<view:override view="recordkeeping" minOccurs="1"/>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="quote" type="BasicQuotation" minOccurs="0" maxOccurs="unbounded" >
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">Pricing information for the trade.</xsd:documentation>
+							<xsd:appinfo>
+								<view:override view="transparency" minOccurs="1"/>
+								<view:override view="recordkeeping" minOccurs="1"/>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:element name="standardProduct" type="StandardProduct" substitutionGroup="product">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">Standard products - for use in Transparency reporting to define a product that represents a standardized OTC derivative transaction whose economics do not need to be fully described using an FpML schema because they are implied by the product ID. In other views, standard products are present for convenience to support internal messaging and workflows that are cross-product. Standard products are not full trade representations as such they are not intended to be used for confirming trades.</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+</xsd:schema>

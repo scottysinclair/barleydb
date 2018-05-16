@@ -1,0 +1,673 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+== Copyright (c) 2002-2014. All rights reserved. 
+== Financial Products Markup Language is subject to the FpML public license. 
+== A copy of this license is available at http://www.fpml.org/license/license.html
+-->
+<xsd:schema xmlns="http://svn.msk.trd.ru/xsd/fixml" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" xmlns:dsig="http://www.w3.org/2000/09/xmldsig#" xmlns:fpml-annotation="http://www.fpml.org/annotation" xmlns:view="http://www.fpml.org/views" targetNamespace="http://svn.msk.trd.ru/xsd/fixml" elementFormDefault="qualified" attributeFormDefault="unqualified" version="$Revision: 11548 $" ecore:nsPrefix="fpml" ecore:package="org.fpml" ecore:documentRoot="FpML">
+	<xsd:annotation>
+		<xsd:appinfo>
+			<view:exclusive view="reporting"/>
+		</xsd:appinfo>
+	</xsd:annotation>
+	<xsd:include schemaLocation="fpml-reconciliation.xsd"/>
+	<xsd:include schemaLocation="fpml-valuation-reporting.xsd"/>
+	<xsd:simpleType name="YearAndMonth">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A type defining a date that includes a year and month.  Values will be of the format yyyy-mm</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="NormalizedString">
+			<xsd:pattern value="[1-2][0-9][0-9][0-9]-[0-1][0-9]"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:complexType name="AffectedPositions">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A type that allows a list of positions affected by some event to be represented.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="position" type="Position" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Positions affected by this event.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="CollateralAllocationReport">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A type defining the content model for a message allowing one party to send a report listing collateral allocation.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="NotificationMessage">
+				<xsd:sequence>
+					<xsd:element name="serviceName" type="NormalizedString" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The name of the service to which the message applies</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="collateralGiverPartyReference" type="PartyReference" minOccurs="1" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The party paying the margin / issuing the allocation request.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="collateralAllocation" type="ProposedCollateralAllocation" minOccurs="1" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">Allocation details</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:group ref="PartiesAndAccounts.model"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="EventActivityReport">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A type defining the content model for a message allowing one party to send a report consisting of a series of trading events that may affect positions.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="NotificationMessage">
+				<xsd:sequence>
+					<xsd:element name="asOfDate" type="IdentifiedDate" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The date for which this document reports positions and valuations.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="dataSetName" type="String" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The name of the data set (portfolio, product type, etc.) that this report corresponds to. Used to help document the contents of the report.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="quotationCharacteristics" type="QuotationCharacteristics" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The default quotation characteristics for this document (e.g. currency, location). Currency must be specified; other fields may be specified.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="fromDateTime" type="xsd:dateTime" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The starting point for reporting activity in this report.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="toDateTime" type="xsd:dateTime" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The ending point for reporting activity in this report.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="submissionsComplete" type="xsd:boolean">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">Indicates whether all portfolio updates have been submitted for this as-of date</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="reportContents" type="ReportContents" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The specific characteristics included in the report.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:group ref="ReportableEvents.model" maxOccurs="unbounded"/>
+					<xsd:group ref="PartiesAndAccounts.model"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="ExposurePartyType">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A code that describes the high level category of the counterparty for exposure purposes.  For example, G15, NonG15.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:simpleContent>
+			<xsd:extension base="Scheme">
+				<xsd:attribute name="partyTypeScheme" type="xsd:anyURI" default="http://www.fpml.org/coding-scheme/exposure-party-code"/>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:complexType name="ExposureReport">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A type defining the content model for a message allowing a firm to send a report listing aggregate exposure to a variety of counterparty and market risk categories. Exposures will be reported from the perspective of the "on-behalf-of" party.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="NotificationMessage">
+				<xsd:sequence>
+					<xsd:element name="asOfDate" type="IdentifiedDate" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The date for which this report was created.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="asOfTime" type="xsd:time" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The time within the as-of date for which this report was created (i.e., the cut-off time of the report).</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="dataSetName" type="NormalizedString" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The name of the data set (portfolio, product type, etc.) that this request corresponds to. Describes the desired report.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="reportContents" type="ReportContents" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The specific characteristics included in the report.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="quotationCharacteristics" type="QuotationCharacteristics" minOccurs="0"/>
+					<xsd:element name="exposure" type="ReportedExposure" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">A specific exposure record (which may include more details in the form of sub-records.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:group ref="PartiesAndAccounts.model"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="ExposureType">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A code that describes the type of risk or exposure, based on the type of instrument that created the exposure.  For example, values might include Outright, Basis, or Index for swaps, or BasketOption, or StaircaseOption for options.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:simpleContent>
+			<xsd:extension base="Scheme">
+				<xsd:attribute name="exposureTypeScheme" type="xsd:anyURI" default="http://www.fpml.org/coding-scheme/exposure-type"/>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:complexType name="ExposureUnderlyingAsset">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A description of the underlying asset of the transaction</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="description" type="NormalizedString" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">A textual description of the asset that underlies the exposure.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:choice minOccurs="0">
+				<xsd:element ref="underlyingAsset"/>
+				<xsd:element name="instrumentId" type="InstrumentId" minOccurs="0" maxOccurs="unbounded">
+					<xsd:annotation>
+						<xsd:documentation xml:lang="en">Identification of the underlying asset, using public and/or private identifiers.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+			</xsd:choice>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="PartyReport">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A type defining the content model for a message allowing one party to send a report listing party information and relationships.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="NotificationMessage">
+				<xsd:sequence>
+					<xsd:element name="asOfDate" type="IdentifiedDate" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The date for which this report was generated.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="dataSetName" type="NormalizedString" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The name of the data set (portfolio, product type, etc.) that this request corresponds to. Describes the desired report.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="reportContents" type="ReportContents" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The specific characteristics included in the report.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:group ref="PartiesAndAccounts.model"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="PositionActivityReport">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A type defining the content model for a message allowing one party to send a report consisting of a series of updates to positions.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="NotificationMessage">
+				<xsd:sequence>
+					<xsd:element name="asOfDate" type="IdentifiedDate" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The date for which this document reports positions and valuations.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="dataSetName" type="String" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The name of the data set (portfolio, product type, etc.) that this report corresponds to. Used to help document the contents of the report.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="reportContents" type="ReportContents" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The specific characteristics included in the report.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="quotationCharacteristics" type="QuotationCharacteristics" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The default quotation characteristics for this document (e.g. currency, location). Currency must be specified; other fields may be specified.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="fromDateTime" type="xsd:dateTime" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The starting point for reporting activity in this report.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="toDateTime" type="xsd:dateTime" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The ending point for reporting activity in this report.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="submissionsComplete" type="xsd:boolean">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">Indicates whether all portfolio updates have been submitted for this as-of date</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="positionUpdate" type="PositionUpdate" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The positions included in the position report.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:group ref="PartiesAndAccounts.model"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="PositionPayment">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A global type describing the payment exposed to the matching process, along with its gross component(s) and calculation details.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:group ref="PaymentDetails.model"/>
+			<xsd:element name="adjustedPaymentDate" type="xsd:date" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">The date on which this payment will settle.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="calculationDetails" type="CalculationDetails" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">The set of cash flow components with calculations that comprise this payment.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="PositionReport">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A type defining the content model for a message allowing one party to send a report consisting of positions.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="NotificationMessage">
+				<xsd:sequence>
+					<xsd:element name="asOfDate" type="IdentifiedDate" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The date for which this document reports positions and valuations.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="dataSetName" type="String" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The name of the data set (portfolio, product type, etc.) that this report corresponds to. Used to help document the contents of the report.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="reportContents" type="ReportContents" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The specific characteristics included in the report.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="quotationCharacteristics" type="QuotationCharacteristics" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The default quotation characteristics for this document (e.g. currency, location). Currency must be specified; other fields may be specified.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="submissionsComplete" type="xsd:boolean">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">Indicates whether all portfolio updates have been submitted for this as-of date</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="position" type="ReportedPosition" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The positions included in the position report.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:group ref="PartiesAndAccounts.model"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="PositionUpdate">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A type that allows a position to be defined. It includes identification information (ID and version), trade information, etc.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="timestamp" type="xsd:dateTime">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Records when the update occurred.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="type" type="UpdateTypeEnum">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Records the type of update that occurred (created, modified, deleted).</xsd:documentation>
+					<xsd:appinfo>
+						<view:override view="reporting" minOccurs="1"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="reason" type="PositionUpdateReason" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Allows information about reason for the update to be record.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="position" type="Position">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">The affected position.</xsd:documentation>
+					<xsd:appinfo>
+						<view:override view="reporting" minOccurs="1"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="PositionUpdateReason">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A code that describes the reason that an update occurred. For example, New Trade, Amendment, Termination, Exercise, Cancellation.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="code" type="PositionUpdateReasonCode" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">A code summarizing the reason for the update (e.g. new trade, amdendment, novation).</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="comment" type="String" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">A freeform description of the reason for the update.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:group ref="Events.model">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">A representation of the business event that triggered the position update.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:group>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="PositionUpdateReasonCode">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A code that describes the reason that an update occurred. For example, New Trade, Amendment, Termination, Exercise, Cancellation.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:simpleContent>
+			<xsd:extension base="Scheme">
+				<xsd:attribute name="positionUpdateReasonCodeScheme" type="xsd:anyURI" default="http://www.fpml.org/coding-scheme/position-update-reason-code"/>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:complexType name="ReportedPosition">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A type defining the content model report of a position. This slightly extends the basic position model.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="Position">
+				<xsd:sequence>
+					<xsd:element name="payment" type="PositionPayment" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">Zero or more payments associated with this position that are generated for this reporting as-of date, for example coupon payments that pay on this date.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="RequestPositionReport">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A type defining the content model for a message requesting a position report .</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="CorrectableRequestMessage">
+				<xsd:sequence>
+					<xsd:element name="asOfDate" type="IdentifiedDate" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The date for which this request desires positions and valuations.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:choice>
+						<xsd:element name="dataSetName" type="NormalizedString">
+							<xsd:annotation>
+								<xsd:documentation xml:lang="en">The name of the data set (portfolio, product type, etc.) that this request corresponds to. Describes the desired report.</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="requestedPositions" type="RequestedPositions">
+							<xsd:annotation>
+								<xsd:documentation xml:lang="en">The specific positions that this request corresponds to. Describes the desired report.</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="reportContents" type="ReportContents">
+							<xsd:annotation>
+								<xsd:documentation xml:lang="en">The specific characteristics that should be provided.</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+					</xsd:choice>
+					<xsd:group ref="PartiesAndAccounts.model"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="ReportedExposure">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A type defining the content model for an exposure record to a specific set of counterparty and market risk factors, as well as optionally to a series of sub-factors</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:group ref="ExposureCategory.model">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">A description of the exposure category or categories (within the report or any parent exposure record) covered by this exposure record.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:group>
+			<xsd:element name="quote" type="BasicQuotation" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">One or more numerical exposure values relating to the exposure category</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="exposure" type="ReportedExposure" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Sub-divisions of this total expsoure.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="ResetReport">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A type defining the content model for a message allowing one party to send a report listing an index that has been observed/set and the affected positions.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="NotificationMessage">
+				<xsd:sequence>
+					<xsd:element name="asOfDate" type="IdentifiedDate" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The date for which this request was generated.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="dataSetName" type="NormalizedString" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The name of the data set (portfolio, product type, etc.) that this report corresponds to.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="reportContents" type="ReportContents" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The specific characteristics included in the report.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="index" type="ForecastRateIndex">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The rate index that has set.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="indexSource" type="RateSourcePage" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The reference source such as Reuters or Bloomberg.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="rateObservation" type="RateObservation">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The value of the index on the reset/fixing date.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="affectedPositions" type="AffectedPositions">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The positions affected by this fixing.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:group ref="PartiesAndAccounts.model"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="Sector">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A code that describes the industry sector of a product or instrument.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:simpleContent>
+			<xsd:extension base="Scheme">
+				<xsd:attribute name="sectorScheme" type="xsd:anyURI"/>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:complexType name="SectorType">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A code that describes the type of industry sector of a product or instrument.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:simpleContent>
+			<xsd:extension base="Scheme">
+				<xsd:attribute name="sectorType" type="xsd:anyURI"/>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:complexType name="TerminatingEventsReport">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A type defining the content model for a message allowing one party to send a report consisting of a series of maturity and option expiry events for trades.  This can be used either for upcoming expirations/maturities, or for already completed events.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="NotificationMessage">
+				<xsd:sequence>
+					<xsd:element name="asOfDate" type="IdentifiedDate" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The date for which this document reports positions and valuations.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="reportContents" type="ReportContents" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The specific characteristics included in the report.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="fromDateTime" type="xsd:dateTime" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The starting point for reporting expirations/maturities in this report.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="toDateTime" type="xsd:dateTime" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">The ending point for reporting expirations/maturities in this report.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:group ref="MaturityAndExpiryEvents.model" maxOccurs="unbounded"/>
+					<xsd:group ref="PartiesAndAccounts.model"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:group name="ExposureCategory.model">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A group a specific set of counterparty and market risk factors for which an exposure record is provided.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:group ref="PartyExposureCategory.model"/>
+			<xsd:group ref="ProductExposureCategory.model"/>
+		</xsd:sequence>
+	</xsd:group>
+	<xsd:group name="PartyExposureCategory.model">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A group a specific set of counterparty risk factors for which an exposure record is provided.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="region" type="Region" minOccurs="0"/>
+			<xsd:element name="country" type="CountryCode" minOccurs="0"/>
+			<xsd:element name="counterpartyType" type="ExposurePartyType" minOccurs="0"/>
+			<xsd:element name="creditRating" type="CreditRating" minOccurs="0"/>
+			<xsd:element name="partyReference" type="PartyReference" minOccurs="0"/>
+			<xsd:element name="accountReference" type="AccountReference" minOccurs="0"/>
+			<xsd:element name="relatedParty" type="RelatedParty" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="cleared" type="xsd:boolean" minOccurs="0"/>
+			<xsd:element name="industryClassification" type="IndustryClassification" minOccurs="0"/>
+			<xsd:element name="category" type="TradeCategory" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Used to categorize trades into user-defined categories, such as house trades vs. customer trades.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:group>
+	<xsd:group name="ProductExposureCategory.model">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A group a specific set of market risk factors for which an exposure record is provided.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="assetClass" type="AssetClass" minOccurs="0"/>
+			<xsd:element name="productType" type="ProductType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="productId" type="ProductId" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="currency" type="Currency" minOccurs="0"/>
+			<xsd:element name="underlyingAsset" type="ExposureUnderlyingAsset" minOccurs="0"/>
+			<xsd:element name="relatedAsset" type="ExposureUnderlyingAsset" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">This can be used to report assets that are related to this exposure, such as the asset on the other side of a basis trade.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="exposureType" type="ExposureType" minOccurs="0"/>
+			<xsd:element name="indexTenor" type="Period" minOccurs="0"/>
+			<xsd:element name="sector" type="Sector" minOccurs="0"/>
+			<xsd:element name="sectorType" type="SectorType" minOccurs="0"/>
+			<xsd:element name="seniority" type="CreditSeniority" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">The repayment precedence of a debt instrument.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="restructuring" type="Restructuring" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">A credit event. A restructuring is an event that materially impacts the reference entity's obligations, such as an interest rate reduction, principal reduction, deferral of interest or principal, change in priority ranking, or change in currency or composition of payment. ISDA 2003 Term: Restructuring.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="couponRate" type="xsd:decimal" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Specifies the coupon rate (expressed in percentage) of a fixed income security or convertible bond.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:choice minOccurs="0">
+				<xsd:element name="futuresEquivalentMonth" type="YearAndMonth"/>
+				<xsd:element name="priceReferenceMonth" type="YearAndMonth"/>
+			</xsd:choice>
+			<xsd:element name="optionType" type="PutCallEnum" minOccurs="0"/>
+			<xsd:element name="expirationDate" type="xsd:date" minOccurs="0"/>
+			</xsd:sequence>
+	</xsd:group>
+	<xsd:group name="ReportableEvents.model">
+		<xsd:choice>
+			<xsd:group ref="Events.model" maxOccurs="unbounded"/>
+			<xsd:element name="clearingStatusItem" type="ClearingStatusItem" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Describes the status of the clearing process relating to the identified trade.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:choice>
+	</xsd:group>
+	<xsd:annotation>
+		<xsd:documentation xml:lang="en">Reporting messages.</xsd:documentation>
+	</xsd:annotation>
+	<xsd:element name="requestPositionReport" type="RequestPositionReport"/>
+	<xsd:element name="positionReport" type="PositionReport"/>
+	<xsd:element name="positionReportAcknowledgement" type="Acknowledgement"/>
+	<xsd:element name="positionReportException" type="Exception"/>
+	<xsd:element name="positionActivityReport" type="PositionActivityReport"/>
+	<xsd:element name="positionActivityReportAcknowledgement" type="Acknowledgement"/>
+	<xsd:element name="positionActivityReportException" type="Exception"/>
+	<xsd:element name="terminatingEventsReport" type="TerminatingEventsReport"/>
+	<xsd:element name="terminatingEventsReportAcknowledgement" type="Acknowledgement"/>
+	<xsd:element name="terminatingEventsReportException" type="Exception"/>
+	<xsd:element name="eventActivityReport" type="EventActivityReport"/>
+	<xsd:element name="eventActivityReportAcknowledgement" type="Acknowledgement"/>
+	<xsd:element name="eventActivityReportException" type="Exception"/>
+	<xsd:element name="resetReport" type="ResetReport"/>
+	<xsd:element name="resetReportAcknowledgement" type="Acknowledgement"/>
+	<xsd:element name="resetReportException" type="Exception"/>
+	<xsd:element name="partyReport" type="PartyReport"/>
+	<xsd:element name="partyReportAcknowledgement" type="Acknowledgement"/>
+	<xsd:element name="partyReportException" type="Exception"/>
+	<xsd:element name="exposureReport" type="ExposureReport"/>
+	<xsd:element name="exposureReportAcknowledgement" type="Acknowledgement"/>
+	<xsd:element name="exposureReportException" type="Exception"/>
+	<xsd:element name="collateralAllocationReport" type="CollateralAllocationReport"/>
+	<xsd:element name="collateralAllocationException" type="Exception"/>
+</xsd:schema>

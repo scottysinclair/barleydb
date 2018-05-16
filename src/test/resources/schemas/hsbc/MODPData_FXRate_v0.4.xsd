@@ -1,0 +1,80 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!--Created with Liquid XML Studio Developer Edition 8.1.7.2743 (http://www.liquid-technologies.com)-->
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:complexType name="FXRate">
+        <xs:annotation>
+            <xs:documentation>Contains an FX Rate for a specific FXRateDate, FXRatePoint, Source, FXType, FromCurrency and ToCurrency</xs:documentation>
+        </xs:annotation>
+
+            <xs:sequence>
+                <xs:element name="Date" type="xs:date" minOccurs="1" maxOccurs="1">
+                    <xs:annotation>
+                        <xs:documentation>The date for which the FX Rate applies</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element name="DataPoint" type="xs:string" minOccurs="1" maxOccurs="1">
+                    <xs:annotation>
+                        <xs:documentation>The point of the day for which the FX Rate applies, e.g. COB, 09:00, 10:00 etc</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element name="SourceSystem" type="xs:string" minOccurs="1" maxOccurs="1">
+                    <xs:annotation>
+                        <xs:documentation>The MODP source of the FX Rate, e.g. Icon</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element name="FXType" type="xs:string" minOccurs="1" maxOccurs="1">
+                    <xs:annotation>
+                        <xs:documentation>The type of FX Rate, e.g. Spot, 1M, 2M etc</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element name="FromCurrency" type="xs:string" minOccurs="1" maxOccurs="1">
+                    <xs:annotation>
+                        <xs:documentation>The currency code, in MODP standard format</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element name="ToCurrency" type="xs:string" minOccurs="1" maxOccurs="1">
+                    <xs:annotation>
+                        <xs:documentation>The currency code, in MODP standard format</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element name="Vendor" type="xs:string" minOccurs="1" maxOccurs="1">
+                    <xs:annotation>
+                        <xs:documentation>The Market Data vendor from whom the FX Rate is sourced</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element name="ConversionMethod" type="ConversionMethod" minOccurs="1" maxOccurs="1">
+                    <xs:annotation>
+                        <xs:documentation>Indicates whether or not you should divide or multiply by the FX Rate in order to perform the conversion</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element name="Bid" type="xs:decimal" minOccurs="1" maxOccurs="1" nillable="true" />
+                <xs:element name="Mid" type="xs:decimal" minOccurs="1" maxOccurs="1" />
+                <xs:element name="Ask" type="xs:decimal" minOccurs="1" maxOccurs="1" nillable="true" />
+                <xs:element name="RevisionId" type="xs:string" minOccurs="1" maxOccurs="1">
+                    <xs:annotation>
+                        <xs:documentation>The Revision Id for this record from the Source System</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element name="CreationTimestamp" type="xs:dateTime" minOccurs="1" maxOccurs="1">
+                    <xs:annotation>
+                        <xs:documentation>Timestamp of the message creation</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+
+    <xs:simpleType name="ConversionMethod">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Divide">
+                <xs:annotation>
+                    <xs:documentation>Indicates that a currency value should be divided by the FX Rate to perform the conversion</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="Multiply">
+                <xs:annotation>
+                    <xs:documentation>Indicates that a currency value should be multiplied by the FX Rate to perform the conversion</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+</xs:schema>

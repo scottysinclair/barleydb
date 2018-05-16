@@ -1,0 +1,50 @@
+<xsd:schema
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:b="urn:b"
+        targetNamespace="urn:b"
+        elementFormDefault="qualified">
+
+    <xsd:complexType name="person">
+        <xsd:sequence>
+            <xsd:element name="firstName" maxOccurs="1" minOccurs="1" type="xsd:string"/>
+            <xsd:element name="lastName" maxOccurs="1" minOccurs="1" type="xsd:string"/>
+            <xsd:element name="age" maxOccurs="1" minOccurs="1" type="xsd:integer"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:group name="orderGroup">
+        <xsd:sequence>
+            <xsd:element name="customer" type="xsd:string"/>
+            <xsd:element name="orderdetails" type="xsd:string"/>
+            <xsd:element name="billto" type="xsd:string"/>
+            <xsd:element name="shipto" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:group>
+
+    <xsd:element name="burger">
+        <xsd:annotation>
+            <xsd:documentation source="Definition" xml:lang="EN">A nice jucy burger</xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="extraFat" type="xsd:string"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="chips" type="xsd:string"/>
+    <xsd:element name="coke" type="xsd:string"/>
+
+    <xsd:attributeGroup name="attrGroup">
+        <xsd:attribute name="attrGroup_attr1" type="xsd:string"/>
+        <xsd:attribute ref="b:attrGroup_attrRef3"/>
+    </xsd:attributeGroup>
+    <xsd:attribute name="refedAttr2" type="xsd:integer">
+        <xsd:annotation>
+            <xsd:documentation source="Name" xml:lang="EN">Name en</xsd:documentation>
+            <xsd:documentation source="Definition" xml:lang="DE">Documentation blah blah de</xsd:documentation>
+        </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="attrGroup_attrRef3" type="xsd:string"/>
+
+
+</xsd:schema>

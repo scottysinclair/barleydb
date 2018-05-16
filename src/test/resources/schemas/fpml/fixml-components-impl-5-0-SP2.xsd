@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	$HeadURL: file:///opt/svnroot/xsd/fixml/trunk/fixml-components-impl-5-0-SP2.xsd $
+	$Revision: 187 $
+	$Author: AKudinov $
+	$Id: fixml-components-impl-5-0-SP2.xsd 187 2014-10-16 05:21:04Z AKudinov $
+	- - - - - - - - - - - - - - - - - - - - - - - - - -
+    Generated:2009-04-19T13:43:43.089-05:00
+    Revision: FIXML  Schema Version  FIX.5.0SP2
+    Copyright(c) FIX Protocol Limited.  All rights reserved.
+    Comments and errors should be posted on the FIX protocol web-site
+    http://www.fixprotocol.org
+	- - - - - - - - - - - - - - - - - - - - - - - - - -
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns="http://svn.msk.trd.ru/xsd/fixml"
+           xmlns:fm="http://svn.msk.trd.ru/xsd/fixml"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://svn.msk.trd.ru/xsd/fixml fixml-metadata-5-0-SP2.xsd"
+           targetNamespace="http://svn.msk.trd.ru/xsd/fixml"
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified">
+
+    <xs:include schemaLocation="fixml-components-base-5-0-SP2.xsd"/>
+
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <!--                            COMMON TYPES                              -->
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+
+    <xs:complexType name="AltIDGrp_Block_t">
+        <xs:annotation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="AltIDGrp" ComponentType="ImplicitBlockRepeating" Category="Common"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:attributeGroup ref="AltIDGrpAttributes"/>
+    </xs:complexType>
+
+    <xs:attributeGroup name="AltIDGrpAttributes">
+        <xs:attribute name="AltID" type="AltID_t" use="optional"/>
+        <xs:attribute name="AltIDSrc" type="AltIDSource_t" use="optional"/>
+    </xs:attributeGroup>
+
+    <xs:complexType name="ObjRef_t" final="#all">
+        <xs:annotation>
+            <xs:documentation>
+                Reference to a given object. Usually its identifier.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="AID" type="AltIDGrp_Block_t" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="ID" type="ID_t" use="optional"/>
+    </xs:complexType>
+
+    <xs:attributeGroup name="I18NAttributes">
+        <xs:attribute name="Val" type="Txt_t" use="required"/>
+        <xs:attribute name="Lcl" type="Locale_t" use="required"/>
+    </xs:attributeGroup>
+
+    <xs:complexType name="I18N_t">
+        <xs:annotation>
+            <xs:documentation>
+                Value that can be passed in different translations.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attributeGroup ref="I18NAttributes"/>
+    </xs:complexType>
+
+    <xs:attributeGroup name="FIOAttributes">
+        <xs:attribute name="FirstNm" type="FirstNm_t" use="optional"/>
+        <xs:attribute name="MiddleNm" type="MiddleNm_t" use="optional"/>
+        <xs:attribute name="LastNm" type="LastNm_t" use="optional"/>
+        <xs:attribute name="Locale" type="Locale_t" use="optional"/>
+    </xs:attributeGroup>
+    <xs:complexType name="FIO_t">
+        <xs:annotation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="FIO" ComponentType="ImplicitBlockRepeating" Category="Common"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:attributeGroup ref="FIOAttributes"/>
+    </xs:complexType>
+
+    <xs:attributeGroup name="LegEntAttributes">
+        <xs:attribute name="LegEntID" type="LegalEntityID_t"/>
+        <xs:attribute name="LegEntSrc" type="LegalEntitySource_t"/>
+        <xs:attribute name="IsMain" type="xs:boolean"/>
+        <xs:attribute name="IsForeign" type="xs:boolean"/>
+    </xs:attributeGroup>
+
+    <xs:complexType name="LegEnt_t">
+        <xs:sequence>
+            <xs:element name="LegEntTtl" type="I18N_t" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attributeGroup ref="LegEntAttributes"/>
+    </xs:complexType>
+
+    <xs:attributeGroup name="BUnitAttributes">
+        <xs:attribute name="BUnitID" type="BUnitID_t"/>
+        <xs:attribute name="BUnitSrc" type="BUnitSource_t"/>
+    </xs:attributeGroup>
+
+    <xs:complexType name="BUnit_t">
+        <xs:sequence>
+            <xs:element name="BUnitTtl" type="I18N_t" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attributeGroup ref="BUnitAttributes"/>
+    </xs:complexType>
+
+
+    <!---->
+    <xs:group name="BookRootPartiesElements">
+        <xs:sequence>
+            <xs:element name="Sub" type="BookRootSubParties_Block_t" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:group>
+
+    <xs:attributeGroup name="BookRootPartiesAttributes">
+        <xs:attribute name="ID" type="BookRootPartyID_t" use="optional"/>
+        <xs:attribute name="R" type="BookRootPartyRole_t" use="optional"/>
+    </xs:attributeGroup>
+
+    <xs:complexType name="BookRootParties_Block_t">
+        <xs:annotation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="RootParties" ComponentType="BlockRepeating" Category="Common"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:group ref="BookRootPartiesElements"/>
+        </xs:sequence>
+        <xs:attributeGroup ref="BookRootPartiesAttributes"/>
+    </xs:complexType>
+
+    <xs:group name="BookRootSubPartiesElements">
+        <xs:sequence/>
+    </xs:group>
+
+    <xs:attributeGroup name="BookRootSubPartiesAttributes">
+        <xs:attribute name="ID" type="RootPartySubID_t" use="optional"/>
+        <xs:attribute name="Typ" type="RootPartySubIDType_t" use="optional"/>
+    </xs:attributeGroup>
+
+    <xs:complexType name="BookRootSubParties_Block_t">
+        <xs:annotation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="RootSubParties" ComponentType="ImplicitBlockRepeating" Category="Common"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:group ref="BookRootSubPartiesElements"/>
+        </xs:sequence>
+        <xs:attributeGroup ref="BookRootSubPartiesAttributes"/>
+    </xs:complexType>
+
+
+    <!---->
+    <xs:group name="PortfolioStructRootPartiesElements">
+        <xs:sequence>
+            <xs:element name="Sub" type="PortfolioStructRootSubParties_Block_t" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:group>
+
+    <xs:attributeGroup name="PortfolioStructRootPartiesAttributes"/>
+
+    <xs:complexType name="PortfolioStructRootParties_Block_t">
+        <xs:annotation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="RootParties" ComponentType="BlockRepeating" Category="Common"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:group ref="PortfolioStructRootPartiesElements"/>
+        </xs:sequence>
+        <xs:attributeGroup ref="PortfolioStructRootPartiesAttributes"/>
+    </xs:complexType>
+
+    <xs:group name="PortfolioStructRootSubPartiesElements">
+        <xs:sequence/>
+    </xs:group>
+
+    <xs:attributeGroup name="PortfolioStructRootSubPartiesAttributes">
+        <xs:attribute name="ID" type="RootPartySubID_t" use="optional"/>
+        <xs:attribute name="Typ" type="RootPartySubIDType_t" use="optional"/>
+    </xs:attributeGroup>
+
+    <xs:complexType name="PortfolioStructRootSubParties_Block_t">
+        <xs:annotation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="RootSubParties" ComponentType="ImplicitBlockRepeating" Category="Common"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:group ref="PortfolioStructRootSubPartiesElements"/>
+        </xs:sequence>
+        <xs:attributeGroup ref="PortfolioStructRootSubPartiesAttributes"/>
+    </xs:complexType>
+
+</xs:schema>

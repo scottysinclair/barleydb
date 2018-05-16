@@ -1,0 +1,747 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" >
+    <!-- xs:include schemaLocation="User_Types.xsd"/>
+    <xs:include schemaLocation="Entity_Types.xsd"/>
+    <xs:include schemaLocation="Account_Types.xsd"/-->
+
+    <xs:element name="AccountImports" type="TypeAccountImportList">
+        <xs:annotation>
+            <xs:documentation>The root node that contains account import information. It can hold feeds for multiple clients.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+
+    <xs:complexType name="TypeAccountImportList">
+        <xs:annotation>
+            <xs:documentation>TypeAccountImportList is a collection of element of type TypeAccountImport. This is to enable feed for multiple clients in a single XML.</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="AccountImport" type="TypeAccountImport" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="TypeAccountImport">
+        <xs:annotation>
+            <xs:documentation>Holds account feed for one client identified by BankReferenceIdentifier. It holds entity hierarchy and accounts.
+</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+
+            <xs:element name="BankReferenceIdentifier">
+                <xs:annotation>
+                    <xs:documentation>
+                        The full name of the Organization/Client that the TLM CAS is supporting.
+                    </xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1"></xs:minLength>
+                        <xs:maxLength value="64"></xs:maxLength>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="Users" type="TypeUserList" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>The root element of User hierarchy.</xs:documentation>
+                </xs:annotation></xs:element>
+            <xs:element name="Entity" type="TypeEntity">
+                <xs:annotation>
+                    <xs:documentation>The root element of entity hierarchy.</xs:documentation>
+                </xs:annotation></xs:element>
+            <xs:element name="Accounts" type="TypeAccountList">
+                <xs:annotation>
+                    <xs:documentation>A collection of elements of type TypeAccount.</xs:documentation></xs:annotation></xs:element>
+        </xs:sequence>
+        <xs:attribute name="fullLoad" type="xs:boolean">
+            <xs:annotation>
+                <xs:documentation>This flag indicates that this account feeds contains full account data or delta account data. In case of full load all accounts related to given BankReferenceIdentifier should be deactivated and then activate when loaded from the feed. In both full and delta data load an account should be created if it does not exist in the database.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+    <xs:complexType name="TypeUserList">
+        <xs:annotation>
+            <xs:documentation>A collection of elements of type TypeAccount.</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="User" type="TypeUser" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation/>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="TypeAccountList">
+        <xs:annotation>
+            <xs:documentation>A collection of elements of type TypeAccount.</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="Account" type="TypeAccount" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation/>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+
+    <xs:complexType name="TypeUser">
+        <xs:annotation>
+            <xs:documentation>Holds User details.</xs:documentation>
+        </xs:annotation>
+        <xs:all>
+            <xs:element name="UserId" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>User Id which will be validated with USRR table.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1" />
+                        <xs:maxLength value="8" />
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="FirstName" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>First Name of the user.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1" />
+                        <xs:maxLength value="40" />
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="Surname" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Surname of the user.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1" />
+                        <xs:maxLength value="20" />
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="Contact" minOccurs="1" type="TypeContact" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>The contact associated with the user.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:all>
+    </xs:complexType>
+
+    <xs:complexType name="TypeContact">
+        <xs:annotation>
+            <xs:documentation>Holds contact details.</xs:documentation>
+        </xs:annotation>
+        <xs:all>
+            <xs:element name="Postal1" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Postal address line 1.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1" />
+                        <xs:maxLength value="255" />
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="Postal2" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Postal address line 2.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1" />
+                        <xs:maxLength value="255" />
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="Postal3" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Postal address line 3.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1" />
+                        <xs:maxLength value="255" />
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="PostalTownOrCity" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Town or City</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1" />
+                        <xs:maxLength value="255" />
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="PostalCode" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>PIN code</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1" />
+                        <xs:maxLength value="16" />
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="PostalCountry" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Postal country</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1" />
+                        <xs:maxLength value="100" />
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="EmailAddress" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Email address. A contact can have more one or more email address.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1" />
+                        <xs:maxLength value="1024" />
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="PhoneNumber" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>A contact can have zero or more phone numbers.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1" />
+                        <xs:maxLength value="255" />
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="FaxNumber" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>A contact can have zero or more fax numbers.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1" />
+                        <xs:maxLength value="255" />
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="BICAddress" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>A contact can have zero or more swift.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1" />
+                        <xs:maxLength value="255" />
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="Description" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>A contact can have description.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1" />
+                        <xs:maxLength value="255" />
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="DeliveryType" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>A contact can have delivery type.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1" />
+                        <xs:maxLength value="255" />
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+        </xs:all>
+    </xs:complexType>
+<xs:complexType name="TypeEntity">
+
+        <xs:annotation>
+            <xs:documentation>Entity ID is unique
+            ================================
+            It is necessary that each entity must have a globally (across the entire structure) unique ID. This means that for the purposes of this import, the 'ID' element can be used to uniquely identify entities. This is to record which entity in an account it is to be attached to and also to identify whether it already exists in the database.
+            No need for separate entity type
+            ================================
+            The name of entity types are also unique and they have no other data associated with them. For this reason there is no need to have a separate section of XML for them. It is perfectly adequate for them to be expressed in the entity hierarchy. One constraint of interests is that an entity type cannot be duplicated in the same branch of the tree.
+            </xs:documentation>
+        </xs:annotation>
+
+        <xs:all>
+            <xs:element name="UserRoles" type="TypeUserRoleList" maxOccurs="1" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>The list of User Roles to which Account is associated.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+
+            <xs:element name="ID" maxOccurs="1" minOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Unique identifier of the entity.</xs:documentation></xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1"></xs:minLength>
+                        <xs:maxLength value="100"></xs:maxLength>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+
+            <xs:element name="PARENT_ID" maxOccurs="1" minOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Unique identifier of the parent of this entity.</xs:documentation></xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1"></xs:minLength>
+                        <xs:maxLength value="100"></xs:maxLength>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+
+            <xs:element name="Name" maxOccurs="1" minOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Name of the entity.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1"></xs:minLength>
+                        <xs:maxLength value="255"></xs:maxLength>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+
+            <xs:element name="Description" maxOccurs="1" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Description of the entity.</xs:documentation></xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1"></xs:minLength>
+                        <xs:maxLength value="255"></xs:maxLength>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+
+            <xs:element name="Type" maxOccurs="1" minOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Name of entity type.</xs:documentation>
+                </xs:annotation>
+
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1"></xs:minLength>
+                        <xs:maxLength value="255"></xs:maxLength>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+
+            <!-- xs:element name="Entities" type="TypeEntityList" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Child entities collection.</xs:documentation>
+                </xs:annotation>
+            </xs:element-->
+        </xs:all>
+    </xs:complexType>
+
+    <xs:complexType name="TypeEntityList">
+        <xs:annotation>
+            <xs:documentation>A collection of Entity that resides within parent Entity. This will result in hierarchy of entities.
+            </xs:documentation>
+        </xs:annotation>
+
+        <xs:sequence>
+            <xs:element name="Entity" type="TypeEntity" maxOccurs="unbounded" />
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="TypeUserRoleList">
+        <xs:annotation>
+            <xs:documentation>The list of User Roles to which account is associated.</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="UserRole" maxOccurs="unbounded"
+                minOccurs="1" type="TypeUserRole">
+                <xs:annotation>
+                    <xs:documentation>User Role.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="TypeUserRole">
+        <xs:annotation>
+            <xs:documentation>Holds User Role details.</xs:documentation>
+        </xs:annotation>
+        <xs:all>
+            <xs:element name="UserId" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>User Id which will be validated with USRR table.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1" />
+                        <xs:maxLength value="8" />
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="Role" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Role Id which will be validated with TLM_REF_ROLE table.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1" />
+                        <xs:maxLength value="255" />
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+        </xs:all>
+    </xs:complexType>
+
+    <xs:complexType name="TypeAccount">
+        <xs:annotation>
+            <xs:documentation>Account detail.</xs:documentation>
+        </xs:annotation>
+        <xs:all>
+            <xs:element name="UserRoles" type="TypeUserRoleList" maxOccurs="1" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>The list of User Roles to which Account is associated.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="EntityIDs" type="TypeEntityIDList" maxOccurs="1" minOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>The list of entity ids to which account is associated.</xs:documentation>
+                </xs:annotation></xs:element>
+            <xs:element name="Type" maxOccurs="1" minOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Account Type must be one of the soft configurable types that has been configured in the clients database during the implementation. By default, the Account Types that will be available out of the box are:
+                    1) Client
+                    2) Book
+                    3) Depot (Custodian)
+                    4) Counterparty
+                    </xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:maxLength value="255"></xs:maxLength>
+                        <xs:minLength value="1"></xs:minLength>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="ActiveStatus" maxOccurs="1" minOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Active Y or N.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:length value="1"></xs:length>
+                        <xs:enumeration value="Y"></xs:enumeration>
+                        <xs:enumeration value="N"></xs:enumeration>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="AccountNumber" maxOccurs="1" minOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Unique Account Number that is associated to the Account Name.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1"></xs:minLength>
+                        <xs:maxLength value="255"></xs:maxLength>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="Description" maxOccurs="1" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Description of the Account.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="0"></xs:minLength>
+                        <xs:maxLength value="255"></xs:maxLength>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="Name" maxOccurs="1" minOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Name of this account.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1"></xs:minLength>
+                        <xs:maxLength value="255"></xs:maxLength>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="Country" maxOccurs="1" minOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>ISO Code or string that will be linked to the ISO Code during load. Validation error to be generated when link cannot be established.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1" />
+                        <xs:maxLength value="100" />
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="Currency" maxOccurs="1" minOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>ISO Code or string that will be linked to the ISO Code during load. Validation error to be generated when link cannot be established.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:maxLength value="255"></xs:maxLength>
+                        <xs:minLength value="1"></xs:minLength>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="BICAddress" maxOccurs="1" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Specify the BIC Address to use for this account.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:maxLength value="255"></xs:maxLength>
+                        <xs:minLength value="1"></xs:minLength>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="IsDataProvider" maxOccurs="1" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Specify if this account is a data provider. If this field is set, the account must have a BIC Code.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:maxLength value="255"></xs:maxLength>
+                        <xs:minLength value="0"></xs:minLength>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="CashAccounts" type="TypeCashAccountList" maxOccurs="1" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Linked cash account details.</xs:documentation></xs:annotation></xs:element>
+            <xs:element name="Language" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Language of the account. This is used to generate report, FAX, Email in the language specified.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1"></xs:minLength>
+                        <xs:maxLength value="255"></xs:maxLength>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="TaxBand" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Each account can belongs to one tax band, which is will affect the entitlement calculation and hence final position.          </xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1"></xs:minLength>
+                        <xs:maxLength value="64"></xs:maxLength>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="Notifications" type="TypeNotification" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Account notification detail that will be used by TLM CAS communication module.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="ContactTypes" type="TypeContactTypeList" maxOccurs="1" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Contact Types list that will be used by TLM CAS communication module.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="CompanyName" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Company name of account.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1"></xs:minLength>
+                        <xs:maxLength value="255"></xs:maxLength>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="Fund" maxOccurs="1" minOccurs="0">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1"></xs:minLength>
+                        <xs:maxLength value="255"></xs:maxLength>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+        </xs:all>
+    </xs:complexType>
+    <xs:complexType name="TypeCashAccount">
+        <xs:annotation>
+            <xs:documentation>Holds cash account's basic details.</xs:documentation>
+        </xs:annotation>
+        <xs:all>
+            <xs:element name="AccountNumber" maxOccurs="1" minOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>The main Security Holding account may have many cash accounts associated to it per currency. This is not mandatory but some clients require multiple cash accounts to be stored against the Holding account to facilitate Cash Entitlements to be posted to the correct account.
+                    </xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:maxLength value="255"></xs:maxLength>
+                        <xs:minLength value="1"></xs:minLength>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="Currency" maxOccurs="1" minOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>ISO Code or string that will be linked to the ISO Code during load. Validation error to be generated when link cannot be established.
+                    </xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:maxLength value="255"></xs:maxLength>
+                        <xs:minLength value="1"></xs:minLength>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+        </xs:all>
+    </xs:complexType>
+    <xs:complexType name="TypeNotification">
+        <xs:annotation>
+            <xs:documentation>Holds Notification details.</xs:documentation>
+        </xs:annotation>
+        <xs:all>
+            <xs:element name="MediaType" maxOccurs="1" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Media type can be SWIFT or FAX or EMAIL</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1"></xs:minLength>
+                        <xs:maxLength value="255"></xs:maxLength>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="CommunicationPreference" maxOccurs="1" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Communication preference i.e. FAX or SWIFT or EMAIL.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:maxLength value="255"></xs:maxLength>
+                        <xs:minLength value="1"></xs:minLength>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="AutoReleaseCommunication" maxOccurs="1" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Auto release communication flag to bypass the authorisation or confirmation.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:length value="1"></xs:length>
+                        <xs:enumeration value="Y"></xs:enumeration>
+                        <xs:enumeration value="N"></xs:enumeration>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+        </xs:all>
+    </xs:complexType>
+    <xs:complexType name="TypeEntityIDList">
+        <xs:annotation>
+            <xs:documentation>The list of entity ids to which account is associated.</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="EntityID" maxOccurs="unbounded" minOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>
+                        The name of a valid entity that should exist in database or in this feed.
+                    </xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:maxLength value="100"></xs:maxLength>
+                        <xs:minLength value="1"></xs:minLength>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="TypeCashAccountList">
+        <xs:annotation>
+            <xs:documentation>Linked cash account details.</xs:documentation></xs:annotation>
+        <xs:sequence>
+            <xs:element name="CashAccount" type="TypeCashAccount" maxOccurs="unbounded" minOccurs="1"></xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="TypeContactTypeList">
+        <xs:annotation>
+            <xs:documentation>Linked contact details.</xs:documentation></xs:annotation>
+        <xs:sequence>
+            <xs:element name="ContactType" type="TypeContactType" maxOccurs="unbounded" minOccurs="1"></xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="TypeContactType">
+        <xs:annotation>
+            <xs:documentation>Contact Type detail.</xs:documentation>
+        </xs:annotation>
+        <xs:all>
+            <xs:element name="Type" maxOccurs="1" minOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Contact Type must be one of the soft configurable types that has been configured in the clients database during the implementation. By default, the Account Types that will be available out of the box are:
+                    1) Main
+                    2) Attourney
+                    3) Auditor
+                    </xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:maxLength value="255"></xs:maxLength>
+                        <xs:minLength value="1"></xs:minLength>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="FirstName" maxOccurs="1" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Swift address for a contact. </xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1"></xs:minLength>
+                        <xs:maxLength value="255"></xs:maxLength>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="Surname" maxOccurs="1" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Swift address for a contact. </xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1"></xs:minLength>
+                        <xs:maxLength value="255"></xs:maxLength>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="Contact" minOccurs="1" type="TypeContact" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>The contact details associated with the contact type.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:all>
+    </xs:complexType>
+
+</xs:schema>

@@ -1,0 +1,20 @@
+<S:Envelope xmlns:S="http://schemas.xmlsoap.org/soap/envelope/">
+    <S:Body>
+        <CloseResponse xmlns="urn:swift:saa:xsd:soapha">
+            <Saa:DataPDU xmlns:Saa="urn:swift:saa:xsd:saa.2.0"
+                    >
+                <Saa:Header>
+                    <Saa:SessionStatus>
+                        <Saa:MessagePartner>SOAPInputAT</Saa:MessagePartner>
+                        <Saa:CreationTime>20120411100813</Saa:CreationTime>
+                        <Saa:SessionNr>0014</Saa:SessionNr>
+                        <Saa:IsSuccess>true</Saa:IsSuccess>
+                        <Saa:SessionDirection>FromMessagePartner</Saa:SessionDirection>
+                        <Saa:AcceptedFromMessagePartner>0</Saa:AcceptedFromMessagePartner>
+                        <Saa:RejectedFromMessagePartner>0</Saa:RejectedFromMessagePartner>
+                    </Saa:SessionStatus>
+                </Saa:Header>
+            </Saa:DataPDU>
+        </CloseResponse>
+    </S:Body>
+</S:Envelope>

@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+== Copyright (c) 2002-2014. All rights reserved. 
+== Financial Products Markup Language is subject to the FpML public license. 
+== A copy of this license is available at http://www.fpml.org/license/license.html
+-->
+<xsd:schema targetNamespace="http://svn.msk.trd.ru/xsd/fixml" xmlns="http://svn.msk.trd.ru/xsd/fixml" xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified" version="$Revision: 11574 $" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" xmlns:dsig="http://www.w3.org/2000/09/xmldsig#" ecore:nsPrefix="fpml" ecore:package="org.fpml" ecore:documentRoot="FpML" xmlns:fpml-annotation="http://www.fpml.org/annotation" xmlns:view="http://www.fpml.org/views">
+	<xsd:annotation>
+		<xsd:documentation xml:lang="en">products</xsd:documentation>
+	</xsd:annotation>
+	<xsd:include schemaLocation="fpml-generic.xsd">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<view:skip view="pretrade" rationale="Unsupported"/>
+				<view:skip view="legal" rationale="Unsupported"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:include>
+	<xsd:include schemaLocation="fpml-standard.xsd">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<view:skip view="pretrade" rationale="Unsupported"/>
+				<view:skip view="legal" rationale="Unsupported"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:include>
+ 	<xsd:include schemaLocation="fpml-ird.xsd">
+ 		<xsd:annotation>
+ 			<xsd:appinfo>
+ 				<view:skip view="legal" rationale="Unsupported"/>
+ 			</xsd:appinfo>
+ 		</xsd:annotation>
+ 	</xsd:include>
+	<xsd:include schemaLocation="fpml-fx.xsd">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<view:skip view="legal" rationale="Unsupported"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:include>
+	<xsd:include schemaLocation="fpml-fx-complex.xsd">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<view:skip view="pretrade" rationale="Unsupported"/>
+				<view:skip view="legal" rationale="Unsupported"/>
+				<view:skip view="transparency" rationale="Unsupported"/>
+				<view:skip view="recordkeeping" rationale="Unsupported"/>
+				<view:skip view="reporting" rationale="Unsupported"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:include>
+	<xsd:include schemaLocation="fpml-eqd.xsd">
+		<xsd:annotation>
+			<xsd:appinfo>
+ 				<view:skip view="pretrade" rationale="Unsupported"/>
+				<view:skip view="legal" rationale="Unsupported"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:include>
+	<xsd:include schemaLocation="fpml-repo.xsd">
+		<xsd:annotation>
+			<xsd:appinfo>
+ 				<view:skip view="pretrade" rationale="Unsupported"/>
+				<view:skip view="legal" rationale="Unsupported"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:include>
+	<xsd:include schemaLocation="fpml-return-swaps.xsd">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<view:skip view="pretrade" rationale="Unsupported"/>
+				<view:skip view="legal" rationale="Unsupported"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:include>
+ 	<xsd:include schemaLocation="fpml-cd.xsd">
+ 		<xsd:annotation>
+ 			<xsd:appinfo>
+ 				<view:skip view="legal" rationale="Unsupported"/>
+ 			</xsd:appinfo>
+ 		</xsd:annotation>
+ 	</xsd:include>
+	<xsd:include schemaLocation="fpml-bond-option.xsd">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<view:skip view="pretrade" rationale="Unsupported"/>
+				<view:skip view="legal" rationale="Unsupported"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:include>
+	<xsd:include schemaLocation="fpml-correlation-swaps.xsd">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<view:skip view="pretrade" rationale="Unsupported"/>
+				<view:skip view="legal" rationale="Unsupported"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:include>
+	<xsd:include schemaLocation="fpml-dividend-swaps.xsd">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<view:skip view="pretrade" rationale="Unsupported"/>
+				<view:skip view="legal" rationale="Unsupported"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:include>
+	<xsd:include schemaLocation="fpml-variance-swaps.xsd">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<view:skip view="pretrade" rationale="Unsupported"/>
+				<view:skip view="legal" rationale="Unsupported"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:include>
+	<xsd:include schemaLocation="fpml-com.xsd">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<view:skip view="pretrade" rationale="Unsupported"/>
+				<view:skip view="legal" rationale="Unsupported"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:include>
+    <xsd:annotation>
+		<xsd:documentation xml:lang="en">business process messaging</xsd:documentation>
+	</xsd:annotation>
+	<xsd:include schemaLocation="fpml-clearing-processes.xsd">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<view:exclusive view="confirmation"/>
+				<view:exclusive view="pretrade"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:include>
+	<xsd:include schemaLocation="fpml-pretrade-processes.xsd">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<view:exclusive view="pretrade"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:include>
+	<xsd:include schemaLocation="fpml-confirmation-processes.xsd">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<view:exclusive view="confirmation"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:include>
+	<xsd:include schemaLocation="fpml-collateral-processes.xsd">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<view:exclusive view="reporting"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:include>
+
+	<xsd:annotation>
+		<xsd:documentation xml:lang="en">reporting and settlement</xsd:documentation>
+	</xsd:annotation>
+	<xsd:include schemaLocation="fpml-credit-event-notification.xsd">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<view:skip view="pretrade" rationale="Unsupported"/>
+				<view:skip view="legal" rationale="Unsupported"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:include>
+	<xsd:include schemaLocation="fpml-reporting.xsd">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<view:exclusive view="reporting"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:include>
+	<xsd:include schemaLocation="fpml-valuation-reporting.xsd">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<view:exclusive view="recordkeeping"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:include>
+	<xsd:include schemaLocation="fpml-reconciliation.xsd">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<view:exclusive view="reporting"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:include>
+	<xsd:include schemaLocation="fpml-transparency-processes.xsd">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<view:exclusive view="transparency"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:include>
+	<xsd:include schemaLocation="fpml-recordkeeping-processes.xsd">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<view:exclusive view="recordkeeping"/>
+				<view:exclusive view="reporting"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:include>
+ 	
+	<xsd:include schemaLocation="fpml-valuation.xsd">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<view:exclusive view="reporting" />
+				<view:exclusive view="confirmation" />
+				<view:exclusive view="recordkeeping" />
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:include>
+	
+	<xsd:include schemaLocation="fpml-legal.xsd">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<view:exclusive view="legal" />
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:include>
+
+<!-- begin of the document -->
+	
+	<xsd:complexType name="ValuationDocument">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A type defining a content model that includes valuation (pricing and risk) data without expressing any processing intention.</xsd:documentation>
+			<xsd:appinfo>
+				<view:skip view="pretrade" rationale="Unsupported"/>
+				<view:skip view="transparency" rationale="Unsupported"/>
+				<view:skip view="legal" rationale="Unsupported"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="DataDocument">
+				<xsd:sequence>
+					<xsd:element ref="market" minOccurs="0" maxOccurs="unbounded"/>
+					<xsd:element ref="valuationSet" minOccurs="0" maxOccurs="unbounded"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	
+	<xsd:element name="dataDocument" type="DataDocument">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A document containing trade and/or portfolio and/or party data without expressing any processing intention.</xsd:documentation>
+			<xsd:appinfo>
+				<view:skip view="legal" rationale="Unsupported"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:element>
+	<xsd:element name="legalDocument" type="LegalDocument">
+		<xsd:annotation>
+			<xsd:documentation>A legal document.</xsd:documentation>
+			<xsd:appinfo>
+				<view:skip view="confirmation" rationale="Unsupported"/>
+				<view:skip view="reporting" rationale="Unsupported"/>
+				<view:skip view="pretrade" rationale="Unsupported"/>
+				<view:skip view="transparency" rationale="Unsupported"/>
+				<view:skip view="recordkeeping" rationale="Unsupported"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:element>
+	<xsd:element name="valuationDocument" type="ValuationDocument">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">A document that includes trade and/or valuation (pricing and risk) data without expressing any processing intention.</xsd:documentation>
+			<xsd:appinfo>
+				<view:skip view="pretrade" rationale="Unsupported"/>
+				<view:skip view="transparency" rationale="Unsupported"/>
+				<view:skip view="legal" rationale="Unsupported"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:element>
+</xsd:schema>

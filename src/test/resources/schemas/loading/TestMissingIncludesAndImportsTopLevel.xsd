@@ -1,0 +1,15 @@
+<xsd:schema
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        targetNamespace="urn:a"
+        xmlns:d="urn:d"
+        elementFormDefault="qualified">
+
+    <xsd:import namespace="urn:not-to-be-found-a"/>
+
+    <xsd:import schemaLocation="not-to-be-found-b.xsd"/>
+
+    <xsd:include schemaLocation="TestMissingIncludesAndImports-child-include.xsd"/>
+
+    <xsd:import namespace="urn:d" schemaLocation="TestMissingIncludesAndImports-child-import.xsd"/>
+
+</xsd:schema>

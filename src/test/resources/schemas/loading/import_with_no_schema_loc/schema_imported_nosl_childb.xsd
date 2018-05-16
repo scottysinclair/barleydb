@@ -1,0 +1,8 @@
+<xsd:schema
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        elementFormDefault="qualified"
+        targetNamespace="urn:b">
+
+    <xsd:element name="childb" type="xsd:string"/>
+
+</xsd:schema>

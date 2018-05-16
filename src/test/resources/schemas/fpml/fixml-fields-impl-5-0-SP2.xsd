@@ -1,0 +1,2521 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	$HeadURL: file:///opt/svnroot/xsd/fixml/trunk/fixml-fields-impl-5-0-SP2.xsd $
+	$Revision: 187 $
+	$Author: AKudinov $
+	$Id: fixml-fields-impl-5-0-SP2.xsd 187 2014-10-16 05:21:04Z AKudinov $
+	- - - - - - - - - - - - - - - - - - - - - - - - - -
+    Generated:2009-04-19T13:43:43.089-05:00
+    Revision: FIXML  Schema Version  FIX.5.0SP2
+    Copyright(c) FIX Protocol Limited.  All rights reserved.
+    Comments and errors should be posted on the FIX protocol web-site
+    http://www.fixprotocol.org
+	- - - - - - - - - - - - - - - - - - - - - - - - - -
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://svn.msk.trd.ru/xsd/fixml"
+           xmlns:fm="http://svn.msk.trd.ru/xsd/fixml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           targetNamespace="http://svn.msk.trd.ru/xsd/fixml" elementFormDefault="qualified"
+           attributeFormDefault="unqualified"
+           xsi:schemaLocation="http://svn.msk.trd.ru/xsd/fixml fixml-metadata-5-0-SP2.xsd">
+    <xs:include schemaLocation="fixml-fields-base-5-0-SP2.xsd"/>
+    <xs:simpleType name="AdvSide_t">
+        <xs:restriction base="AdvSide_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="AdvTransType_t">
+        <xs:restriction base="AdvTransType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="CommType_t">
+        <xs:restriction base="CommType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ExecInst_t">
+        <xs:restriction base="ExecInst_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="HandlInst_t">
+        <xs:restriction base="HandlInst_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SecurityIDSource_t">
+        <xs:restriction base="SecurityIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="IOIQltyInd_t">
+        <xs:restriction base="IOIQltyInd_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="IOIQty_t">
+        <xs:restriction base="IOIQty_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="IOITransType_t">
+        <xs:restriction base="IOITransType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="LastCapacity_t">
+        <xs:restriction base="LastCapacity_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="MsgType_t">
+        <xs:restriction base="MsgType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="OrdStatus_t">
+        <xs:restriction base="OrdStatus_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="OrdType_t">
+        <xs:restriction base="OrdType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PossDupFlag_t">
+        <xs:restriction base="PossDupFlag_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="Side_t">
+        <xs:restriction base="Side_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TimeInForce_t">
+        <xs:restriction base="TimeInForce_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="Urgency_t">
+        <xs:restriction base="Urgency_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SettlType_t">
+        <xs:union memberTypes="SettlType_enum_t Tenor"/>
+    </xs:simpleType>
+    <xs:simpleType name="SymbolSfx_t">
+        <xs:restriction base="SymbolSfx_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="AllocTransType_t">
+        <xs:restriction base="AllocTransType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PositionEffect_t">
+        <xs:restriction base="PositionEffect_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ProcessCode_t">
+        <xs:restriction base="ProcessCode_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="AllocStatus_t">
+        <xs:restriction base="AllocStatus_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="AllocRejCode_t">
+        <xs:union memberTypes="AllocRejCode_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="EmailType_t">
+        <xs:restriction base="EmailType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PossResend_t">
+        <xs:restriction base="PossResend_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="CxlRejReason_t">
+        <xs:union memberTypes="CxlRejReason_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="OrdRejReason_t">
+        <xs:union memberTypes="OrdRejReason_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="IOIQualifier_t">
+        <xs:restriction base="IOIQualifier_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ReportToExch_t">
+        <xs:restriction base="ReportToExch_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="LocateReqd_t">
+        <xs:restriction base="LocateReqd_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ForexReq_t">
+        <xs:restriction base="ForexReq_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DKReason_t">
+        <xs:restriction base="DKReason_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="IOINaturalFlag_t">
+        <xs:restriction base="IOINaturalFlag_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="MiscFeeType_t">
+        <xs:restriction base="MiscFeeType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ExecType_t">
+        <xs:restriction base="ExecType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SettlCurrFxRateCalc_t">
+        <xs:restriction base="SettlCurrFxRateCalc_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SettlInstMode_t">
+        <xs:restriction base="SettlInstMode_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SettlInstTransType_t">
+        <xs:restriction base="SettlInstTransType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SettlInstSource_t">
+        <xs:restriction base="SettlInstSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SecurityType_t">
+        <xs:restriction base="SecurityType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="StandInstDbType_t">
+        <xs:restriction base="StandInstDbType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SettlDeliveryType_t">
+        <xs:restriction base="SettlDeliveryType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="AllocLinkType_t">
+        <xs:restriction base="AllocLinkType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PutOrCall_t">
+        <xs:restriction base="PutOrCall_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="CoveredOrUncovered_t">
+        <xs:restriction base="CoveredOrUncovered_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="NotifyBrokerOfCredit_t">
+        <xs:restriction base="NotifyBrokerOfCredit_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="AllocHandlInst_t">
+        <xs:restriction base="AllocHandlInst_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RoutingType_t">
+        <xs:restriction base="RoutingType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="BenchmarkCurveName_t">
+        <xs:restriction base="BenchmarkCurveName_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="StipulationType_t">
+        <xs:restriction base="StipulationType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="YieldType_t">
+        <xs:restriction base="YieldType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TradedFlatSwitch_t">
+        <xs:restriction base="TradedFlatSwitch_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SubscriptionRequestType_t">
+        <xs:restriction base="SubscriptionRequestType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="MDUpdateType_t">
+        <xs:restriction base="MDUpdateType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="AggregatedBook_t">
+        <xs:restriction base="AggregatedBook_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="MDEntryType_t">
+        <xs:restriction base="MDEntryType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TickDirection_t">
+        <xs:restriction base="TickDirection_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="QuoteCondition_t">
+        <xs:restriction base="QuoteCondition_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TradeCondition_t">
+        <xs:restriction base="TradeCondition_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="MDUpdateAction_t">
+        <xs:restriction base="MDUpdateAction_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="MDReqRejReason_t">
+        <xs:restriction base="MDReqRejReason_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DeleteReason_t">
+        <xs:restriction base="DeleteReason_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="OpenCloseSettlFlag_t">
+        <xs:restriction base="OpenCloseSettlFlag_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="FinancialStatus_t">
+        <xs:restriction base="FinancialStatus_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="CorporateAction_t">
+        <xs:restriction base="CorporateAction_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="QuoteStatus_t">
+        <xs:restriction base="QuoteStatus_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="QuoteCancelType_t">
+        <xs:union memberTypes="QuoteCancelType_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="QuoteRejectReason_t">
+        <xs:union memberTypes="QuoteRejectReason_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="QuoteResponseLevel_t">
+        <xs:restriction base="QuoteResponseLevel_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="QuoteRequestType_t">
+        <xs:restriction base="QuoteRequestType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="UnderlyingSecurityIDSource_t">
+        <xs:restriction base="SecurityIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="UnderlyingSecurityType_t">
+        <xs:restriction base="SecurityType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="UnderlyingSymbolSfx_t">
+        <xs:restriction base="SymbolSfx_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SecurityRequestType_t">
+        <xs:restriction base="SecurityRequestType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SecurityResponseType_t">
+        <xs:restriction base="SecurityResponseType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="UnsolicitedIndicator_t">
+        <xs:restriction base="UnsolicitedIndicator_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SecurityTradingStatus_t">
+        <xs:union memberTypes="SecurityTradingStatus_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="HaltReason_t">
+        <xs:union memberTypes="HaltReason_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="InViewOfCommon_t">
+        <xs:restriction base="InViewOfCommon_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DueToRelated_t">
+        <xs:restriction base="DueToRelated_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="Adjustment_t">
+        <xs:restriction base="Adjustment_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TradingSessionID_t">
+        <xs:union memberTypes="TradingSessionID_enum_t Reserved100Plus xs:string"/>
+    </xs:simpleType>
+	
+<!--murex -->
+    <xs:simpleType name="TradeBoards_t">
+        <xs:restriction base="TradeBoards_enum_t"/>
+    </xs:simpleType>
+	
+    <xs:simpleType name="TradSesMethod_t">
+        <xs:restriction base="TradSesMethod_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TradSesMode_t">
+        <xs:restriction base="TradSesMode_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TradSesStatus_t">
+        <xs:union memberTypes="TradSesStatus_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="QuoteEntryRejectReason_t">
+        <xs:union memberTypes="QuoteRejectReason_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="RefMsgType_t">
+        <xs:restriction base="MsgType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="BidRequestTransType_t">
+        <xs:restriction base="BidRequestTransType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SolicitedFlag_t">
+        <xs:restriction base="SolicitedFlag_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ExecRestatementReason_t">
+        <xs:union memberTypes="ExecRestatementReason_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="BusinessRejectReason_t">
+        <xs:restriction base="BusinessRejectReason_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DiscretionInst_t">
+        <xs:restriction base="DiscretionInst_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="BidType_t">
+        <xs:restriction base="BidType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="BidDescriptorType_t">
+        <xs:restriction base="BidDescriptorType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SideValueInd_t">
+        <xs:restriction base="SideValueInd_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="LiquidityIndType_t">
+        <xs:restriction base="LiquidityIndType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ExchangeForPhysical_t">
+        <xs:restriction base="ExchangeForPhysical_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ProgRptReqs_t">
+        <xs:restriction base="ProgRptReqs_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="IncTaxInd_t">
+        <xs:restriction base="IncTaxInd_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="BidTradeType_t">
+        <xs:restriction base="BidTradeType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="BasisPxType_t">
+        <xs:restriction base="BasisPxType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PriceType_t">
+        <xs:restriction base="PriceType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="GTBookingInst_t">
+        <xs:restriction base="GTBookingInst_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ListStatusType_t">
+        <xs:restriction base="ListStatusType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="NetGrossInd_t">
+        <xs:restriction base="NetGrossInd_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ListOrderStatus_t">
+        <xs:restriction base="ListOrderStatus_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ListExecInstType_t">
+        <xs:restriction base="ListExecInstType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="CxlRejResponseTo_t">
+        <xs:restriction base="CxlRejResponseTo_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="MultiLegReportingType_t">
+        <xs:restriction base="MultiLegReportingType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PartyIDSource_t">
+        <xs:restriction base="PartyIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PartyRole_t">
+        <xs:restriction base="PartyRole_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SecurityAltIDSource_t">
+        <xs:restriction base="SecurityIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="UnderlyingSecurityAltIDSource_t">
+        <xs:restriction base="SecurityIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="Product_t">
+        <xs:restriction base="Product_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="UnderlyingProduct_t">
+        <xs:restriction base="Product_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="QuantityType_t">
+        <xs:restriction base="QuantityType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RoundingDirection_t">
+        <xs:restriction base="RoundingDirection_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DistribPaymentMethod_t">
+        <xs:union memberTypes="DistribPaymentMethod_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="CancellationRights_t">
+        <xs:restriction base="CancellationRights_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="MoneyLaunderingStatus_t">
+        <xs:restriction base="MoneyLaunderingStatus_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ExecPriceType_t">
+        <xs:restriction base="ExecPriceType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TradeReportTransType_t">
+        <xs:restriction base="TradeReportTransType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RDReportTransType_t">
+        <xs:restriction base="RDReportTransType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="AgreementState_t">
+        <xs:restriction base="AgreementState_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="AgreementType_t">
+        <xs:restriction base="AgreementType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PaymentMethod_t">
+        <xs:union memberTypes="PaymentMethod_enum_t Reserved1000Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="TaxAdvantageType_t">
+        <xs:union memberTypes="TaxAdvantageType_enum_t Reserved1000Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="FundRenewWaiv_t">
+        <xs:restriction base="FundRenewWaiv_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RegistStatus_t">
+        <xs:restriction base="RegistStatus_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RegistRejReasonCode_t">
+        <xs:union memberTypes="RegistRejReasonCode_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="RegistTransType_t">
+        <xs:restriction base="RegistTransType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="OwnershipType_t">
+        <xs:restriction base="OwnershipType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ContAmtType_t">
+        <xs:restriction base="ContAmtType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="OwnerType_t">
+        <xs:restriction base="OwnerType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="NestedPartyIDSource_t">
+        <xs:restriction base="PartyIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="OrderCapacity_t">
+        <xs:restriction base="OrderCapacity_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="OrderRestrictions_t">
+        <xs:restriction base="OrderRestrictions_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="MassCancelRequestType_t">
+        <xs:restriction base="MassCancelRequestType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="MassCancelResponse_t">
+        <xs:restriction base="MassCancelResponse_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="MassCancelRejectReason_t">
+        <xs:union memberTypes="MassCancelRejectReason_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="QuoteType_t">
+        <xs:restriction base="QuoteType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="NestedPartyRole_t">
+        <xs:restriction base="PartyRole_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="CashMargin_t">
+        <xs:restriction base="CashMargin_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="Scope_t">
+        <xs:restriction base="Scope_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="MDImplicitDelete_t">
+        <xs:restriction base="MDImplicitDelete_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="CrossType_t">
+        <xs:restriction base="CrossType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="CrossPrioritization_t">
+        <xs:restriction base="CrossPrioritization_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SecurityListRequestType_t">
+        <xs:restriction base="SecurityListRequestType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SecurityRequestResult_t">
+        <xs:restriction base="SecurityRequestResult_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="MultiLegRptTypeReq_t">
+        <xs:restriction base="MultiLegRptTypeReq_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="LegPositionEffect_t">
+        <xs:restriction base="PositionEffect_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="LegCoveredOrUncovered_t">
+        <xs:restriction base="CoveredOrUncovered_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TradSesStatusRejReason_t">
+        <xs:union memberTypes="TradSesStatusRejReason_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="TradeRequestType_t">
+        <xs:restriction base="TradeRequestType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PreviouslyReported_t">
+        <xs:restriction base="PreviouslyReported_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="MatchStatus_t">
+        <xs:restriction base="MatchStatus_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="MatchType_t">
+        <xs:restriction base="MatchType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="OddLot_t">
+        <xs:restriction base="OddLot_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ClearingInstruction_t">
+        <xs:restriction base="ClearingInstruction_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="AccountType_t">
+        <xs:restriction base="AccountType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="CustOrderCapacity_t">
+        <xs:restriction base="CustOrderCapacity_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="MassStatusReqType_t">
+        <xs:union memberTypes="MassStatusReqType_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="LegSettlType_t">
+        <xs:restriction base="SettlType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DayBookingInst_t">
+        <xs:restriction base="DayBookingInst_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="BookingUnit_t">
+        <xs:restriction base="BookingUnit_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PreallocMethod_t">
+        <xs:restriction base="PreallocMethod_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="LegSymbolSfx_t">
+        <xs:restriction base="SymbolSfx_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="LegSecurityIDSource_t">
+        <xs:restriction base="SecurityIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="LegSecurityAltIDSource_t">
+        <xs:restriction base="SecurityIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="LegProduct_t">
+        <xs:restriction base="Product_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="LegSecurityType_t">
+        <xs:restriction base="SecurityType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="LegSide_t">
+        <xs:restriction base="Side_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TradingSessionSubID_t">
+        <xs:union memberTypes="TradingSessionSubID_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="AllocType_t">
+        <xs:restriction base="AllocType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ClearingFeeIndicator_t">
+        <xs:restriction base="ClearingFeeIndicator_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="WorkingIndicator_t">
+        <xs:restriction base="WorkingIndicator_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PriorityIndicator_t">
+        <xs:restriction base="PriorityIndicator_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="LegalConfirm_t">
+        <xs:restriction base="LegalConfirm_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="QuoteRequestRejectReason_t">
+        <xs:union memberTypes="QuoteRequestRejectReason_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="AcctIDSource_t">
+        <xs:union memberTypes="AcctIDSource_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="AllocAcctIDSource_t">
+        <xs:restriction base="AcctIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="BenchmarkPriceType_t">
+        <xs:restriction base="PriceType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ConfirmStatus_t">
+        <xs:restriction base="ConfirmStatus_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ConfirmTransType_t">
+        <xs:restriction base="ConfirmTransType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DeliveryForm_t">
+        <xs:restriction base="DeliveryForm_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="LegBenchmarkCurveName_t">
+        <xs:restriction base="BenchmarkCurveName_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="LegIOIQty_t">
+        <xs:restriction base="IOIQty_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="LegPriceType_t">
+        <xs:restriction base="PriceType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="LegStipulationType_t">
+        <xs:restriction base="StipulationType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="LegSwapType_t">
+        <xs:restriction base="LegSwapType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="QuotePriceType_t">
+        <xs:restriction base="QuotePriceType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="QuoteRespType_t">
+        <xs:restriction base="QuoteRespType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="QuoteQualifier_t">
+        <xs:restriction base="IOIQualifier_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="YieldRedemptionPriceType_t">
+        <xs:restriction base="PriceType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PosType_t">
+        <xs:restriction base="PosType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PosQtyStatus_t">
+        <xs:restriction base="PosQtyStatus_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PosAmtType_t">
+        <xs:restriction base="PosAmtType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PosTransType_t">
+        <xs:restriction base="PosTransType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PosMaintAction_t">
+        <xs:restriction base="PosMaintAction_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SettlSessID_t">
+        <xs:restriction base="SettlSessID_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="AdjustmentType_t">
+        <xs:restriction base="AdjustmentType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PosMaintStatus_t">
+        <xs:restriction base="PosMaintStatus_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PosMaintResult_t">
+        <xs:union memberTypes="PosMaintResult_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="PosReqType_t">
+        <xs:restriction base="PosReqType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ResponseTransportType_t">
+        <xs:restriction base="ResponseTransportType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PosReqResult_t">
+        <xs:union memberTypes="PosReqResult_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="PosReqStatus_t">
+        <xs:restriction base="PosReqStatus_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SettlPriceType_t">
+        <xs:restriction base="SettlPriceType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="UnderlyingSettlPriceType_t">
+        <xs:restriction base="SettlPriceType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="AssignmentMethod_t">
+        <xs:restriction base="AssignmentMethod_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ExerciseMethod_t">
+        <xs:restriction base="ExerciseMethod_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TradeRequestResult_t">
+        <xs:union memberTypes="TradeRequestResult_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="TradeRequestStatus_t">
+        <xs:restriction base="TradeRequestStatus_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TradeReportRejectReason_t">
+        <xs:union memberTypes="TradeReportRejectReason_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="SideMultiLegReportingType_t">
+        <xs:restriction base="SideMultiLegReportingType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="Nested2PartyIDSource_t">
+        <xs:restriction base="PartyIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="Nested2PartyRole_t">
+        <xs:restriction base="PartyRole_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="BenchmarkSecurityIDSource_t">
+        <xs:restriction base="SecurityIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TrdRegTimestampType_t">
+        <xs:restriction base="TrdRegTimestampType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ConfirmType_t">
+        <xs:restriction base="ConfirmType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ConfirmRejReason_t">
+        <xs:union memberTypes="ConfirmRejReason_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="BookingType_t">
+        <xs:restriction base="BookingType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="IndividualAllocRejCode_t">
+        <xs:restriction base="AllocRejCode_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="AllocSettlInstType_t">
+        <xs:restriction base="AllocSettlInstType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SettlPartyIDSource_t">
+        <xs:restriction base="PartyIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SettlPartyRole_t">
+        <xs:restriction base="PartyRole_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SettlPartySubIDType_t">
+        <xs:restriction base="PartySubIDType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DlvyInstType_t">
+        <xs:restriction base="DlvyInstType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TerminationType_t">
+        <xs:restriction base="TerminationType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SettlInstReqRejCode_t">
+        <xs:union memberTypes="SettlInstReqRejCode_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="AllocReportType_t">
+        <xs:restriction base="AllocReportType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="AllocCancReplaceReason_t">
+        <xs:union memberTypes="AllocCancReplaceReason_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="AllocAccountType_t">
+        <xs:restriction base="AllocAccountType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PartySubIDType_t">
+        <xs:union memberTypes="PartySubIDType_enum_t Reserved4000Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="NestedPartySubIDType_t">
+        <xs:restriction base="PartySubIDType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="Nested2PartySubIDType_t">
+        <xs:restriction base="PartySubIDType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="AllocIntermedReqType_t">
+        <xs:restriction base="AllocIntermedReqType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ApplQueueResolution_t">
+        <xs:restriction base="ApplQueueResolution_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ApplQueueAction_t">
+        <xs:restriction base="ApplQueueAction_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="AvgPxIndicator_t">
+        <xs:restriction base="AvgPxIndicator_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TradeAllocIndicator_t">
+        <xs:restriction base="TradeAllocIndicator_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ExpirationCycle_t">
+        <xs:restriction base="ExpirationCycle_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TrdType_t">
+        <xs:union memberTypes="TrdType_enum_t Reserved1000Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="TrdSubType_t">
+        <xs:union memberTypes="TrdSubType_enum_t Reserved1000Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="PegMoveType_t">
+        <xs:restriction base="PegMoveType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PegOffsetType_t">
+        <xs:restriction base="PegOffsetType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PegLimitType_t">
+        <xs:restriction base="PegLimitType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PegRoundDirection_t">
+        <xs:restriction base="PegRoundDirection_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PegScope_t">
+        <xs:restriction base="PegScope_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DiscretionMoveType_t">
+        <xs:restriction base="DiscretionMoveType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DiscretionOffsetType_t">
+        <xs:restriction base="DiscretionOffsetType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DiscretionLimitType_t">
+        <xs:restriction base="DiscretionLimitType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DiscretionRoundDirection_t">
+        <xs:restriction base="DiscretionRoundDirection_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DiscretionScope_t">
+        <xs:restriction base="DiscretionScope_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TargetStrategy_t">
+        <xs:union memberTypes="TargetStrategy_enum_t Reserved1000Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="LastLiquidityInd_t">
+        <xs:restriction base="LastLiquidityInd_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PublishTrdIndicator_t">
+        <xs:restriction base="PublishTrdIndicator_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ShortSaleReason_t">
+        <xs:restriction base="ShortSaleReason_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="QtyType_t">
+        <xs:restriction base="QtyType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SecondaryTrdType_t">
+        <xs:restriction base="TrdType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TradeReportType_t">
+        <xs:restriction base="TradeReportType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="AllocNoOrdersType_t">
+        <xs:restriction base="AllocNoOrdersType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="EventType_t">
+        <xs:union memberTypes="EventType_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstrAttribType_t">
+        <xs:union memberTypes="InstrAttribType_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="CPProgram_t">
+        <xs:union memberTypes="CPProgram_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="UnderlyingStipType_t">
+        <xs:restriction base="StipulationType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="MiscFeeBasis_t">
+        <xs:restriction base="MiscFeeBasis_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="LastFragment_t">
+        <xs:restriction base="LastFragment_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="CollAsgnReason_t">
+        <xs:restriction base="CollAsgnReason_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="CollInquiryQualifier_t">
+        <xs:restriction base="CollInquiryQualifier_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="CollAsgnTransType_t">
+        <xs:restriction base="CollAsgnTransType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="CollAsgnRespType_t">
+        <xs:restriction base="CollAsgnRespType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="CollAsgnRejectReason_t">
+        <xs:union memberTypes="CollAsgnRejectReason_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="CollStatus_t">
+        <xs:restriction base="CollStatus_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="LastRptRequested_t">
+        <xs:restriction base="LastRptRequested_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DeliveryType_t">
+        <xs:restriction base="DeliveryType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="UserRequestType_t">
+        <xs:restriction base="UserRequestType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="UserStatus_t">
+        <xs:restriction base="UserStatus_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="StatusValue_t">
+        <xs:restriction base="StatusValue_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="NetworkRequestType_t">
+        <xs:restriction base="NetworkRequestType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="NetworkStatusResponseType_t">
+        <xs:restriction base="NetworkStatusResponseType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TrdRptStatus_t">
+        <xs:restriction base="TrdRptStatus_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="AffirmStatus_t">
+        <xs:restriction base="AffirmStatus_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="CollAction_t">
+        <xs:restriction base="CollAction_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="CollInquiryStatus_t">
+        <xs:restriction base="CollInquiryStatus_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="CollInquiryResult_t">
+        <xs:union memberTypes="CollInquiryResult_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="Nested3PartyIDSource_t">
+        <xs:restriction base="PartyIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="Nested3PartyRole_t">
+        <xs:restriction base="PartyRole_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="Nested3PartySubIDType_t">
+        <xs:restriction base="PartySubIDType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="StrategyParameterType_t">
+        <xs:restriction base="StrategyParameterType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SecurityStatus_t">
+        <xs:restriction base="SecurityStatus_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="UnderlyingCashType_t">
+        <xs:restriction base="UnderlyingCashType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="UnderlyingSettlementType_t">
+        <xs:restriction base="UnderlyingSettlementType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SecurityUpdateAction_t">
+        <xs:restriction base="SecurityUpdateAction_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ExpirationQtyType_t">
+        <xs:restriction base="ExpirationQtyType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="IndividualAllocType_t">
+        <xs:restriction base="IndividualAllocType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="UnitOfMeasure_t">
+        <xs:restriction base="UnitOfMeasure_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TimeUnit_t">
+        <xs:restriction base="TimeUnit_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="UnderlyingUnitOfMeasure_t">
+        <xs:restriction base="UnitOfMeasure_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="LegUnitOfMeasure_t">
+        <xs:restriction base="UnitOfMeasure_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="UnderlyingTimeUnit_t">
+        <xs:restriction base="TimeUnit_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="LegTimeUnit_t">
+        <xs:restriction base="TimeUnit_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="AllocMethod_t">
+        <xs:restriction base="AllocMethod_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SideTrdSubTyp_t">
+        <xs:restriction base="TrdSubType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SideTrdRegTimestampType_t">
+        <xs:restriction base="TrdRegTimestampType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="AsOfIndicator_t">
+        <xs:restriction base="AsOfIndicator_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="MDBookType_t">
+        <xs:restriction base="MDBookType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="MDOriginType_t">
+        <xs:restriction base="MDOriginType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="CustOrderHandlingInst_t">
+        <xs:restriction base="CustOrderHandlingInst_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="OrderHandlingInstSource_t">
+        <xs:restriction base="OrderHandlingInstSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DeskType_t">
+        <xs:restriction base="DeskType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="CibDeskType_t">
+        <xs:restriction base="CibDeskType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DeskTypeSource_t">
+        <xs:restriction base="DeskTypeSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DeskOrderHandlingInst_t">
+        <xs:restriction base="CustOrderHandlingInst_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ExecAckStatus_t">
+        <xs:restriction base="ExecAckStatus_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="CollApplType_t">
+        <xs:restriction base="CollApplType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="UnderlyingFXRateCalc_t">
+        <xs:restriction base="UnderlyingFXRateCalc_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="AllocPositionEffect_t">
+        <xs:restriction base="AllocPositionEffect_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DealingCapacity_t">
+        <xs:restriction base="DealingCapacity_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstrumentPartyIDSource_t">
+        <xs:restriction base="PartyIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstrumentPartyRole_t">
+        <xs:restriction base="PartyRole_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstrumentPartySubIDType_t">
+        <xs:restriction base="PartySubIDType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="AggressorIndicator_t">
+        <xs:restriction base="AggressorIndicator_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="UnderlyingInstrumentPartyIDSource_t">
+        <xs:restriction base="PartyIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="UnderlyingInstrumentPartyRole_t">
+        <xs:restriction base="PartyRole_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="UnderlyingInstrumentPartySubIDType_t">
+        <xs:restriction base="PartySubIDType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="MDQuoteType_t">
+        <xs:restriction base="MDQuoteType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RefOrderIDSource_t">
+        <xs:restriction base="RefOrderIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DisplayWhen_t">
+        <xs:restriction base="DisplayWhen_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DisplayMethod_t">
+        <xs:restriction base="DisplayMethod_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PriceProtectionScope_t">
+        <xs:restriction base="PriceProtectionScope_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="LotType_t">
+        <xs:restriction base="LotType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PegPriceType_t">
+        <xs:restriction base="PegPriceType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PegSecurityIDSource_t">
+        <xs:restriction base="SecurityIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TriggerType_t">
+        <xs:restriction base="TriggerType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TriggerAction_t">
+        <xs:restriction base="TriggerAction_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TriggerSecurityIDSource_t">
+        <xs:restriction base="SecurityIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TriggerPriceType_t">
+        <xs:restriction base="TriggerPriceType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TriggerPriceTypeScope_t">
+        <xs:restriction base="TriggerPriceTypeScope_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TriggerPriceDirection_t">
+        <xs:restriction base="TriggerPriceDirection_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TriggerOrderType_t">
+        <xs:restriction base="TriggerOrderType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="OrderCategory_t">
+        <xs:restriction base="OrderCategory_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RootPartyIDSource_t">
+        <xs:restriction base="PartyIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RootPartyRole_t">
+        <xs:restriction base="PartyRole_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RootPartySubIDType_t">
+        <xs:restriction base="PartySubIDType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TradeHandlingInstr_t">
+        <xs:restriction base="TradeHandlingInstr_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="OrigTradeHandlingInstr_t">
+        <xs:restriction base="TradeHandlingInstr_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ApplVerID_t">
+        <xs:restriction base="ApplVerID_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RefApplVerID_t">
+        <xs:restriction base="ApplVerID_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ExDestinationIDSource_t">
+        <xs:restriction base="ExDestinationIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DefaultApplVerID_t">
+        <xs:restriction base="ApplVerID_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ImpliedMarketIndicator_t">
+        <xs:restriction base="ImpliedMarketIndicator_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SettlObligMode_t">
+        <xs:restriction base="SettlObligMode_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SettlObligTransType_t">
+        <xs:restriction base="SettlObligTransType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PosRptTransType_t">
+        <xs:restriction base="SettlObligTransType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SettlObligSource_t">
+        <xs:restriction base="SettlObligSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="QuoteEntryStatus_t">
+        <xs:restriction base="QuoteEntryStatus_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RespondentType_t">
+        <xs:restriction base="RespondentType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SecurityTradingEvent_t">
+        <xs:union memberTypes="SecurityTradingEvent_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="StatsType_t">
+        <xs:restriction base="StatsType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="MDSecSizeType_t">
+        <xs:union memberTypes="MDSecSizeType_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="PriceUnitOfMeasure_t">
+        <xs:restriction base="UnitOfMeasure_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SettlMethod_t">
+        <xs:restriction base="SettlMethod_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ExerciseStyle_t">
+        <xs:restriction base="ExerciseStyle_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PriceQuoteMethod_t">
+        <xs:restriction base="PriceQuoteMethod_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ValuationMethod_t">
+        <xs:restriction base="ValuationMethod_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ListMethod_t">
+        <xs:restriction base="ListMethod_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TickRuleType_t">
+        <xs:restriction base="TickRuleType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="NestedInstrAttribType_t">
+        <xs:restriction base="InstrAttribType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DerivativeSymbolSfx_t">
+        <xs:restriction base="SymbolSfx_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DerivativeSecurityIDSource_t">
+        <xs:restriction base="SecurityIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DerivativeSecurityAltIDSource_t">
+        <xs:restriction base="SecurityIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DerivativeProduct_t">
+        <xs:restriction base="Product_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DerivativeSecurityType_t">
+        <xs:restriction base="SecurityType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DerivativeSecurityStatus_t">
+        <xs:restriction base="SecurityStatus_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DerivativeUnitOfMeasure_t">
+        <xs:restriction base="UnitOfMeasure_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DerivativeTimeUnit_t">
+        <xs:restriction base="TimeUnit_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DerivativeEventType_t">
+        <xs:restriction base="EventType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DerivativeInstrumentPartyIDSource_t">
+        <xs:restriction base="PartyIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DerivativeInstrumentPartyRole_t">
+        <xs:restriction base="PartyRole_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DerivativeInstrumentPartySubIDType_t">
+        <xs:restriction base="PartySubIDType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DerivativeExerciseStyle_t">
+        <xs:restriction base="ExerciseStyle_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="MaturityMonthYearIncrementUnits_t">
+        <xs:restriction base="MaturityMonthYearIncrementUnits_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="MaturityMonthYearFormat_t">
+        <xs:restriction base="MaturityMonthYearFormat_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="StrikeExerciseStyle_t">
+        <xs:restriction base="ExerciseStyle_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SecondaryPriceLimitType_t">
+        <xs:restriction base="PriceLimitType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PriceLimitType_t">
+        <xs:restriction base="PriceLimitType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DerivativeSecurityListRequestType_t">
+        <xs:restriction base="DerivativeSecurityListRequestType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ExecInstValue_t">
+        <xs:restriction base="ExecInst_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DerivativeInstrAttribType_t">
+        <xs:restriction base="InstrAttribType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DerivativePriceUnitOfMeasure_t">
+        <xs:restriction base="UnitOfMeasure_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DerivativeSettlMethod_t">
+        <xs:restriction base="SettlMethod_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DerivativePriceQuoteMethod_t">
+        <xs:restriction base="PriceQuoteMethod_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DerivativeValuationMethod_t">
+        <xs:restriction base="ValuationMethod_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DerivativeListMethod_t">
+        <xs:restriction base="ListMethod_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DerivativePutOrCall_t">
+        <xs:restriction base="PutOrCall_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ListUpdateAction_t">
+        <xs:restriction base="SecurityUpdateAction_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TradSesUpdateAction_t">
+        <xs:restriction base="SecurityUpdateAction_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ApplReqType_t">
+        <xs:restriction base="ApplReqType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ApplResponseType_t">
+        <xs:restriction base="ApplResponseType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ApplResponseError_t">
+        <xs:restriction base="ApplResponseError_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TradSesEvent_t">
+        <xs:union memberTypes="TradSesEvent_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="MassActionType_t">
+        <xs:restriction base="MassActionType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="MassActionScope_t">
+        <xs:union memberTypes="MassActionScope_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="MassActionResponse_t">
+        <xs:restriction base="MassActionResponse_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="MassActionRejectReason_t">
+        <xs:union memberTypes="MassActionRejectReason_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="MultilegModel_t">
+        <xs:restriction base="MultilegModel_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="MultilegPriceMethod_t">
+        <xs:restriction base="MultilegPriceMethod_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="LegExecInst_t">
+        <xs:restriction base="ExecInst_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ContingencyType_t">
+        <xs:union memberTypes="ContingencyType_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="ListRejectReason_t">
+        <xs:union memberTypes="ListRejectReason_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="TrdRepPartyRole_t">
+        <xs:restriction base="PartyRole_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TradePublishIndicator_t">
+        <xs:restriction base="TradePublishIndicator_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="MarketUpdateAction_t">
+        <xs:restriction base="SecurityUpdateAction_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SessionStatus_t">
+        <xs:union memberTypes="SessionStatus_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="Nested4PartySubIDType_t">
+        <xs:restriction base="PartySubIDType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="Nested4PartyIDSource_t">
+        <xs:restriction base="PartyIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="Nested4PartyRole_t">
+        <xs:restriction base="PartyRole_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="UnderlyingExerciseStyle_t">
+        <xs:restriction base="ExerciseStyle_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="LegExerciseStyle_t">
+        <xs:restriction base="ExerciseStyle_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="LegPriceUnitOfMeasure_t">
+        <xs:restriction base="UnitOfMeasure_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="UnderlyingPriceUnitOfMeasure_t">
+        <xs:restriction base="UnitOfMeasure_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ApplReportType_t">
+        <xs:restriction base="ApplReportType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="OrderDelayUnit_t">
+        <xs:union memberTypes="OrderDelayUnit_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="VenueType_t">
+        <xs:restriction base="VenueType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RefOrdIDReason_t">
+        <xs:union memberTypes="RefOrdIDReason_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="OrigCustOrderCapacity_t">
+        <xs:restriction base="OrigCustOrderCapacity_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ModelType_t">
+        <xs:restriction base="ModelType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ContractMultiplierUnit_t">
+        <xs:restriction base="ContractMultiplierUnit_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="LegContractMultiplierUnit_t">
+        <xs:restriction base="ContractMultiplierUnit_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="UnderlyingContractMultiplierUnit_t">
+        <xs:restriction base="ContractMultiplierUnit_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DerivativeContractMultiplierUnit_t">
+        <xs:restriction base="ContractMultiplierUnit_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="FlowScheduleType_t">
+        <xs:union memberTypes="FlowScheduleType_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="LegFlowScheduleType_t">
+        <xs:union memberTypes="FlowScheduleType_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="UnderlyingFlowScheduleType_t">
+        <xs:union memberTypes="FlowScheduleType_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="DerivativeFlowScheduleType_t">
+        <xs:union memberTypes="FlowScheduleType_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="FillLiquidityInd_t">
+        <xs:restriction base="LastLiquidityInd_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SideLiquidityInd_t">
+        <xs:restriction base="LastLiquidityInd_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RateSource_t">
+        <xs:restriction base="RateSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RateSourceType_t">
+        <xs:restriction base="RateSourceType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RestructuringType_t">
+        <xs:restriction base="RestructuringType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="Seniority_t">
+        <xs:restriction base="Seniority_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="UnderlyingRestructuringType_t">
+        <xs:restriction base="RestructuringType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="UnderlyingSeniority_t">
+        <xs:restriction base="Seniority_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TargetPartyIDSource_t">
+        <xs:restriction base="PartyIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="TargetPartyRole_t">
+        <xs:restriction base="PartyRole_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SecurityListType_t">
+        <xs:union memberTypes="SecurityListType_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="SecurityListTypeSource_t">
+        <xs:union memberTypes="SecurityListTypeSource_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="NewsCategory_t">
+        <xs:union memberTypes="NewsCategory_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="NewsRefType_t">
+        <xs:union memberTypes="NewsRefType_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="StrikePriceDeterminationMethod_t">
+        <xs:union memberTypes="StrikePriceDeterminationMethod_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="StrikePriceBoundaryMethod_t">
+        <xs:restriction base="StrikePriceBoundaryMethod_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="UnderlyingPriceDeterminationMethod_t">
+        <xs:restriction base="UnderlyingPriceDeterminationMethod_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="OptPayoutType_t">
+        <xs:restriction base="OptPayoutType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ComplexEventType_t">
+        <xs:restriction base="ComplexEventType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ComplexEventPriceBoundaryMethod_t">
+        <xs:restriction base="ComplexEventPriceBoundaryMethod_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ComplexEventPriceTimeType_t">
+        <xs:restriction base="ComplexEventPriceTimeType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ComplexEventCondition_t">
+        <xs:restriction base="ComplexEventCondition_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="StreamAsgnReqType_t">
+        <xs:restriction base="StreamAsgnReqType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="StreamAsgnRejReason_t">
+        <xs:union memberTypes="StreamAsgnRejReason_enum_t Reserved100Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="StreamAsgnAckType_t">
+        <xs:restriction base="StreamAsgnAckType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PartyListResponseType_t">
+        <xs:restriction base="PartyListResponseType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RequestedPartyRole_t">
+        <xs:restriction base="PartyRole_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PartyDetailsRequestResult_t">
+        <xs:union memberTypes="PartyDetailsRequestResult_enum_t Reserved4000Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="PartyRelationship_t">
+        <xs:union memberTypes="PartyRelationship_enum_t Reserved4000Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="PartyAltIDSource_t">
+        <xs:restriction base="PartyIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="PartyAltSubIDType_t">
+        <xs:union memberTypes="PartySubIDType_enum_t Reserved4000Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="ContextPartyIDSource_t">
+        <xs:restriction base="PartyIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ContextPartyRole_t">
+        <xs:restriction base="PartyRole_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ContextPartySubIDType_t">
+        <xs:union memberTypes="PartySubIDType_enum_t Reserved4000Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="RiskLimitType_t">
+        <xs:restriction base="RiskLimitType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RiskInstrumentOperator_t">
+        <xs:restriction base="RiskInstrumentOperator_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RiskSecurityIDSource_t">
+        <xs:restriction base="SecurityIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RiskProduct_t">
+        <xs:restriction base="Product_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RiskSecurityType_t">
+        <xs:restriction base="SecurityType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RiskPutOrCall_t">
+        <xs:restriction base="PutOrCall_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RiskInstrumentSettlType_t">
+        <xs:union memberTypes="SettlType_enum_t Tenor"/>
+    </xs:simpleType>
+    <xs:simpleType name="RelatedPartyIDSource_t">
+        <xs:restriction base="PartyIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RelatedPartyRole_t">
+        <xs:restriction base="PartyRole_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RelatedPartySubIDType_t">
+        <xs:union memberTypes="PartySubIDType_enum_t Reserved4000Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="RelatedPartyAltIDSource_t">
+        <xs:restriction base="PartyIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RelatedPartyAltSubIDType_t">
+        <xs:union memberTypes="PartySubIDType_enum_t Reserved4000Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="RelatedContextPartyIDSource_t">
+        <xs:restriction base="PartyIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RelatedContextPartyRole_t">
+        <xs:restriction base="PartyRole_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RelatedContextPartySubIDType_t">
+        <xs:union memberTypes="PartySubIDType_enum_t Reserved4000Plus"/>
+    </xs:simpleType>
+    <xs:simpleType name="RelationshipRiskLimitType_t">
+        <xs:restriction base="RiskLimitType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RelationshipRiskInstrumentOperator_t">
+        <xs:restriction base="RiskInstrumentOperator_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RelationshipRiskSecurityIDSource_t">
+        <xs:restriction base="SecurityIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RelationshipRiskProduct_t">
+        <xs:restriction base="Product_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RelationshipRiskSecurityType_t">
+        <xs:restriction base="SecurityType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RelationshipRiskPutOrCall_t">
+        <xs:restriction base="PutOrCall_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="RelationshipRiskInstrumentSettlType_t">
+        <xs:union memberTypes="SettlType_enum_t Tenor"/>
+    </xs:simpleType>
+    <xs:simpleType name="StreamAsgnType_t">
+        <xs:restriction base="StreamAsgnType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="DealType_t">
+        <xs:union memberTypes="DealType_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="SettlObligTyp_t">
+        <xs:restriction base="SettlObligTyp_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ObligStatus_t">
+        <xs:restriction base="ObligStatus_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="ObligStatusTyp_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="TxType_t">
+        <xs:restriction base="TxType_enum_t"/>
+    </xs:simpleType>
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <!--                            USER PERMISSION TYPE                      -->
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <xs:simpleType name="UserID_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="UserIDSource_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="UserEmail_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="UserLanguage_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="UserAltID_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="UserAltIDSource_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="PermissionObjectID_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="ObjectPermission_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="SettlObligMsgTyp_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <!--                            BOOK TYPE                                 -->
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <xs:simpleType name="BookTraderLinkType_enum_t">
+        <xs:annotation>
+            <xs:documentation>Trader's link type</xs:documentation>
+            <xs:appinfo>
+                <fm:EnumDoc value="M">Main</fm:EnumDoc>
+                <fm:EnumDoc value="B1">Backup1</fm:EnumDoc>
+                <fm:EnumDoc value="B2">Backup2</fm:EnumDoc>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="M"/>
+            <xs:enumeration value="B1"/>
+            <xs:enumeration value="B2"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="BookStatus_enum_t">
+        <xs:annotation>
+            <xs:documentation>Book's status types</xs:documentation>
+            <xs:appinfo>
+                <fm:EnumDoc value="Open">Open</fm:EnumDoc>
+                <fm:EnumDoc value="Addition">Addition</fm:EnumDoc>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Open"/>
+            <xs:enumeration value="Addition"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="TradingSystem_enum_t">
+        <xs:annotation>
+            <xs:documentation>Trading System types</xs:documentation>
+            <xs:appinfo>
+                <fm:EnumDoc value="Kondor">Kondor</fm:EnumDoc>
+                <fm:EnumDoc value="Murex">Murex</fm:EnumDoc>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Kondor"/>
+            <xs:enumeration value="Murex"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="BookID_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="BookIDSource_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="BookNameSource_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="BookName_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="BookType_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="BookMode_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="BookLegalEntity_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="BookTraderName_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="BookPtyID_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="BookPtyValue_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="BookOpen_enum_t">
+        <xs:annotation>
+            <xs:documentation>Book open status values</xs:documentation>
+            <xs:appinfo>
+                <fm:EnumDoc value="0">False(Closed)</fm:EnumDoc>
+                <fm:EnumDoc value="1">True(Opened)</fm:EnumDoc>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:int">
+            <xs:enumeration value="0"/>
+            <xs:enumeration value="1"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="BookActive_enum_t">
+        <xs:annotation>
+            <xs:documentation>Book activity values</xs:documentation>
+            <xs:appinfo>
+                <fm:EnumDoc value="0">False(Not active)</fm:EnumDoc>
+                <fm:EnumDoc value="1">True(active)</fm:EnumDoc>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:int">
+            <xs:enumeration value="0"/>
+            <xs:enumeration value="1"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="BookAltID_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="BookAltIDSource_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+
+
+    <xs:simpleType name="BookRootPartyID_t">
+        <xs:annotation>
+            <xs:documentation>PartyID value within a root parties component. Same values as PartyID (448)
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+
+
+    <xs:simpleType name="PortfolioStructureId_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="PortfolioStructureRussianName_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="PortfolioStructurePortfolioCode_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="PortfolioStructureLevelOfPortfolioValue_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="PortfolioStructureEnglishName_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="PortfolioStructureParentPortfolioCode_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="PortfolioStructurePortfolioOwner_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="PortfolioStructureRiskCoordinator_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="PortfolioStructureDocumentApproved_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="PortfolioStructureOrder_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="PortfolioStructureModified_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="PortfolioStructureCreated_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+
+
+
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <!--                            COMMON TYPES                              -->
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <xs:simpleType name="ID_t">
+        <xs:annotation>
+            <xs:appinfo>
+                <xs:documentation>
+                    This is an external identifier of a given object known to all the systems.
+                    That means that all the systems know an object as having the given ID represented by a single value.
+                </xs:documentation>
+                <fm:Xref Protocol="FIX" name="ID" ComponentType="Field" Tag="50039" Type="String" AbbrName="ID"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="Source_t">
+        <xs:annotation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="Src" ComponentType="Field" Tag="50040" Type="String" AbbrName="Src"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="AltID_t">
+        <xs:annotation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="AltID" ComponentType="Field" Tag="50033" Type="String" AbbrName="AltID"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="AltIDSource_t">
+        <xs:annotation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="AltIDSource" ComponentType="Field" Tag="50034" Type="String"
+                         AbbrName="AltIDSrs"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="TxType_enum_t">
+        <xs:annotation>
+            <xs:documentation>Identifies the transaction type of the event represented by a given message
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="TxType" ComponentType="Field" Tag="50042" Type="int" AbbrName="TxTyp"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="CREATED"/>
+            <xs:enumeration value="UPDATED"/>
+            <xs:enumeration value="DELETED"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="Txt_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionStatus_t">
+        <xs:annotation>
+            <xs:documentation>
+                Institution Status.
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionStatus" ComponentType="Field" Tag="50044" Type="String"
+                         AbbrName="Status"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="RDReportDate_t">
+        <xs:annotation>
+            <xs:documentation>
+                Indicates date of trade referenced in this message in YYYYMMDD format. Absence of this field indicates
+                current day (expressed in local time at place of trade).
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="RDReportDate" ComponentType="Field" Tag="50045" Type="LocalMktDate"
+                         AbbrName="RptDt"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="LocalMktDate"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionID_t">
+        <xs:annotation>
+            <xs:documentation>
+                Institution identifier value.
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionID" ComponentType="Field" Tag="50046" Type="String"
+                         AbbrName="ID"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionBrief_t">
+        <xs:annotation>
+            <xs:documentation>
+                Institution brief value.
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionBrief" ComponentType="Field" Tag="50047" Type="String"
+                         AbbrName="Brief"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="CTMType_t">
+        <xs:annotation>
+            <xs:documentation>
+                Institution CTM Type
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="CTMType" ComponentType="Field" Tag="50048" Type="String"
+                         AbbrName="CTMTyp"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="AcronymFI_t">
+        <xs:annotation>
+            <xs:documentation>
+                Institution Acronym FI.
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="AcronymFI" ComponentType="Field" Tag="50049" Type="String"
+                         AbbrName="AcronymFI"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="BrokerCTMBIC_t">
+        <xs:annotation>
+            <xs:documentation>
+                Institution BrokerCTMBIC.
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="BrokerCTMBIC" ComponentType="Field" Tag="50050" Type="String"
+                         AbbrName="BrokerCTMBIC"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionType_t">
+        <xs:annotation>
+            <xs:documentation>
+                Institution Type
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionType" ComponentType="Field" Tag="50051" Type="String"
+                         AbbrName="Typ"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionTypeName_t">
+        <xs:annotation>
+            <xs:documentation>
+                Institution Type Name
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionTypeName" ComponentType="Field" Tag="50052" Type="String"
+                         AbbrName="TypName"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionResidence_t">
+        <xs:annotation>
+            <xs:documentation>
+                Institution Residence
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionResidence" ComponentType="Field" Tag="50053" Type="String"
+                         AbbrName="Residence"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionCountry_t">
+        <xs:annotation>
+            <xs:documentation>
+                Institution Country
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionCountry" ComponentType="Field" Tag="50054" Type="String"
+                         AbbrName="CtryBrief"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionGroup_t">
+        <xs:annotation>
+            <xs:documentation>
+                Institution Group
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionGroup" ComponentType="Field" Tag="50055" Type="String"
+                         AbbrName="GroupBrief"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionLegalForm_t">
+        <xs:annotation>
+            <xs:documentation>
+                Institution Legal Form
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionLegalForm" ComponentType="Field" Tag="50056" Type="String"
+                         AbbrName="LegalForm"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionQualification_t">
+        <xs:annotation>
+            <xs:documentation>
+                Institution Qualification
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionQualification" ComponentType="Field" Tag="50057" Type="String"
+                         AbbrName="Qualification"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionOKOHX_t">
+        <xs:annotation>
+            <xs:documentation>
+                Institution Okohx
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionOkohx" ComponentType="Field" Tag="50058" Type="String"
+                         AbbrName="OKOHX"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionOKPO_t">
+        <xs:annotation>
+            <xs:documentation>
+                Institution Okpo
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionOKPO" ComponentType="Field" Tag="50059" Type="String"
+                         AbbrName="OKPO"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionBIC_t">
+        <xs:annotation>
+            <xs:documentation>
+                Institution BIC
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionBIC" ComponentType="Field" Tag="50060" Type="String"
+                         AbbrName="BIC"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionINN_t">
+        <xs:annotation>
+            <xs:documentation>
+                Institution INN
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionINN" ComponentType="Field" Tag="50061" Type="String"
+                         AbbrName="INN"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionSWIFT_t">
+        <xs:annotation>
+            <xs:documentation>
+                Institution SWIFT
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionSWIFT" ComponentType="Field" Tag="50062" Type="String"
+                         AbbrName="SWIFT"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionRegNumber_t">
+        <xs:annotation>
+            <xs:documentation>
+                Institution Reg Number
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionRegNumber" ComponentType="Field" Tag="50063" Type="String"
+                         AbbrName="RegNumber"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionRegDate_t">
+        <xs:annotation>
+            <xs:documentation>
+                Institution Reg Date
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionRegDate" ComponentType="Field" Tag="50064" Type="LocalMktDate"
+                         AbbrName="RegDt"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="LocalMktDate"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionRegSeries_t">
+        <xs:annotation>
+            <xs:documentation>
+                Institution Reg Series
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionRegSeries" ComponentType="Field" Tag="50065" Type="String"
+                         AbbrName="RegSeries"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionRegPlace_t">
+        <xs:annotation>
+            <xs:documentation>
+                Institution Reg Place
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionRegPlace" ComponentType="Field" Tag="50066" Type="String"
+                         AbbrName="RegPlace"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionRegTmpBrief_t">
+        <xs:annotation>
+            <xs:documentation>
+                Institution Temp Brief
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionRegTmpBrief" ComponentType="Field" Tag="50067" Type="String"
+                         AbbrName="RegTmpBrief"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionDocTypBrief_t">
+        <xs:annotation>
+            <xs:documentation>
+                Institution Doc Type Brief
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionDocTypBrief" ComponentType="Field" Tag="50068" Type="String"
+                         AbbrName="DocTypBrief"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionBirth_t">
+        <xs:annotation>
+            <xs:documentation>
+                Institution Birth Date
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionBirth" ComponentType="Field" Tag="50069" Type="LocalMktDate"
+                         AbbrName="Birth"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="LocalMktDate"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionBirthPlace_t">
+        <xs:annotation>
+            <xs:documentation>
+                Institution Birth Place
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionBirthPlace" ComponentType="Field" Tag="50070" Type="String"
+                         AbbrName="BirthPlace"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionGender_t">
+        <xs:annotation>
+            <xs:documentation>
+                Institution Gender
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionGender" ComponentType="Field" Tag="50071" Type="String"
+                         AbbrName="Gender"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionAddress_t">
+        <xs:annotation>
+            <xs:documentation>
+                Institution Address
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionAddress" ComponentType="Field" Tag="50072" Type="String"
+                         AbbrName="Address"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionFax_t">
+        <xs:annotation>
+            <xs:documentation>
+                Institution Fax
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionFax" ComponentType="Field" Tag="50073" Type="String"
+                         AbbrName="Fax"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionPhone_t">
+        <xs:annotation>
+            <xs:documentation>
+                Institution Phone
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionPhone" ComponentType="Field" Tag="50074" Type="String"
+                         AbbrName="Phone"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionEmail_t">
+        <xs:annotation>
+            <xs:documentation>
+                Institution Email
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionEmail" ComponentType="Field" Tag="50075" Type="String"
+                         AbbrName="Email"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionCntID_t">
+        <xs:annotation>
+            <xs:documentation>
+                Contact details identifier value for institution of InstitutionCntIDSource
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionCntID" ComponentType="Field" Tag="50076" Type="String"
+                         AbbrName="CntID"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionCntIDSource_t">
+        <xs:restriction base="InstitutionCntIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionCntIDSource_enum_t">
+        <xs:annotation>
+            <xs:documentation>
+                Identifies class or source of the Institution Contect ID value.
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionCntIDSource" ComponentType="Field" Tag="50077" Type="String"
+                         AbbrName="CntIDSrc"/>
+            </xs:appinfo>
+            <xs:appinfo>
+                <fm:EnumDoc value="1">Address 1</fm:EnumDoc>
+                <fm:EnumDoc value="2">Address 2</fm:EnumDoc>
+                <fm:EnumDoc value="3">Address 3</fm:EnumDoc>
+                <fm:EnumDoc value="4">Fax</fm:EnumDoc>
+                <fm:EnumDoc value="5">Main Phone</fm:EnumDoc>
+                <fm:EnumDoc value="6">Alternative Phone</fm:EnumDoc>
+                <fm:EnumDoc value="7">Main Email</fm:EnumDoc>
+                <fm:EnumDoc value="8">Aleternative Email</fm:EnumDoc>
+                <fm:EnumDoc value="9">Other Email</fm:EnumDoc>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="1"/>
+            <xs:enumeration value="2"/>
+            <xs:enumeration value="3"/>
+            <xs:enumeration value="4"/>
+            <xs:enumeration value="5"/>
+            <xs:enumeration value="6"/>
+            <xs:enumeration value="7"/>
+            <xs:enumeration value="8"/>
+            <xs:enumeration value="9"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionPartyID_t">
+        <xs:annotation>
+            <xs:documentation>
+                PartyID value within an Institution party repeating group
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionPartyID" ComponentType="Field" Tag="50078" Type="String"
+                         AbbrName="ID"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionPartyIDSource_t">
+        <xs:restriction base="PartyIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionPartyRole_t">
+        <xs:restriction base="PartyRole_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionPartySubID_t">
+        <xs:annotation>
+            <xs:documentation>PartySubID value within an Institution party repeating group.
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionPartySubID" ComponentType="Field" Tag="50079" Type="String"
+                         AbbrName="ID"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionPartySubIDType_t">
+        <xs:restriction base="PartySubIDType_enum_t"/>
+    </xs:simpleType>
+
+    <xs:simpleType name="InstitutionAltID_t">
+        <xs:annotation>
+            <xs:documentation>
+                Institution details identifier value for institution of InstitutionAltIDSource
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionAltID" ComponentType="Field" Tag="50080" Type="String"
+                         AbbrName="AltID"/>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionAltIDSource_t">
+        <xs:restriction base="InstitutionAltIDSource_enum_t"/>
+    </xs:simpleType>
+    <xs:simpleType name="InstitutionAltIDSource_enum_t">
+        <xs:annotation>
+            <xs:documentation>
+                Identifies class or source of the Institution Alt ID value.
+            </xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="InstitutionAltIDSource" ComponentType="Field" Tag="50081" Type="String"
+                         AbbrName="AltIDSrc"/>
+            </xs:appinfo>
+            <xs:appinfo>
+                <fm:EnumDoc value="1">Russian Name</fm:EnumDoc>
+                <fm:EnumDoc value="2">English name</fm:EnumDoc>
+                <fm:EnumDoc value="3">Other</fm:EnumDoc>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="1"/>
+            <xs:enumeration value="2"/>
+            <xs:enumeration value="3"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="SystemName_t">
+        <xs:restriction base="SystemName_enum_t"/>
+    </xs:simpleType>
+
+    <xs:simpleType name="SystemName_enum_t">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Sap"/>
+            <xs:enumeration value="Diasoft"/>
+            <xs:enumeration value="Ecosystem"/>
+            <xs:enumeration value="Ad"/>
+            <xs:enumeration value="Mis"/>
+            <xs:enumeration value="Siebel"/>
+            <xs:enumeration value="Murex"/>
+            <xs:enumeration value="Basel"/>
+            <xs:enumeration value="Navision"/>
+            <xs:enumeration value="Zont"/>
+            <xs:enumeration value="Era"/>
+            <xs:enumeration value="Pifagor"/>
+            <xs:enumeration value="Pythia"/>
+            <xs:enumeration value="Pw"/>
+            <xs:enumeration value="Rts"/>
+            <xs:enumeration value="Factset"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="CoverType_t">
+        <xs:restriction base="CoverType_enum_t"/>
+    </xs:simpleType>
+
+    <xs:simpleType name="CoverType_enum_t">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Cover"/>
+            <xs:enumeration value="Backup"/>
+            <xs:enumeration value="Both"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="CibDeskType_enum_t">
+        <xs:annotation>
+            <xs:documentation>Type of trading desk.</xs:documentation>
+            <xs:appinfo>
+                <fm:Xref Protocol="FIX" name="DeskType" ComponentType="Field" Tag="1033" Type="String"
+                         AbbrName="DskTyp"/>
+            </xs:appinfo>
+            <xs:appinfo>
+                <fm:EnumDoc value="EQ">Equity</fm:EnumDoc>
+                <fm:EnumDoc value="FI">FI</fm:EnumDoc>
+                <fm:EnumDoc value="UKEQ">Ukranian Equity</fm:EnumDoc>
+                <fm:EnumDoc value="UKFI">Ukranian FI</fm:EnumDoc>
+                <fm:EnumDoc value="FUT">Futures</fm:EnumDoc>
+                <fm:EnumDoc value="OPT">Options</fm:EnumDoc>
+                <fm:EnumDoc value="FXMM">FX IR</fm:EnumDoc>
+                <fm:EnumDoc value="ST">Sales Trader</fm:EnumDoc>
+                <fm:EnumDoc value="KZHEQ">Kzh Equity</fm:EnumDoc>
+                <fm:EnumDoc value="KZHFI">Kzh FI</fm:EnumDoc>
+                <fm:EnumDoc value="REPO">REPO</fm:EnumDoc>
+                <fm:EnumDoc value="RM">RM</fm:EnumDoc>
+                <fm:EnumDoc value="STRUC">Structured Desc</fm:EnumDoc>
+                <fm:EnumDoc value="FXSPOT">FX</fm:EnumDoc>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="EQ"/>
+            <xs:enumeration value="FI"/>
+            <xs:enumeration value="UKEQ"/>
+            <xs:enumeration value="UKFI"/>
+            <xs:enumeration value="FUT"/>
+            <xs:enumeration value="OPT"/>
+            <xs:enumeration value="FXMM"/>
+            <xs:enumeration value="ST"/>
+            <xs:enumeration value="KZHEQ"/>
+            <xs:enumeration value="KZHFI"/>
+            <xs:enumeration value="REPO"/>
+            <xs:enumeration value="RM"/>
+            <xs:enumeration value="STRUC"/>
+            <xs:enumeration value="FXSPOT"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="EmployeeID_t">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    <xs:simpleType name="EmployeeSource_t">
+        <xs:restriction base="SystemName_enum_t"/>
+    </xs:simpleType>
+
+    <xs:simpleType name="BookRootPartyRole_t">
+        <xs:restriction base="BookPartyRole_enum_t"/>
+    </xs:simpleType>
+
+    <xs:simpleType name="PortfolioStructRootPartyRole_t">
+        <xs:restriction base="PortfolioStructRootPartyRole_enum_t"/>
+    </xs:simpleType>
+
+
+    <!--PartyRole(452) defined in implementation file-->
+    <xs:simpleType name="BookPartyRole_enum_t">
+        <xs:annotation>
+            <xs:appinfo>
+                <fm:EnumDoc value="1">RelationFxBook</fm:EnumDoc>
+                <fm:EnumDoc value="2">OpenDate</fm:EnumDoc>
+                <fm:EnumDoc value="3">Description</fm:EnumDoc>
+                <fm:EnumDoc value="4">BookStatus</fm:EnumDoc>
+                <fm:EnumDoc value="5">FinancialInstrument</fm:EnumDoc>
+                <fm:EnumDoc value="6">DeskPerGMPLReport</fm:EnumDoc>
+                <fm:EnumDoc value="7">CostCenter</fm:EnumDoc>
+                <fm:EnumDoc value="8">Created_old</fm:EnumDoc>
+                <fm:EnumDoc value="9">Modified_old</fm:EnumDoc>
+                <fm:EnumDoc value="10">GMDesk</fm:EnumDoc>
+                <fm:EnumDoc value="11">Name in Kondor_old</fm:EnumDoc>
+                <fm:EnumDoc value="12">AddToDiasoft</fm:EnumDoc>
+                <fm:EnumDoc value="13">TradingStatus</fm:EnumDoc>
+                <fm:EnumDoc value="14">GlobalPortfolio</fm:EnumDoc>
+                <fm:EnumDoc value="15">Owner/Trader appointment date_old</fm:EnumDoc>
+                <fm:EnumDoc value="16">Cost Center_old</fm:EnumDoc>
+                <fm:EnumDoc value="17">Created By_old</fm:EnumDoc>
+                <fm:EnumDoc value="18">Description of Access Rights_old</fm:EnumDoc>
+                <fm:EnumDoc value="19">Era Individual accounts_old</fm:EnumDoc>
+                <fm:EnumDoc value="20">ParticipatedInReconciliation</fm:EnumDoc>
+                <fm:EnumDoc value="21">FO only_old</fm:EnumDoc>
+                <fm:EnumDoc value="22">Is the new product traded on the New or Existing books approved_old</fm:EnumDoc>
+                <fm:EnumDoc value="23">NameForCOF</fm:EnumDoc>
+                <fm:EnumDoc value="24">Name1_old</fm:EnumDoc>
+                <fm:EnumDoc value="25">TradingStrategy</fm:EnumDoc>
+                <fm:EnumDoc value="26">ProfitReports</fm:EnumDoc>
+                <fm:EnumDoc value="27">Revaluation</fm:EnumDoc>
+                <fm:EnumDoc value="28">RevenueLine</fm:EnumDoc>
+                <fm:EnumDoc value="29">RevenueType</fm:EnumDoc>
+                <fm:EnumDoc value="30">RM Reports_old</fm:EnumDoc>
+                <fm:EnumDoc value="31">TradingPlaces</fm:EnumDoc>
+                <fm:EnumDoc value="32">BackOfficeName</fm:EnumDoc>
+                <fm:EnumDoc value="33">BookMode</fm:EnumDoc>
+                <fm:EnumDoc value="34">LegalEntity</fm:EnumDoc>
+                <fm:EnumDoc value="35">IsActive</fm:EnumDoc>
+                <fm:EnumDoc value="36">GM Books Workflow_old</fm:EnumDoc>
+                <fm:EnumDoc value="37">CheckDuplicationOnUpdate_old</fm:EnumDoc>
+                <fm:EnumDoc value="38">GM Books Workflow v2_old</fm:EnumDoc>
+                <fm:EnumDoc value="39">parentFXAllocation_old</fm:EnumDoc>
+                <fm:EnumDoc value="40">Assignment of Accounts in PD_old</fm:EnumDoc>
+                <fm:EnumDoc value="41">Closure Date_old</fm:EnumDoc>
+                <fm:EnumDoc value="42">Comment</fm:EnumDoc>
+                <fm:EnumDoc value="43">Era Consolidated accounts_old</fm:EnumDoc>
+                <fm:EnumDoc value="44">History Book_old</fm:EnumDoc>
+                <fm:EnumDoc value="45">Limits_old</fm:EnumDoc>
+                <fm:EnumDoc value="46">Murex transition code (for Bank only)_old</fm:EnumDoc>
+                <fm:EnumDoc value="47">NavisionDesk</fm:EnumDoc>
+                <fm:EnumDoc value="48">Navision accounts: code_old</fm:EnumDoc>
+                <fm:EnumDoc value="49">PortfolioPerGMPLReport</fm:EnumDoc>
+                <fm:EnumDoc value="50">RevaluationCurrency</fm:EnumDoc>
+                <fm:EnumDoc value="51">Sign-Off Responsibility_old</fm:EnumDoc>
+                <fm:EnumDoc value="52">MappingWithRelatingSystems</fm:EnumDoc>
+                <fm:EnumDoc value="53">PL</fm:EnumDoc>
+                <fm:EnumDoc value="54">DealsCount</fm:EnumDoc>
+                <fm:EnumDoc value="55">Position</fm:EnumDoc>
+                <fm:EnumDoc value="56">OwnerAppointmentDate</fm:EnumDoc>
+                <fm:EnumDoc value="57">NameInDiasoft</fm:EnumDoc>
+                <fm:EnumDoc value="58">CloseDate</fm:EnumDoc>
+                <fm:EnumDoc value="59">CloseReason</fm:EnumDoc>
+                <fm:EnumDoc value="60">CloseComment</fm:EnumDoc>
+                <fm:EnumDoc value="61">ReconcilationAvaliabilityFxBooks</fm:EnumDoc>
+                <fm:EnumDoc value="62">ReconcilationAvaliabilityLegalBooks</fm:EnumDoc>
+                <fm:EnumDoc value="63">ReconcilationIntegrity</fm:EnumDoc>
+                <fm:EnumDoc value="64">ReconcilationSLA</fm:EnumDoc>
+                <fm:EnumDoc value="65">GMBookID</fm:EnumDoc>
+                <fm:EnumDoc value="66">NatureOfRequest</fm:EnumDoc>
+                <fm:EnumDoc value="67">CreateGMREV</fm:EnumDoc>
+                <fm:EnumDoc value="68">BookModificationDate</fm:EnumDoc>
+                <fm:EnumDoc value="69">GM_non-GM</fm:EnumDoc>
+                <fm:EnumDoc value="70">GlobalPortfolioCode</fm:EnumDoc>
+            </xs:appinfo>
+        </xs:annotation>
+        <xs:restriction base="xs:integer">
+            <xs:enumeration value="1"/>
+            <xs:enumeration value="2"/>
+            <xs:enumeration value="3"/>
+            <xs:enumeration value="4"/>
+            <xs:enumeration value="5"/>
+            <xs:enumeration value="6"/>
+            <xs:enumeration value="7"/>
+            <xs:enumeration value="8"/>
+            <xs:enumeration value="9"/>
+            <xs:enumeration value="10"/>
+            <xs:enumeration value="11"/>
+            <xs:enumeration value="12"/>
+            <xs:enumeration value="13"/>
+            <xs:enumeration value="14"/>
+            <xs:enumeration value="15"/>
+            <xs:enumeration value="16"/>
+            <xs:enumeration value="17"/>
+            <xs:enumeration value="18"/>
+            <xs:enumeration value="19"/>
+            <xs:enumeration value="20"/>
+            <xs:enumeration value="21"/>
+            <xs:enumeration value="22"/>
+            <xs:enumeration value="23"/>
+            <xs:enumeration value="24"/>
+            <xs:enumeration value="25"/>
+            <xs:enumeration value="26"/>
+            <xs:enumeration value="27"/>
+            <xs:enumeration value="28"/>
+            <xs:enumeration value="29"/>
+            <xs:enumeration value="30"/>
+            <xs:enumeration value="31"/>
+            <xs:enumeration value="32"/>
+            <xs:enumeration value="33"/>
+            <xs:enumeration value="34"/>
+            <xs:enumeration value="35"/>
+            <xs:enumeration value="36"/>
+            <xs:enumeration value="37"/>
+            <xs:enumeration value="38"/>
+            <xs:enumeration value="39"/>
+            <xs:enumeration value="40"/>
+            <xs:enumeration value="41"/>
+            <xs:enumeration value="42"/>
+            <xs:enumeration value="43"/>
+            <xs:enumeration value="44"/>
+            <xs:enumeration value="45"/>
+            <xs:enumeration value="46"/>
+            <xs:enumeration value="47"/>
+            <xs:enumeration value="48"/>
+            <xs:enumeration value="49"/>
+            <xs:enumeration value="50"/>
+            <xs:enumeration value="51"/>
+            <xs:enumeration value="52"/>
+            <xs:enumeration value="53"/>
+            <xs:enumeration value="54"/>
+            <xs:enumeration value="55"/>
+            <xs:enumeration value="56"/>
+            <xs:enumeration value="57"/>
+            <xs:enumeration value="58"/>
+            <xs:enumeration value="59"/>
+            <xs:enumeration value="60"/>
+            <xs:enumeration value="61"/>
+            <xs:enumeration value="62"/>
+            <xs:enumeration value="63"/>
+            <xs:enumeration value="64"/>
+            <xs:enumeration value="65"/>
+            <xs:enumeration value="66"/>
+            <xs:enumeration value="67"/>
+            <xs:enumeration value="68"/>
+            <xs:enumeration value="69"/>
+            <xs:enumeration value="70"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+
+    <!--PartyRole(452) defined in implementation file-->
+    <xs:simpleType name="PortfolioStructRootPartyRole_enum_t">
+        <xs:annotation/>
+        <xs:restriction base="xs:integer"/>
+    </xs:simpleType>
+
+</xs:schema>

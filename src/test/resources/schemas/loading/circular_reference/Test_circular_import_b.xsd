@@ -1,0 +1,11 @@
+<!--
+   a schema for target namespace urn:b
+-->
+<xsd:schema
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        targetNamespace="urn:b"
+        elementFormDefault="qualified">
+
+    <xsd:import schemaLocation="Test_circular_import_a.xsd" namespace="urn:a"/>
+
+</xsd:schema>

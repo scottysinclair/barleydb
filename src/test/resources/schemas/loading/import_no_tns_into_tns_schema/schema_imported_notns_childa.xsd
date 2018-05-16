@@ -1,0 +1,18 @@
+<!--
+  schema with no target namespace declaring a single element and type
+-->
+<xsd:schema
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        elementFormDefault="qualified">
+
+    <xsd:element name="childa" type="xsd:string"/>
+
+    <xsd:complexType name="childatype">
+        <xsd:sequence>
+            <xsd:element name="childa1" type="xsd:string"/>
+            <xsd:element name="childa2" type="xsd:string"/>
+            <xsd:element name="childa3" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+</xsd:schema>

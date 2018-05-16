@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	$HeadURL: file:///opt/svnroot/xsd/fixml/trunk/fixml-tradecapture-impl-5-0-SP2.xsd $
+	$Revision: 5 $
+	$Author: MGrebenev $
+	$Id: fixml-tradecapture-impl-5-0-SP2.xsd 5 2011-08-17 07:57:21Z MGrebenev $
+	- - - - - - - - - - - - - - - - - - - - - - - - - -
+    Generated:2009-04-19T13:43:43.089-05:00
+    Revision: FIXML  Schema Version  FIX.5.0SP2
+    Copyright(c) FIX Protocol Limited.  All rights reserved.
+    Comments and errors should be posted on the FIX protocol web-site
+    http://www.fixprotocol.org
+	- - - - - - - - - - - - - - - - - - - - - - - - - -
+--><xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns="http://svn.msk.trd.ru/xsd/fixml"
+           xmlns:fm="http://svn.msk.trd.ru/xsd/fixml"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://svn.msk.trd.ru/xsd/fixml fixml-metadata-5-0-SP2.xsd"
+           targetNamespace="http://svn.msk.trd.ru/xsd/fixml"
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified">
+   <xs:include schemaLocation="fixml-tradecapture-base-5-0-SP2.xsd"/>
+</xs:schema>

@@ -1,0 +1,11 @@
+<!--
+   a schema for target namespace urn:b
+-->
+<xsd:schema
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        targetNamespace="urn:a"
+        elementFormDefault="qualified">
+
+    <xsd:include schemaLocation="Test_circular_include_a.xsd"/>
+
+</xsd:schema>
