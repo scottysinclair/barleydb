@@ -358,7 +358,7 @@ public class FromDatabaseSchemaToSpecification {
     protected String generateDtoClassName(Table table) {
       String ccName = toCamelCase(table.getName());
       ccName = Character.toUpperCase( ccName.charAt(0) ) + ccName.substring(1, ccName.length());
-      return namespace + ".model." + removePrefixes( ccName )+ "Dto";
+      return namespace + ".dto." + removePrefixes( ccName )+ "Dto";
   }
 
     protected String generateClassName(Table table) {

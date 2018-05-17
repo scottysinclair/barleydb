@@ -30,6 +30,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import scott.barleydb.api.core.entity.RefNode;
+import scott.barleydb.api.core.entity.ToManyNode;
 import scott.barleydb.api.specification.DefinitionsSpec;
 import scott.barleydb.api.specification.EntitySpec;
 import scott.barleydb.api.specification.NodeSpec;
@@ -289,7 +291,7 @@ public class GenerateDtoModels extends GenerateModelsHelper {
         if (nodeSpec.getColumnName() != null) {
           out.write(";\n");
         }
-        else if (nodeSpec.getRelation() != null) {
+        else if (nodeSpec.getRelation() != null && nodeSpec.getRelation().getBackReference() != null) {
           out.write(" = new DtoList<>();\n");
         }
     }
