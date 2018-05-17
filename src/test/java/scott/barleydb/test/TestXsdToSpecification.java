@@ -63,19 +63,19 @@ public class TestXsdToSpecification {
     DefinitionsSpec fpmlSpec = registry.getDefinitionsSpec("org.fpml");
 
     GenerateEnums generateEnums = new GenerateEnums();
-    generateEnums.generateEnums("src/test/java", fpmlSpec);
+    generateEnums.generateEnums("target", fpmlSpec);
 
     GenerateProxyModels generateDataModels = new GenerateProxyModels();
-    generateDataModels.generateDataModels("src/test/java", fpmlSpec);
+    generateDataModels.generateDataModels("target", fpmlSpec);
 
     GenerateQueryModels generateQueryModels = new GenerateQueryModels();
-    generateQueryModels.generateQueryModels("src/test/java", fpmlSpec);
+    generateQueryModels.generateQueryModels("target", fpmlSpec);
 
     GenerateDtoModels generateDtoModels = new GenerateDtoModels();
-    generateDtoModels.generateDtoModels("src/test/java", fpmlSpec);
+    generateDtoModels.generateDtoModels("target", fpmlSpec);
 
     byte xml[] = toXml(registry);
-    try ( FileOutputStream fout = new FileOutputStream(new File("src/test/resources/fpml-spec.xml")); ) {
+    try ( FileOutputStream fout = new FileOutputStream(new File("target/fpml-spec.xml")); ) {
       fout.write(xml);
       fout.flush();
     }
