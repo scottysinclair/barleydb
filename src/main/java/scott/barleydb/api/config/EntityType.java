@@ -72,7 +72,7 @@ public class EntityType implements Serializable {
     private Map<String,NodeType> nodeTypes = new LinkedHashMap<>();
 
     public static EntityType create(Definitions definitions, EntitySpec entityTypeSpec) {
-        System.out.println("Creating entity type: " + entityTypeSpec.getClassName());
+//        System.out.println("Creating entity type: " + entityTypeSpec.getClassName());
         if (entityTypeSpec.getTableName() == null) {
             throw new IllegalArgumentException("Entity type must have a table name");
         }

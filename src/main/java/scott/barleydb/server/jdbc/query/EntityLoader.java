@@ -391,6 +391,9 @@ final class EntityLoader {
         if (value instanceof Long) {
             return new java.sql.Date((Long)value);
         }
+        if (value instanceof java.sql.Timestamp) {
+          return new java.sql.Date(((java.sql.Timestamp)value).getTime());
+      }
         return null;
     }
 

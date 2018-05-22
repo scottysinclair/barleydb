@@ -334,6 +334,15 @@ public abstract class PreparedStatementHelper<PREPARING_EX extends BarleyDBExcep
                 throw newSetValueError("java.sql.Date", x);
             }
             break;
+        case DATETIME:
+          try {
+              //datetime is not in a JDBC type, we map it to java.sql.Timestamp
+              ps.setTimestamp(index, new java.sql.Timestamp((Long) value.getTime()));
+          }
+          catch (SQLException x) {
+              throw newSetValueError("java.sql.Timestamp", x);
+          }
+          break;
         default:
             fail(value, jdbcType);
         }
@@ -419,7 +428,7 @@ public abstract class PreparedStatementHelper<PREPARING_EX extends BarleyDBExcep
 
 
     private void fail(Object value, JdbcType jdbcType) throws PREPARING_EX {
-        throw newPreparingStatementException("Cannot convert " + value + " to jdbc type " + jdbcType);
+        throw newPreparingStatementException("Cannot convert " + value + " of type " + value.getClass() + " to jdbc type " + jdbcType);
     }
 
     private void setNull(final PreparedStatement ps, final int index, final JdbcType type) throws PREPARING_EX {

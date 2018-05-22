@@ -144,7 +144,7 @@ public class GenerateProxyModels extends GenerateModelsHelper {
     }
 
     private void generateModel(String path, DefinitionsSpec definitions, EntitySpec entitySpec) throws IOException {
-        System.out.println("Generating model class " + entitySpec.getClassName());
+//        System.out.println("Generating model class " + entitySpec.getClassName());
         File classFile = toFile(path, entitySpec);
         classFile.getParentFile().mkdirs();
         try (Writer out = new FileWriter(classFile); ) {

@@ -83,8 +83,10 @@ public class EnvironmentDef {
     private DataSource dataSource;
     private List<Class<?>> specClasses = new LinkedList<>();
     private List<String> specFiles = new LinkedList<>();
+    private List<SpecRegistry> specRegistries = new LinkedList<>();
     private boolean createDDL;
     private boolean dropSchema;
+    private boolean classloading = true;
 
     //resources created during the create() method..
     private JdbcEntityContextServices services;
@@ -113,6 +115,11 @@ public class EnvironmentDef {
         return this;
     }
 
+    public EnvironmentDef withSpecs(SpecRegistry specRegistry) {
+      this.specRegistries.addAll( Arrays.asList(specRegistry) );
+      return this;
+  }
+
     public EnvironmentDef withDroppingSchema(boolean drop) {
         dropSchema = drop;
         return this;
@@ -121,6 +128,11 @@ public class EnvironmentDef {
     public EnvironmentDef withSchemaCreation(boolean create) {
         createDDL = create;
         return this;
+    }
+
+    public EnvironmentDef withNoClasses() {
+      classloading = false;
+      return this;
     }
 
     protected JdbcEntityContextServices createEntityContextServices(DataSource dataSource) {
@@ -194,6 +206,13 @@ public class EnvironmentDef {
             }
         }
 
+        for (SpecRegistry reg: specRegistries) {
+          for (DefinitionsSpec spec: reg.getDefinitions()) {
+            registry.add(spec);
+            allSpecs.add(spec);
+          }
+        }
+
         for (DefinitionsSpec spec: allSpecs) {
             env.addDefinitions( Definitions.create( spec ) );
         }
@@ -202,20 +221,22 @@ public class EnvironmentDef {
         /*
          * registery default queries for all entity specs.
          */
-        for (DefinitionsSpec spec: allSpecs) {
-            for (EntitySpec entitySpec: spec.getEntitySpecs()) {
-                Class<?> queryClass = getClass().getClassLoader().loadClass(entitySpec.getQueryClassName());
-                env.getDefinitions(spec.getNamespace()).registerQueries((QueryObject<?>)queryClass.newInstance());
-            }
-        }
+        if (classloading) {
+          for (DefinitionsSpec spec: allSpecs) {
+              for (EntitySpec entitySpec: spec.getEntitySpecs()) {
+                  Class<?> queryClass = getClass().getClassLoader().loadClass(entitySpec.getQueryClassName());
+                  env.getDefinitions(spec.getNamespace()).registerQueries((QueryObject<?>)queryClass.newInstance());
+              }
+          }
 
-        /*
-         * registery proxy factories for each namespace
-         */
-        for (DefinitionsSpec spec: allSpecs) {
-            String className = GenerateProxyModels.getProxyFactoryFullyQuallifiedClassName(spec);
-            Class<?> facClass = getClass().getClassLoader().loadClass( className );
-            env.getDefinitions(spec.getNamespace()).registerProxyFactory((ProxyFactory)facClass.newInstance());
+          /*
+           * registery proxy factories for each namespace
+           */
+          for (DefinitionsSpec spec: allSpecs) {
+              String className = GenerateProxyModels.getProxyFactoryFullyQuallifiedClassName(spec);
+              Class<?> facClass = getClass().getClassLoader().loadClass( className );
+              env.getDefinitions(spec.getNamespace()).registerProxyFactory((ProxyFactory)facClass.newInstance());
+          }
         }
 
         if (dropSchema) {

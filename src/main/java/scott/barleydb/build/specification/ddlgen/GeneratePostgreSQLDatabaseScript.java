@@ -53,7 +53,7 @@ public class GeneratePostgreSQLDatabaseScript extends GenerateDatabaseScript {
                 sb.append("DATE");
                 break;
             case DATETIME:
-                sb.append("DATETIME");
+                sb.append("TIMESTAMP");
                 break;
             case DECIMAL:
                 sb.append("DECIMAL");
@@ -70,6 +70,10 @@ public class GeneratePostgreSQLDatabaseScript extends GenerateDatabaseScript {
             case BLOB:
                 sb.append("MEDIUMBLOB");
                 break;
+            case SMALLINT:
+              sb.append("SMALLINT");
+              break;
+
             default:
                 throw new IllegalStateException("Invalid JDBC type: " + nodeSpec.getJdbcType());
         }

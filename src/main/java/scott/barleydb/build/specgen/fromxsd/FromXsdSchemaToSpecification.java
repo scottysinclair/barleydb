@@ -27,11 +27,16 @@ package scott.barleydb.build.specgen.fromxsd;
 
 import static java.util.Arrays.asList;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,20 +50,22 @@ import scott.barleydb.api.specification.DefinitionsSpec;
 import scott.barleydb.api.specification.EntitySpec;
 import scott.barleydb.api.specification.EnumSpec;
 import scott.barleydb.api.specification.JoinTypeSpec;
+import scott.barleydb.api.specification.KeyGenSpec;
 import scott.barleydb.api.specification.NodeSpec;
 import scott.barleydb.api.specification.RelationSpec;
 import scott.barleydb.api.specification.SpecRegistry;
 import scott.barleydb.api.specification.constraint.ForeignKeyConstraintSpec;
+import scott.barleydb.api.specification.constraint.PrimaryKeyConstraintSpec;
+import scott.barleydb.xsd.XsdAttribute;
 import scott.barleydb.xsd.XsdComplexType;
 import scott.barleydb.xsd.XsdCoreType;
 import scott.barleydb.xsd.XsdDefinition;
 import scott.barleydb.xsd.XsdElement;
 import scott.barleydb.xsd.XsdNode;
-import scott.barleydb.xsd.XsdSimpleType;
 import scott.barleydb.xsd.XsdType;
 import scott.barleydb.xsd.exception.XsdDefinitionException;
 
-public class FromXsdSchemaToSpecification {
+public class FromXsdSchemaToSpecification implements EntitySpecXsdLookup {
 
   private static Logger LOG = LoggerFactory.getLogger(FromXsdSchemaToSpecification.class);
 
@@ -68,10 +75,14 @@ public class FromXsdSchemaToSpecification {
   private final Collection<XsdType> allTypes = new LinkedList<>();
   private final Map<XsdType, EntitySpec> entitySpecs = new LinkedHashMap<>();
   private final Map<String, EntitySpec> entitySpecsByTypeName = new LinkedHashMap<>();
+  private final Map<String,EntitySpec> xsdPathToEntitySpec = new HashMap<>();
+  private final Map<String,NodeSpec> xsdPathToNodeSpec = new HashMap<>();
+  private final String prefix;
 
-  public FromXsdSchemaToSpecification(String namespace) {
+  public FromXsdSchemaToSpecification(String namespace, String prefix) {
     this.namespace = namespace;
     this.spec = new DefinitionsSpec();
+    this.prefix = prefix;
     spec.setNamespace(namespace);
     registry.add(spec);
   }
@@ -87,22 +98,65 @@ public class FromXsdSchemaToSpecification {
     return registry;
   }
 
+  @Override
+  public EntitySpec getRequiredEntitySpecFor(XsdType xsdType) throws XsdDefinitionException {
+      String xsdPath = getXsdPath(xsdType);
+      EntitySpec spec = xsdPathToEntitySpec.get( xsdPath  );
+      if (spec == null) {
+        throw new IllegalStateException("Could not find entity spec for xsdPath " + xsdPath);
+      }
+      return spec;
+  }
+
+  @Override
+  public NodeSpec getRequiredNodeSpecFor(XsdType xsdType, XsdElement xsdElement) throws XsdDefinitionException {
+    String xsdPath = getXsdPath(xsdType, xsdElement);
+    NodeSpec ns = xsdPathToNodeSpec.get(xsdPath);
+    if (ns == null) {
+      throw new IllegalStateException("Could not find node spec for element xsdPath " + xsdPath);
+    }
+    return ns;
+  }
+
+  @Override
+  public NodeSpec getRequiredNodeSpecFor(XsdType xsdType, XsdAttribute xsdAttribute) throws XsdDefinitionException {
+    String xsdPath = getXsdPath(xsdType, xsdAttribute);
+    NodeSpec ns = xsdPathToNodeSpec.get(xsdPath);
+    if (ns == null) {
+      throw new IllegalStateException("Could not find node spec for attribute xsdPath " + xsdPath);
+    }
+    return ns;
+  }
+
   private Collection<XsdType> extractTypes(Collection<XsdElement> allRootElements) throws XsdDefinitionException {
     Map<Node, XsdType> processedTypes = new LinkedHashMap<>();
     extractTypes(allRootElements, processedTypes);
     return processedTypes.values();
   }
 
+  private void createPrimaryKeyConstraint(EntitySpec entitySpec, Collection<NodeSpec> key) {
+    String keySpecName = createPrimaryKeyConstraintName( entitySpec, key );
+    PrimaryKeyConstraintSpec pkSpec = new PrimaryKeyConstraintSpec(keySpecName, key);
+    entitySpec.setPrimaryKeyConstraint( pkSpec );
+  }
+
+  protected String createPrimaryKeyConstraintName(EntitySpec entitySpec, Collection<NodeSpec> key) {
+    return "pk_" + entitySpec.getTableName();
+  }
+
   private void extractTypes(Collection<XsdElement> elements, Map<Node, XsdType> processedTypes)
       throws XsdDefinitionException {
     for (XsdElement el : elements) {
-      LOG.debug("Extracing type from element {}", el.getElementName());
       XsdType type = el.getType();
       if (!(type instanceof XsdCoreType)) {
         if (!processedTypes.containsKey(type.getDomNode())) {
-          processedTypes.putIfAbsent(type.getDomNode(), type);
+          LOG.debug("Extracting type from element {}", el.getElementName());
+          processedTypes.put(type.getDomNode(), type);
           extractTypes(el.getChildTargetElements(), processedTypes);
         }
+      }
+      else {
+        LOG.debug("Ignoring type {}", el.getElementName());
       }
     }
   }
@@ -116,24 +170,103 @@ public class FromXsdSchemaToSpecification {
   private void firstPass() throws XsdDefinitionException {
     LOG.debug("First pass...");
     for (XsdType type : allTypes) {
-      LOG.debug("Processing type {}", getEntityClassName(type));
-      EntitySpec entitySpec = toEntitySpec(type);
-      entitySpecs.put(type, entitySpec);
-      entitySpecsByTypeName.put(type.getTypeLocalName(), entitySpec);
-      spec.add(entitySpec);
+      if (shouldBeAnEntity(type)) {
+        String xsdPath = getXsdPath(type);
+        LOG.debug("Processing type {} with xsdPath {}", getEntityClassName(type), xsdPath);
+        EntitySpec entitySpec = toEntitySpec(type);
+        entitySpecs.put(type, entitySpec);
+        entitySpecsByTypeName.put(type.getTypeLocalName(), entitySpec);
+        if (xsdPathToEntitySpec.put(xsdPath, entitySpec) != null) {
+          throw new IllegalStateException("XSD Path " + getXsdPath(type) + "already exists, cannot register " + entitySpec.getClassName());
+        }
+        spec.add(entitySpec);
+      }
+      else {
+        LOG.debug("{} should not be an entity", type.getTypeLocalName());
+      }
     }
 
   }
 
+  private String getXsdPath(XsdType type) throws XsdDefinitionException {
+    if (type.getTypeLocalName().length() > 0) {
+      return getXsdPath(type.getParent()) + "/" + type.getTypeLocalName();
+    }
+    else {
+      return getXsdPath(type.getParent()) + "/" + type.getDomNode().getNodeName();
+    }
+  }
+
+  private String getXsdPath(XsdElement element) throws XsdDefinitionException {
+    return getXsdPath(element.getParent()) + "/" + element.getElementName();
+  }
+
+  private String getXsdPath(XsdType type, XsdAttribute attr) throws XsdDefinitionException {
+    return getXsdPath(type) + "/@" + attr.getName();
+  }
+
+  private String getXsdPath(XsdType type, XsdElement element) throws XsdDefinitionException {
+    return getXsdPath(type) + "/" + element.getElementName();
+  }
+
+  private String getXsdPath(XsdNode xsdNode) throws XsdDefinitionException {
+    if (xsdNode instanceof XsdElement) {
+        return getXsdPath((XsdElement)xsdNode);
+    }
+    if (xsdNode instanceof XsdDefinition) {
+      return ((XsdDefinition) xsdNode).getTargetNamespace();
+    }
+    if (xsdNode instanceof XsdType) {
+      return getXsdPath((XsdType) xsdNode);
+    }
+    return getXsdPath(xsdNode.getParent()) + "/" + xsdNode.getDomNode().getNodeName();
+  }
+
+
+  protected boolean shouldBeAnEntity(XsdType type) throws XsdDefinitionException  {
+    if (!typeHasMoreThanOneElementOrAttribute(type)) {
+      LOG.warn("Type " + getEntityName(type) + " has less than 2 children (including attributes)");
+      return false;
+    }
+    return true;
+  }
+
   private EntitySpec toEntitySpec(XsdType type) throws XsdDefinitionException {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Converting type {} to entity spec with path {}", type.getTypeLocalName(), getXsdPath(type));
+    }
     EntitySpec entitySpec = new EntitySpec();
     entitySpec.setTableName(getEntityTableName(type));
     entitySpec.setClassName(getEntityClassName(type));
     entitySpec.setDtoClassName(getEntityDtoClassName(type));
     entitySpec.setQueryClassName(getEntityQueryClassName(type));
 
+    for (XsdAttribute attr: type.getAttributes()) {
+      String specPath = getXsdPath(type, attr);
+      LOG.trace("Converting attribute {} to node spec with path {}", attr.getName(), specPath);
+      NodeSpec nodeSpec = new NodeSpec();
+      nodeSpec.setEntity(entitySpec);
+      nodeSpec.setName(getNodeName(attr));
+      nodeSpec.setColumnName(getNodeColumnName(attr));
+      nodeSpec.setEnumSpec(getNodeEnumSpec(attr));
+      nodeSpec.setFixedValue(getNodeFixedValue(attr));
+      nodeSpec.setJavaType(getNodeJavaType(attr));
+      nodeSpec.setJdbcType(getNodejdbcType(attr));
+      nodeSpec.setLength(getNodeLength(attr));
+      nodeSpec.setNullable(getNodeNullable(attr));
+      nodeSpec.setPrecision(getNodePrecision(attr));
+      nodeSpec.setScale(getNodeScale(attr));
+      entitySpec.add(nodeSpec);
+      if (xsdPathToNodeSpec.put(specPath, nodeSpec) != null) {
+        throw new IllegalStateException("Duplicate xsd path for node spec: " + nodeSpec + ", " + getXsdPath(attr));
+      }
+//      LOG.debug("Adding nodespec {} {}", entitySpec.getClassName(), nodeSpec.getName());
+    }
+
     for (XsdElement el : type.getChildTargetElements()) {
-      if (el.getType() instanceof XsdCoreType || el.getType() instanceof XsdSimpleType) {
+      String specPath = getXsdPath(type, el);
+      if (elementIsValueType(el)) {
+        LOG.trace("Converting element {} to node spec with path {}", el.getElementName(), specPath);
         NodeSpec nodeSpec = new NodeSpec();
         nodeSpec.setEntity(entitySpec);
         nodeSpec.setName(getNodeName(el));
@@ -147,47 +280,146 @@ public class FromXsdSchemaToSpecification {
         nodeSpec.setPrecision(getNodePrecision(el));
         nodeSpec.setScale(getNodeScale(el));
         entitySpec.add(nodeSpec);
-        LOG.debug("Adding nodespec {}", nodeSpec);
+        if (xsdPathToNodeSpec.put(specPath, nodeSpec) != null) {
+          throw new IllegalStateException("Duplicate xsd path for node spec: " + nodeSpec + ", " + getXsdPath(el));
+        }
+//        LOG.debug("Adding nodespec {} {}", entitySpec.getClassName(), nodeSpec.getName());
+      }
+      else {
+        LOG.trace("Element {} with path {} is not a nodespec value", el.getElementName(), specPath);
       }
     }
-    if (entitySpec.getNodeSpec("id") == null) {
+
+    if (entitySpec.getNodeSpec("pk") != null) {
+      throw new IllegalStateException("node pk already exists for entity " + entitySpec.getClassName());
+    }
       NodeSpec pk = new NodeSpec();
       pk.setEntity(entitySpec);
-      pk.setName("id");
-      pk.setColumnName("ID");
+      pk.setName("pk");
+      pk.setColumnName("PK");
       pk.setJavaType(JavaType.LONG);
       pk.setJdbcType(JdbcType.BIGINT);
       pk.setNullable(Nullable.NOT_NULL);
       pk.setPrimaryKey(true);
+      pk.setKeyGenSpec( getKeyGenSpec(entitySpec, pk));
       entitySpec.add(pk);
-    } else {
-      entitySpec.getNodeSpec("id").setPrimaryKey(true);
-    }
+    /*} else {
+      NodeSpec id = entitySpec.getNodeSpec("id");
+      id.setPrimaryKey(true);
+      if (id.getJdbcType() == JdbcType.VARCHAR) {
+        id.setJdbcType(JdbcType.CHAR);
+      }*/
 
     return entitySpec;
   }
 
-  private String getNodeName(XsdElement el) throws XsdDefinitionException {
+  protected KeyGenSpec getKeyGenSpec(EntitySpec entitySpec, NodeSpec pk) {
+    return KeyGenSpec.FRAMEWORK;
+  }
+
+  protected Integer getNodeScale(XsdAttribute attr) throws XsdDefinitionException {
+    return getNodeScale(getNodeJavaType(attr));
+  }
+
+  protected Integer getNodePrecision(XsdAttribute attr) throws XsdDefinitionException {
+    return getNodePrecision(getNodeJavaType(attr));
+  }
+
+  protected Nullable getNodeNullable(XsdAttribute attr) throws XsdDefinitionException {
+    return attr.getUse().equals("optional") ? Nullable.NULL : Nullable.NOT_NULL;
+  }
+
+  protected Integer getNodeLength(XsdAttribute attr) throws XsdDefinitionException {
+    return getNodeLength(getNodeJavaType(attr));
+  }
+
+  protected JdbcType getNodejdbcType(XsdAttribute attr) throws XsdDefinitionException {
+    return getNodejdbcType(getNodeJavaType(attr));
+  }
+
+  protected JavaType getNodeJavaType(XsdAttribute attr) throws XsdDefinitionException {
+    XsdType type = attr.getType();
+    switch(type.getTypeLocalName()) {
+      case "positiveInteger": return JavaType.INTEGER;
+      default: {
+//        LOG.trace("Defaulting attribute type '{}' to String.", attr.getType().getTypeLocalName());
+        return JavaType.STRING;
+      }
+    }
+  }
+
+  protected Object getNodeFixedValue(XsdAttribute attr) {
+    return null;
+  }
+
+  protected EnumSpec getNodeEnumSpec(XsdAttribute attr) {
+    return null;
+  }
+
+  protected String getNodeColumnName(XsdAttribute attr) throws XsdDefinitionException {
+    return getNodeColumnName(attr.getName());
+  }
+
+  protected String getNodeName(XsdAttribute attr) throws XsdDefinitionException {
+    return attr.getName();
+  }
+
+  protected boolean elementIsValueType(XsdElement el) throws XsdDefinitionException {
+//    if (el.getType() instanceof XsdCoreType || el.getType() instanceof XsdSimpleType) {
+//      return true;
+//    }
+//
+    return !typeHasMoreThanOneElementOrAttribute(el.getType());
+  }
+
+  protected boolean typeHasMoreThanOneElementOrAttribute(XsdType type) throws XsdDefinitionException {
+    if (type.getAttributes().size() > 1) {
+      return true;
+    }
+    if (type.getChildTargetElements().size() > 1) {
+      return true;
+    }
+    if (type.getAttributes().size() == 1 && type.getChildTargetElements().size() == 1) {
+      return true;
+    }
+    return false;
+  }
+
+  protected String getNodeName(XsdElement el) throws XsdDefinitionException {
     String name =  el.getElementName();
-    if (name.equals("return") || name.equals("volatile")) {
+    if (isJavaKeyword(name)) {
       name += "Value";
     }
     return name;
   }
 
-  private String getNodeColumnName(XsdElement el) throws XsdDefinitionException {
-    return el.getElementName();
+  protected boolean isJavaKeyword(String name) {
+    return Arrays.asList("return", "volatile").contains(name.toLowerCase());
   }
 
-  private EnumSpec getNodeEnumSpec(XsdElement el) {
+  protected String getNodeColumnName(XsdElement el) throws XsdDefinitionException {
+    return getNodeColumnName(el.getElementName());
+  }
+  protected String getNodeColumnName(String proposedName) throws XsdDefinitionException {
+    if (isDbKeyword( proposedName )) {
+      return proposedName +  "_val";
+    }
+    return proposedName;
+  }
+
+  protected boolean isDbKeyword(String elementName) {
+    return Arrays.asList("offset", "order", "desc").contains(elementName.toLowerCase());
+  }
+
+  protected EnumSpec getNodeEnumSpec(XsdElement el) {
     return null;
   }
 
-  private Object getNodeFixedValue(XsdElement el) {
+  protected Object getNodeFixedValue(XsdElement el) {
     return null;
   }
 
-  private JavaType getNodeJavaType(XsdElement el) throws XsdDefinitionException {
+  protected JavaType getNodeJavaType(XsdElement el) throws XsdDefinitionException {
     XsdType type = el.getType();
     switch (type.getTypeLocalName()) {
     case "String":
@@ -207,14 +439,17 @@ public class FromXsdSchemaToSpecification {
     case "PositiveInteger":
       return JavaType.INTEGER;
     default: {
-      LOG.warn("Defaulting " + type.getTypeLocalName() + " to String");
+//      LOG.trace("Defaulting " + type.getTypeLocalName() + " to String");
       return JavaType.STRING;
     }
     }
   }
 
-  private JdbcType getNodejdbcType(XsdElement el) throws XsdDefinitionException {
-    JavaType javaType = getNodeJavaType(el);
+  protected JdbcType getNodejdbcType(XsdElement el) throws XsdDefinitionException {
+    return getNodejdbcType(getNodeJavaType(el));
+  }
+
+  protected JdbcType getNodejdbcType(JavaType javaType) throws XsdDefinitionException {
     switch (javaType) {
     case STRING:
       return JdbcType.VARCHAR;
@@ -231,41 +466,52 @@ public class FromXsdSchemaToSpecification {
     }
   }
 
-  private Integer getNodeLength(XsdElement el) throws XsdDefinitionException {
-    JavaType javaType = getNodeJavaType(el);
+  protected Integer getNodeLength(XsdElement el) throws XsdDefinitionException {
+    return getNodeLength(getNodeJavaType(el));
+  }
+
+  protected Integer getNodeLength(JavaType javaType) throws XsdDefinitionException {
     if (javaType == JavaType.STRING) {
       return 100;
     } else if (javaType == JavaType.BIGDECIMAL) {
       return 9;
     }
     return null;
+
   }
 
-  private Nullable getNodeNullable(XsdElement el) throws XsdDefinitionException {
+  protected Nullable getNodeNullable(XsdElement el) throws XsdDefinitionException {
     return el.getMinOccurs() == 0 ? Nullable.NULL : Nullable.NOT_NULL;
   }
 
-  private Integer getNodePrecision(XsdElement el) throws XsdDefinitionException {
+  protected Integer getNodePrecision(XsdElement el) throws XsdDefinitionException {
     JavaType javaType = getNodeJavaType(el);
-    if (javaType == JavaType.BIGDECIMAL) {
-      return 4;
-    }
-    return null;
+    return getNodePrecision(javaType);
   }
 
-  private Integer getNodeScale(XsdElement el) throws XsdDefinitionException {
-    JavaType javaType = getNodeJavaType(el);
+  protected Integer getNodePrecision(JavaType javaType) throws XsdDefinitionException {
     if (javaType == JavaType.BIGDECIMAL) {
       return 9;
     }
     return null;
   }
 
-  private String getEntityQueryClassName(XsdType type) throws XsdDefinitionException {
+  protected Integer getNodeScale(XsdElement el) throws XsdDefinitionException {
+    return getNodeScale(getNodeJavaType(el));
+  }
+
+  protected Integer getNodeScale(JavaType javaType) {
+    if (javaType == JavaType.BIGDECIMAL) {
+      return 4;
+    }
+    return null;
+  }
+
+  protected String getEntityQueryClassName(XsdType type) throws XsdDefinitionException {
     return namespace + ".query.Q" + getEntityName(type);
   }
 
-  private String getEntityName(XsdType type) throws XsdDefinitionException {
+  protected String getEntityName(XsdType type) throws XsdDefinitionException {
     if (type.getTypeLocalName() != null && type.getTypeLocalName().length() > 0) {
       return type.getTypeLocalName();
     }
@@ -276,16 +522,16 @@ public class FromXsdSchemaToSpecification {
     throw new IllegalStateException("Cannot get type name for type " + type);
   }
 
-  private String getEntityDtoClassName(XsdType type) throws XsdDefinitionException {
+  protected String getEntityDtoClassName(XsdType type) throws XsdDefinitionException {
     return namespace + ".dto." + getEntityName(type) + "Dto";
   }
 
-  private String getEntityClassName(XsdType type) throws XsdDefinitionException {
+  protected String getEntityClassName(XsdType type) throws XsdDefinitionException {
     return namespace + ".model." + getEntityName(type);
   }
 
-  private String getEntityTableName(XsdType type) throws XsdDefinitionException {
-    return getEntityName(type);
+  protected String getEntityTableName(XsdType type) throws XsdDefinitionException {
+    return prefix + "_" + getEntityName(type);
   }
 
   /**
@@ -297,42 +543,105 @@ public class FromXsdSchemaToSpecification {
     for (Map.Entry<XsdType, EntitySpec> entry : entitySpecs.entrySet()) {
       XsdType type = entry.getKey();
       EntitySpec entitySpec = entry.getValue();
+
+      List<NodeSpec> key = new LinkedList<>();
+      for (NodeSpec ns: entitySpec.getNodeSpecs()) {
+        if (ns.isPrimaryKey()) {
+            key.add(ns);
+        }
+    }
+    if (!key.isEmpty()) {
+        createPrimaryKeyConstraint(entitySpec, key);
+    }
+
+
       for (XsdElement el : type.getChildTargetElements()) {
+        String specPath = getXsdPath(type, el);
         if (el.getMaxOccurs() != 1) {
+          LOG.trace("Element {} with path {} occurs many times, skipping as FK relation...", el.getElementName(), specPath);
           continue;
         }
         if (el.getType() instanceof XsdComplexType) {
+          if (!shouldBeAnEntity(el.getType())) {
+            LOG.trace("Element {} with path {} has type which should NOT be an entity, skipping as FK relation", el.getElementName(), specPath);
+            continue;
+          }
 
           EntitySpec fkEntity = entitySpecsByTypeName.get(el.getType().getTypeLocalName());
           Objects.requireNonNull(fkEntity, "Cannot find entity for type {}" + el.getType());
           // normal FK relation
+          LOG.trace("Converting element {} with path {} to FK relation to {}", el.getElementName(), specPath, fkEntity.getClassName());
           NodeSpec fkNodeSpec = new NodeSpec();
           fkNodeSpec.setEntity(entitySpec);
           fkNodeSpec.setName(getNodeName(el));
           fkNodeSpec.setColumnName(getFkColumnName(el));
+          fkNodeSpec.setNullable(getNodeNullable(el));
+          fkNodeSpec.setJdbcType( getPrimaryKeyType(fkEntity) );;
           RelationSpec rspec = new RelationSpec();
           rspec.setEntitySpec(fkEntity);
           rspec.setJoinType(JoinTypeSpec.LEFT_OUTER_JOIN);
           rspec.setType(RelationType.REFERS);
           fkNodeSpec.setRelation(rspec);
+
+          if (xsdPathToNodeSpec.put(specPath, fkNodeSpec) != null) {
+            throw new IllegalStateException("Duplicate xsd path for node spec: " + fkNodeSpec.getName() + ", " + specPath);
+          }
+
           entitySpec.add(fkNodeSpec);
+
 
           createForeignKeyConstraint(entitySpec, fkNodeSpec, rspec);
           LOG.debug("Added FK relation from {}.{} to {}", entitySpec.getClassName(), fkNodeSpec.getName(),
               fkEntity.getClassName());
         }
+        else {
+          LOG.trace("Element {} with path {} is not a complex type, skipping as FK relation", el.getElementName(), specPath);
+        }
       }
     }
   }
 
-  private String getFkColumnName(XsdElement el) throws XsdDefinitionException {
-    return getNodeName(el);
+  private JdbcType getPrimaryKeyType(EntitySpec fkEntity) {
+    if (fkEntity.getPrimaryKeyNodes(true).size() > 1) {
+      throw new IllegalStateException("Composite PK not expected");
+    }
+    return fkEntity.getPrimaryKeyNodes(true).iterator().next().getJdbcType();
   }
 
-  private void postProcess() {
-    // TODO Auto-generated method stub
-
+  protected void postProcess() {
+    logWarningsForSmallEntities();
+//    for (Map.Entry<String, EntitySpec> entry: xsdPathToEntitySpec.entrySet()) {
+//      System.out.println(entry.getKey() + "  :  " + entry.getValue().getClassName());
+//    }
   }
+
+  private void logWarningsForSmallEntities() {
+    for (EntitySpec entitySpec: entitySpecs.values()) {
+      if (entitySpec.getNodeSpecs().size() < 2) {
+          LOG.warn("Entity {} has only {} nodes", entitySpec.getClassName(), entitySpec.getNodeSpecs().size());
+      }
+      else if (entitySpec.getNodeSpecs().size() == 2) {
+        LOG.warn("Entity {} has only 2 nodes: {}", entitySpec.getClassName(), printNodesShort(entitySpec));
+
+      }
+    }
+  }
+
+  private String printNodesShort(EntitySpec entitySpec) {
+    StringBuilder sb = new StringBuilder();
+    for (NodeSpec ns: entitySpec.getNodeSpecs()) {
+      sb.append(ns.getName());
+      sb.append(", ");
+    }
+    sb.setLength(sb.length() - 2);
+    return sb.toString();
+  }
+
+  protected String getFkColumnName(XsdElement el) throws XsdDefinitionException {
+    return getNodeName(el) + "_id";
+  }
+
+  private final Set<String> existingFkConstraintNames = new HashSet<>();
 
   private void createForeignKeyConstraint(EntitySpec entitySpec, NodeSpec nodeSpec, RelationSpec relationSpec) {
     String keySpecName = createForeignKeyConstraintName(entitySpec, nodeSpec, relationSpec);
@@ -346,10 +655,23 @@ public class FromXsdSchemaToSpecification {
     ForeignKeyConstraintSpec spec = new ForeignKeyConstraintSpec(keySpecName, asList(nodeSpec), toEntitySpec,
         toPrimaryKey);
     entitySpec.add(spec);
+    existingFkConstraintNames.add(keySpecName);
   }
 
+
   protected String createForeignKeyConstraintName(EntitySpec entitySpec, NodeSpec nodeSpec, RelationSpec relationSpec) {
-    return "fk_" + entitySpec.getTableName() + "_" + relationSpec.getEntitySpec().getTableName();
+    String name =  "fk_" + shortTableName(entitySpec.getTableName()) + "_" + shortTableName(relationSpec.getEntitySpec().getTableName());
+    while (existingFkConstraintNames.contains(name)) {
+      name = "_" + name;
+    }
+    return name;
+  }
+
+  private String shortTableName(String text) {
+    if (text.substring(prefix.length() + 1).length() <= 10) {
+      return text;
+    }
+    return text.substring(prefix.length() + 1, 10 + prefix.length() + 1);
   }
 
   private String genRealtionNodeName(EntitySpec pkEspec) {

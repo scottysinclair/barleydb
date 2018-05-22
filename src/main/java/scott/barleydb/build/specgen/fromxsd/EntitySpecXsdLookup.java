@@ -1,4 +1,4 @@
-package scott.barleydb.xsd;
+package scott.barleydb.build.specgen.fromxsd;
 
 /*-
  * #%L
@@ -25,17 +25,18 @@ package scott.barleydb.xsd;
  * #L%
  */
 
-import java.util.List;
-
-import org.w3c.dom.Node;
-
+import scott.barleydb.api.specification.EntitySpec;
+import scott.barleydb.api.specification.NodeSpec;
+import scott.barleydb.xsd.XsdAttribute;
+import scott.barleydb.xsd.XsdElement;
+import scott.barleydb.xsd.XsdNode;
+import scott.barleydb.xsd.XsdType;
 import scott.barleydb.xsd.exception.XsdDefinitionException;
 
-public interface XsdNode {
-    public Node getDomNode();
-    public XsdDefinition getXsdDefinition();
-    public List<XsdDocumentation> getDocumentation() throws XsdDefinitionException;
-    public List<XsdElement> getChildTargetElements() throws XsdDefinitionException;
-    public List<XsdAttribute> getAttributes() throws XsdDefinitionException;
-    public XsdNode getParent();
+public interface EntitySpecXsdLookup {
+
+  EntitySpec getRequiredEntitySpecFor(XsdType xsdType) throws XsdDefinitionException, IllegalStateException;
+  NodeSpec getRequiredNodeSpecFor(XsdType xsdType, XsdElement xsdElement) throws XsdDefinitionException;
+  NodeSpec getRequiredNodeSpecFor(XsdType xsdType, XsdAttribute xsdAttribute) throws XsdDefinitionException;
+
 }

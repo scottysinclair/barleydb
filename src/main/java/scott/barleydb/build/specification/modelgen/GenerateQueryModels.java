@@ -58,7 +58,7 @@ public class GenerateQueryModels extends GenerateModelsHelper {
     }
 
     private void generateAbstractQueryModel(String path, DefinitionsSpec definitions, EntitySpec entitySpec) throws IOException {
-        System.out.println("Generating model class " + entitySpec.getClassName());
+//        System.out.println("Generating model class " + entitySpec.getClassName());
         File classFile = toAbstractQueryFile(path, entitySpec);
         classFile.getParentFile().mkdirs();
         try (Writer out = new FileWriter(classFile); ) {
@@ -88,7 +88,7 @@ public class GenerateQueryModels extends GenerateModelsHelper {
     }
 
     private void generateQueryModel(String path, DefinitionsSpec definitions, EntitySpec entitySpec, boolean ownMethodsDefinedOnSuperQueryType) throws IOException {
-        System.out.println("Generating model class " + entitySpec.getClassName());
+//        System.out.println("Generating model class " + entitySpec.getClassName());
         File classFile = toFile(path, entitySpec);
         classFile.getParentFile().mkdirs();
         try (Writer out = new FileWriter(classFile); ) {

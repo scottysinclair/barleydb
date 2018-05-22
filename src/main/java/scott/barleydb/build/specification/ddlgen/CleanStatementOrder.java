@@ -78,7 +78,7 @@ public class CleanStatementOrder {
     private static boolean fkRelationExistsFromTo(EntitySpec specA, EntitySpec specB) {
         for (NodeSpec nodeSpec: specA.getNodeSpecs()) {
             if (nodeSpec.getRelationSpec() != null && nodeSpec.getRelationSpec().isForeignKeyRelation()) {
-                System.out.println(specA.getTableName() + " " + nodeSpec.getColumnName() + " ==>> " + specB.getTableName());
+//                System.out.println(specA.getTableName() + " " + nodeSpec.getColumnName() + " ==>> " + specB.getTableName());
                 if (nodeSpec.getRelationSpec().getEntitySpec().getTableName().equals(specB.getTableName())) {
                     return true;
                 }

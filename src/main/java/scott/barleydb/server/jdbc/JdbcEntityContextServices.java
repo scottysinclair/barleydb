@@ -406,8 +406,10 @@ public class JdbcEntityContextServices implements IEntityContextServices {
                 return analyser;
             }
             catch(SortPersistException x) {
+              if (!getAutoCommit(entityContext)) {
                 rollback(con.getConnection(), "Error rolling back the persist request");
-                throw x;
+              }
+              throw x;
             }
         }
     }

@@ -193,7 +193,7 @@ public class FromDatabaseSchemaToSpecification {
      */
     private void secondPass(Catalog catalog) {
         for (Schema schema: catalog.getSchemas()) {
-            System.out.println(schema);
+            LOG.debug(schema.toString());
             for (Table table: catalog.getTables(schema)) {
                 for (ForeignKey fk: table.getForeignKeys()) {
                     for (ForeignKeyColumnReference fkRef: fk.getColumnReferences()) {
