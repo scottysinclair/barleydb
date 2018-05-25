@@ -2,6 +2,7 @@ package scott.barleydb.api.specification;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 /*
  * #%L
@@ -54,6 +55,7 @@ public class CoreSpec {
         NodeSpec spec = new NodeSpec();
         spec.setJavaType(JavaType.ENUM);
         Enumeration enumSpecAnno = enumSpecClass.getAnnotation(Enumeration.class);
+        Objects.requireNonNull(enumSpecAnno, "could not find @Enumeration annotation for class " + enumSpecClass);
         spec.setJdbcType( enumSpecAnno.value() );
         spec.setEnumSpecIdentifier( enumSpecClass );
         spec.setNullable( nullable );

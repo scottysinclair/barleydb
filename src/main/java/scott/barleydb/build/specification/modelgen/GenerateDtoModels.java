@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import scott.barleydb.api.core.entity.RefNode;
@@ -47,7 +48,7 @@ public class GenerateDtoModels extends GenerateModelsHelper {
     }
 
     private void generateDto(String path, DefinitionsSpec definitions, EntitySpec entitySpec) throws IOException {
-        System.out.println("Generating dto class " + entitySpec.getClassName());
+ //       System.out.println("Generating dto class " + entitySpec.getClassName());
         File classFile = toFile(path, entitySpec);
         classFile.getParentFile().mkdirs();
         try (Writer out = new FileWriter(classFile); ) {
@@ -95,7 +96,9 @@ public class GenerateDtoModels extends GenerateModelsHelper {
     private void writeToString(Writer out, EntitySpec entitySpec) throws IOException {
       out.write("  public String toString() {\n");
       out.write("    return getClass().getSimpleName() + \"[");
-      NodeSpec ns = entitySpec.getPrimaryKeyNodes(true).iterator().next();
+      Collection<NodeSpec> col = entitySpec.getPrimaryKeyNodes(true);
+      Objects.requireNonNull(col, "EntitySpec " + entitySpec.getClassName() + " has no PK defined");
+      NodeSpec ns = col.iterator().next();
       out.write(ns.getName());
       out.write(" = \" + " + ns.getName() + " + \"]\";\n");
       out.write("  }\n");
