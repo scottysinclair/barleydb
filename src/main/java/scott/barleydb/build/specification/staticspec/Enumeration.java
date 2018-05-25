@@ -36,4 +36,5 @@ import scott.barleydb.api.core.types.JdbcType;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Enumeration {
     JdbcType value();
+    int length() default 0;
 }

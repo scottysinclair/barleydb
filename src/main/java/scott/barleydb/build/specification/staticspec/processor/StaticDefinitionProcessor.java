@@ -200,7 +200,7 @@ public class StaticDefinitionProcessor {
             for (Field f: enumDefinitionClass.getFields()) {
                 EnumValueSpec enumValue;
                 try {
-                    enumValue = new EnumValueSpec((int)f.get(null), f.getName());
+                    enumValue = new EnumValueSpec(f.get(null), f.getName());
                 } catch (IllegalArgumentException | IllegalAccessException e) {
                     throw new IllegalStateException("Could not create enum value for field " + f.getName());
                 }

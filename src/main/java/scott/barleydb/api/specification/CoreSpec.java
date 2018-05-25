@@ -57,6 +57,9 @@ public class CoreSpec {
         Enumeration enumSpecAnno = enumSpecClass.getAnnotation(Enumeration.class);
         Objects.requireNonNull(enumSpecAnno, "could not find @Enumeration annotation for class " + enumSpecClass);
         spec.setJdbcType( enumSpecAnno.value() );
+        if (enumSpecAnno.length() > 0) {
+        	spec.setLength( enumSpecAnno.length() );
+        }
         spec.setEnumSpecIdentifier( enumSpecClass );
         spec.setNullable( nullable );
         return spec;
