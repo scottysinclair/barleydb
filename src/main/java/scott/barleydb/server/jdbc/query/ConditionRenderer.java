@@ -101,6 +101,14 @@ public class ConditionRenderer implements ConditionVisitor {
           sb.append(" not in (");
           break;
         }
+        case IS_NULL: {
+          sb.append(" is null");
+          break;
+        }
+        case IS_NOT_NULL: {
+          sb.append(" is not null");
+          break;
+        }
         default:
             throw new IllegalQueryStateException("Unexpected operator " + qpc.getOperator());
         }
@@ -112,7 +120,7 @@ public class ConditionRenderer implements ConditionVisitor {
           }
           sb.setLength(sb.length()-1);
         }
-        else {
+        else if (qpc.getValue() != null) {
           params.add(new QueryGenerator.Param(nodeType, qpc.getValue()));
           sb.append('?');
         }

@@ -176,8 +176,9 @@ public class GenerateQueryModels extends GenerateModelsHelper {
 
     private void writeAbstractQueryClassDeclaration(Writer out, EntitySpec entitySpec) throws IOException {
         out.write("class QAbstract");
-        out.write(getModelSimpleClassName(entitySpec));
-        out.write("<T extends SyntaxModel, CHILD extends QAbstractSyntaxModel<T, CHILD>> ");
+        String modelSimpleClassName = getModelSimpleClassName(entitySpec);
+        out.write(modelSimpleClassName);
+        out.write("<T extends " + modelSimpleClassName + ", CHILD extends QAbstract" + modelSimpleClassName + "<T, CHILD>> ");
         if (entitySpec.getParentEntity() != null) {
             out.write("extends QAbstract");
             out.write(getModelSimpleClassName(entitySpec.getParentEntity()));

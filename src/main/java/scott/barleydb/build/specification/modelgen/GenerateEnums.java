@@ -64,7 +64,7 @@ public class GenerateEnums extends GenerateModelsHelper {
                     out.write(enumValue.getId().toString());
                 }
                 else {
-                    out.write(" //has database key ");
+                    out.write("; //has database key ");
                     out.write(enumValue.getId().toString());
                 }
                 out.write("\n");

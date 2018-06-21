@@ -68,6 +68,7 @@ import scott.barleydb.api.core.entity.ProxyController;
 import scott.barleydb.api.persist.PersistAnalyser;
 import scott.barleydb.bootstrap.EnvironmentDef;
 import scott.barleydb.server.jdbc.JdbcEntityContextServices;
+import scott.barleydb.server.jdbc.persist.QuickHackSequenceGenerator;
 
 public abstract class TestBase {
 
@@ -217,6 +218,7 @@ public abstract class TestBase {
                 .withPassword( db.getPassword() )
                 .withUrl( db.getUrl() )
                 .end()
+             .withSequenceGenerator(QuickHackSequenceGenerator.class)
              .withSpecs(EtlSpec.class)
              .withDroppingSchema(true)
              .withSchemaCreation(true);

@@ -81,7 +81,7 @@ public class EntityType implements Serializable {
             throw new IllegalArgumentException("Entity type must have a key node");
         }
         if (keyNodes.size() > 1) {
-            throw new IllegalArgumentException("Entity type must currently must have a single key node");
+            throw new IllegalArgumentException("Entity type " + entityTypeSpec.getTableName() +  " must currently have a single key node");
         }
         EntityType entityType = new EntityType(definitions);
         entityType.interfaceName = entityTypeSpec.getClassName();

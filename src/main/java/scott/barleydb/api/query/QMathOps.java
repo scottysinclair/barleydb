@@ -31,5 +31,7 @@ public enum QMathOps {
     LESS_THAN,
     LESS_THAN_OR_EQUAL,
     IN,
-    NOT_IN
+    NOT_IN,
+    IS_NULL,
+    IS_NOT_NULL
 }

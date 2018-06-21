@@ -209,10 +209,10 @@ public abstract class PreparedStatementHelper<PREPARING_EX extends BarleyDBExcep
           setInteger(ps, index, jdbcType, (Integer)enumId);
         }
         else if (enumId instanceof String) {
-          setString(ps, index, jdbcType, (String)value);
+          setString(ps, index, jdbcType, (String)enumId);
         }
         else {
-            throw newPreparingStatementException("Do not support enum Ids of type '" + value.getClass().getSimpleName() + "' in enumSpec '" + enumSpec.getClassName() + "'");    }
+            throw newPreparingStatementException("Do not support enum Ids of type '" + enumId.getClass().getSimpleName() + "' in enumSpec '" + enumSpec.getClassName() + "'");    }
         }
 
     private Object getEnumId(EnumSpec enumSpec, String value) throws PREPARING_EX {

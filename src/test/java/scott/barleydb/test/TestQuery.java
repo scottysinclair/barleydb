@@ -71,7 +71,7 @@ import scott.barleydb.server.jdbc.resources.ConnectionResources;
  *
  */
 @SuppressWarnings({ "deprecation", "unused" })
-//@RunWith(Parameterized.class)
+@RunWith(Parameterized.class)
 public class TestQuery extends TestRemoteClientBase {
 
     @Parameters
@@ -86,16 +86,16 @@ public class TestQuery extends TestRemoteClientBase {
     private EntityContextGetter getter;
     private EntityContext theEntityContext;
 
-//    public TestQuery(EntityContextGetter getter, boolean autoCommitMode) {
-//        this.getter = getter;
-//        this.autoCommitMode = autoCommitMode;
-//    }
-
-    public TestQuery() {
-        getter = new EntityContextGetter(false);
-        autoCommitMode = false;
+    public TestQuery(EntityContextGetter getter, boolean autoCommitMode) {
+        this.getter = getter;
+        this.autoCommitMode = autoCommitMode;
     }
 
+//    public TestQuery() {
+//        getter = new EntityContextGetter(false);
+//        autoCommitMode = false;
+//    }
+//
     @Override
     protected void prepareData() throws Exception {
         super.prepareData();
@@ -210,6 +210,9 @@ public class TestQuery extends TestRemoteClientBase {
 
     @Test
     public void testStreamingSyntaxModelComplexQuery() throws Exception {
+      if (getter.testingRemoteClient()) {
+        return;
+      }
         System.out.println();
         System.out.println();
         System.out.println();
@@ -270,6 +273,9 @@ public class TestQuery extends TestRemoteClientBase {
 
     @Test
     public void testStreamingDownSyntaxModelHierarchy() throws Exception {
+      if (getter.testingRemoteClient()) {
+        return;
+      }
 
         QXmlSyntaxModel query = new QXmlSyntaxModel();
         query.where(query.name().equal("syntax-xml-1"));
@@ -322,6 +328,9 @@ public class TestQuery extends TestRemoteClientBase {
 
     @Test
     public void testStreamingDownSyntaxModelHierarchyWithJoins() throws Exception {
+      if (getter.testingRemoteClient()) {
+        return;
+      }
 
         QXmlSyntaxModel query = new QXmlSyntaxModel();
         query.where(query.name().equal("syntax-xml-1"));
@@ -458,6 +467,10 @@ public class TestQuery extends TestRemoteClientBase {
 
     @Test
     public void testQueryTemplateAndDatatypeWithStreaming() throws Exception {
+      if (getter.testingRemoteClient()) {
+        return;
+      }
+
         /*
          * fetching over a join table
          */
@@ -544,7 +557,7 @@ public class TestQuery extends TestRemoteClientBase {
     @Test
     public void testNullQueryParameter() throws Exception {
         QSyntaxModel qsyntax = new QSyntaxModel();
-        qsyntax.where(qsyntax.syntaxType().equal(null));
+        qsyntax.where(qsyntax.syntaxType().isNull());
         qsyntax.joinToUser();
 
         assertTrue(theEntityContext.performQuery(qsyntax).getList().isEmpty());

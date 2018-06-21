@@ -2,6 +2,8 @@ package scott.barleydb.build.specgen.fromdb;
 
 import static java.util.Arrays.asList;
 
+import java.sql.SQLException;
+
 /*-
  * #%L
  * BarleyDB
@@ -44,11 +46,14 @@ import schemacrawler.schema.Catalog;
 import schemacrawler.schema.Column;
 import schemacrawler.schema.ForeignKey;
 import schemacrawler.schema.ForeignKeyColumnReference;
+import schemacrawler.schema.IndexColumn;
 import schemacrawler.schema.Schema;
 import schemacrawler.schema.Table;
+import schemacrawler.schemacrawler.SchemaCrawlerException;
 import schemacrawler.schemacrawler.SchemaCrawlerOptions;
 import schemacrawler.schemacrawler.SchemaInfoLevelBuilder;
 import schemacrawler.utility.SchemaCrawlerUtility;
+import scott.barleydb.api.config.NodeType;
 import scott.barleydb.api.config.RelationType;
 import scott.barleydb.api.core.types.JavaType;
 import scott.barleydb.api.core.types.JdbcType;
@@ -71,6 +76,12 @@ public class FromDatabaseSchemaToSpecification {
 
     private static Logger LOG = LoggerFactory.getLogger(FromDatabaseSchemaToSpecification.class);
 
+  public interface ExclusionRules {
+    boolean excludeTable(Table tableName);
+
+    boolean excludeColumn(Column column);
+  }
+
     private final String namespace;
     private final SpecRegistry registry = new SpecRegistry();
     private final DefinitionsSpec spec;
@@ -78,9 +89,24 @@ public class FromDatabaseSchemaToSpecification {
     private final Map<Table, EntitySpec> entitySpecs = new HashMap<>();
     private final Map<Column, NodeSpec> nodeSpecs = new HashMap<>();
     private final Set<ProcessedFk> processedFks = new HashSet<>();
+    private final ExclusionRules exclusionRules;
 
     public FromDatabaseSchemaToSpecification(String namespace) {
+      this(namespace, new ExclusionRules() {
+        @Override
+        public boolean excludeTable(Table tableName) {
+          return false;
+        }
+
+        @Override
+        public boolean excludeColumn(Column column) {
+          return false;
+        }
+      });
+    }
+    public FromDatabaseSchemaToSpecification(String namespace, ExclusionRules exclusionRules) {
         this.namespace = namespace;
+        this.exclusionRules = exclusionRules;
         spec = new DefinitionsSpec();
         spec.setNamespace( namespace );
         registry.add(spec);
@@ -92,14 +118,21 @@ public class FromDatabaseSchemaToSpecification {
         }
     }
 
-    public SpecRegistry generateSpecification(DataSource dataSource) throws Exception {
+    protected Catalog loadCatalog(DataSource dataSource, SchemaCrawlerOptions options) throws SchemaCrawlerException, SQLException {
+      return SchemaCrawlerUtility.getCatalog( dataSource.getConnection(),
+          options);
+    }
+
+    public SpecRegistry generateSpecification(DataSource dataSource, String schemaName) throws Exception {
         SchemaCrawlerOptions options = new SchemaCrawlerOptions();
         // Set what details are required in the schema - this affects the
         // time taken to crawl the schema
         options.setSchemaInfoLevel(SchemaInfoLevelBuilder.detailed());
+        if (schemaName != null) {
+          options.setSchemaInclusionRule(s -> s.equals( schemaName ));
+        }
 
-        Catalog catalog = SchemaCrawlerUtility.getCatalog( dataSource.getConnection(),
-                                                          options);
+        Catalog catalog = loadCatalog(dataSource, options);
 
         firstPass(catalog);
         secondPass(catalog);
@@ -179,6 +212,9 @@ public class FromDatabaseSchemaToSpecification {
         for (Schema schema: catalog.getSchemas()) {
           LOG.debug("Processing schema...");
           for (Table table: catalog.getTables(schema)) {
+             if (exclusionRules.excludeTable(table)) {
+              continue;
+             }
             LOG.debug("Processing table {}", table.getName());
             EntitySpec espec = toEntitySpec(table);
             entitySpecs.put(table, espec);
@@ -204,6 +240,9 @@ public class FromDatabaseSchemaToSpecification {
                         EntitySpec pkEspec = entitySpecs.get(pkTable);
                         EntitySpec fkEspec = entitySpecs.get(fkCol.getParent());
                         NodeSpec fkNSpec = nodeSpecs.get(fkCol);
+                        if (pkEspec == null || fkEspec == null || fkNSpec == null) {
+                          continue;
+                        }
 
                         if (!processedFks.add(new ProcessedFk(fkNSpec, pkEspec))) {
                             continue;
@@ -259,8 +298,11 @@ public class FromDatabaseSchemaToSpecification {
         entitySpec.setDtoClassName( generateDtoClassName(table) );
 
         for (Column column: table.getColumns()) {
+            if (exclusionRules.excludeColumn( column )) {
+              continue;
+            }
             LOG.debug("Processing column {}", column.getName());
-            NodeSpec nodeSpec = toNodeSpec(entitySpec, column);
+            NodeSpec nodeSpec = toNodeSpec(entitySpec, table, column);
             entitySpec.add( nodeSpec );
 
             //set PK contraints
@@ -278,14 +320,14 @@ public class FromDatabaseSchemaToSpecification {
         return entitySpec;
     }
 
-    protected NodeSpec toNodeSpec(EntitySpec entitySpec, Column column) {
+    protected NodeSpec toNodeSpec(EntitySpec entitySpec, Table table, Column column) {
         NodeSpec nodeSpec = new NodeSpec();
         nodeSpec.setName( getNodeName( column ));
-        if (nodeSpec.getName().equals("id")) {
+        if (isPrimaryKey(table, column)) {
             nodeSpec.setPrimaryKey(true);
         }
         nodeSpec.setColumnName( column.getName());
-        nodeSpec.setJdbcType( getNodeType( column ));
+        nodeSpec.setJdbcType( getNodeJdbcType( column ));
         nodeSpec.setJavaType( getJavaType( nodeSpec.getJdbcType() ));
         nodeSpec.setNullable( column.isNullable() ? Nullable.NULL : Nullable.NOT_NULL);
         if (nodeSpec.getJavaType() == JavaType.STRING) {
@@ -300,9 +342,26 @@ public class FromDatabaseSchemaToSpecification {
         return nodeSpec;
     }
 
-    private static String getNodeName(Column column) {
-        return toCamelCase(column.getName());
+  protected boolean isPrimaryKey(Table table, Column column) {
+    if (table.getPrimaryKey() != null) {
+      for (IndexColumn col : table.getPrimaryKey().getColumns()) {
+        if (col.getName().equalsIgnoreCase(column.getName())) {
+          return true;
+        }
+      }
+    } else {
+      LOG.warn("No primary key constraints for {}", table.getName());
     }
+    return false;
+  }
+
+  protected static String getNodeName(Column column) {
+    return toCamelCase(stripBadChars( column.getName() ));
+  }
+
+  protected static String stripBadChars(String name) {
+    return name.replaceAll("\"", "");
+  }
 
     private static String toCamelCase(String nameString) {
         String name = nameString.toLowerCase();
@@ -335,7 +394,7 @@ public class FromDatabaseSchemaToSpecification {
         }
     }
 
-    protected JdbcType getNodeType(Column column) {
+    protected JdbcType getNodeJdbcType(Column column) {
         switch(column.getColumnDataType().getJavaSqlType().getJavaSqlType()) {
         case Types.VARCHAR: return JdbcType.VARCHAR;
         case Types.INTEGER: return JdbcType.INT;
@@ -346,8 +405,27 @@ public class FromDatabaseSchemaToSpecification {
         case Types.DECIMAL: return JdbcType.DECIMAL;
         case Types.NUMERIC: return JdbcType.DECIMAL;
         case Types.SMALLINT: return JdbcType.SMALLINT;
-        default: throw new IllegalArgumentException("Unsupported column type " + column.getColumnDataType().getJavaSqlType() + " (" + column.getColumnDataType().getJavaSqlType().getJavaSqlType() + ")");
+        case Types.BIT: return JdbcType.SMALLINT;
+        case Types.BLOB: return JdbcType.BLOB;
+        case Types.CLOB: return JdbcType.CLOB;
+        case 2147483647: {
+          JdbcType jt = getJdbcTypeForUnknownJavaSqlType(column);
+          if (jt != null) {
+            return jt;
+          }
         }
+        }
+       throw new IllegalArgumentException("Unsupported column type " + column.getColumnDataType().getJavaSqlType() + " (" + column.getColumnDataType().getJavaSqlType().getJavaSqlType() + ")");
+    }
+
+    protected JdbcType getJdbcTypeForUnknownJavaSqlType(Column column) {
+      /*
+       * unknown type
+       */
+      if (column.getColumnDataType().getName().contains("TIMESTAMP")) {
+          return JdbcType.TIMESTAMP;
+      }
+      return null;
     }
 
     protected String generateQueryClassName(Table table) {

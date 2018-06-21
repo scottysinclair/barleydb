@@ -72,6 +72,14 @@ public class QProperty<VAL> implements Serializable {
         return new QPropertyCondition(this, QMathOps.LESS_THAN_OR_EQUAL, value);
     }
 
+    public QPropertyCondition isNull() {
+      return new QPropertyCondition(this, QMathOps.IS_NULL, null);
+   }
+
+    public QPropertyCondition isNotNull() {
+      return new QPropertyCondition(this, QMathOps.IS_NOT_NULL, null);
+   }
+
     @Override
     public String toString() {
         return "QProperty [queryObject=" + queryObject + ", propertyDef=" + propertyDef + "]";

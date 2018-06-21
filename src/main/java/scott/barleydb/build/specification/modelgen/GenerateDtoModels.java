@@ -100,7 +100,7 @@ public class GenerateDtoModels extends GenerateModelsHelper {
       Objects.requireNonNull(col, "EntitySpec " + entitySpec.getClassName() + " has no PK defined");
       NodeSpec ns = col.iterator().next();
       out.write(ns.getName());
-      out.write(" = \" + " + ns.getName() + " + \"]\";\n");
+      out.write(" = \" + " + toGetterName(ns) + "() + \"]\";\n");
       out.write("  }\n");
     }
 

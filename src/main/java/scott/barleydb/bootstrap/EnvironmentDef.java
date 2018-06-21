@@ -66,6 +66,7 @@ import scott.barleydb.build.specification.staticspec.processor.StaticDefinitionP
 import scott.barleydb.server.jdbc.JdbcEntityContextServices;
 import scott.barleydb.server.jdbc.converter.LongToStringTimestampConverter;
 import scott.barleydb.server.jdbc.persist.QuickHackSequenceGenerator;
+import scott.barleydb.server.jdbc.persist.SequenceGenerator;
 import scott.barleydb.server.jdbc.query.QueryPreProcessor;
 import scott.barleydb.server.jdbc.vendor.Database;
 import scott.barleydb.server.jdbc.vendor.HsqlDatabase;
@@ -87,6 +88,8 @@ public class EnvironmentDef {
     private boolean createDDL;
     private boolean dropSchema;
     private boolean classloading = true;
+
+    private Class<? extends SequenceGenerator> sequenceGeneratorType;
 
     //resources created during the create() method..
     private JdbcEntityContextServices services;
@@ -132,6 +135,11 @@ public class EnvironmentDef {
 
     public EnvironmentDef withNoClasses() {
       classloading = false;
+      return this;
+    }
+
+    public EnvironmentDef withSequenceGenerator(Class<? extends SequenceGenerator> sequenceGeneratorType) {
+      this.sequenceGeneratorType = sequenceGeneratorType;
       return this;
     }
 
@@ -246,7 +254,10 @@ public class EnvironmentDef {
         if (createDDL) {
             createSchema();
         }
-        services.setSequenceGenerator(new QuickHackSequenceGenerator(env));
+        if (sequenceGeneratorType != null) {
+          SequenceGenerator seqGen = sequenceGeneratorType.getConstructor(Environment.class).newInstance(env);
+          services.setSequenceGenerator(seqGen);
+        }
 
         return env;
     }
