@@ -1,5 +1,6 @@
 package scott.barleydb.bootstrap;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 
 /*-
@@ -203,7 +204,11 @@ public class EnvironmentDef {
         for (String specFile: specFiles) {
             URL url = getClass().getClassLoader().getResource( specFile );
             if (url == null) {
-                throw new FileNotFoundException("Cannot find resource " + specFile);
+                File file = new File(specFile);
+                if (!file.exists()) {
+                  throw new FileNotFoundException("Cannot find resource " + specFile);
+                }
+                url = file.toURI().toURL();
             }
             JAXBContext jc = JAXBContext.newInstance(SpecRegistry.class);
             Unmarshaller um = jc.createUnmarshaller();

@@ -176,13 +176,13 @@ public class FromDatabaseSchemaToSpecification {
         }
     }
 
-    private String genRealtionNodeName(EntitySpec pkEspec) {
+    private String genRealtionNodeName(EntitySpec pkEspec, boolean plural) {
         int i = pkEspec.getClassName().lastIndexOf('.');
         String name = pkEspec.getClassName().substring(i+1, pkEspec.getClassName().length());
         char c = Character.toLowerCase( name.charAt(0) );
         String result = c + name.substring(1, name.length());
-        return ensureFirstLetterIsLower( removePrefixes(result) );
-
+        result = ensureFirstLetterIsLower( removePrefixes(result) );
+        return plural ? result + "s" : result;
     }
 
     private String ensureFirstLetterIsLower(String name) {
@@ -251,7 +251,7 @@ public class FromDatabaseSchemaToSpecification {
                         /*
                          *  Do the N:1 natual foreign key relation *
                          */
-                        fkNSpec.setName( genRealtionNodeName(pkEspec) );
+                        fkNSpec.setName( genRealtionNodeName(pkEspec, false) );
                         RelationSpec rspec = new RelationSpec();
                         rspec.setEntitySpec(pkEspec);
                         rspec.setJoinType(JoinTypeSpec.LEFT_OUTER_JOIN);
@@ -268,7 +268,7 @@ public class FromDatabaseSchemaToSpecification {
                         //create the nodespec as there is no dbcolumn whch created a node for us
                         LOG.debug("Creating tomany node for N relation from {} to {}", pkEspec.getClassName(), fkEspec.getClassName());
                         NodeSpec toManyNodeSpec = new NodeSpec();
-                        String nodeName = genRealtionNodeName(fkEspec);
+                        String nodeName = genRealtionNodeName(fkEspec, true);
                         while (pkEspec.getNodeSpec(nodeName) != null) {
                             nodeName = incrementNodeName(nodeName);
                         }
