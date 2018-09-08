@@ -157,9 +157,7 @@ public class GenerateProxyModels extends GenerateModelsHelper {
                 out.write("import scott.barleydb.api.stream.ObjectInputStream;\n");
                 out.write("import scott.barleydb.api.stream.QueryEntityInputStream;\n");
                 out.write("import scott.barleydb.api.query.QueryObject;\n");
-                out.write("import scott.barleydb.api.stream.EntityStreamException;\n");
-                out.write("import scott.barleydb.api.exception.execution.SortServiceProviderException;\n");
-                out.write("import scott.barleydb.api.exception.execution.query.BarleyDBQueryException;\n");
+                out.write("import scott.barleydb.api.exception.BarleyDBRuntimeException;\n");
 
                 out.write("\n");
             }
@@ -369,17 +367,27 @@ public class GenerateProxyModels extends GenerateModelsHelper {
     private void writeStreamMethods(Writer out, DefinitionsSpec definitions, NodeSpec nodeSpec) throws IOException {
         out.write("  public ObjectInputStream<"  + getModelSimpleClassName( nodeSpec.getRelation().getEntitySpec() ) +  "> ");
         out.write(toStreamName(nodeSpec));
-        out.write("() throws SortServiceProviderException, BarleyDBQueryException, EntityStreamException {\n");
-        out.write("    final QueryEntityInputStream in = " + nodeSpec.getName() + ".toManyNode.stream();\n");
-        out.write("    return new ObjectInputStream<>(in);\n");
+        out.write("() throws BarleyDBRuntimeException {\n");
+        out.write("    try {final QueryEntityInputStream in = " + nodeSpec.getName() + ".toManyNode.stream();\n");
+        out.write("         return new ObjectInputStream<>(in);\n");
+        out.write("    }catch(Exception x) {\n");
+        out.write("      BarleyDBRuntimeException x2 = new BarleyDBRuntimeException(x.getMessage());\n");
+        out.write("      x2.setStackTrace(x.getStackTrace()); \n");
+        out.write("      throw x2;\n");
+        out.write("    }\n");
         out.write("  }\n");
         out.write("\n");
         out.write("  public ObjectInputStream<"  + getModelSimpleClassName(nodeSpec.getRelation().getEntitySpec()) +  "> ");
         out.write(toStreamName(nodeSpec));
         out.write("(QueryObject<" + getModelSimpleClassName(nodeSpec.getRelation().getEntitySpec()) + "> query");
-        out.write(") throws SortServiceProviderException, BarleyDBQueryException, EntityStreamException {\n");
-        out.write("    final QueryEntityInputStream in = " + nodeSpec.getName() + ".toManyNode.stream(query);\n");
-        out.write("    return new ObjectInputStream<>(in);\n");
+        out.write(") throws BarleyDBRuntimeException  {\n");
+        out.write("    try { final QueryEntityInputStream in = " + nodeSpec.getName() + ".toManyNode.stream(query);\n");
+        out.write("         return new ObjectInputStream<>(in);\n");
+        out.write("    }catch(Exception x) {\n");
+        out.write("      BarleyDBRuntimeException x2 = new BarleyDBRuntimeException(x.getMessage());\n");
+        out.write("      x2.setStackTrace(x.getStackTrace()); \n");
+        out.write("      throw x2;\n");
+        out.write("    }\n");
         out.write("  }\n");
     }
 

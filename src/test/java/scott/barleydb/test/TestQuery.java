@@ -30,6 +30,8 @@ import static scott.barleydb.api.query.JoinType.LEFT_OUTER;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 import org.example.acl.query.QUser;
 import org.example.etl.model.CsvSyntaxModel;
@@ -58,6 +60,7 @@ import org.springframework.test.jdbc.SimpleJdbcTestUtils;
 import scott.barleydb.api.core.QueryBatcher;
 import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.query.QueryObject;
+import scott.barleydb.api.stream.DataStream;
 import scott.barleydb.api.stream.ObjectInputStream;
 import scott.barleydb.server.jdbc.query.QueryResult;
 import scott.barleydb.server.jdbc.resources.ConnectionResources;
@@ -71,7 +74,7 @@ import scott.barleydb.server.jdbc.resources.ConnectionResources;
  *
  */
 @SuppressWarnings({ "deprecation", "unused" })
-@RunWith(Parameterized.class)
+//@RunWith(Parameterized.class)
 public class TestQuery extends TestRemoteClientBase {
 
     @Parameters
@@ -86,9 +89,9 @@ public class TestQuery extends TestRemoteClientBase {
     private EntityContextGetter getter;
     private EntityContext theEntityContext;
 
-    public TestQuery(EntityContextGetter getter, boolean autoCommitMode) {
-        this.getter = getter;
-        this.autoCommitMode = autoCommitMode;
+    public TestQuery() {
+        this.getter = new EntityContextGetter(false);
+        this.autoCommitMode = false;
     }
 
 //    public TestQuery() {
@@ -264,6 +267,70 @@ public class TestQuery extends TestRemoteClientBase {
                     print("", model);
                }
                 assertEquals(1, count);
+            }
+        }
+        catch(UnsupportedOperationException x) {
+            assertTrue("Remote streaming is not supported", getter.client);
+        }
+    }
+
+    @Test
+    public void testStreamSupportSyntaxModelComplexQuery() throws Exception {
+      if (getter.testingRemoteClient()) {
+        return;
+      }
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println();
+
+        /*
+         * create and registery all fetch queries
+         */
+        QXmlSyntaxModel qxsm = new QXmlSyntaxModel();
+        qxsm.joinToStructure();
+        qxsm.joinToUser();
+//        QXmlSyntaxModel subSyntax = qxsm.joinToMappings().joinToSubSyntax();
+//        subSyntax.joinToUser();
+//        subSyntax.joinToStructure();
+//        subSyntax.joinToMappings();
+
+
+     //   theEntityContext.register(qxsm);
+
+        /*
+         * get a copy of the syntax query
+         */
+        QXmlSyntaxModel syntax = (QXmlSyntaxModel) theEntityContext.getQuery(XmlSyntaxModel.class);
+
+        /*
+         * add a where clause
+         */
+        QXmlMapping aMapping = syntax.existsMappings();
+        QUser aUser = syntax.existsUser();
+        //QXmlStructure aStructure = syntax.existsStructure();
+        syntax.where(syntax.name().equal("syntax-xml-1"))
+                .andExists(aMapping.where(aMapping.xpath().equal("sfn11").or(aMapping.xpath().equal("sfn12"))))
+                .andExists(aUser.where(aUser.name().equal("Scott")));
+
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println();
+
+        try {
+            /*
+             * Execute the query and process the result
+             */
+            try (Stream<XmlSyntaxModel> stream =  theEntityContext.streamObjectQuery(syntax).stream(); ) {
+                stream
+                    .map(XmlSyntaxModel::streamMappings)
+                    .flatMap(DataStream::stream)
+                    .map(XmlMapping::getSubSyntax)
+                    .filter(Objects::nonNull)
+                    .map(XmlSyntaxModel::streamMappings)
+                    .flatMap(DataStream::stream)
+                    .forEach(m -> print("", m));
             }
         }
         catch(UnsupportedOperationException x) {

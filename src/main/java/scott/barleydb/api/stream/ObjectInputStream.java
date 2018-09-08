@@ -27,7 +27,7 @@ package scott.barleydb.api.stream;
 
 import scott.barleydb.api.core.entity.Entity;
 
-public class ObjectInputStream<T> implements AutoCloseable {
+public class ObjectInputStream<T> implements DataStream<T> {
 
     private final EntityInputStream in;
 

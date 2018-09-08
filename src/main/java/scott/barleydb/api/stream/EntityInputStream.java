@@ -1,5 +1,6 @@
 package scott.barleydb.api.stream;
 
+
 /*-
  * #%L
  * BarleyDB
@@ -28,7 +29,7 @@ package scott.barleydb.api.stream;
 
 import scott.barleydb.api.core.entity.Entity;
 
-public interface EntityInputStream extends AutoCloseable {
+public interface EntityInputStream extends DataStream<Entity> {
 
     /**
      * Reads an Entity from the stream.<br/>
@@ -38,4 +39,5 @@ public interface EntityInputStream extends AutoCloseable {
     public Entity read() throws EntityStreamException;
 
     public void close() throws EntityStreamException;
+
 }
