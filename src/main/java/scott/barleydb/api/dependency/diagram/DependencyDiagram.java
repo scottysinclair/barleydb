@@ -179,4 +179,7 @@ public class DependencyDiagram {
     }
 
 
+    public String toYumlString() {
+        return buildYumlMessage();
+    }
 }
