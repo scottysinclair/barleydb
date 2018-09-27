@@ -29,10 +29,13 @@ import java.io.IOException;
  */
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -42,6 +45,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.util.CollectionUtil;
 import scott.barleydb.api.dependency.diagram.DependencyDiagram;
 import scott.barleydb.api.dependency.diagram.Link;
@@ -61,6 +65,15 @@ public class DependencyTree implements Serializable {
 
     private final Collection<DependencyTreeNode> dependencyOrder = new LinkedHashSet<>();
     private final Collection<DependencyTreeNode> nodes = new LinkedHashSet<>();
+
+    public DependencyTreeNode getNodeFor(Object object) {
+        for (DependencyTreeNode node: nodes) {
+            if (node.getThing() == object) {
+                return node;
+            }
+        }
+        return null;
+    }
 
     public void build(Collection<DependencyTreeNode> nodes) {
         if (LOG.isDebugEnabled()) {
@@ -83,7 +96,7 @@ public class DependencyTree implements Serializable {
                         printNodes(nodes, nodesPendingDependencyChecks()));
             }
             numberOfNodes = nodes.size();
-            nodes.stream().forEach(
+            new ArrayList<>(nodes).stream().forEach(
                     buildDependenciesIfRequired());
         } while (numberOfNodes < nodes.size());
 
@@ -121,7 +134,8 @@ public class DependencyTree implements Serializable {
         DependencyDiagram diag = new DependencyDiagram();
         Link firstLink = null;
         for (DependencyTreeNode node: nodes) {
-            for (DependencyTreeNode depNode: node.getDependencies()) {
+            for (Dependency dep: node.getDependencies()) {
+                DependencyTreeNode depNode = dep.getTo();
                 if (exclude.contains(depNode)) {
                     continue;
                 }
@@ -188,10 +202,17 @@ public class DependencyTree implements Serializable {
                     //already ordered
                     return false;
                 }
-                Collection<DependencyTreeNode> dependencies = node.getDependencies();
-                return dependencies.isEmpty() || dependencyOrder.containsAll( node.getDependencies() );
+                Collection<Dependency> dependencies = node.getDependencies();
+                return dependencies.isEmpty() || dependencyOrder.containsAll( toNodes(node.getDependencies()) );
             }
+
         };
+    }
+
+    private Collection<DependencyTreeNode> toNodes(Collection<Dependency> dependencies) {
+        return dependencies.stream()
+        .map(Dependency::getTo)
+        .collect(Collectors.toList());
     }
 
 
@@ -222,6 +243,38 @@ public class DependencyTree implements Serializable {
                 return node.getShortDescription();
             }
         };
+    }
+
+    public List<Dependency> findShortestPath(Entity batchRoot, Entity entity) {
+        if (batchRoot == entity) {
+            return Collections.emptyList();
+        }
+        if (batchRoot.getEntityContext() != entity.getEntityContext()) {
+            return Collections.emptyList();
+        }
+        DependencyTreeNode from = getNodeFor(batchRoot);
+        DependencyTreeNode to = getNodeFor(entity);
+        LinkedList<Dependency> path = new LinkedList<>();
+        findShortestPath(from, to, path);
+        return path;
+    }
+
+    private boolean findShortestPath(DependencyTreeNode from, DependencyTreeNode to, LinkedList<Dependency> path) {
+        for (Dependency next: from.getDependencies()) {
+            path.add(next);
+            if (next.getTo() == to) {
+                return true;
+            }
+            else {
+                if (findShortestPath(next.getTo(), to, path)) {
+                    return true;
+                }
+                else {
+                    path.removeLast();
+                }
+            }
+        }
+        return false;
     }
 
 }

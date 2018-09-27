@@ -124,6 +124,8 @@ public class EntityContext implements Serializable {
     private Environment env;
     private QueryRegistry userQueryRegistry;
     private Definitions definitions;
+
+    private final FetchHelper fetchHelper;
     /**
      * weak hashmap used to allow garbage collection of the entity
      */
@@ -139,6 +141,8 @@ public class EntityContext implements Serializable {
         this.env = env;
         this.namespace = namespace;
         init(true);
+        //fetch helper only holds a ref to the ctx (escaped this)
+        this.fetchHelper = new FetchHelper(this);
         this.entityContextState = EntityContextState.USER;
     }
 
@@ -1007,8 +1011,12 @@ public class EntityContext implements Serializable {
         return definitions.getQuery(entityType, mustExist);
     }
 
-    private QueryObject<Object> getQuery(EntityType entityType, boolean fetchInternal) {
+    QueryObject<Object> getQuery(EntityType entityType, boolean fetchInternal) {
         return fetchInternal ? definitions.getQuery(entityType, false) : userQueryRegistry.getQuery(entityType);
+    }
+
+    Set<RefNode> getFKReferences(Entity entity, boolean mustExist) {
+        return entities.getByUuid(entity.getUuid(), mustExist).getFkReferences();
     }
 
     public void fetch(Entity entity) {
@@ -1029,99 +1037,13 @@ public class EntityContext implements Serializable {
      * @param override if we should ignore the node context state
      */
     public void fetch(ToManyNode toManyNode, boolean override) {
-        fetch(toManyNode, override, false);
+        fetchHelper.fetch(toManyNode, override, false);
     }
 
     public void fetchSingle(ToManyNode toManyNode, boolean override) {
-        fetch(toManyNode, override, true);
+        fetchHelper.fetch(toManyNode, override, true);
     }
 
-    /**
-     *
-     * @param toManyNode
-     * @param override if true we fetch even if in internal mode.
-     * @param fetchInternal
-     */
-    private void fetch(ToManyNode toManyNode, boolean override, boolean fetchInternal) {
-        if (!override && toManyNode.getEntityContext().isInternal()) {
-            return;
-        }
-
-        final NodeType toManyDef = toManyNode.getNodeType();
-
-        //get the name of the node/property which we need to filter on to get the correct entities back on the many side
-        final String foreignNodeName = toManyDef.getForeignNodeName();
-        if (foreignNodeName != null) {
-            QueryObject<Object> qo = getQuery(toManyNode.getEntityType(), fetchInternal);
-            if (qo == null) {
-                qo = new QueryObject<Object>(toManyNode.getEntityType().getInterfaceName());
-            }
-
-            final QProperty<Object> manyFk = new QProperty<Object>(qo, foreignNodeName);
-            final Object primaryKeyOfOneSide = toManyNode.getParent().getKey().getValue();
-            qo.where(manyFk.equal(primaryKeyOfOneSide));
-            /*
-             * If a user call is causing a fetch to a "join entity"
-             * then join from the join entity to the referenced entity.
-             *
-             * So if the ToManyNode joins from Template to TemplateDatatype and has joinProperty "datatype"
-             * then we will make the QTemplateBusinessType outer join to QBusinessType so that QBusinessType is automatically pulled in
-             *
-             * Template.datatypes == the ToManyNode
-             * TemplateDatatype.datatype == the RefNode on the "join entity"
-             *
-             * the if below uses these nouns for better clarification
-             *
-             */
-            if (!fetchInternal && toManyDef.getJoinProperty() != null) {
-                NodeType datatypeNodeType = toManyNode.getEntityType().getNodeType(toManyDef.getJoinProperty(), true);
-                EntityType datatype = definitions.getEntityTypeMatchingInterface(datatypeNodeType.getRelationInterfaceName(), true);
-                QueryObject<Object> qdatatype = getQuery(datatype, fetchInternal);
-                if (qdatatype == null) {
-                   qdatatype = new QueryObject<Object>(datatype.getInterfaceName());
-                }
-                qo.addLeftOuterJoin(qdatatype, datatypeNodeType.getName());
-            }
-
-            try {
-                performQuery(qo);
-                toManyNode.setFetched(true);
-                toManyNode.refresh();
-            } catch (Exception x) {
-                throw new IllegalStateException("Error performing fetch", x);
-            }
-        } else {
-            /*
-             * get the query for loading the entity which has the relation we want to fetch
-             * ie the template query for when we want to fetch the datatypes.
-             */
-            final QueryObject<Object> fromQo = definitions.getQuery(toManyNode.getParent().getEntityType());
-            /*
-             * gets the query for loading the entity which the relation fulfills
-             * ie the datatype query which the template wants to load
-             */
-            final QueryObject<Object> toQo = definitions.getQuery(toManyNode.getEntityType());
-            /*
-             * add the join from template to query
-             * the query generator knows to include the join table
-             */
-            fromQo.addLeftOuterJoin(toQo, toManyNode.getName());
-            /*
-             * constrain from query to only return data for the entity we are fetching for
-             * ie contrain the template query by the id of the template we are fetching for
-             */
-            final QProperty<Object> fromPk = new QProperty<Object>(fromQo, toManyNode.getParent().getKey().getName());
-            fromQo.where(fromPk.equal(toManyNode.getParent().getKey().getValue()));
-
-            try {
-                performQuery(fromQo);
-                toManyNode.setFetched(true);
-                toManyNode.refresh();
-            } catch (Exception x) {
-                throw new IllegalStateException("Error performing fetch", x);
-            }
-        }
-    }
 
     /**
      *
@@ -1130,51 +1052,11 @@ public class EntityContext implements Serializable {
      * @param fetchInternal if true we use the internal query registry
      */
     public void fetch(Entity entity, boolean force, boolean fetchInternal) {
-        fetch(entity, force, fetchInternal, false, null);
+        fetchHelper.fetchEntity(entity, force, fetchInternal, false, null);
     }
 
-    public void fetch(Entity entity, boolean force, boolean fetchInternal, boolean evenIfLoaded, String singlePropertyName) {
-        if (!force && entity.getEntityContext().isInternal()) {
-            return;
-        }
-        if (!evenIfLoaded && entity.getEntityState() == EntityState.LOADED) {
-            return;
-        }
-        LOG.debug("Fetching {}" , entity);
-        QueryObject<Object> qo = getQuery(entity.getEntityType(), fetchInternal);
-        if (qo == null) {
-            qo = new QueryObject<Object>(entity.getEntityType().getInterfaceName());
-        }
-
-        final QProperty<Object> pk = new QProperty<Object>(qo, entity.getEntityType().getKeyNodeName());
-        qo.where(pk.equal(entity.getKey().getValue()));
-
-        try {
-            if (singlePropertyName != null) {
-                QProperty<?> property =  qo.getMandatoryQProperty( singlePropertyName );
-                qo.select(property);
-            }
-            QueryResult<Object> result = performQuery(qo);
-            /*
-             * Some cleanup required.
-             * the executer will set all loading entities to LOADED
-             * but we set the state to LOADING ourselves
-             * so check the result, and manually set the entity state
-             */
-            if (result.getList().isEmpty()) {
-                if (entity.getConstraints().isMustExistInDatabase()) {
-                    throw new EntityMustExistInDBException(entity);
-                }
-                else {
-                    entity.setEntityState(EntityState.NOT_IN_DB);
-                }
-            }
-            else  {
-                entity.setEntityState(EntityState.LOADED);
-            }
-        } catch (Exception x) {
-            throw new IllegalStateException("Error performing fetch", x);
-        }
+    void fetch(Entity entity, boolean force, boolean fetchInternal, boolean evenIfLoaded, String singlePropertyName) {
+        fetchHelper.fetchEntity(entity, force, fetchInternal, evenIfLoaded, singlePropertyName);
     }
 
     /**

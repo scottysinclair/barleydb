@@ -151,7 +151,7 @@ public class Entity implements Serializable {
         if (constraints.isMustNotExistInDatabase()) {
             return false;
         }
-        return entityState == EntityState.NOTLOADED;
+        return getKey().getValue() != null && entityState == EntityState.NOTLOADED;
     }
 
     public EntityConstraint getConstraints() {
