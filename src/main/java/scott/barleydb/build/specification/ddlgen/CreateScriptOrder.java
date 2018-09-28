@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import scott.barleydb.api.dependency.Dependency;
 import scott.barleydb.api.dependency.DependencyTree;
 import scott.barleydb.api.dependency.DependencyTreeNode;
 import scott.barleydb.api.specification.DefinitionsSpec;
@@ -92,7 +93,7 @@ public class CreateScriptOrder {
         private boolean builtDependencies = false;
         private final DefinitionsSpec spec;
 
-        private Collection<DependencyTreeNode> dependencies = new LinkedHashSet<>();
+        private Collection<Dependency> dependencies = new LinkedHashSet<>();
 
         public DefinitionsSpecDependencyNode(DefinitionsSpec spec) {
             this.spec = spec;
@@ -134,13 +135,13 @@ public class CreateScriptOrder {
                 if (importsSpec(spec, otherSpec)) {
                     //we import other spec
                     //ie we are dependent on it (we can't be created until they are)
-                    dependencies.add( node );
+                    dependencies.add( new Dependency(this, node, null) );
                 }
             }
         }
 
         @Override
-        public Collection<DependencyTreeNode> getDependencies() {
+        public Collection<Dependency> getDependencies() {
             return dependencies;
         }
 

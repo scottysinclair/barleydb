@@ -87,6 +87,10 @@ public class TestPersistence extends TestRemoteClientBase {
     private EntityContextGetter getter;
     private EntityContext theEntityContext;
 
+//    public TestPersistence() {
+//        this.getter = new EntityContextGetter(true);
+//    }
+
     public TestPersistence(EntityContextGetter getter) {
         this.getter = getter;
     }

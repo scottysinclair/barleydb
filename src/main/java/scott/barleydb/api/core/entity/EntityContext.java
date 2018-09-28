@@ -62,7 +62,6 @@ import org.w3c.dom.Element;
 import scott.barleydb.api.audit.AuditInformation;
 import scott.barleydb.api.config.Definitions;
 import scott.barleydb.api.config.EntityType;
-import scott.barleydb.api.config.NodeType;
 import scott.barleydb.api.core.Environment;
 import scott.barleydb.api.core.QueryBatcher;
 import scott.barleydb.api.core.QueryRegistry;
@@ -74,7 +73,6 @@ import scott.barleydb.api.dependency.diagram.DependencyDiagram;
 import scott.barleydb.api.dependency.diagram.Link;
 import scott.barleydb.api.dependency.diagram.LinkType;
 import scott.barleydb.api.exception.constraint.EntityConstraintMismatchException;
-import scott.barleydb.api.exception.constraint.EntityMustExistInDBException;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.execution.persist.OptimisticLockMismatchException;
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
@@ -83,7 +81,6 @@ import scott.barleydb.api.exception.model.ProxyCreationException;
 import scott.barleydb.api.persist.OperationType;
 import scott.barleydb.api.persist.PersistAnalyser;
 import scott.barleydb.api.persist.PersistRequest;
-import scott.barleydb.api.query.QProperty;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.query.RuntimeProperties;
 import scott.barleydb.api.stream.EntityData;
@@ -125,7 +122,7 @@ public class EntityContext implements Serializable {
     private QueryRegistry userQueryRegistry;
     private Definitions definitions;
 
-    private final FetchHelper fetchHelper;
+    private FetchHelper fetchHelper;
     /**
      * weak hashmap used to allow garbage collection of the entity
      */
@@ -1191,6 +1188,9 @@ public class EntityContext implements Serializable {
         Objects.requireNonNull(env, "Could not get environment");
         boolean allowGarbageCollection = stream.readBoolean();
         init(allowGarbageCollection);
+        //the fetch helper on the serialized server side doesn't need any state
+        //so we just create a new one
+        fetchHelper = new FetchHelper(this);
     }
 
     private void writeObject(java.io.ObjectOutputStream stream) throws IOException {

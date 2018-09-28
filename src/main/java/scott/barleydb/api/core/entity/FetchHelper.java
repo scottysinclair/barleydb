@@ -1,28 +1,55 @@
 package scott.barleydb.api.core.entity;
 
-import java.lang.ref.ReferenceQueue;
+import java.io.Serializable;
+
+/*-
+ * #%L
+ * BarleyDB
+ * $Id:$
+ * $HeadURL:$
+ * %%
+ * Copyright (C) 2014 - 2018 Scott Sinclair
+ *       <scottysinclair@gmail.com>
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Lesser Public License for more details.
+ *
+ * You should have received a copy of the GNU General Lesser Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/lgpl-3.0.html>.
+ * #L%
+ */
+
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.config.NodeType;
-import scott.barleydb.api.core.entity.context.EntityInfo;
 import scott.barleydb.api.dependency.Dependency;
 import scott.barleydb.api.dependency.DependencyTree;
-import scott.barleydb.api.dependency.DependencyTreeNode;
 import scott.barleydb.api.dependency.EntityDependencyTreeNode;
 import scott.barleydb.api.exception.constraint.EntityMustExistInDBException;
 import scott.barleydb.api.query.QProperty;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.server.jdbc.query.QueryResult;
 
-public class FetchHelper {
+public class FetchHelper implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private static final Logger LOG = LoggerFactory.getLogger(FetchHelper.class);
 
@@ -37,8 +64,6 @@ public class FetchHelper {
      */
     private final WeakHashMap<Entity, Object> batchFetchEntities;
 
-
-
     public FetchHelper(EntityContext ctx) {
         this.ctx = ctx;
         this.batchFetchEntities = new WeakHashMap<>();
@@ -49,18 +74,18 @@ public class FetchHelper {
     }
 
     public void fetchEntity(Entity entity, boolean force, boolean fetchInternal, boolean evenIfLoaded, String singlePropertyName) {
-        if (attemptBatchFetch(entity)) {
-            return;
-        }
-        /*
-         * else normal fetch
-         */
         if (!force && entity.getEntityContext().isInternal()) {
             return;
         }
         if (!evenIfLoaded && entity.getEntityState() == EntityState.LOADED) {
             return;
         }
+        if (attemptBatchFetch(entity)) {
+            return;
+        }
+        /*
+         * else normal fetch
+         */
         LOG.debug("Fetching {}" , entity);
         QueryObject<Object> qo = ctx.getQuery(entity.getEntityType(), fetchInternal);
         if (qo == null) {
@@ -96,6 +121,50 @@ public class FetchHelper {
         } catch (Exception x) {
             throw new IllegalStateException("Error performing fetch", x);
         }
+    }
+
+    public void fetchEntities(Set<Entity> entities, boolean force, boolean fetchInternal, boolean evenIfLoaded) {
+        EntityContext ctx = entities.iterator().next().getEntityContext();
+        LOG.debug("Fetching {}" , entities);
+        Entity firstEntity = entities.iterator().next();
+
+        QueryObject<Object> qo = ctx.getQuery(firstEntity.getEntityType(), fetchInternal);
+        if (qo == null) {
+            qo = new QueryObject<Object>(firstEntity.getEntityType().getInterfaceName());
+        }
+
+        final QProperty<Object> pk = new QProperty<Object>(qo, firstEntity.getEntityType().getKeyNodeName());
+        final Set<Object> entityPkValues = toEntityKeyValues(entities);
+        qo.where(pk.in(entityPkValues));
+
+        try {
+            QueryResult<Object> result = ctx.performQuery(qo);
+            /*
+             * Some cleanup required.
+             * the executer will set all loading entities to LOADED
+             * but we set the state to LOADING ourselves
+             * so check the result, and manually set the entity state
+             */
+            for (Entity e: entities) {
+                if (!result.getEntityList().contains(e)) {
+                    if (e.getConstraints().isMustExistInDatabase()) {
+                        throw new EntityMustExistInDBException(e);
+                    }
+                    else {
+                        e.setEntityState(EntityState.NOT_IN_DB);
+                    }
+                }
+                else  {
+                    e.setEntityState(EntityState.LOADED);
+                }
+            }
+        } catch (Exception x) {
+            throw new IllegalStateException("Error performing fetch", x);
+        }
+    }
+
+    private Set<Object> toEntityKeyValues(Set<Entity> entities) {
+        return entities.stream().map(e -> e.getKey().getValue()).collect(Collectors.toSet());
     }
 
     private boolean attemptBatchFetch(Entity entity) {
@@ -151,15 +220,37 @@ public class FetchHelper {
          .orElse(null);
     }
 
-    private Set<Entity> findAllEntitiesWithSamePath(EntityPath shortest) {
-        // TODO Auto-generated method stub
-        return null;
+    private Set<Entity> findAllEntitiesWithSamePath(EntityPath path) {
+        Set<Entity> result = new HashSet<>();
+        Set<Entity> workingSet = new HashSet<>();
+        workingSet.add(path.getEntity());
+        EntityPath p = path;
+        while(p.getNext() != null) {
+            Set<Entity> nextWorkingSet = new HashSet<>();
+            for (Entity e: workingSet) {
+                Node node = e.getChild(path.getNode().getName());
+                if (node instanceof RefNode) {
+                    Entity nextE = ((RefNode)node).getReference();
+                    if (nextE != null) {
+                        nextWorkingSet.add(nextE);
+                    }
+                }
+                else {
+                    nextWorkingSet.addAll(((ToManyNode)node).getList());
+                }
+              }
+            workingSet.clear();
+            workingSet.addAll(nextWorkingSet);
+            p = p.getNext();
+        }
+        return result;
     }
 
-    class EntityPath {
-        private Entity entity;
-        private Node node;
-        private EntityPath next;
+
+    final class EntityPath {
+        private final  Entity entity;
+        private final Node node;
+        private final EntityPath next;
         public EntityPath(Entity entity, Node node, EntityPath next) {
             this.entity = entity;
             this.node = node;
@@ -167,6 +258,15 @@ public class FetchHelper {
         }
         public int getSize() {
             return next == null ? 1: next.getSize() + 1;
+        }
+        public Entity getEntity() {
+            return entity;
+        }
+        public EntityPath getNext() {
+            return next;
+        }
+        public Node getNode() {
+            return node;
         }
     }
 
