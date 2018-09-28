@@ -42,7 +42,7 @@ public class CleanStatementOrder {
     public static List<EntitySpec> order(Collection<EntitySpec> specs) {
         DependencyTree deptree = new DependencyTree();
 
-        deptree.build( toNodes(specs) );
+        deptree.build( toNodes(specs), true );
 
         List<EntitySpec> result = toSpecs( deptree.getDependencyOrder() );
         //deptree.generateDiagramStepbyStep();
@@ -120,12 +120,12 @@ public class CleanStatementOrder {
         }
 
         @Override
-        public void buildDependencies(Collection<DependencyTreeNode> nodes) {
+        public void buildDependencies(DependencyTree tree) {
             if (builtDependencies) {
                 return;
             }
             builtDependencies = true;
-            for (DependencyTreeNode node: nodes) {
+            for (DependencyTreeNode node: tree.getNodes()) {
                 if (node == this) {
                     continue;
                 }

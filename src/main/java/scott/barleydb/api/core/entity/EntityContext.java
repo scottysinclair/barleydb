@@ -339,7 +339,7 @@ public class EntityContext implements Serializable {
 
     public EntityContextState switchToExternalMode() {
         EntityContextState old = this.entityContextState;
-        this.entityContextState = EntityContextState.INTERNAL;
+        this.entityContextState = EntityContextState.USER;
         return old;
     }
 
@@ -1026,6 +1026,14 @@ public class EntityContext implements Serializable {
 
     public void fetch(ToManyNode toManyNode) {
         fetch(toManyNode, false);
+    }
+
+    public void batchFetchDescendants(ProxyController pc) {
+        fetchHelper.batchFetchDescendants(pc.getEntity());
+    }
+
+    public void batchFetchDescendants(Entity entity) {
+        fetchHelper.batchFetchDescendants(entity);
     }
 
     /**

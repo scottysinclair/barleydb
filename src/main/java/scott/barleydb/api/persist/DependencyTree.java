@@ -64,7 +64,7 @@ import scott.barleydb.server.jdbc.query.QueryResult;
 /**
  * Generates an operations dependency tree so that the order of entity operations can be calculated.<br/>
  * <br/>
- * The DependencyTree takes into account the different types of relations between entities and will also calculate entites which have to be deleted 
+ * The DependencyTree takes into account the different types of relations between entities and will also calculate entites which have to be deleted
  * due to orphan removal.
  * @author scott.sinclair
  *
@@ -79,7 +79,7 @@ public class DependencyTree implements Serializable {
      * the final calculated dependency order
      */
     private final List<Node> dependencyOrder = new LinkedList<>();
-    
+
     /**
      * all of the operation Nodes in the dependency tree
      */
@@ -89,12 +89,12 @@ public class DependencyTree implements Serializable {
      * the entity context containing the entities on which operations will be performed.
      */
     private final EntityContext ctx;
-    
+
     /**
      * the 'delete entity context' used to load and therefore verify the existance of entities which will require removal.
      */
     private final EntityContext dctx;
-    
+
     /**
      * a map of orphan checks starting from an Entity which has an update or delete operation on it.
      */
@@ -131,6 +131,14 @@ public class DependencyTree implements Serializable {
      * @throws IOException
      */
     public void generateDiagram(File diagram) throws IOException {
+        createDiagram().generate(diagram);
+    }
+
+    public String generateDiagramYumlString() {
+        return createDiagram().toYumlString();
+    }
+
+    private DependencyDiagram createDiagram() {
         DependencyDiagram diag = new DependencyDiagram();
         Link firstLink = null;
         for (Node node: nodes.values()) {
@@ -145,7 +153,7 @@ public class DependencyTree implements Serializable {
                 }
             }
         }
-        diag.generate(diagram);
+        return diag;
     }
 
     private String genNodeDiagramName(Node node) {
@@ -187,7 +195,7 @@ public class DependencyTree implements Serializable {
 
     /**
      * Builds the dependency tree based on the collection of operations to perform.
-     * 
+     *
      * @param operations
      * @throws SortServiceProviderException
      * @throws BarleyDBQueryException
@@ -996,7 +1004,7 @@ public class DependencyTree implements Serializable {
 
     /**
      * Performs all pending orphan checks.
-     * 
+     *
      * @throws SortServiceProviderException
      * @throws BarleyDBQueryException
      */

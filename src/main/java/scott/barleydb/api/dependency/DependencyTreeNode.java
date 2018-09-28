@@ -35,7 +35,7 @@ public abstract class DependencyTreeNode {
 
     public abstract String getShortDescription();
 
-    public abstract void buildDependencies(Collection<DependencyTreeNode> nodes);
+    public abstract void buildDependencies(DependencyTree tree);
 
     public abstract Collection<Dependency> getDependencies();
 

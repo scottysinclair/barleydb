@@ -75,13 +75,13 @@ public class DependencyTree implements Serializable {
         return null;
     }
 
-    public void build(Collection<DependencyTreeNode> nodes) {
+    public void build(Collection<DependencyTreeNode> nodesCol, boolean calculateDependencyOrder) {
         if (LOG.isDebugEnabled()) {
             LOG.debug("---------------------------------------------------------------------------------------");
             LOG.debug(" STARTING DEPENDENCY TREE BUILD ");
             LOG.debug("---------------------------------------------------------------------------------------");
         }
-        this.nodes.addAll(nodes);
+        this.nodes.addAll(nodesCol);
 
         /*
          * building node dependencies can cause new nodes to be added so do
@@ -95,13 +95,16 @@ public class DependencyTree implements Serializable {
                 LOG.debug("- processing node dependencies, current pending checks {}.",
                         printNodes(nodes, nodesPendingDependencyChecks()));
             }
-            numberOfNodes = nodes.size();
-            new ArrayList<>(nodes).stream().forEach(
+            numberOfNodes = this.nodes.size();
+            new ArrayList<>(this.nodes).stream().forEach(
                     buildDependenciesIfRequired());
-        } while (numberOfNodes < nodes.size());
+            System.out.println(this.nodes);
+        } while (numberOfNodes < this.nodes.size());
 
-        LOG.debug("FINALLY calculating dependency order...");
-        calculateDependencyOrder();
+        if (calculateDependencyOrder) {
+            LOG.debug("FINALLY calculating dependency order...");
+            calculateDependencyOrder();
+        }
     }
 
     public void generateDiagramStepbyStep() {
@@ -118,6 +121,15 @@ public class DependencyTree implements Serializable {
         }
     }
 
+    void addNode(DependencyTreeNode node) {
+        for (DependencyTreeNode n: nodes) {
+            if (n.getThing() == node.getThing()) {
+                return;
+            }
+        }
+        nodes.add(node);
+    }
+
 
     public void generateDiagram() {
         try {
@@ -131,6 +143,14 @@ public class DependencyTree implements Serializable {
     }
 
     public void generateDiagram(File diagram, Set<DependencyTreeNode> exclude) throws IOException {
+        createDiagram(exclude).generate(diagram);
+    }
+
+    public String generateYumlString(Set<DependencyTreeNode> exclude) {
+        return createDiagram(exclude).toYumlString();
+    }
+
+    private DependencyDiagram createDiagram(Set<DependencyTreeNode> exclude) {
         DependencyDiagram diag = new DependencyDiagram();
         Link firstLink = null;
         for (DependencyTreeNode node: nodes) {
@@ -146,7 +166,7 @@ public class DependencyTree implements Serializable {
                 }
             }
         }
-        diag.generate(diagram);
+        return diag;
     }
 
 
@@ -221,7 +241,7 @@ public class DependencyTree implements Serializable {
             @Override
             public void accept(DependencyTreeNode node) {
                 if (!node.hasBuiltDependencies()) {
-                    node.buildDependencies(nodes);
+                    node.buildDependencies(DependencyTree.this);
                 }
             }
         };
@@ -231,7 +251,7 @@ public class DependencyTree implements Serializable {
         return new Predicate<DependencyTreeNode>() {
             @Override
             public boolean test(DependencyTreeNode node) {
-                return node.hasBuiltDependencies();
+                return !node.hasBuiltDependencies();
             }
         };
     }
@@ -275,6 +295,10 @@ public class DependencyTree implements Serializable {
             }
         }
         return false;
+    }
+
+    public Collection<DependencyTreeNode> getNodes() {
+        return nodes;
     }
 
 }

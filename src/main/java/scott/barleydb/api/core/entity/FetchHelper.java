@@ -198,7 +198,10 @@ public class FetchHelper implements Serializable {
 
     private EntityPath findPath(Entity batchRoot, Entity entity) {
         DependencyTree tree = new DependencyTree();
-        tree.build(Collections.singleton(new EntityDependencyTreeNode(batchRoot)));
+        tree.build(Collections.singleton(new EntityDependencyTreeNode(batchRoot)), false);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("yuml: " + tree.generateYumlString(Collections.emptySet()));
+        }
         /*
          * the tree did not discover entity from batchRoot, there is no link
          */
@@ -230,10 +233,10 @@ public class FetchHelper implements Serializable {
         Set<Entity> workingSet = new HashSet<>();
         workingSet.add(path.getEntity());
         EntityPath p = path;
-        while(p.getNext() != null) {
+        while(p != null) {
             Set<Entity> nextWorkingSet = new HashSet<>();
             for (Entity e: workingSet) {
-                Node node = e.getChild(path.getNode().getName());
+                Node node = e.getChild(p.getNode().getName());
                 if (node instanceof RefNode) {
                     Entity nextE = ((RefNode)node).getReference();
                     if (nextE != null) {
@@ -248,6 +251,7 @@ public class FetchHelper implements Serializable {
             workingSet.addAll(nextWorkingSet);
             p = p.getNext();
         }
+        result.addAll(workingSet);
         return result;
     }
 

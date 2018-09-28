@@ -41,7 +41,7 @@ public class CreateScriptOrder {
     public static List<DefinitionsSpec> order(Collection<DefinitionsSpec> specs) {
         DependencyTree deptree = new DependencyTree();
 
-        deptree.build( toNodes(specs) );
+        deptree.build( toNodes(specs), true );
 
         List<DefinitionsSpec> result = toSpecs( deptree.getDependencyOrder() );
         //deptree.generateDiagramStepbyStep();
@@ -119,12 +119,12 @@ public class CreateScriptOrder {
         }
 
         @Override
-        public void buildDependencies(Collection<DependencyTreeNode> nodes) {
+        public void buildDependencies(DependencyTree tree) {
             if (builtDependencies) {
                 return;
             }
             builtDependencies = true;
-            for (DependencyTreeNode node: nodes) {
+            for (DependencyTreeNode node: tree.getNodes()) {
                 if (node == this) {
                     continue;
                 }

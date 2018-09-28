@@ -50,7 +50,7 @@ import scott.barleydb.server.jdbc.persist.OperationGroup;
 
 /**
  * Analyses a PersistRequest and figures out the operations which must be performed.
- * 
+ *
  * @See {@link PersistRequest}
  * @author scott.sinclair
  *
@@ -194,6 +194,9 @@ public class PersistAnalyser implements Serializable {
                 dependencyTree.build( persistRequest.getOperations() );
             } catch (SortServiceProviderException | BarleyDBQueryException x) {
                 throw new SortPersistException("Error building dependency tree", x);
+            }
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("yuml: " + dependencyTree.generateDiagramYumlString());
             }
 
             /*
