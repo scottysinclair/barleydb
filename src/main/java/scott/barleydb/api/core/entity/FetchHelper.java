@@ -69,7 +69,7 @@ public class FetchHelper implements Serializable {
         this.batchFetchEntities = new WeakHashMap<>();
     }
 
-    public void batchFetch(Entity entity) {
+    public void batchFetchDescendants(Entity entity) {
         batchFetchEntities.put(entity, null);
     }
 
@@ -80,7 +80,7 @@ public class FetchHelper implements Serializable {
         if (!evenIfLoaded && entity.getEntityState() == EntityState.LOADED) {
             return;
         }
-        if (attemptBatchFetch(entity)) {
+        if (attemptBatchFetch(entity, fetchInternal)) {
             return;
         }
         /*
@@ -123,7 +123,7 @@ public class FetchHelper implements Serializable {
         }
     }
 
-    public void fetchEntities(Set<Entity> entities, boolean force, boolean fetchInternal, boolean evenIfLoaded) {
+    public void fetchEntities(Set<Entity> entities, boolean fetchInternal) {
         EntityContext ctx = entities.iterator().next().getEntityContext();
         LOG.debug("Fetching {}" , entities);
         Entity firstEntity = entities.iterator().next();
@@ -167,13 +167,18 @@ public class FetchHelper implements Serializable {
         return entities.stream().map(e -> e.getKey().getValue()).collect(Collectors.toSet());
     }
 
-    private boolean attemptBatchFetch(Entity entity) {
+    private Set<Object> toEntityKeyValuesTmn(Set<ToManyNode> toManyNodes) {
+        return toManyNodes.stream().map(t -> t.getParent().getKey().getValue()).collect(Collectors.toSet());
+    }
+
+    private boolean attemptBatchFetch(Entity entity, boolean fetchInternal) {
         Set<EntityPath> paths = calculatePathsFromBatchFetchEntities(entity);
         EntityPath shortest = findShortestPath(paths);
         if (shortest == null) {
             return false;
         }
         Set<Entity> tofetch = findAllEntitiesWithSamePath(shortest);
+        fetchEntities(tofetch, fetchInternal);
         return true;
     }
 
@@ -281,6 +286,10 @@ public class FetchHelper implements Serializable {
            return;
        }
 
+       if (attemptBatchFetch(toManyNode, fetchInternal)) {
+           return;
+       }
+
        final NodeType toManyDef = toManyNode.getNodeType();
 
        //get the name of the node/property which we need to filter on to get the correct entities back on the many side
@@ -356,6 +365,103 @@ public class FetchHelper implements Serializable {
            }
        }
    }
+   private void fetchToManys(Set<ToManyNode> toFetch, boolean fetchInternal) {
+       ToManyNode firstToMany = toFetch.iterator().next();
+       final NodeType toManyDef = firstToMany.getNodeType();
+
+       //get the name of the node/property which we need to filter on to get the correct entities back on the many side
+       final String foreignNodeName = toManyDef.getForeignNodeName();
+       if (foreignNodeName != null) {
+           QueryObject<Object> qo = ctx.getQuery(firstToMany.getEntityType(), fetchInternal);
+           if (qo == null) {
+               qo = new QueryObject<Object>(firstToMany.getEntityType().getInterfaceName());
+           }
+
+           final QProperty<Object> manyFk = new QProperty<Object>(qo, foreignNodeName);
+           final Set<Object> primaryKeysOfOneSide = toEntityKeyValuesTmn(toFetch);
+           qo.where(manyFk.in(primaryKeysOfOneSide));
+           /*
+            * If a user call is causing a fetch to a "join entity"
+            * then join from the join entity to the referenced entity.
+            *
+            * So if the ToManyNode joins from Template to TemplateDatatype and has joinProperty "datatype"
+            * then we will make the QTemplateBusinessType outer join to QBusinessType so that QBusinessType is automatically pulled in
+            *
+            * Template.datatypes == the ToManyNode
+            * TemplateDatatype.datatype == the RefNode on the "join entity"
+            *
+            * the if below uses these nouns for better clarification
+            *
+            */
+           if (!fetchInternal && toManyDef.getJoinProperty() != null) {
+               NodeType datatypeNodeType = firstToMany.getEntityType().getNodeType(toManyDef.getJoinProperty(), true);
+               EntityType datatype = ctx.getDefinitions().getEntityTypeMatchingInterface(datatypeNodeType.getRelationInterfaceName(), true);
+               QueryObject<Object> qdatatype = ctx.getQuery(datatype, fetchInternal);
+               if (qdatatype == null) {
+                  qdatatype = new QueryObject<Object>(datatype.getInterfaceName());
+               }
+               qo.addLeftOuterJoin(qdatatype, datatypeNodeType.getName());
+           }
+
+           try {
+               ctx.performQuery(qo);
+               for (ToManyNode toManyNode: toFetch) {
+                   toManyNode.setFetched(true);
+                   toManyNode.refresh();
+               }
+           } catch (Exception x) {
+               throw new IllegalStateException("Error performing fetch", x);
+           }
+       } else {
+           /*
+            * get the query for loading the entity which has the relation we want to fetch
+            * ie the template query for when we want to fetch the datatypes.
+            */
+           final QueryObject<Object> fromQo = ctx.getDefinitions().getQuery(firstToMany.getParent().getEntityType());
+           /*
+            * gets the query for loading the entity which the relation fulfills
+            * ie the datatype query which the template wants to load
+            */
+           final QueryObject<Object> toQo = ctx.getDefinitions().getQuery(firstToMany.getEntityType());
+           /*
+            * add the join from template to query
+            * the query generator knows to include the join table
+            */
+           fromQo.addLeftOuterJoin(toQo, firstToMany.getName());
+           /*
+            * constrain from query to only return data for the entity we are fetching for
+            * ie constrain the template query by the id of the template we are fetching for
+            */
+           final QProperty<Object> fromPk = new QProperty<Object>(fromQo, firstToMany.getParent().getKey().getName());
+           final Set<Object> primaryKeysOfOneSide = toEntityKeyValuesTmn(toFetch);
+           fromQo.where(fromPk.in(primaryKeysOfOneSide));
+
+           try {
+               ctx.performQuery(fromQo);
+               for (ToManyNode toManyNode: toFetch) {
+                   toManyNode.setFetched(true);
+                   toManyNode.refresh();
+               }
+           } catch (Exception x) {
+               throw new IllegalStateException("Error performing fetch", x);
+           }
+       }
+   }
+
+
+    private boolean attemptBatchFetch(ToManyNode toManyNode, boolean fetchInternal) {
+        Set<EntityPath> paths = calculatePathsFromBatchFetchEntities(toManyNode.getParent());
+        EntityPath shortest = findShortestPath(paths);
+        if (shortest == null) {
+            return false;
+        }
+        Set<Entity> entites = findAllEntitiesWithSamePath(shortest);
+        Set<ToManyNode> toFetch = entites.stream()
+                .map(e -> e.getChild(toManyNode.getName(), ToManyNode.class))
+                .collect(Collectors.toSet());
+        fetchToManys(toFetch, fetchInternal);
+        return true;
+    }
 
 
 }
