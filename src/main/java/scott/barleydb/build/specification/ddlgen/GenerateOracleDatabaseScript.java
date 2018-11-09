@@ -65,6 +65,9 @@ public class GenerateOracleDatabaseScript extends GenerateDatabaseScript {
             case BLOB:
                 sb.append("BLOB");
                 break;
+            case SMALLINT:
+                sb.append("SMALLINT");
+                break;
             default:
                 throw new IllegalStateException("Invalid JDBC type: " + nodeSpec.getJdbcType());
         }

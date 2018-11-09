@@ -98,7 +98,7 @@ public class DependencyTree implements Serializable {
             numberOfNodes = this.nodes.size();
             new ArrayList<>(this.nodes).stream().forEach(
                     buildDependenciesIfRequired());
-            System.out.println(this.nodes);
+//            System.out.println(this.nodes);
         } while (numberOfNodes < this.nodes.size());
 
         if (calculateDependencyOrder) {
@@ -297,8 +297,8 @@ public class DependencyTree implements Serializable {
         return false;
     }
 
-    public Collection<DependencyTreeNode> getNodes() {
-        return nodes;
+    public <T extends DependencyTreeNode> Collection<T> getNodes() {
+        return (Collection<T>)nodes;
     }
 
 }

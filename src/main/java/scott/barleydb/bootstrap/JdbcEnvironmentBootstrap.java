@@ -96,6 +96,7 @@ public class JdbcEnvironmentBootstrap {
 
     private ClassLoader specClassLoader;
     private final List<SpecRegistry> specRegistries = new LinkedList<>();
+    private boolean quickHackSequenceGenerator;
 
     private String ddlGen;
 
@@ -129,12 +130,18 @@ public class JdbcEnvironmentBootstrap {
 
         loadDefinitions();
 
-        services.setSequenceGenerator(new QuickHackSequenceGenerator(env));
+        if (quickHackSequenceGenerator) {
+          services.setSequenceGenerator(new QuickHackSequenceGenerator(env));
+        }
         services.register(new LongToStringTimestampConverter());
 
         if (ddlGen != null)  {
             generateDDls();
         }
+    }
+
+    public void setQuickHackSequenceGenerator(boolean quickHackSequenceGenerator) {
+        this.quickHackSequenceGenerator = quickHackSequenceGenerator;
     }
 
     public void setApplicationDir(String applicationDir) {
@@ -220,7 +227,6 @@ public class JdbcEnvironmentBootstrap {
                 }
             }
         }
-
     }
 
     private void writeScripts(File file, GenerateDatabaseScript gen, DefinitionsSpec spec) throws IOException {

@@ -37,6 +37,7 @@ public class EntityDependencyTreeNode extends DependencyTreeNode {
 
     private Entity entity;
     private boolean builtDependencies;
+    private boolean allDependenciesFetchedAndProcessed;
     private List<Dependency> dependencies = new LinkedList<>();
 
     public EntityDependencyTreeNode(Entity entity) {
@@ -54,6 +55,14 @@ public class EntityDependencyTreeNode extends DependencyTreeNode {
         return builtDependencies;
     }
 
+    public boolean requireRebuildIfNotAllDependenciesFetched() {
+        if (!allDependenciesFetchedAndProcessed) {
+            builtDependencies = false;
+            return true;
+        }
+        return false;
+    }
+
     @Override
     public String getShortDescription() {
         return entity.toString();
@@ -61,15 +70,22 @@ public class EntityDependencyTreeNode extends DependencyTreeNode {
 
     @Override
     public void buildDependencies(DependencyTree tree) {
+        allDependenciesFetchedAndProcessed = true;
         for (RefNode refNode: entity.getChildren(RefNode.class)) {
             Entity e = refNode.getReference(false);
             if (e != null) {
+                if (e.isFetchRequired()) {
+                    allDependenciesFetchedAndProcessed = false;
+                }
                 EntityDependencyTreeNode etn = new EntityDependencyTreeNode(e);
                 dependencies.add(new Dependency(this, etn, refNode));
                 tree.addNode(etn);
             }
         }
         for (ToManyNode toManyNode: entity.getChildren(ToManyNode.class)) {
+            if (!toManyNode.isFetched()) {
+                allDependenciesFetchedAndProcessed = false;
+            }
             for (Entity e: toManyNode.getList()) {
                 EntityDependencyTreeNode etn = new EntityDependencyTreeNode(e);
                 dependencies.add(new Dependency(this, etn, toManyNode));

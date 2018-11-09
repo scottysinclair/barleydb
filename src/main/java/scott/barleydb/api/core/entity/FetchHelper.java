@@ -27,11 +27,7 @@ import java.io.Serializable;
  * #L%
  */
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.WeakHashMap;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -62,7 +58,7 @@ public class FetchHelper implements Serializable {
      * The WeakHashMap does not prevent the entity key from being collected.
      *
      */
-    private final WeakHashMap<Entity, Object> batchFetchEntities;
+    private final WeakHashMap<Entity, DependencyTree> batchFetchEntities;
 
     public FetchHelper(EntityContext ctx) {
         this.ctx = ctx;
@@ -127,6 +123,8 @@ public class FetchHelper implements Serializable {
         EntityContext ctx = entities.iterator().next().getEntityContext();
         LOG.debug("Fetching {}" , entities);
         Entity firstEntity = entities.iterator().next();
+        System.out.println("BATCH FETCHING ENTITIES: " + entities.size() + " of type " + firstEntity.getEntityType().getTableName());
+
 
         QueryObject<Object> qo = ctx.getQuery(firstEntity.getEntityType(), fetchInternal);
         if (qo == null) {
@@ -167,7 +165,7 @@ public class FetchHelper implements Serializable {
         return entities.stream().map(e -> e.getKey().getValue()).collect(Collectors.toSet());
     }
 
-    private Set<Object> toEntityKeyValuesTmn(Set<ToManyNode> toManyNodes) {
+    private Set<Object> toEntityKeyValuesTmn(Collection<ToManyNode> toManyNodes) {
         return toManyNodes.stream().map(t -> t.getParent().getKey().getValue()).collect(Collectors.toSet());
     }
 
@@ -197,8 +195,18 @@ public class FetchHelper implements Serializable {
     }
 
     private EntityPath findPath(Entity batchRoot, Entity entity) {
-        DependencyTree tree = new DependencyTree();
-        tree.build(Collections.singleton(new EntityDependencyTreeNode(batchRoot)), false);
+        DependencyTree tree  = batchFetchEntities.get(batchRoot);
+        if (tree == null) {
+            tree = new DependencyTree();
+            tree.build(Collections.singleton(new EntityDependencyTreeNode(batchRoot)), false);
+            batchFetchEntities.put(entity, tree);
+        }
+        else {
+            for (EntityDependencyTreeNode node: tree.<EntityDependencyTreeNode>getNodes()) {
+               node.requireRebuildIfNotAllDependenciesFetched();
+            }
+            tree.build(Collections.emptyList(), false);
+        }
         if (LOG.isDebugEnabled()) {
             LOG.debug("yuml: " + tree.generateYumlString(Collections.emptySet()));
         }
@@ -369,8 +377,10 @@ public class FetchHelper implements Serializable {
            }
        }
    }
-   private void fetchToManys(Set<ToManyNode> toFetch, boolean fetchInternal) {
+
+   private void fetchToManys(Collection<ToManyNode> toFetch, boolean fetchInternal) {
        ToManyNode firstToMany = toFetch.iterator().next();
+       System.out.println("BATCH FETCHING TOMANYS: " + toFetch.size() + " " + firstToMany.getNodeType().getEntityType().getTableName() + "." + firstToMany.getNodeType().getName());
        final NodeType toManyDef = firstToMany.getNodeType();
 
        //get the name of the node/property which we need to filter on to get the correct entities back on the many side
@@ -463,8 +473,36 @@ public class FetchHelper implements Serializable {
         Set<ToManyNode> toFetch = entites.stream()
                 .map(e -> e.getChild(toManyNode.getName(), ToManyNode.class))
                 .collect(Collectors.toSet());
-        fetchToManys(toFetch, fetchInternal);
+        //TODO:use database specific limit
+        for (Collection<ToManyNode> set : batchesOf(toFetch, 1000)) {
+          fetchToManys(set, fetchInternal);
+        }
         return true;
+    }
+
+    private <T> Collection<Collection<T>> batchesOf(Set<T> set, int maxSize) {
+       if (set.size() < maxSize) {
+           return Collections.singletonList(set);
+       }
+       else {
+           return batchesOf(new ArrayList<>(set), maxSize);
+       }
+    }
+    private <T> Collection<Collection<T>> batchesOf(List<T> list, int maxSize) {
+        Collection<Collection<T>> result = new LinkedList<>();
+        int from  = 0;
+        int to = from + maxSize;
+        while(from < list.size()) {
+            if (list.size() >= to) {
+                result.add(list.subList(from, to));
+            }
+            else {
+                result.add(list.subList(from, list.size()));
+            }
+            from += maxSize;
+            to += maxSize;
+        }
+        return result;
     }
 
 
