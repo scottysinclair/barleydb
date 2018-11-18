@@ -99,6 +99,18 @@ public abstract class CommonDefaultsPlatformSpec extends StaticDefinitions {
         return spec;
     }
 
+    public static NodeSpec uuidPrimaryKey() {
+        NodeSpec spec = new NodeSpec();
+        spec.setKeyGenSpec(KeyGenSpec.CLIENT);
+        spec.setColumnName("ID");
+        spec.setPrimaryKey(true);
+        spec.setJavaType(JavaType.STRING);
+        spec.setJdbcType(JdbcType.CHAR);
+        spec.setLength(16);
+        spec.setNullable(Nullable.NOT_NULL);
+        return spec;
+    }
+
     public static NodeSpec mandatoryLongValue() {
         return mandatoryLongValue(null);
     }

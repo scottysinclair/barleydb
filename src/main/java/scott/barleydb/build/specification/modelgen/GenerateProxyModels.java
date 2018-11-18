@@ -49,11 +49,15 @@ public class GenerateProxyModels extends GenerateModelsHelper {
     }
 
     private void generateEntityContext(String path, DefinitionsSpec definitions) throws IOException {
+        if (definitions.getEntitySpecs().isEmpty()) {
+            return;
+        }
         String entityContextName = getEntityContextName(definitions);
 
         String packageName = definitions.getNamespace();
 
         File classFile = toFile(path, packageName + "." + entityContextName);
+        classFile.getParentFile().mkdirs();
         try (Writer out = new FileWriter(classFile); ) {
             out.write("package ");
             out.write(packageName);
@@ -78,6 +82,9 @@ public class GenerateProxyModels extends GenerateModelsHelper {
     }
 
     private void generateProxyFactory(String path, DefinitionsSpec definitions) throws IOException {
+        if (definitions.getEntitySpecs().isEmpty()) {
+            return;
+        }
         String proxyFactoryName = getProxyFactoryName(definitions);
 
         String packageName = getModelPackageName(definitions.getEntitySpecs().iterator().next());
