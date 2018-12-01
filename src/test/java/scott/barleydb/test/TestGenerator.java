@@ -53,6 +53,7 @@ import scott.barleydb.build.specification.ddlgen.GenerateDatabaseScript;
 import scott.barleydb.build.specification.ddlgen.GenerateHsqlDatabaseScript;
 import scott.barleydb.build.specification.ddlgen.GenerateMySqlDatabaseScript;
 import scott.barleydb.build.specification.ddlgen.GenerateOracleDatabaseScript;
+import scott.barleydb.build.specification.graphql.GenerateGrapqlSDL;
 import scott.barleydb.build.specification.modelgen.GenerateProxyModels;
 import scott.barleydb.build.specification.modelgen.GenerateDtoModels;
 import scott.barleydb.build.specification.modelgen.GenerateEnums;
@@ -114,7 +115,8 @@ public class TestGenerator {
         StaticDefinitionProcessor processor = new StaticDefinitionProcessor();
         @SuppressWarnings("unused")
         DefinitionsSpec etlSpec = processor.process(new EtlSpec(), registry);
-
+        GenerateGrapqlSDL gen = new GenerateGrapqlSDL(etlSpec);
+        System.out.println(gen.createSdl());
     }
 
     @Test
