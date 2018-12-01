@@ -107,9 +107,18 @@ public class TestGenerator {
         fout.flush();
         fout.close();
     }
+    
+    @Test
+    public void testGenerateGraphqlEtlSpec() throws Exception {
+        SpecRegistry registry = new SpecRegistry();
+        StaticDefinitionProcessor processor = new StaticDefinitionProcessor();
+        @SuppressWarnings("unused")
+        DefinitionsSpec etlSpec = processor.process(new EtlSpec(), registry);
+
+    }
 
     @Test
-    public void testgenerateEtlXmlSpec() throws Exception {
+    public void testGenerateEtlXmlSpec() throws Exception {
         SpecRegistry registry = new SpecRegistry();
         StaticDefinitionProcessor processor = new StaticDefinitionProcessor();
         @SuppressWarnings("unused")

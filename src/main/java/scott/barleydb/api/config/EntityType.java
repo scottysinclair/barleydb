@@ -162,8 +162,8 @@ public class EntityType implements Serializable {
     }
 
     public KeyGenSpec getKeyGenSpec() {
-    return keyGenSpec;
-  }
+	    return keyGenSpec;
+	  }
 
   public boolean isAbstract() {
         return abstractEntity;
