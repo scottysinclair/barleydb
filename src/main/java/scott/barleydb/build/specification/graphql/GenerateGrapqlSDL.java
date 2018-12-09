@@ -1,5 +1,30 @@
 package scott.barleydb.build.specification.graphql;
 
+/*-
+ * #%L
+ * BarleyDB
+ * $Id:$
+ * $HeadURL:$
+ * %%
+ * Copyright (C) 2014 - 2018 Scott Sinclair
+ *       <scottysinclair@gmail.com>
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Lesser Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Lesser Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/lgpl-3.0.html>.
+ * #L%
+ */
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -10,14 +35,17 @@ import scott.barleydb.api.core.types.JavaType;
 import scott.barleydb.api.core.types.Nullable;
 import scott.barleydb.api.specification.DefinitionsSpec;
 import scott.barleydb.api.specification.EntitySpec;
+import scott.barleydb.api.specification.EnumSpec;
+import scott.barleydb.api.specification.EnumValueSpec;
 import scott.barleydb.api.specification.NodeSpec;
+import scott.barleydb.api.specification.SpecRegistry;
 
 public class GenerateGrapqlSDL {
-	private final DefinitionsSpec definition;	
+	private final SpecRegistry specRegistry;	
 	
 	
-	public GenerateGrapqlSDL(DefinitionsSpec definition) {
-		this.definition = definition;
+	public GenerateGrapqlSDL(SpecRegistry specRegistry) {
+		this.specRegistry = specRegistry;
 	}
 
 
@@ -36,9 +64,11 @@ public class GenerateGrapqlSDL {
 		.append("}\n")
 		.append("\n")
 		.append(printTypeDefinitions())
+		.append("\n")
+		.append(printEnumDefinitions())
 		.toString();
 	}
-	
+
 	private String printSchemQueryFields() {
 		return streamSchemaQueryFields()
 		.map(f -> new StringBuilder()
@@ -78,6 +108,36 @@ public class GenerateGrapqlSDL {
 				.toString();
 	}
 	
+	private String printEnumDefinitions() {
+		return streamEnumDefinitions()
+				.map(this::printEnumDefinition)
+				.collect(Collectors.joining("\n\n"));
+	}
+	
+	private Stream<EnumSpec> streamEnumDefinitions() {
+		return specRegistry.getDefinitions().stream()
+				.map(DefinitionsSpec::getEnumSpecs)
+				.flatMap(Collection::stream);
+	}
+
+
+	private String printEnumDefinition(EnumSpec enumSpec) {
+		return new StringBuilder()
+				.append("enum ")
+				.append(getSimpleName(enumSpec.getClassName()))
+				.append(" {\n")
+				.append(printEnumValues(enumSpec.getEnumValues()))
+				.append("\n}")
+				.toString();
+	}
+	
+	private String printEnumValues(List<EnumValueSpec> enumValues) {
+		return enumValues.stream()
+		.map(ev -> "  " + ev.getName())
+		.collect(Collectors.joining("\n"));
+	}
+
+
 	private String printFieldDefinitions(TypeDefinition type) {
 		return type.getFields().stream()
 		.map(this::printFieldDefinition)
@@ -102,30 +162,50 @@ public class GenerateGrapqlSDL {
 
 
 	private Stream<TypeDefinition> streamTypeDefinitions() {
-		return definition.getEntitySpecs().stream()
-		.map(TypeDefinition::new);
+		return specRegistry.getDefinitions().stream()
+				.map(DefinitionsSpec::getEntitySpecs)
+				.flatMap(Collection::stream)
+				.map(TypeDefinition::new);
 	}
 	
 	private Stream<SchemaQueryField> streamSchemaQueryFields() {
-		return definition.getEntitySpecs().stream()
+		return specRegistry.getDefinitions().stream()
+				.map(DefinitionsSpec::getEntitySpecs)
+				.flatMap(Collection::stream)
 				.map(SchemaQueryField::new);
 	}
 
 	private String getGraphQlTypeName(EntitySpec et) {
-		String name = et.getClassName();
+		return getSimpleName(et.getClassName());
+	}
+	
+	private String getSimpleName(String name) {
 		int i = name.lastIndexOf('.');
 		return i == -1 ? name : name.substring(i+1);
 	}
 	
 	private String getGraphQlTypeName(NodeSpec ns) {
 		if (ns.getJavaType() != null) {
-			return getGraphQlTypeName(ns.getJavaType());
+			return getGraphQlTypeName(ns, ns.getJavaType());
 		}
 		return getGraphQlTypeName(ns.getRelation().getEntitySpec());
 	}
 
-	private String getGraphQlTypeName(JavaType javaType) {
-		return javaType.name().toLowerCase();
+	private String getGraphQlTypeName(NodeSpec nodeSpec, JavaType javaType) {
+		switch(javaType) {
+		case INTEGER: return "Int";
+		case BIGDECIMAL: return "Float";
+		case STRING: return "String";
+		case LONG: return "Int";
+		case BOOLEAN: return "Boolean";
+		case BYTE_ARRAY: return "String"; 
+		case ENUM: return getSimpleName(nodeSpec.getEnumSpec().getClassName());
+		case SHORT:return "Int";
+		case SQL_DATE: throw new UnsupportedOperationException();
+		case UTIL_DATE: throw new UnsupportedOperationException();
+		case UUID: return "String";
+		default: throw new UnsupportedOperationException(javaType.toString());
+		}
 	}
 
 

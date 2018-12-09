@@ -115,7 +115,7 @@ public class TestGenerator {
         StaticDefinitionProcessor processor = new StaticDefinitionProcessor();
         @SuppressWarnings("unused")
         DefinitionsSpec etlSpec = processor.process(new EtlSpec(), registry);
-        GenerateGrapqlSDL gen = new GenerateGrapqlSDL(etlSpec);
+        GenerateGrapqlSDL gen = new GenerateGrapqlSDL(registry);
         System.out.println(gen.createSdl());
     }
 

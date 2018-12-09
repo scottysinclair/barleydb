@@ -66,6 +66,7 @@ import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.entity.ProxyController;
 import scott.barleydb.api.persist.PersistAnalyser;
+import scott.barleydb.api.specification.SpecRegistry;
 import scott.barleydb.bootstrap.EnvironmentDef;
 import scott.barleydb.server.jdbc.JdbcEntityContextServices;
 import scott.barleydb.server.jdbc.persist.QuickHackSequenceGenerator;
@@ -149,6 +150,7 @@ public abstract class TestBase {
     }
 
 
+    protected static SpecRegistry specRegistry;
     protected static Environment env;
     protected static TestEntityContextServices entityContextServices;
     protected static String transformXml;
@@ -224,6 +226,10 @@ public abstract class TestBase {
              .withSchemaCreation(true);
 
             env = envDef.create();
+            specRegistry = new SpecRegistry();
+            envDef.getAllSpecs().stream()
+            	.forEach(specRegistry::add);
+            
             dataSource = envDef.getDataSource();
 
             transformXml = "<?xml version=\"1.0\"?>" +

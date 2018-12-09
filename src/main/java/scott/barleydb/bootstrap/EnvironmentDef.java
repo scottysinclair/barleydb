@@ -122,7 +122,15 @@ public class EnvironmentDef {
     public EnvironmentDef withSpecs(SpecRegistry specRegistry) {
       this.specRegistries.addAll( Arrays.asList(specRegistry) );
       return this;
-  }
+    }
+    
+    /**
+     * only available after the environment has been built.
+     * @return
+     */
+    public List<DefinitionsSpec> getAllSpecs() {
+    	return allSpecs;
+    }
 
     public EnvironmentDef withDroppingSchema(boolean drop) {
         dropSchema = drop;
