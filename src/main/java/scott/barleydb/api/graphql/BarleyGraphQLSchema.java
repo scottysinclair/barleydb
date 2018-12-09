@@ -32,6 +32,7 @@ import graphql.schema.idl.TypeDefinitionRegistry;
 
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -56,6 +57,7 @@ import scott.barleydb.api.query.QProperty;
 import scott.barleydb.api.query.QPropertyCondition;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.specification.DefinitionsSpec;
+import scott.barleydb.api.specification.EntitySpec;
 import scott.barleydb.api.specification.SpecRegistry;
 import scott.barleydb.build.specification.graphql.GenerateGrapqlSDL;
 
@@ -80,13 +82,39 @@ public class BarleyGraphQLSchema {
         LOG.info(sdlString);
         
         TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(sdlString);
-        RuntimeWiring runtimeWiring = newRuntimeWiring()
-                .type("Query", builder -> builder.defaultDataFetcher(new BarleyDbDataFetcher()))
-                .build();        
+        RuntimeWiring.Builder wiringBuilder = newRuntimeWiring()
+                .type("Query", builder -> builder.defaultDataFetcher(new BarleyDbDataFetcher()));
+        
+        specRegistry.getDefinitions().stream()
+        .map(DefinitionsSpec::getEntitySpecs)
+        .flatMap(Collection::stream)
+        .forEach(eSpec -> wiringBuilder.type(getSimpleName(eSpec.getClassName()), builder ->  builder.defaultDataFetcher(new BarleyDbDataFetcher2(eSpec))));
+        
+         RuntimeWiring runtimeWiring = wiringBuilder.build();        
         
         SchemaGenerator schemaGenerator = new SchemaGenerator();
         this.graphQLSchema = schemaGenerator.makeExecutableSchema(typeDefinitionRegistry, runtimeWiring);
 	}
+	
+	private String getSimpleName(String name) {
+		int i = name.lastIndexOf('.');
+		return i == -1 ? name : name.substring(i+1);
+	}
+
+    private class BarleyDbDataFetcher2 implements DataFetcher<Object> {
+    	private EntitySpec entitySpec;
+
+		public BarleyDbDataFetcher2(EntitySpec entitySpec) {
+			this.entitySpec = entitySpec;
+		}
+
+		@Override
+		public Object get(DataFetchingEnvironment graphEnv) throws Exception {
+			return null;
+		}
+    	
+    }
+
 	
     private class BarleyDbDataFetcher implements DataFetcher<Object> {
     
