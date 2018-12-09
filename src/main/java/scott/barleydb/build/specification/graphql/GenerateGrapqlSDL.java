@@ -27,6 +27,9 @@ package scott.barleydb.build.specification.graphql;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -244,16 +247,25 @@ public class GenerateGrapqlSDL {
 		
 	}
 	
+	private void addAllNodes(EntitySpec et, LinkedHashMap<String, FieldDefinition> fds) {
+		if (et.getParentEntity() != null) {
+			addAllNodes(et.getParentEntity(), fds);
+		}
+		fds.putAll(et.getNodeSpecs().stream()
+			.map(FieldDefinition::new)
+			.collect(Collectors.toMap(FieldDefinition::getName, fd -> fd)));		
+	}
+
 	public class TypeDefinition {
 		private final EntitySpec et;
 		private final List<FieldDefinition> fields;
 		public TypeDefinition(EntitySpec et) {
 			this.et = et;
-			this.fields = et.getNodeSpecs().stream()
-					.map(FieldDefinition::new)
-					.collect(Collectors.toList());
-			
+			LinkedHashMap<String, FieldDefinition> tmp = new LinkedHashMap<>();
+			addAllNodes(et, tmp);
+			this.fields = new LinkedList<>(tmp.values());
 		}
+		
 		
 		public String getName() {
 			return getGraphQlTypeName(et);

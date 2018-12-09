@@ -101,7 +101,7 @@ public class TestGraphQLQuery extends TestRemoteClientBase {
     @Test
     public void testGraphQLQuery() {
     	System.out.println("-----------------------------------------------------------------------------------------");
-    	Object result = gContext.execute("{xmlSyntaxModel(id: 1) { structureType } }");
+    	Object result = gContext.execute("{xmlSyntaxModel(id: 1) { id \n name \n structureType \n mappings { id \n xpath \n targetFieldName } } }");
     	System.out.println(result);
     }
 
