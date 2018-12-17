@@ -143,59 +143,66 @@ public class BarleyGraphQLSchema {
 		List<SelectedField> selectedFields = graphEnv.getSelectionSet().getFields();
 		if (selectedFields != null) {
 			for (SelectedField sf: selectedFields) {
-				String parts[] = sf.getQualifiedName().split("/");
-				NodeType nodeType = entityType.getNodeType(parts[0], false);
-				if (nodeType != null && nodeType.getColumnName() != null) {
-					if (nodeType.getRelationInterfaceName() == null) {
-						if (addedToProj.add(parts[0])) {
-							QProperty<Object> prop = new QProperty<>(qo, parts[0]);
-							qo.andSelect(prop);
-							LOG.debug("Added selected field {} to query projection", parts[0]);
-						}
-					}
-					else {
-						//1:1 FK join
-						QueryObject<Object> joinQo = joins.get(parts[0]);
-						if (joinQo == null) {
-							joinQo = leftOuterJoinTo(parts[0], qo, entityType);
-							joins.put(parts[0], joinQo);
-						}
-						if (joinQo != null && parts.length > 1) {
-							QProperty<Object> prop = new QProperty<>(joinQo, parts[1]);
-							joinQo.andSelect(prop);
-						}
-						else if (joinQo != null) {
-							LOG.info("Created left outer join for {}", sf.getName());
-						}
-					}
+				countToManyJoins += processSelectedField(qo, entityType, sf, addedToProj, joins, countToManyJoins);
+			}
+		}
+	}
+	
+	
+	private int processSelectedField(QueryObject<Object> qo, EntityType entityType, SelectedField sf, Set<String> addedToProj, Map<String, QueryObject<Object>> joins, int countToManyJoins ) {
+		String parts[] = sf.getQualifiedName().split("/");
+		NodeType nodeType = entityType.getNodeType(parts[0], false);
+		
+		if (nodeType != null && nodeType.getColumnName() != null) {
+			if (nodeType.getRelationInterfaceName() == null) {
+				if (addedToProj.add(parts[0])) {
+					QProperty<Object> prop = new QProperty<>(qo, parts[0]);
+					qo.andSelect(prop);
+					LOG.debug("Added selected field {} to query projection", parts[0]);
 				}
-				else  {
-					//node has no column name - must be 1:N relation
-					//selected field qualified name has /
-					QueryObject<Object> joinQo = joins.get(parts[0]);
-					if (joinQo == null && countToManyJoins < 3) {
-						joinQo = leftOuterJoinTo(parts[0], qo, entityType);
-						if (nodeType.getSortNode() != null) {
-							QProperty<Object> prop = new QProperty<>(joinQo, nodeType.getSortNode());
-							joinQo.andSelect(prop);
-						}
-						joins.put(parts[0], joinQo);
-						countToManyJoins++;
-					}
-					if (joinQo != null && parts.length > 1) {
-						QProperty<Object> prop = new QProperty<>(joinQo, parts[1]);
-						joinQo.andSelect(prop);
-					}
-					else if (joinQo != null) {
-						LOG.info("Created left outer join for {}", sf.getName());
-					}
-					else {
-						LOG.warn("Added selected field {} is not a database column of {}", sf.getName(), entityType.getInterfaceShortName());
-					}
+			}
+			else {
+				//1:1 FK join
+				QueryObject<Object> joinQo = joins.get(parts[0]);
+				if (joinQo == null) {
+					joinQo = leftOuterJoinTo(parts[0], qo, entityType);
+					joins.put(parts[0], joinQo);
+				}
+				if (joinQo != null && parts.length > 1) {
+					QProperty<Object> prop = new QProperty<>(joinQo, parts[1]);
+					joinQo.andSelect(prop);
+				}
+				else if (joinQo != null) {
+					LOG.info("Created left outer join for {}", sf.getName());
 				}
 			}
 		}
-	}	
+		else  {
+			//node has no column name - must be 1:N relation
+			//selected field qualified name has /
+			QueryObject<Object> joinQo = joins.get(parts[0]);
+			if (joinQo == null && countToManyJoins < 3) {
+				joinQo = leftOuterJoinTo(parts[0], qo, entityType);
+				if (nodeType.getSortNode() != null) {
+					QProperty<Object> prop = new QProperty<>(joinQo, nodeType.getSortNode());
+					joinQo.andSelect(prop);
+				}
+				joins.put(parts[0], joinQo);
+				countToManyJoins++;
+			}
+			if (joinQo != null && parts.length > 1) {
+				QProperty<Object> prop = new QProperty<>(joinQo, parts[1]);
+				joinQo.andSelect(prop);
+			}
+			else if (joinQo != null) {
+				LOG.info("Created left outer join for {}", sf.getName());
+			}
+			else {
+				LOG.warn("Added selected field {} is not a database column of {}", sf.getName(), entityType.getInterfaceShortName());
+			}
+		}
+		return countToManyJoins;	
+		}
 
     private QueryObject<Object> leftOuterJoinTo(String fieldName, QueryObject<Object> qo, EntityType entityType) {
     	NodeType nodeType = entityType.getNodeType(fieldName, true);
