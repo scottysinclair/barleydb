@@ -99,9 +99,19 @@ public class TestGraphQLQuery extends TestRemoteClientBase {
     }
     
     @Test
-    public void testGraphQLQuery() {
+    public void testGraphQLQuery1() {
     	System.out.println("-----------------------------------------------------------------------------------------");
-    	Object result = gContext.execute("{xmlSyntaxModel(id: 1) { id \n name \n structureType \n mappings { id \n xpath \n targetFieldName } } }");
+    	Object result = gContext.execute("{xmlSyntaxModel(id: 1) { id \n name \n structureType } }");
+    	System.out.println(result);
+    }
+
+    @Test
+    public void testGraphQLQuery2() {
+    	System.out.println("-----------------------------------------------------------------------------------------");
+    	Object result = gContext.execute("{xmlSyntaxModel(id: 1) {" + 
+    	" id \n name \n structureType \n user { id \n name } \n mappings {" + 
+    	" id \n xpath \n targetFieldName \n subSyntax { " + 
+    	 "id \n name } } }}");
     	System.out.println(result);
     }
 

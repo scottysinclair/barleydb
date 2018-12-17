@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+
 /**
  * Contains all definitions from various modules
  *
@@ -44,6 +45,16 @@ public class DefinitionsSet implements Serializable {
             definitionsByNamespace.put(definitions.getNamespace(), definitions);
             definitions.setDefinitionsSet(this);
         }
+    }
+    
+    public EntityType getFirstEntityTypeByInterfaceName(String interfaceName) {
+    	for (Definitions def: definitionsByNamespace.values()) {
+    		EntityType et = def.getEntityTypeMatchingInterface(interfaceName, false);
+    		if (et != null) {
+    			return et;
+    		}
+    	}
+    	return null;
     }
 
     public void addAll(DefinitionsSet definitionsSet) {
