@@ -215,7 +215,11 @@ public class NodeType implements Serializable, Cloneable {
         return javaType;
     }
 
-    public String getRelationInterfaceName() {
+	public boolean isForeignKeyColumn() {
+		return columnName != null && relation != null;
+	}
+
+	public String getRelationInterfaceName() {
         return relation != null ? relation.getInterfaceName() : null;
     }
 
