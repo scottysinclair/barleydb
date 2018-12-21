@@ -41,7 +41,11 @@ public class QueryDataFetcher implements DataFetcher<Object> {
 		EntityContext ctx = new EntityContext(env, namespace);
 		EntityType entityType = getEntityTypeForQuery(graphEnv);
 		QueryObject<Object> query = buildQuery(graphEnv, entityType);
-		return ctx.performQuery(query).getSingleResult();
+		List<Object> result = ctx.performQuery(query).getList();
+		if (result.size() == 1) {
+			return result.get(0);
+		}
+		return result;
 	}
 
 	private QueryObject<Object> buildQuery(DataFetchingEnvironment graphEnv, EntityType entityType) {
@@ -68,11 +72,11 @@ public class QueryDataFetcher implements DataFetcher<Object> {
 				LOG.debug("Added {} to select for {}", qprop.getName(), qprop.getQueryObject().getTypeName());
 			}
 		}
-		forceSelectForeignKeys(query);
+		forceSelectForeignKeysAndSortNodes(query);
 		return query;
 	}
 		
-	private void forceSelectForeignKeys(QueryObject<Object> query) {
+	private void forceSelectForeignKeysAndSortNodes(QueryObject<Object> query) {
 		EntityType entityType = env.getDefinitionsSet().getFirstEntityTypeByInterfaceName(query.getTypeName());
 		for (NodeType nodeType: entityType.getNodeTypes()) {
 			if (nodeType.isForeignKeyColumn() && !query.isProjected(nodeType.getName())) {
@@ -81,9 +85,32 @@ public class QueryDataFetcher implements DataFetcher<Object> {
 				LOG.debug("Added FK {} to select for {}", qprop.getName(), qprop.getQueryObject().getTypeName());
 			}
 		}
+		
+		//if this query is joined to, then check the property of the joining entity to
+		//see if it has a sorting requirement.
+		addSortNodeIfRequiredByJoin(query);
+				
 		for (QJoin join: query.getJoins()) {
-			forceSelectForeignKeys((QueryObject<Object>)join.getTo());
+			forceSelectForeignKeysAndSortNodes((QueryObject<Object>)join.getTo());
 		}
+	}
+	
+	private void addSortNodeIfRequiredByJoin(QueryObject<Object> query) {
+		QJoin joined = query.getJoined();
+		if (joined == null) {
+			return;
+		}
+		NodeType nodeType = getNodeType(joined.getFrom(), joined.getFkeyProperty());
+		if (nodeType.getSortNode() != null && !query.isProjected(nodeType.getSortNode())) {
+			QProperty<Object> qprop = createProperty(query, nodeType.getSortNode());
+			query.andSelect(qprop);			
+			LOG.debug("Added FK {} to select for {}", qprop.getName(), qprop.getQueryObject().getTypeName());
+		}
+	}
+	
+	private NodeType getNodeType(QueryObject<?> queryObject, String propertyName) {
+		EntityType entityType = env.getDefinitionsSet().getFirstEntityTypeByInterfaceName(queryObject.getTypeName());
+		return entityType.getNodeType(propertyName, true);
 	}
 
 	private QueryObject<Object> getQueryForPath(QueryObject<Object> query, EntityType entityType, List<String> path) {
@@ -141,6 +168,9 @@ public class QueryDataFetcher implements DataFetcher<Object> {
 
 	private EntityType getEntityTypeForQuery(DataFetchingEnvironment graphEnv) {
 		String entityName = graphEnv.getExecutionStepInfo().getType().getName();
+		if (entityName == null) {
+			entityName = graphEnv.getExecutionStepInfo().getType().getChildren().get(0).getName();
+		}
 		EntityType et = env.getDefinitionsSet().getFirstEntityTypeByInterfaceName(namespace + ".model." + entityName);
 		requireNonNull(et, "EntityType must exist");
 		return et;

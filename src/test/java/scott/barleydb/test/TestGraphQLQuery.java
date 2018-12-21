@@ -30,6 +30,7 @@ import static scott.barleydb.api.query.JoinType.LEFT_OUTER;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -108,11 +109,62 @@ public class TestGraphQLQuery extends TestRemoteClientBase {
     @Test
     public void testGraphQLQuery2() {
     	System.out.println("-----------------------------------------------------------------------------------------");
-    	Object result = gContext.execute("{xmlSyntaxModel(id: 1) {" + 
-    	" id \n name \n structureType \n user { id \n name } \n mappings {" + 
-    	" id \n xpath \n targetFieldName \n subSyntax { " + 
-    	 "id \n name } } }}");
+    	Object result = gContext.execute("{xmlSyntaxModelById(id: 1) {" + 
+    	" id \n " + 
+    	" name \n " + 
+    	"structureType \n " + 
+    	 "user { id \n " + 
+    	        "name } \n" + 
+    	 " mappings {" + 
+    	             " id \n " + 
+    	             "targetFieldName \n" + 
+    	             " subSyntax { " + 
+    	                   "id \n" + 
+    	                    " name } } }}");
     	System.out.println(result);
+    }
+
+    @Test
+    public void testGraphQLQueryList() {
+    	System.out.println("-----------------------------------------------------------------------------------------");
+    	Map<?,List<?>> result = gContext.execute("{xmlSyntaxModels {" + 
+    	" id \n " + 
+    	" name \n " + 
+    	"structureType \n " + 
+    	 "user { id \n " + 
+    	        "name } \n" + 
+    	 " mappings {" + 
+    	             " id \n " + 
+    	             "targetFieldName \n" + 
+    	             " subSyntax { " + 
+    	                   "id \n" + 
+    	                    " name } } }}");
+    	result.values()
+    	.stream()
+    	.flatMap(List::stream)
+    	.forEach(System.out::println);
+    }
+
+    
+    @Test
+    public void testGraphQLQueryListWithCondition() {
+    	System.out.println("-----------------------------------------------------------------------------------------");
+    	Map<?,List<?>> result = gContext.execute("{xmlSyntaxModels(name: \"syntax-xml-1\") {" + 
+    	" id \n " + 
+    	" name \n " + 
+    	"structureType \n " + 
+    	 "user { id \n " + 
+    	        "name } \n" + 
+    	 " mappings {" + 
+    	             " id \n " + 
+    	             "targetFieldName \n" + 
+    	             " subSyntax { " + 
+    	                   "id \n" + 
+    	                    " name } } }}");
+    	result.values()
+    	.stream()
+    	.flatMap(List::stream)
+    	.forEach(System.out::println);
     }
 
 

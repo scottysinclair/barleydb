@@ -23,9 +23,11 @@ package scott.barleydb.api.specification;
  */
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -44,6 +46,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import scott.barleydb.api.specification.constraint.ForeignKeyConstraintSpec;
 import scott.barleydb.api.specification.constraint.PrimaryKeyConstraintSpec;
 import scott.barleydb.api.specification.constraint.UniqueConstraintSpec;
+import scott.barleydb.build.specification.graphql.GenerateGrapqlSDL.Argument;
 
 @XmlAccessorType(XmlAccessType.NONE)
 public class EntitySpec implements Serializable {
@@ -149,8 +152,19 @@ public class EntitySpec implements Serializable {
     public Collection<NodeSpec> getNodeSpecs() {
         return Collections.unmodifiableCollection( nodeSpecs.values() );
     }
-
-    public List<UniqueConstraintSpec> getUniqueConstraints() {
+    
+	public Collection<NodeSpec> getNodeSpecs(boolean includeInherited) {
+		if (includeInherited && parentEntitySpec != null) {
+			Collection<NodeSpec> col = new ArrayList<>(parentEntitySpec.getNodeSpecs(true));
+			Collection<NodeSpec> declaredNodes = getNodeSpecs();
+			removeNodeSpecs(col, declaredNodes);
+		    col.addAll(declaredNodes);
+			return col;
+		}
+		return getNodeSpecs();
+	}
+    
+	public List<UniqueConstraintSpec> getUniqueConstraints() {
         return constraints.uniqueConstraints;
     }
 
@@ -306,6 +320,28 @@ public class EntitySpec implements Serializable {
         for (NodeSpec  ns: specs) {
             nodeSpecs.put(ns.getName(), ns);
         }
+    }
+
+    /**
+     * helper method
+     * @param col
+     * @param toRemove
+     */
+    private static void removeNodeSpecs(Collection<NodeSpec> col, Collection<NodeSpec> toRemove) {
+    	Set<String> namesToRemove = toNames(toRemove);
+    	for (Iterator<NodeSpec> i = col.iterator(); i.hasNext();) {
+    		if (namesToRemove.contains(i.next().getName())) {
+    			i.remove();
+    		}
+    	}
+	}
+    
+    private static Set<String> toNames(Collection<NodeSpec> nodeSpecs) {
+    	Set<String> result = new HashSet<>();
+    	for (NodeSpec nodeSpec: nodeSpecs) {
+    		result.add(nodeSpec.getName());
+    	}
+    	return result;
     }
 
 }

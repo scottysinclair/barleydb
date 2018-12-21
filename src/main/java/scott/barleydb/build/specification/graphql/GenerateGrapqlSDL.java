@@ -28,7 +28,6 @@ package scott.barleydb.build.specification.graphql;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -77,20 +76,35 @@ public class GenerateGrapqlSDL {
 		.map(f -> new StringBuilder()
 				.append("  ")
 				.append(f.getName())
-				.append(printArguments(f.getArguments()))
+				.append("ById")
+				.append(printArguments(f.getPrimaryKeyArguments()))
 				.append(": ")
-				.append(f.getType()))
+				.append(f.getType())
+				.append("\n")
+				.append("  ")
+				.append(f.getName())
+				.append("s")
+				.append(printArguments(f.getNonPrimaryKeyArguments()))
+				.append(": ")
+				.append("[")
+				.append(f.getType())
+				.append("]"))
 		.collect(Collectors.joining("\n"));
 	}
 	
 	private String printArguments(Collection<Argument> args) {
+		if (args.isEmpty()) {
+			return "";
+		}
 		StringBuilder sb = new StringBuilder("(");
 		for (Argument a : args) {
-			sb.append(a.name)
+			sb.append(a.getName())
 			  .append(": ")
-			  .append(a.type)
-			  .append(a.mandatory ? "!" : "");
+			  .append(a.getType());
+	//		  .append(a.mandatory ? "!" : "");
+			  sb.append(", ");
 		}
+		sb.setLength(sb.length() - 2);
 		sb.append(")");
 		return sb.toString();
 	}
@@ -225,24 +239,46 @@ public class GenerateGrapqlSDL {
 			return Character.toLowerCase(s.charAt(0)) + s.substring(1, s.length());
 		}
 		
-		public List<Argument> getArguments() {
+		public List<Argument> getPrimaryKeyArguments() {
 			NodeSpec nt = et.getPrimaryKeyNodes(true).iterator().next();
-			return Collections.singletonList(new Argument(nt.getName(), getGraphQlTypeName(nt), true));
+			return Collections.singletonList(new Argument(nt));
 		} 
-		
+
+		public List<Argument> getNonPrimaryKeyArguments() {
+			return et.getNodeSpecs(true)
+			.stream()
+			.filter(ns -> !ns.isPrimaryKey())
+			.filter(ns -> ns.getRelation() == null)
+			.map(Argument::new)
+			.collect(Collectors.toList());
+		} 
+
 		public String getType() {
 			return getGraphQlTypeName(et);
 		}
 	}
 	
-	public static class Argument {
-		private String name;
-		private String type;
-		private boolean mandatory;
-		public Argument(String name, String type, boolean mandatory) {
-			this.name = name;
-			this.type = type;
-			this.mandatory = mandatory;
+	public class Argument {
+		private NodeSpec nodeSpec;
+		public Argument(NodeSpec nodeSpec) {
+			this.nodeSpec = nodeSpec;
+		}
+		
+		public String getType() {
+			return getGraphQlTypeName(nodeSpec);
+		}
+
+		public String getName() {
+			if (nodeSpec.getRelation() == null) {
+				return nodeSpec.getName();
+			}
+			else {
+				return nodeSpec.getName() + getPrimaryKeyName(nodeSpec.getRelation().getEntitySpec());
+			}
+		}
+		
+		private String getPrimaryKeyName(EntitySpec entitySpec) {
+			return entitySpec.getPrimaryKeyNodes(true).iterator().next().getName();
 		}
 		
 	}
