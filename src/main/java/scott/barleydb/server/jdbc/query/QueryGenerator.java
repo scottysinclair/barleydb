@@ -33,6 +33,7 @@ import scott.barleydb.api.exception.execution.query.IllegalQueryStateException;
 import scott.barleydb.api.query.JoinType;
 import scott.barleydb.api.query.QJoin;
 import scott.barleydb.api.query.QOrderBy;
+import scott.barleydb.api.query.QParameter;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.server.jdbc.vendor.Database;
 import scott.barleydb.server.jdbc.query.ConditionRenderer;
@@ -52,7 +53,7 @@ public class QueryGenerator {
 
         public Param(NodeType nodeType, Object value) {
             this.nodeType = nodeType;
-            this.value = value;
+            this.value = (value instanceof QParameter<?>) ? ((QParameter<?>)value).getValue() : value;
         }
 
         public NodeType getNodeType() {

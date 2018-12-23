@@ -40,6 +40,7 @@ import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import scott.barleydb.api.core.Environment;
 import scott.barleydb.api.specification.SpecRegistry;
+import scott.barleydb.build.specification.graphql.CustomQueries;
 import scott.barleydb.build.specification.graphql.GenerateGrapqlSDL;
 
 public class BarleyGraphQLSchema {
@@ -51,12 +52,12 @@ public class BarleyGraphQLSchema {
 	private String namespace;
 	private GraphQLSchema graphQLSchema;
 	
-	public BarleyGraphQLSchema(SpecRegistry specRegistry, Environment env, String namespace) {
+	public BarleyGraphQLSchema(SpecRegistry specRegistry, Environment env, String namespace, CustomQueries customQueries) {
 		this.specRegistry = specRegistry;
 		this.env = env;
 		this.namespace = namespace;
 		
-        GenerateGrapqlSDL graphSdl = new GenerateGrapqlSDL(specRegistry);
+        GenerateGrapqlSDL graphSdl = new GenerateGrapqlSDL(specRegistry, customQueries);
         
         SchemaParser schemaParser = new SchemaParser();
         String sdlString = graphSdl.createSdl();
@@ -64,7 +65,7 @@ public class BarleyGraphQLSchema {
         
         TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(sdlString);
         RuntimeWiring.Builder wiringBuilder = newRuntimeWiring()
-                .type("Query", builder -> builder.defaultDataFetcher(new QueryDataFetcher(env, namespace)));
+                .type("Query", builder -> builder.defaultDataFetcher(new QueryDataFetcher(env, namespace, customQueries)));
         
 //        specRegistry.getDefinitions().stream()
 //        .map(DefinitionsSpec::getEntitySpecs)
@@ -76,6 +77,7 @@ public class BarleyGraphQLSchema {
         SchemaGenerator schemaGenerator = new SchemaGenerator();
         this.graphQLSchema = schemaGenerator.makeExecutableSchema(typeDefinitionRegistry, runtimeWiring);
 	}
+	
 	
 	public GraphQLContext newContext() {
 		return new MyGraphQLContext();	

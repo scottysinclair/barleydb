@@ -181,7 +181,13 @@ public abstract class PreparedStatementHelper<PREPARING_EX extends BarleyDBExcep
             setInteger(ps, index, jdbcType, (Integer) value);
             return;
         case LONG:
-            setLong(ps, index, jdbcType, (Long) value);
+        	if (value instanceof Integer) {
+        		//allow integer values if type is officially long
+        		setInteger(ps, index, jdbcType, (Integer)value);
+        	}
+        	else {
+        		setLong(ps, index, jdbcType, (Long) value);
+        	}
             return;
         case SQL_DATE:
             setSqlDate(ps, index, jdbcType, (java.sql.Date) value);
@@ -256,6 +262,14 @@ public abstract class PreparedStatementHelper<PREPARING_EX extends BarleyDBExcep
 
     private void setInteger(PreparedStatement ps, int index, JdbcType jdbcType, Integer value) throws PREPARING_EX {
         switch (jdbcType) {
+        	case BIGINT:
+            try {
+                ps.setInt(index, value);
+            }
+            catch (SQLException x) {
+                throw newSetValueError("Long", x);
+            }
+            break;
           case INT:
               try {
                   ps.setInt(index, value);

@@ -95,7 +95,7 @@ public class QueryRegistry implements Serializable, Cloneable {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> QueryObject<T> clone(QueryObject<T> queryObject) {
+    public static <T> QueryObject<T> clone(QueryObject<T> queryObject) {
         try {
             ByteArrayOutputStream bo = new ByteArrayOutputStream();
             ObjectOutputStream os = new ObjectOutputStream(bo);

@@ -48,6 +48,7 @@ import org.example.etl.query.QSyntaxModel;
 import org.example.etl.query.QTemplate;
 import org.example.etl.query.QTemplateBusinessType;
 import org.example.etl.query.QXmlMapping;
+import org.example.etl.query.QXmlStructure;
 import org.example.etl.query.QXmlSyntaxModel;
 import org.example.etl.model.SyntaxType;
 import org.junit.Test;
@@ -60,11 +61,15 @@ import org.springframework.test.jdbc.SimpleJdbcTestUtils;
 
 import scott.barleydb.api.core.QueryBatcher;
 import scott.barleydb.api.core.entity.EntityContext;
+import scott.barleydb.api.core.types.JavaType;
 import scott.barleydb.api.graphql.BarleyGraphQLSchema;
 import scott.barleydb.api.graphql.GraphQLContext;
+import scott.barleydb.api.query.QParameter;
+import scott.barleydb.api.query.QProperty;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.stream.DataStream;
 import scott.barleydb.api.stream.ObjectInputStream;
+import scott.barleydb.build.specification.graphql.CustomQueries;
 import scott.barleydb.server.jdbc.query.QueryResult;
 import scott.barleydb.server.jdbc.resources.ConnectionResources;
 
@@ -95,7 +100,16 @@ public class TestGraphQLQuery extends TestRemoteClientBase {
     @Override
     public void setup() throws Exception {
         super.setup();
-    	schema = new BarleyGraphQLSchema(specRegistry, env, "org.example.etl");
+        
+        CustomQueries cq = new CustomQueries();
+
+        QXmlSyntaxModel q = new QXmlSyntaxModel();
+        QXmlStructure qstruct = q.existsStructure();
+        q.whereExists(qstruct.where(qstruct.id().equal(new QParameter<Long>("structId", JavaType.LONG))));
+        
+        cq.register("syntaxWithStructureId", q);
+        
+    	schema = new BarleyGraphQLSchema(specRegistry, env, "org.example.etl", cq);
     	gContext = schema.newContext();
     }
     
@@ -164,6 +178,28 @@ public class TestGraphQLQuery extends TestRemoteClientBase {
     	result.values()
     	.stream()
     	.flatMap(List::stream)
+    	.forEach(System.out::println);
+    }
+
+    @Test
+    public void testGraphQLQueryCustomQuery() {
+    	System.out.println("-----------------------------------------------------------------------------------------");
+    	Map<?,List<?>> result = gContext.execute("{syntaxWithStructureId(structId: 2) {" + 
+    	" id \n " + 
+    	" name \n " + 
+    	"structureType \n " + 
+    	 "user { id \n " + 
+    	        "name } \n" + 
+    	 " mappings {" + 
+    	             " id \n " + 
+    	             "targetFieldName \n" + 
+    	             " subSyntax { " + 
+    	                   "id \n" + 
+    	                    " name } } }}");
+    	result.values()
+    	.stream()
+    	.flatMap(List::stream)
+    	.filter(Objects::nonNull)
     	.forEach(System.out::println);
     }
 

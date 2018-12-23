@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static scott.barleydb.api.graphql.GraphQLTypeConversion.convertValue;
 
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -18,12 +19,19 @@ import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.config.NodeType;
 import scott.barleydb.api.core.Environment;
 import scott.barleydb.api.core.entity.EntityContext;
+import scott.barleydb.api.exception.execution.query.ForUpdateNotSupportedException;
+import scott.barleydb.api.exception.execution.query.IllegalQueryStateException;
+import scott.barleydb.api.query.ConditionVisitor;
 import scott.barleydb.api.query.JoinType;
+import scott.barleydb.api.query.QExists;
 import scott.barleydb.api.query.QJoin;
+import scott.barleydb.api.query.QLogicalOp;
 import scott.barleydb.api.query.QMathOps;
+import scott.barleydb.api.query.QParameter;
 import scott.barleydb.api.query.QProperty;
 import scott.barleydb.api.query.QPropertyCondition;
 import scott.barleydb.api.query.QueryObject;
+import scott.barleydb.build.specification.graphql.CustomQueries;
 
 public class QueryDataFetcher implements DataFetcher<Object> {
 	
@@ -31,17 +39,26 @@ public class QueryDataFetcher implements DataFetcher<Object> {
 	
 	private final Environment env;
 	private final String namespace;
+	private final CustomQueries customQueries;
 	
-	public QueryDataFetcher(Environment env, String namespace) {
+	public QueryDataFetcher(Environment env, String namespace, CustomQueries customQueries) {
 		this.env = env;
 		this.namespace = namespace;
+		this.customQueries = customQueries;
 	}
 
 	@Override
 	public Object get(DataFetchingEnvironment graphEnv) throws Exception {
 		EntityContext ctx = new EntityContext(env, namespace);
-		EntityType entityType = getEntityTypeForQuery(graphEnv);
-		QueryObject<Object> query = buildQuery(graphEnv, entityType);
+		
+		QueryObject<Object> query = (QueryObject<Object>)customQueries.getQuery(graphEnv.getField().getName());
+		if (query == null) {
+			EntityType entityType = getEntityTypeForQuery(graphEnv);
+			query = buildQuery(graphEnv, entityType);
+		}
+		else {
+			buildQuery(graphEnv, query);
+		}
 		List<Object> result = ctx.performQuery(query).getList();
 		if (graphEnv.getExecutionStepInfo().getType() instanceof GraphQLList) {
 			return result;
@@ -54,13 +71,29 @@ public class QueryDataFetcher implements DataFetcher<Object> {
 
 	private QueryObject<Object> buildQuery(DataFetchingEnvironment graphEnv, EntityType entityType) {
 		QueryObject<Object> query = new QueryObject<>(entityType.getInterfaceName());
+		return buildQuery(graphEnv, query, entityType);
+	}
+
+	private QueryObject<Object> buildQuery(DataFetchingEnvironment graphEnv, QueryObject<Object> query) {
+		EntityType entityType = env.getDefinitionsSet().getFirstEntityTypeByInterfaceName(query.getTypeName());
+		return buildQuery(graphEnv, query, entityType);
+	}
+
+	private QueryObject<Object> buildQuery(DataFetchingEnvironment graphEnv, QueryObject<Object> query, EntityType entityType) {
 		/*
 		 * build the where clause
 		 */
 		for (Map.Entry<String, Object> argument: graphEnv.getArguments().entrySet()) {
-			QPropertyCondition qcond = createCondition(query, entityType, argument.getKey(), QMathOps.EQ, argument.getValue());
-			query.and(qcond);
-			LOG.debug("Added query condition {}", qcond);
+			QParameter<Object> param = findQueryParameter(query, argument.getKey());
+			if (param != null) {
+				param.setValue(argument.getValue());
+				LOG.debug("Set query parameter {}", param.getName());
+			}
+			else {
+				QPropertyCondition qcond = createCondition(query, entityType, argument.getKey(), QMathOps.EQ, argument.getValue());
+				query.and(qcond);
+				LOG.debug("Added query condition {}", qcond);
+			}
 		}
 		
 		/*
@@ -80,6 +113,45 @@ public class QueryDataFetcher implements DataFetcher<Object> {
 		return query;
 	}
 		
+	private QParameter<Object> findQueryParameter(QueryObject<?> query, String parameterName) {
+		List<QParameter<Object>> found = new LinkedList<>();
+		try {
+			query.getCondition().visit(new ConditionVisitor() {
+				@Override
+				public void visitPropertyCondition(QPropertyCondition qpc) throws IllegalQueryStateException {
+					if (qpc.getValue() instanceof QParameter) {
+						QParameter<Object> p = (QParameter<Object>)qpc.getValue();
+						if (p.getName().equals(parameterName)) {
+							found.add(p);
+						}
+					}
+				}
+				
+				@Override
+				public void visitLogicalOp(QLogicalOp qlo) throws IllegalQueryStateException, ForUpdateNotSupportedException {
+				}
+				
+				@Override
+				public void visitExists(QExists exists) throws IllegalQueryStateException, ForUpdateNotSupportedException {
+					exists.getSubQueryObject().getCondition().visit(this);
+				}
+			});
+		} catch (IllegalQueryStateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ForUpdateNotSupportedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if (found.size() > 1) {
+			throw new IllegalStateException("oops");
+		}
+		if (found.isEmpty()) {
+			return null;
+		}
+		return found.get(0);
+	}
+
 	private void forceSelectForeignKeysAndSortNodes(QueryObject<Object> query) {
 		EntityType entityType = env.getDefinitionsSet().getFirstEntityTypeByInterfaceName(query.getTypeName());
 		for (NodeType nodeType: entityType.getNodeTypes()) {

@@ -30,11 +30,21 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import scott.barleydb.api.core.types.JavaType;
 import scott.barleydb.api.core.types.Nullable;
+import scott.barleydb.api.exception.execution.query.ForUpdateNotSupportedException;
+import scott.barleydb.api.exception.execution.query.IllegalQueryStateException;
+import scott.barleydb.api.query.ConditionVisitor;
+import scott.barleydb.api.query.QCondition;
+import scott.barleydb.api.query.QExists;
+import scott.barleydb.api.query.QLogicalOp;
+import scott.barleydb.api.query.QParameter;
+import scott.barleydb.api.query.QPropertyCondition;
+import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.specification.DefinitionsSpec;
 import scott.barleydb.api.specification.EntitySpec;
 import scott.barleydb.api.specification.EnumSpec;
@@ -44,10 +54,11 @@ import scott.barleydb.api.specification.SpecRegistry;
 
 public class GenerateGrapqlSDL {
 	private final SpecRegistry specRegistry;	
+	private final CustomQueries customQueries;
 	
-	
-	public GenerateGrapqlSDL(SpecRegistry specRegistry) {
+	public GenerateGrapqlSDL(SpecRegistry specRegistry, CustomQueries customQueries) {
 		this.specRegistry = specRegistry;
+		this.customQueries = customQueries;
 	}
 
 
@@ -60,6 +71,8 @@ public class GenerateGrapqlSDL {
 		.append("\n")
 		.append("type Query {\n")
 		.append(printSchemQueryFields())
+		.append("\n")
+		.append(printCustomQueries())
 		.append("\n}\n")
 		.append("\n")
 		.append("type Mutation {\n")
@@ -91,6 +104,20 @@ public class GenerateGrapqlSDL {
 				.append("]"))
 		.collect(Collectors.joining("\n"));
 	}
+	
+	private String printCustomQueries() {
+		return streamSchemaCustomQueryFields()
+		.map(f -> new StringBuilder()
+				.append("  ")
+				.append(f.getName())
+				.append(printArguments(f.getArguments()))
+				.append(": ")
+				.append("[")
+				.append(f.getType())
+				.append("]"))
+		.collect(Collectors.joining("\n"));
+	}
+
 	
 	private String printArguments(Collection<Argument> args) {
 		if (args.isEmpty()) {
@@ -191,11 +218,20 @@ public class GenerateGrapqlSDL {
 				.flatMap(Collection::stream)
 				.map(SchemaQueryField::new);
 	}
+	
+	private Stream<SchemaCustomQueryField> streamSchemaCustomQueryFields() {
+		return customQueries.queries().stream()
+		.map(e -> new SchemaCustomQueryField(e.getKey(), e.getValue()));
+	}
 
 	private String getGraphQlTypeName(EntitySpec et) {
 		return getSimpleName(et.getClassName());
 	}
-	
+
+	private String getGraphQlTypeName(QueryObject<?> query) {
+		return getSimpleName(query.getTypeName());
+	}
+
 	private String getSimpleName(String name) {
 		int i = name.lastIndexOf('.');
 		return i == -1 ? name : name.substring(i+1);
@@ -206,6 +242,10 @@ public class GenerateGrapqlSDL {
 			return getGraphQlTypeName(ns, ns.getJavaType());
 		}
 		return getGraphQlTypeName(ns.getRelation().getEntitySpec());
+	}
+
+	private String getGraphQlTypeName(JavaType javaType) {
+		return getGraphQlTypeName(null, javaType);
 	}
 
 	private String getGraphQlTypeName(NodeSpec nodeSpec, JavaType javaType) {
@@ -241,7 +281,7 @@ public class GenerateGrapqlSDL {
 		
 		public List<Argument> getPrimaryKeyArguments() {
 			NodeSpec nt = et.getPrimaryKeyNodes(true).iterator().next();
-			return Collections.singletonList(new Argument(nt));
+			return Collections.singletonList(new NodeArgument(nt));
 		} 
 
 		public List<Argument> getNonPrimaryKeyArguments() {
@@ -249,7 +289,7 @@ public class GenerateGrapqlSDL {
 			.stream()
 			.filter(ns -> !ns.isPrimaryKey())
 			.filter(ns -> ns.getRelation() == null)
-			.map(Argument::new)
+			.map(NodeArgument::new)
 			.collect(Collectors.toList());
 		} 
 
@@ -258,9 +298,40 @@ public class GenerateGrapqlSDL {
 		}
 	}
 	
-	public class Argument {
+	public class SchemaCustomQueryField {
+		private final String name;
+		private final QueryObject<?> query;
+		public SchemaCustomQueryField(String name, QueryObject<?> query) {
+			this.name = name;
+			this.query = query;
+		}
+		
+		public String getType() {
+			return getGraphQlTypeName(query);
+		}
+		public Collection<Argument> getArguments() {
+			Collection<QParameter<?>> params = new LinkedList<>();
+			collect(query, params);
+			return params.stream()
+					.map(QueryParameterArgument::new)
+					.collect(Collectors.toList());
+					
+		}
+		public String getName() {
+			return name;
+		}
+		
+		
+	}
+
+	public interface Argument {
+		String getName();
+		String getType();
+	}
+	
+	public class NodeArgument implements Argument{
 		private NodeSpec nodeSpec;
-		public Argument(NodeSpec nodeSpec) {
+		public NodeArgument(NodeSpec nodeSpec) {
 			this.nodeSpec = nodeSpec;
 		}
 		
@@ -280,8 +351,26 @@ public class GenerateGrapqlSDL {
 		private String getPrimaryKeyName(EntitySpec entitySpec) {
 			return entitySpec.getPrimaryKeyNodes(true).iterator().next().getName();
 		}
+	}
+
+	public class QueryParameterArgument implements Argument {
+		private QParameter<?> param;
+		public QueryParameterArgument(QParameter<?> param) {
+			this.param = param;
+		}
+		
+		public String getType() {
+			Objects.requireNonNull(param.getType(), "Query parameter must have JavaType specified");
+			return getGraphQlTypeName(param.getType());
+		}
+
+		public String getName() {
+			return param.getName();
+		}
 		
 	}
+	
+	
 	
 	private void addAllNodes(EntitySpec et, LinkedHashMap<String, FieldDefinition> fds) {
 		if (et.getParentEntity() != null) {
@@ -291,6 +380,35 @@ public class GenerateGrapqlSDL {
 			.map(FieldDefinition::new)
 			.collect(Collectors.toMap(FieldDefinition::getName, fd -> fd)));		
 	}
+
+	public void collect(QueryObject<?> query, Collection<QParameter<?>> params) {
+		ConditionVisitor visitor = new ConditionVisitor() {
+			@Override
+			public void visitPropertyCondition(QPropertyCondition qpc) throws IllegalQueryStateException {
+				if (qpc.getValue() instanceof QParameter<?>) {
+					params.add((QParameter<?>)qpc.getValue());
+				}
+			}
+			
+			@Override
+			public void visitLogicalOp(QLogicalOp qlo) throws IllegalQueryStateException, ForUpdateNotSupportedException {
+			}
+			
+			@Override
+			public void visitExists(QExists exists) throws IllegalQueryStateException, ForUpdateNotSupportedException {
+				exists.getSubQueryObject().getCondition().visit(this);
+			}
+		};
+		QCondition cond = query.getCondition();
+		try {
+			cond.visit(visitor);
+		} catch (IllegalQueryStateException e) {
+			e.printStackTrace();
+		} catch (ForUpdateNotSupportedException e) {
+			e.printStackTrace();
+		}
+	}
+
 
 	public class TypeDefinition {
 		private final EntitySpec et;
