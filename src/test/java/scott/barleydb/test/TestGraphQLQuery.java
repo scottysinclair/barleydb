@@ -149,7 +149,7 @@ public class TestGraphQLQuery extends TestRemoteClientBase {
     @Test
     public void testGraphQLQueryListWithCondition() {
     	System.out.println("-----------------------------------------------------------------------------------------");
-    	Map<?,List<?>> result = gContext.execute("{xmlSyntaxModels(name: \"syntax-xml-1\") {" + 
+    	Map<?,List<?>> result = gContext.execute("{xmlSyntaxModels(name: \"syntax-xml-2\") {" + 
     	" id \n " + 
     	" name \n " + 
     	"structureType \n " + 

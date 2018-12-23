@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import graphql.schema.GraphQLList;
 import graphql.schema.SelectedField;
 import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.config.NodeType;
@@ -42,10 +43,13 @@ public class QueryDataFetcher implements DataFetcher<Object> {
 		EntityType entityType = getEntityTypeForQuery(graphEnv);
 		QueryObject<Object> query = buildQuery(graphEnv, entityType);
 		List<Object> result = ctx.performQuery(query).getList();
-		if (result.size() == 1) {
+		if (graphEnv.getExecutionStepInfo().getType() instanceof GraphQLList) {
+			return result;
+		}
+		else if (result.size() == 1) {
 			return result.get(0);
 		}
-		return result;
+		throw new IllegalStateException("too many results");
 	}
 
 	private QueryObject<Object> buildQuery(DataFetchingEnvironment graphEnv, EntityType entityType) {
