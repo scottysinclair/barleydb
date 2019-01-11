@@ -114,6 +114,9 @@ public class QueryDataFetcher implements DataFetcher<Object> {
 	}
 		
 	private QParameter<Object> findQueryParameter(QueryObject<?> query, String parameterName) {
+		if (query.getCondition() == null) {
+			return null;
+		}
 		List<QParameter<Object>> found = new LinkedList<>();
 		try {
 			query.getCondition().visit(new ConditionVisitor() {

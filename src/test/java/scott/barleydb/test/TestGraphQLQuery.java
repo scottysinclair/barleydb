@@ -163,7 +163,7 @@ public class TestGraphQLQuery extends TestRemoteClientBase {
     @Test
     public void testGraphQLQueryListWithCondition() {
     	System.out.println("-----------------------------------------------------------------------------------------");
-    	Map<?,List<?>> result = gContext.execute("{xmlSyntaxModels(name: \"syntax-xml-2\") {" + 
+    	Map<?,List<?>> result = gContext.execute("{xmlSyntaxModels(name: \"syntax-xml-1\") {" +
     	" id \n " + 
     	" name \n " + 
     	"structureType \n " + 
@@ -203,5 +203,24 @@ public class TestGraphQLQuery extends TestRemoteClientBase {
     	.forEach(System.out::println);
     }
 
+  @Test
+  public void testGraphQLSchemaInfo() {
+    System.out.println(
+        "-----------------------------------------------------------------------------------------");
+    Map<?, List<?>> result =
+        gContext.execute(
+            "{\n"
+                + "  __schema {\n"
+                + "    types {\n"
+                + "      name\n"
+                + "    }\n"
+                + "  }\n"
+                + "}");
 
+    Map<String, Object> schema = (Map<String, Object>) result.get("__schema");
+    List<Map<String, Object>> types = (List<Map<String, Object>>) schema.get("types");
+    for (Map<String, Object> type : types) {
+      System.out.println("name => " + type.get("name"));
+    }
+    }
 }
