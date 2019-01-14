@@ -108,7 +108,7 @@ public class TestGenerator {
         fout.flush();
         fout.close();
     }
-    
+
     @Test
     public void testGenerateGraphqlEtlSpec() throws Exception {
         SpecRegistry registry = new SpecRegistry();
