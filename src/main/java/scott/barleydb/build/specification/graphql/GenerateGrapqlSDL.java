@@ -220,6 +220,9 @@ public class GenerateGrapqlSDL {
 	}
 	
 	private Stream<SchemaCustomQueryField> streamSchemaCustomQueryFields() {
+		if (customQueries == null) {
+			return Collections.<SchemaCustomQueryField>emptyList().stream();
+		}
 		return customQueries.queries().stream()
 		.map(e -> new SchemaCustomQueryField(e.getKey(), e.getValue()));
 	}
@@ -259,7 +262,7 @@ public class GenerateGrapqlSDL {
 		case ENUM: return getSimpleName(nodeSpec.getEnumSpec().getClassName());
 		case SHORT:return "Int";
 		case SQL_DATE: throw new UnsupportedOperationException();
-		case UTIL_DATE: throw new UnsupportedOperationException();
+		case UTIL_DATE: return "String";
 		case UUID: return "String";
 		default: throw new UnsupportedOperationException(javaType.toString());
 		}

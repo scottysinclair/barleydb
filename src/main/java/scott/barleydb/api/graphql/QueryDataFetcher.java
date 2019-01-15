@@ -1,5 +1,30 @@
 package scott.barleydb.api.graphql;
 
+/*-
+ * #%L
+ * BarleyDB
+ * $Id:$
+ * $HeadURL:$
+ * %%
+ * Copyright (C) 2014 - 2019 Scott Sinclair
+ *       <scottysinclair@gmail.com>
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Lesser Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Lesser Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/lgpl-3.0.html>.
+ * #L%
+ */
+
 import static java.util.Objects.requireNonNull;
 import static scott.barleydb.api.graphql.GraphQLTypeConversion.convertValue;
 
@@ -17,6 +42,7 @@ import graphql.schema.SelectedField;
 import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.config.NodeType;
 import scott.barleydb.api.core.Environment;
+import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.query.JoinType;
 import scott.barleydb.api.query.QJoin;
@@ -46,7 +72,10 @@ public class QueryDataFetcher implements DataFetcher<Object> {
   public Object get(DataFetchingEnvironment graphEnv) throws Exception {
     EntityContext ctx = new EntityContext(env, namespace);
 
-    QueryObject<Object> query = (QueryObject<Object>)customQueries.getQuery(graphEnv.getField().getName());
+    QueryObject<Object> query = null;
+    if (customQueries != null) {
+      query = (QueryObject<Object>)customQueries.getQuery(graphEnv.getField().getName());
+    }
     if (query == null) {
       EntityType entityType = getEntityTypeForQuery(graphEnv);
       query = buildQuery(graphEnv, entityType);
@@ -54,12 +83,12 @@ public class QueryDataFetcher implements DataFetcher<Object> {
     else {
       buildQuery(graphEnv, query);
     }
-    List<Object> result = ctx.performQuery(query).getList();
+    List<Entity> result = ctx.performQuery(query).getEntityList();
     if (graphEnv.getExecutionStepInfo().getType() instanceof GraphQLList) {
-      return result;
+      return Entity2Map.toListOfMaps(result);
     }
     else if (result.size() == 1) {
-      return result.get(0);
+      return Entity2Map.toMap(result.get(0));
     }
     throw new IllegalStateException("too many results");
   }

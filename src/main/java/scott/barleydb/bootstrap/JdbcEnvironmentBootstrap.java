@@ -184,6 +184,9 @@ public class JdbcEnvironmentBootstrap {
         return new QueryPreProcessor();
     }
 
+    public List<SpecRegistry> getSpecRegistries() {
+        return specRegistries;
+    }
 
     private void generateDDls() throws IOException {
         File scriptsDir = new File("application/scripts");

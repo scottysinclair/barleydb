@@ -62,6 +62,7 @@ public class BarleyGraphQLSchema {
         SchemaParser schemaParser = new SchemaParser();
         String sdlString = graphSdl.createSdl();
         LOG.info(sdlString);
+        System.out.println(sdlString);
         
         TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(sdlString);
         RuntimeWiring.Builder wiringBuilder = newRuntimeWiring()
@@ -95,7 +96,7 @@ public class BarleyGraphQLSchema {
 		public <T> T execute(String body) {
 			ExecutionResult result = graphql.execute(body);
 			if (!result.getErrors().isEmpty()) {
-				result.getErrors().forEach(System.out::println);
+				throw new GraphQLExecutionException(result.getErrors());
 			}
 			return result.getData();
 		}

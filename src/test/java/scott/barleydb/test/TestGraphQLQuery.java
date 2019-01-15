@@ -105,7 +105,7 @@ public class TestGraphQLQuery extends TestRemoteClientBase {
 
         QXmlSyntaxModel q = new QXmlSyntaxModel();
         QXmlStructure qstruct = q.existsStructure();
-        q.whereExists(qstruct.where(qstruct.id().equal(new QParameter<Long>("structId", JavaType.LONG))));
+        q.whereExists(qstruct.where(qstruct.id().equalsParam(new QParameter<Long>("structId", JavaType.LONG))));
         
         cq.register("syntaxWithStructureId", q);
         

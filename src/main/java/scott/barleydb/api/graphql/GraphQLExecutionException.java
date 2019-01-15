@@ -1,4 +1,4 @@
-package scott.barleydb.api.query;
+package scott.barleydb.api.graphql;
 
 /*-
  * #%L
@@ -25,43 +25,20 @@ package scott.barleydb.api.query;
  * #L%
  */
 
-import java.io.Serializable;
+import graphql.GraphQLError;
+import scott.barleydb.api.exception.BarleyDBRuntimeException;
 
-import scott.barleydb.api.core.types.JavaType;
+import java.util.List;
 
-/**
- * @author scott
- *
- * @param <VAL>
- */
-public class QParameter<VAL> implements Serializable {
-	private final String name;
-	private final JavaType type;
-	private VAL value;
-	
-	public QParameter(String name) {
-		this(name, null);
-	}
+public class GraphQLExecutionException extends BarleyDBRuntimeException {
 
-	public QParameter(String name, JavaType type) {
-		this.name = name;
-		this.type = type;
-	}
+    private final List<GraphQLError> errors;
 
-	public String getName() {
-		return name;
-	}
+    public GraphQLExecutionException(List<GraphQLError> errors) {
+        this.errors = errors;
+    }
 
-	public VAL getValue() {
-		return value;
-	}
-
-	public void setValue(VAL value) {
-		this.value = value;
-	}
-
-	public JavaType getType() {
-		return type;
-	}
-	
+    public List<GraphQLError> getErrors() {
+        return errors;
+    }
 }
