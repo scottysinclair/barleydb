@@ -32,13 +32,13 @@ import java.util.*;
 public class Entity2Map {
 
     public static Map<String,Object> toMap(Entity entity) {
-        return toMap(entity, new HashMap<>());
+        return toMap(entity, new SafeMap<>());
     }
 
     private static Map<String,Object> toMap(Entity entity, Map<Entity, Map<String, Object>> mapped) {
         Map<String,Object> result = mapped.get(entity);
         if (result == null) {
-            mapped.put(entity, result = new HashMap<>());
+            mapped.put(entity, result = new SafeMap<>());
             for (Node node: entity.getChildren()) {
                 if (node instanceof ValueNode) {
                     set((ValueNode)node, result);
@@ -87,7 +87,7 @@ public class Entity2Map {
     }
 
     public static List<Map<String, Object>> toListOfMaps(List<Entity> entities) {
-        return toListOfMaps(entities, new HashMap<>());
+        return toListOfMaps(entities, new SafeMap<>());
     }
 
     private static List<Map<String, Object>> toListOfMaps(List<Entity> entities, Map<Entity, Map<String, Object>> mapped) {
@@ -101,4 +101,17 @@ public class Entity2Map {
         return list;
     }
 
+}
+
+/**
+ * A map which will not cause stack overflow on the toString() method
+ * When the map contains maps which contains maps and there are cycles between.
+ * @param <K>
+ * @param <V>
+ */
+class SafeMap<K,V> extends HashMap<K,V> {
+    @Override
+    public String toString() {
+        return "SafeMap[@" + System.identityHashCode(this) + "]";
+    }
 }
