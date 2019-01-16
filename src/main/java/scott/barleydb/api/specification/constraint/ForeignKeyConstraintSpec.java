@@ -83,7 +83,9 @@ public class ForeignKeyConstraintSpec implements Serializable {
 			sb.append(spec.getColumnName());
 			sb.append(", ");
 		}
-		sb.setLength(sb.length()-2);
+    	if (sb.length() >= 2) {
+          sb.setLength(sb.length() - 2);
+    	}
 		return sb.toString();
 	}
 

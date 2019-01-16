@@ -38,6 +38,8 @@ public class Statistics implements Serializable {
 
   private int numberQueryDatabseCalls;
 
+  private int numberOfRowsRead;
+
   private int numberOfBatchInserts;
 
   private int numberOfBatchUpdates;
@@ -53,6 +55,7 @@ public class Statistics implements Serializable {
   public Statistics(Statistics src) {
     this.numberOfQueries = src.numberOfQueries;
     this.numberQueryDatabseCalls = src.numberQueryDatabseCalls;
+    this.numberOfRowsRead = src.numberOfRowsRead;
     this.numberOfBatchInserts = src.numberOfBatchInserts;
     this.numberOfBatchUpdates = src.numberOfBatchUpdates;
     this.numberOfBatchDeletes = src.numberOfBatchDeletes;
@@ -82,6 +85,10 @@ public class Statistics implements Serializable {
 
   public void addNumberOfQueryDatabseCalls(int numberQueryDatabseCalls) {
     this.numberQueryDatabseCalls += numberQueryDatabseCalls;
+  }
+
+  public int getNumberOfRowsRead() {
+    return numberOfRowsRead;
   }
 
   public void addNumberOfBatchInserts(int numberOfBatchInserts) {
@@ -128,12 +135,17 @@ public class Statistics implements Serializable {
     this.numberOfRecordDeletes += numberOfRecordDeletes;
   }
 
+  public void addNumberOfRowsRead(int numberOfRowsRead) {
+    this.numberOfRowsRead += numberOfRowsRead;
+  }
+
   public void clear() {
     numberOfBatchDeletes =
         numberOfBatchInserts =
         numberOfBatchUpdates =
         numberOfQueries =
         numberQueryDatabseCalls =
+        numberOfRowsRead =
         numberOfRecordDeletes =
         numberOfRecordInserts =
         numberOfRecordUpdates = 0;

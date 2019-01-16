@@ -358,7 +358,7 @@ public class QueryExecuter {
 
         public ObjectGraph readObjectGraph() throws EntityStreamException {
             ObjectGraph og = new ObjectGraph();
-            boolean moreData =  queryExecutions[ queryIndex ].readObjectGraph( resultSet, og );
+            boolean moreData =  queryExecutions[ queryIndex ].readObjectGraph( resultSet, og, entityContext.getStatistics() );
             if (!moreData) {
                 closeCurrentResultSetAndStatement();
                 queryIndex++;
@@ -492,7 +492,7 @@ public class QueryExecuter {
 
         public ObjectGraph readObjectGraph() throws EntityStreamException {
             ObjectGraph  objectGraph = new ObjectGraph();
-            queryExecutions[ queryIndex ].readObjectGraph( resultSet, objectGraph );
+            queryExecutions[ queryIndex ].readObjectGraph( resultSet, objectGraph, entityContext.getStatistics() );
             return objectGraph;
         }
 

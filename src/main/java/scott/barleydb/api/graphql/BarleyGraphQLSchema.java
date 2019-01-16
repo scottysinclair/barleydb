@@ -39,6 +39,7 @@ import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import scott.barleydb.api.core.Environment;
+import scott.barleydb.api.core.entity.Statistics;
 import scott.barleydb.api.specification.SpecRegistry;
 import scott.barleydb.build.specification.graphql.CustomQueries;
 import scott.barleydb.build.specification.graphql.GenerateGrapqlSDL;
@@ -47,10 +48,11 @@ public class BarleyGraphQLSchema {
 	
 	private static final Logger LOG = LoggerFactory.getLogger(BarleyGraphQLSchema.class);
 	
-	private SpecRegistry specRegistry;
-	private Environment env;
-	private String namespace;
-	private GraphQLSchema graphQLSchema;
+	private final SpecRegistry specRegistry;
+	private final Environment env;
+	private final String namespace;
+	private final GraphQLSchema graphQLSchema;
+	private final String sdlString;
 	
 	public BarleyGraphQLSchema(SpecRegistry specRegistry, Environment env, String namespace, CustomQueries customQueries) {
 		this.specRegistry = specRegistry;
@@ -60,7 +62,7 @@ public class BarleyGraphQLSchema {
         GenerateGrapqlSDL graphSdl = new GenerateGrapqlSDL(specRegistry, customQueries);
         
         SchemaParser schemaParser = new SchemaParser();
-        String sdlString = graphSdl.createSdl();
+        sdlString = graphSdl.createSdl();
         LOG.info(sdlString);
         System.out.println(sdlString);
         
@@ -78,8 +80,11 @@ public class BarleyGraphQLSchema {
         SchemaGenerator schemaGenerator = new SchemaGenerator();
         this.graphQLSchema = schemaGenerator.makeExecutableSchema(typeDefinitionRegistry, runtimeWiring);
 	}
-	
-	
+
+	public String getSdlString() {
+		return sdlString;
+	}
+
 	public GraphQLContext newContext() {
 		return new MyGraphQLContext();	
 	}
@@ -87,7 +92,7 @@ public class BarleyGraphQLSchema {
 	class MyGraphQLContext implements GraphQLContext {
 
 		private GraphQL graphql;
-		
+
 		public MyGraphQLContext() {
 			this.graphql = GraphQL.newGraphQL(graphQLSchema).build();
 		}
@@ -100,7 +105,6 @@ public class BarleyGraphQLSchema {
 			}
 			return result.getData();
 		}
-		
 	}
 	
 }

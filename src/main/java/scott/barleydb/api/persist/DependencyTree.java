@@ -371,6 +371,7 @@ public class DependencyTree implements Serializable {
             }
         }
         if (count == 1000) {
+            LOG.error("Could not calculate dependencies:\n{}", generateDiagramYumlString());
             throw new IllegalStateException("Infinite loop, calculating dependency order");
         }
         /*

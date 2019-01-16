@@ -35,6 +35,7 @@ import scott.barleydb.api.config.Definitions;
 import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.config.NodeType;
 import scott.barleydb.api.core.entity.EntityContext;
+import scott.barleydb.api.core.entity.Statistics;
 import scott.barleydb.api.exception.execution.jdbc.SortJdbcException;
 import scott.barleydb.api.exception.execution.query.ForUpdateNotSupportedException;
 import scott.barleydb.api.exception.execution.query.IllegalQueryStateException;
@@ -92,7 +93,7 @@ public class QueryExecution<T> {
      * @return true if there is more data in the resultset
      * @throws EntityStreamException
      */
-    public boolean readObjectGraph(ResultSet resultSet, ObjectGraph objectGraph) throws EntityStreamException {
+    public boolean readObjectGraph(ResultSet resultSet, ObjectGraph objectGraph, Statistics statistics) throws EntityStreamException {
         LOG.debug("Reading object graph from ResultSet...");
 
         /*
@@ -143,6 +144,7 @@ public class QueryExecution<T> {
                     }
                 }
                 rowCount++;
+                statistics.addNumberOfRowsRead(1);
             }
             while(resultSet.next());
         }

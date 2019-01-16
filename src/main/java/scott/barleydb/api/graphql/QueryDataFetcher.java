@@ -84,6 +84,7 @@ public class QueryDataFetcher implements DataFetcher<Object> {
       buildQuery(graphEnv, query);
     }
     List<Entity> result = ctx.performQuery(query).getEntityList();
+    LOG.debug("Processed {} rows", ctx.getStatistics().getNumberOfRowsRead());
     if (graphEnv.getExecutionStepInfo().getType() instanceof GraphQLList) {
       return Entity2Map.toListOfMaps(result);
     }

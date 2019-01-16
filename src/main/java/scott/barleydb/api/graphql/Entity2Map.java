@@ -32,35 +32,35 @@ import java.util.*;
 public class Entity2Map {
 
     public static Map<String,Object> toMap(Entity entity) {
-        return toMap(entity, new HashSet<Entity>());
+        return toMap(entity, new HashMap<>());
     }
 
-    public static Map<String,Object> toMap(Entity entity, Set<Entity> mapped) {
-        if (!mapped.add(entity)) {
-            return null;
-        }
-        Map<String,Object> result = new LinkedHashMap<>();
-        for (Node node: entity.getChildren()) {
-            if (node instanceof ValueNode) {
-                set((ValueNode)node, result);
-            }
-            else if (node instanceof RefNode) {
-                set((RefNode)node, result, mapped);
-            }
-            else if (node instanceof ToManyNode) {
-                set((ToManyNode)node, result, mapped);
+    private static Map<String,Object> toMap(Entity entity, Map<Entity, Map<String, Object>> mapped) {
+        Map<String,Object> result = mapped.get(entity);
+        if (result == null) {
+            mapped.put(entity, result = new HashMap<>());
+            for (Node node: entity.getChildren()) {
+                if (node instanceof ValueNode) {
+                    set((ValueNode)node, result);
+                }
+                else if (node instanceof RefNode) {
+                    set((RefNode)node, result, mapped);
+                }
+                else if (node instanceof ToManyNode) {
+                    set((ToManyNode)node, result, mapped);
+                }
             }
         }
         return result;
     }
 
-    public static void set(ValueNode node, Map<String, Object> result) {
+    private static void set(ValueNode node, Map<String, Object> result) {
         if (node.isLoaded()) {
             result.put(node.getName(), node.getValue());
         }
     }
 
-    public static void set(RefNode node, Map<String, Object> result, Set<Entity> mapped) {
+    private static void set(RefNode node, Map<String, Object> result, Map<Entity, Map<String, Object>> mapped) {
         if (node.isLoaded()) {
             Entity ref = node.getReference();
             if (ref != null) {
@@ -80,17 +80,17 @@ public class Entity2Map {
         return ref.getChild(keyNode, ValueNode.class).getValue();
     }
 
-    public static void set(ToManyNode node, Map<String, Object> result, Set<Entity> mapped) {
+    private static void set(ToManyNode node, Map<String, Object> result, Map<Entity, Map<String, Object>> mapped) {
         if (node.isFetched()) {
             result.put(node.getName(), toListOfMaps(node.getList(), mapped));
         }
     }
 
     public static List<Map<String, Object>> toListOfMaps(List<Entity> entities) {
-        return toListOfMaps(entities, new HashSet<>());
+        return toListOfMaps(entities, new HashMap<>());
     }
 
-    public static List<Map<String, Object>> toListOfMaps(List<Entity> entities, Set<Entity> mapped) {
+    private static List<Map<String, Object>> toListOfMaps(List<Entity> entities, Map<Entity, Map<String, Object>> mapped) {
         List<Map<String,Object>> list = new LinkedList<>();
         for (Entity entity: entities) {
             Map map = toMap(entity, mapped);

@@ -25,6 +25,8 @@ package scott.barleydb.api.graphql;
  * #L%
  */
 
+import scott.barleydb.api.core.entity.Statistics;
+
 public interface GraphQLContext {
 
 	public <T> T execute(String body);

@@ -193,6 +193,7 @@ public class DependencyTree implements Serializable {
             }
         }
         if (count == 100) {
+            LOG.error("Infinite loop, calculating dependency order\n{}", generateYumlString(new HashSet<>()));
             throw new IllegalStateException("Infinite loop, calculating dependency order");
         }
     }
