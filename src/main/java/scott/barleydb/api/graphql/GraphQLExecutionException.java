@@ -41,4 +41,9 @@ public class GraphQLExecutionException extends BarleyDBRuntimeException {
     public List<GraphQLError> getErrors() {
         return errors;
     }
+
+    @Override
+    public String getMessage() {
+        return errors.toString();
+    }
 }

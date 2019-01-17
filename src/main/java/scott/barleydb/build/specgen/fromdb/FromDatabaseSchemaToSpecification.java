@@ -118,11 +118,6 @@ public class FromDatabaseSchemaToSpecification {
         }
     }
 
-    protected Catalog loadCatalog(DataSource dataSource, SchemaCrawlerOptions options) throws SchemaCrawlerException, SQLException {
-      return SchemaCrawlerUtility.getCatalog( dataSource.getConnection(),
-          options);
-    }
-
     public SpecRegistry generateSpecification(DataSource dataSource, String schemaName) throws Exception {
         SchemaCrawlerOptions options = new SchemaCrawlerOptions();
         // Set what details are required in the schema - this affects the
@@ -138,6 +133,11 @@ public class FromDatabaseSchemaToSpecification {
         secondPass(catalog);
         postProcess(catalog);
         return registry;
+    }
+
+    protected Catalog loadCatalog(DataSource dataSource, SchemaCrawlerOptions options) throws SchemaCrawlerException, SQLException {
+        return SchemaCrawlerUtility.getCatalog( dataSource.getConnection(),
+                options);
     }
 
     /**
@@ -161,7 +161,7 @@ public class FromDatabaseSchemaToSpecification {
     }
 
     protected String createForeignKeyConstraintName(EntitySpec entitySpec, NodeSpec nodeSpec, RelationSpec relationSpec) {
-        return "fk_" + entitySpec.getTableName() + "_" + relationSpec.getEntitySpec().getTableName();
+        return "fk_" + entitySpec.getTableName() + "_" + nodeSpec.getColumnName();
     }
 
     private String incrementNodeName(String nodeName) {
@@ -174,6 +174,19 @@ public class FromDatabaseSchemaToSpecification {
         else {
             return nodeName + "1";
         }
+    }
+
+    /**
+     * the name of the node if it is a FK pointing to another table
+     * @param fkNode
+     * @return
+     */
+    private String genRealtionNodeName(NodeSpec fkNode) {
+        String columnName = fkNode.getColumnName();
+        if (columnName.toLowerCase().endsWith("_id")) {
+            columnName = columnName.substring(0, columnName.length() -  3);
+        }
+        return toCamelCase(columnName);
     }
 
     private String genRealtionNodeName(EntitySpec pkEspec, boolean plural) {
@@ -249,9 +262,11 @@ public class FromDatabaseSchemaToSpecification {
                         }
 
                         /*
-                         *  Do the N:1 natual foreign key relation *
+                         *  Do the N:1 natuarl foreign key relation *
                          */
-                        fkNSpec.setName( genRealtionNodeName(pkEspec, false) );
+                        fkNSpec.setName( genRealtionNodeName(fkNSpec) );
+                        //java type is null, as the relation defines the type.
+                        fkNSpec.setJavaType(null);
                         RelationSpec rspec = new RelationSpec();
                         rspec.setEntitySpec(pkEspec);
                         rspec.setJoinType(JoinTypeSpec.LEFT_OUTER_JOIN);

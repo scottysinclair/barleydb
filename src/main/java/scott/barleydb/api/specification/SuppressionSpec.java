@@ -59,6 +59,13 @@ public enum SuppressionSpec {
      *  So the column is created in the database but is ignored by the application.
      *
      */
-    ENTITY_CONFIGURATION
+    ENTITY_CONFIGURATION,
+
+    /**
+     * TODO: implement, the node can be used in queries (eg, subselect)
+     */
+    QUERY
+
+
 }
 
