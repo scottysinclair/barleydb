@@ -76,9 +76,12 @@ public class GenerateGrapqlSDL {
 		.append("\n}\n")
 		.append("\n")
 		.append("type Mutation {\n")
+		.append(printSchemaMutationFields())
 		.append("}\n")
 		.append("\n")
-		.append(printTypeDefinitions())
+		.append(printQueryTypeDefinitions())
+		.append("\n")
+		.append(printInputTypeDefinitions())
 		.append("\n")
 		.append(printEnumDefinitions())
 		.toString();
@@ -104,6 +107,41 @@ public class GenerateGrapqlSDL {
 				.append("]"))
 		.collect(Collectors.joining("\n"));
 	}
+
+	private String printSchemaMutationFields() {
+        return streamSchemaMutationFields()
+                .map(f -> new StringBuilder()
+                        .append("  create")
+                        .append(firstCharUpperCase(f.getName()))
+                        .append(printMutationArguments(f.getArguments()))
+                        .append(": ")
+                        .append(f.getType())
+                        .append("\n")
+                        .append("  update")
+                        .append(firstCharUpperCase(f.getName()))
+                        .append(printMutationArguments(f.getArguments()))
+                        .append(": ")
+                        .append(f.getType())
+                        .append("\n")
+                        .append("  delete")
+                        .append(f.getName())
+                        .append(printArguments(f.getArguments()))
+                        .append(": ")
+                        .append(f.getType())
+                        .append("\n"))
+                .collect(Collectors.joining("\n"));
+	}
+
+	private String firstCharUpperCase(String name) {
+	    if (name.length() == 0) {
+	        return name;
+        }
+        else if (name.length() == 1) {
+            return "" + Character.toUpperCase(name.charAt(0));
+        }
+	    return Character.toUpperCase(name.charAt(0)) + name.substring(1, name.length());
+    }
+
 	
 	private String printCustomQueries() {
 		return streamSchemaCustomQueryFields()
@@ -135,14 +173,38 @@ public class GenerateGrapqlSDL {
 		sb.append(")");
 		return sb.toString();
 	}
-	
-	private String printTypeDefinitions() {
-		return streamTypeDefinitions()
-			.map(this::printTypeDefinition)
+
+	private String printMutationArguments(Collection<Argument> args) {
+		if (args.isEmpty()) {
+			return "";
+		}
+		StringBuilder sb = new StringBuilder("(");
+		for (Argument a : args) {
+			sb.append(a.getName())
+					.append(": ")
+					.append(a.getType());
+			//		  .append(a.mandatory ? "!" : "");
+			sb.append(", ");
+		}
+		sb.setLength(sb.length() - 2);
+		sb.append(")");
+		return sb.toString();
+	}
+
+
+	private String printQueryTypeDefinitions() {
+		return streamQueryTypeDefinitions()
+			.map(td -> printQueryTypeDefinition(td))
 			.collect(Collectors.joining("\n\n"));
 	}
-	
-	private String printTypeDefinition(TypeDefinition type) {
+
+	private String printInputTypeDefinitions() {
+		return streamInputTypeDefinitions()
+				.map(td -> printInputTypeDefinition(td))
+				.collect(Collectors.joining("\n\n"));
+	}
+
+	private String printQueryTypeDefinition(TypeDefinition type) {
 		return new StringBuilder()
 				.append("type ")
 				.append(type.getName())
@@ -151,8 +213,18 @@ public class GenerateGrapqlSDL {
 				.append("\n}")
 				.toString();
 	}
-	
-	private String printEnumDefinitions() {
+
+    private String printInputTypeDefinition(TypeDefinition type) {
+        return new StringBuilder()
+                .append("input ")
+                .append(type.getName() + "Input")
+                .append(" {\n")
+                .append(printFieldDefinitions(type))
+                .append("\n}")
+                .toString();
+    }
+
+    private String printEnumDefinitions() {
 		return streamEnumDefinitions()
 				.map(this::printEnumDefinition)
 				.collect(Collectors.joining("\n\n"));
@@ -205,21 +277,35 @@ public class GenerateGrapqlSDL {
 	}
 
 
-	private Stream<TypeDefinition> streamTypeDefinitions() {
+	private Stream<TypeDefinition> streamQueryTypeDefinitions() {
 		return specRegistry.getDefinitions().stream()
 				.map(DefinitionsSpec::getEntitySpecs)
 				.flatMap(Collection::stream)
-				.map(TypeDefinition::new);
+				.map(QueryTypeDefinition::new);
 	}
-	
+
+	private Stream<TypeDefinition> streamInputTypeDefinitions() {
+		return specRegistry.getDefinitions().stream()
+				.map(DefinitionsSpec::getEntitySpecs)
+				.flatMap(Collection::stream)
+				.map(InputTypeDefinition::new);
+	}
+
 	private Stream<SchemaQueryField> streamSchemaQueryFields() {
 		return specRegistry.getDefinitions().stream()
 				.map(DefinitionsSpec::getEntitySpecs)
 				.flatMap(Collection::stream)
 				.map(SchemaQueryField::new);
 	}
-	
-	private Stream<SchemaCustomQueryField> streamSchemaCustomQueryFields() {
+
+    private Stream<SchemaMutationField> streamSchemaMutationFields() {
+        return specRegistry.getDefinitions().stream()
+                .map(DefinitionsSpec::getEntitySpecs)
+                .flatMap(Collection::stream)
+                .map(SchemaMutationField::new);
+    }
+
+    private Stream<SchemaCustomQueryField> streamSchemaCustomQueryFields() {
 		if (customQueries == null) {
 			return Collections.<SchemaCustomQueryField>emptyList().stream();
 		}
@@ -240,11 +326,11 @@ public class GenerateGrapqlSDL {
 		return i == -1 ? name : name.substring(i+1);
 	}
 	
-	private String getGraphQlTypeName(NodeSpec ns) {
+	private String getGraphQlTypeName(NodeSpec ns, boolean inputType) {
 		if (ns.getJavaType() != null) {
 			return getGraphQlTypeName(ns, ns.getJavaType());
 		}
-		return getGraphQlTypeName(ns.getRelation().getEntitySpec());
+		return getGraphQlTypeName(ns.getRelation().getEntitySpec()) + (inputType ? "Input" : "");
 	}
 
 	private String getGraphQlTypeName(JavaType javaType) {
@@ -284,7 +370,7 @@ public class GenerateGrapqlSDL {
 		
 		public List<Argument> getPrimaryKeyArguments() {
 			NodeSpec nt = et.getPrimaryKeyNodes(true).iterator().next();
-			return Collections.singletonList(new NodeArgument(nt));
+			return Collections.singletonList(new NodeQueryArgument(nt));
 		} 
 
 		public List<Argument> getNonPrimaryKeyArguments() {
@@ -292,7 +378,7 @@ public class GenerateGrapqlSDL {
 			.stream()
 			.filter(ns -> !ns.isPrimaryKey())
 			.filter(ns -> ns.getRelation() == null)
-			.map(NodeArgument::new)
+			.map(NodeQueryArgument::new)
 			.collect(Collectors.toList());
 		} 
 
@@ -323,8 +409,6 @@ public class GenerateGrapqlSDL {
 		public String getName() {
 			return name;
 		}
-		
-		
 	}
 
 	public interface Argument {
@@ -332,14 +416,14 @@ public class GenerateGrapqlSDL {
 		String getType();
 	}
 	
-	public class NodeArgument implements Argument{
+	public class NodeQueryArgument implements Argument{
 		private NodeSpec nodeSpec;
-		public NodeArgument(NodeSpec nodeSpec) {
+		public NodeQueryArgument(NodeSpec nodeSpec) {
 			this.nodeSpec = nodeSpec;
 		}
 		
 		public String getType() {
-			return getGraphQlTypeName(nodeSpec);
+			return getGraphQlTypeName(nodeSpec, false);
 		}
 
 		public String getName() {
@@ -351,6 +435,30 @@ public class GenerateGrapqlSDL {
 			}
 		}
 		
+		private String getPrimaryKeyName(EntitySpec entitySpec) {
+			return entitySpec.getPrimaryKeyNodes(true).iterator().next().getName();
+		}
+	}
+
+	public class NodeMutationArgument implements Argument{
+		private NodeSpec nodeSpec;
+		public NodeMutationArgument(NodeSpec nodeSpec) {
+			this.nodeSpec = nodeSpec;
+		}
+
+		public String getType() {
+			return getGraphQlTypeName(nodeSpec, true);
+		}
+
+		public String getName() {
+			if (nodeSpec.getRelation() == null) {
+				return nodeSpec.getName();
+			}
+			else {
+				return nodeSpec.getName() + getPrimaryKeyName(nodeSpec.getRelation().getEntitySpec());
+			}
+		}
+
 		private String getPrimaryKeyName(EntitySpec entitySpec) {
 			return entitySpec.getPrimaryKeyNodes(true).iterator().next().getName();
 		}
@@ -372,15 +480,44 @@ public class GenerateGrapqlSDL {
 		}
 		
 	}
+
+
+    //how a query is defined as a field in the Query type
+    public class SchemaMutationField {
+        private final EntitySpec et;
+
+        public SchemaMutationField(EntitySpec et) {
+            this.et = et;
+        }
+
+        public String getName() {
+            String s = getGraphQlTypeName(et);
+            return Character.toLowerCase(s.charAt(0)) + s.substring(1, s.length());
+        }
+
+        public String getType() {
+            return getGraphQlTypeName(et);
+        }
+
+        public Collection<Argument> getArguments() {
+            return et.getNodeSpecs(true)
+                    .stream()
+                    .map(NodeMutationArgument::new)
+                    .collect(Collectors.toList());
+        }
+
+    }
+
+
 	
 	
 	
-	private void addAllNodes(EntitySpec et, LinkedHashMap<String, FieldDefinition> fds) {
+	private void addAllNodes(EntitySpec et, LinkedHashMap<String, FieldDefinition> fds, boolean inputFields) {
 		if (et.getParentEntity() != null) {
-			addAllNodes(et.getParentEntity(), fds);
+			addAllNodes(et.getParentEntity(), fds, inputFields);
 		}
 		fds.putAll(et.getNodeSpecs().stream()
-			.map(FieldDefinition::new)
+			.map( ns -> inputFields ? new InputFieldDefinition(ns) : new QueryFieldDefinition(ns))
 			.collect(Collectors.toMap(FieldDefinition::getName, fd -> fd)));		
 	}
 
@@ -412,18 +549,21 @@ public class GenerateGrapqlSDL {
 		}
 	}
 
+	public interface TypeDefinition {
+		String getName();
+		List<FieldDefinition> getFields();
+	}
 
-	public class TypeDefinition {
+	public class QueryTypeDefinition implements TypeDefinition {
 		private final EntitySpec et;
 		private final List<FieldDefinition> fields;
-		public TypeDefinition(EntitySpec et) {
+		public QueryTypeDefinition(EntitySpec et) {
 			this.et = et;
 			LinkedHashMap<String, FieldDefinition> tmp = new LinkedHashMap<>();
-			addAllNodes(et, tmp);
+			addAllNodes(et, tmp, false);
 			this.fields = new LinkedList<>(tmp.values());
 		}
-		
-		
+
 		public String getName() {
 			return getGraphQlTypeName(et);
 		}
@@ -432,11 +572,22 @@ public class GenerateGrapqlSDL {
 			return fields;
 		}
 	}
-	
-	private class FieldDefinition {
-		private final NodeSpec nodeSpec;
 
-		public FieldDefinition(NodeSpec nodeSpec) {
+	private interface FieldDefinition {
+		boolean isArray();
+
+		String getName();
+
+		String getType();
+
+		boolean isMandatory();
+
+	}
+
+	private class QueryFieldDefinition implements FieldDefinition{
+		protected final NodeSpec nodeSpec;
+
+		public QueryFieldDefinition(NodeSpec nodeSpec) {
 			this.nodeSpec = nodeSpec;
 		}
 		
@@ -450,12 +601,58 @@ public class GenerateGrapqlSDL {
 		}
 		
 		public String getType() {
-			return getGraphQlTypeName(nodeSpec);
+			return getGraphQlTypeName(nodeSpec, false);
 		}
 		
 		public boolean isMandatory() {
 			return nodeSpec.getNullable() == Nullable.NOT_NULL;
 		}
+	}
+
+	public class InputTypeDefinition implements TypeDefinition {
+		private final EntitySpec et;
+		private final List<FieldDefinition> fields;
+		public InputTypeDefinition(EntitySpec et) {
+			this.et = et;
+			LinkedHashMap<String, FieldDefinition> tmp = new LinkedHashMap<>();
+			addAllNodes(et, tmp, true);
+			this.fields = new LinkedList<>(tmp.values());
+		}
+
+		public String getName() {
+			return getGraphQlTypeName(et);
+		}
+
+		public List<FieldDefinition> getFields() {
+			return fields;
+		}
+	}
+
+
+	private class InputFieldDefinition implements FieldDefinition {
+		protected final NodeSpec nodeSpec;
+		public InputFieldDefinition(NodeSpec nodeSpec) {
+			this.nodeSpec = nodeSpec;
+		}
+
+
+		public boolean isArray() {
+			//is a 1:N relation
+			return nodeSpec.getColumnName() == null;
+		}
+
+		public String getName() {
+			return nodeSpec.getName() + "Input";
+		}
+
+		public String getType() {
+			return getGraphQlTypeName(nodeSpec, true);
+		}
+
+		public boolean isMandatory() {
+			return nodeSpec.getNullable() == Nullable.NOT_NULL;
+		}
+
 	}
 
 }
