@@ -10,12 +10,12 @@ package scott.barleydb.api.core;
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -34,6 +34,8 @@ import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.proxy.ProxyFactory;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.model.ProxyCreationException;
+import scott.barleydb.api.persist.AccessRightsChecker;
+import scott.barleydb.api.persist.NoopAccessRightsChecker;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.query.RuntimeProperties;
 import scott.barleydb.server.jdbc.query.QueryPreProcessor;
@@ -58,6 +60,8 @@ public final class Environment {
     private RuntimeProperties defaultRuntimeProperties;
 
     private final IEntityContextServices entityContextServices;
+
+    private AccessRightsChecker accessRightsChecker = new NoopAccessRightsChecker();
 
     public Environment(IEntityContextServices entityContextServices) {
         this.entityContextServices = entityContextServices;
@@ -89,6 +93,14 @@ public final class Environment {
 
     public void setDefaultRuntimeProperties(RuntimeProperties defaultRuntimeProperties) {
         this.defaultRuntimeProperties = defaultRuntimeProperties;
+    }
+
+    public AccessRightsChecker getAccessRightsChecker() {
+      return accessRightsChecker;
+    }
+
+    public void setAccessRightsChecker(AccessRightsChecker accessRightsChecker) {
+      this.accessRightsChecker = accessRightsChecker;
     }
 
     public IEntityContextServices getEntityContextServices() {

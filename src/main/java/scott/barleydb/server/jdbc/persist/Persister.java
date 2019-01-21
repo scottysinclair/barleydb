@@ -53,6 +53,7 @@ import scott.barleydb.api.exception.execution.persist.PreparingPersistStatementE
 import scott.barleydb.api.exception.execution.persist.PrimaryKeyExistsException;
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
 import scott.barleydb.api.exception.execution.query.BarleyDBQueryException;
+import scott.barleydb.api.persist.AccessRightsChecker;
 import scott.barleydb.api.persist.PersistAnalyser;
 import scott.barleydb.api.specification.KeyGenSpec;
 import scott.barleydb.server.jdbc.JdbcEntityContextServices;
@@ -149,7 +150,7 @@ public class Persister {
         setNewOptimisticLockOnAuditRecords(audit, analyser.getCreateGroup(), analyser.getUpdateGroup(), newOptimisticLockTime);
 
 
-        verifyAccessRights(analyser.getCreateGroup(), analyser.getUpdateGroup(), analyser.getDeleteGroup());
+        verifyAccessRights(analyser.getEntityContext(), analyser.getCreateGroup(), analyser.getUpdateGroup(), analyser.getDeleteGroup());
 
         /*
          * helpful for testing
@@ -540,16 +541,17 @@ public class Persister {
      * @param updateGroup
      * @param deleteGroup
      */
-    private void verifyAccessRights(OperationGroup createGroup, OperationGroup updateGroup, OperationGroup deleteGroup) {
+    private void verifyAccessRights(EntityContext ctx, OperationGroup createGroup, OperationGroup updateGroup, OperationGroup deleteGroup) {
         logStep("Verifying access rights");
+        AccessRightsChecker checker = env.getAccessRightsChecker();
         for (Entity entity : createGroup.getEntities()) {
-            verifyCreateRight(entity);
+          checker.verifyCreateRight(ctx, entity);
         }
         for (Entity entity : updateGroup.getEntities()) {
-            verifyUpdateRight(entity);
+          checker.verifyUpdateRight(ctx, entity);
         }
         for (Entity entity : deleteGroup.getEntities()) {
-            verifyDeleteRight(entity);
+          checker.verifyDeleteRight(ctx, entity);
         }
     }
 

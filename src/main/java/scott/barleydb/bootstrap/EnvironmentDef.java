@@ -48,6 +48,7 @@ import org.springframework.test.jdbc.JdbcTestUtils;
 import scott.barleydb.api.config.Definitions;
 import scott.barleydb.api.core.Environment;
 import scott.barleydb.api.core.proxy.ProxyFactory;
+import scott.barleydb.api.persist.AccessRightsChecker;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.query.RuntimeProperties;
 import scott.barleydb.api.query.RuntimeProperties.Concurrency;
@@ -66,7 +67,6 @@ import scott.barleydb.build.specification.staticspec.StaticDefinitions;
 import scott.barleydb.build.specification.staticspec.processor.StaticDefinitionProcessor;
 import scott.barleydb.server.jdbc.JdbcEntityContextServices;
 import scott.barleydb.server.jdbc.converter.LongToStringTimestampConverter;
-import scott.barleydb.server.jdbc.persist.QuickHackSequenceGenerator;
 import scott.barleydb.server.jdbc.persist.SequenceGenerator;
 import scott.barleydb.server.jdbc.query.QueryPreProcessor;
 import scott.barleydb.server.jdbc.vendor.Database;
@@ -91,6 +91,7 @@ public class EnvironmentDef {
     private boolean classloading = true;
 
     private Class<? extends SequenceGenerator> sequenceGeneratorType;
+    private AccessRightsChecker accessRightsChecker;
 
     //resources created during the create() method..
     private JdbcEntityContextServices services;
@@ -123,13 +124,13 @@ public class EnvironmentDef {
       this.specRegistries.addAll( Arrays.asList(specRegistry) );
       return this;
     }
-    
+
     /**
      * only available after the environment has been built.
      * @return
      */
     public List<DefinitionsSpec> getAllSpecs() {
-    	return allSpecs;
+      return allSpecs;
     }
 
     public EnvironmentDef withDroppingSchema(boolean drop) {
@@ -149,6 +150,11 @@ public class EnvironmentDef {
 
     public EnvironmentDef withSequenceGenerator(Class<? extends SequenceGenerator> sequenceGeneratorType) {
       this.sequenceGeneratorType = sequenceGeneratorType;
+      return this;
+    }
+
+    public EnvironmentDef withAccessRightsChecker(AccessRightsChecker accessRightsChecker) {
+      this.accessRightsChecker = accessRightsChecker;
       return this;
     }
 
@@ -270,6 +276,9 @@ public class EnvironmentDef {
         if (sequenceGeneratorType != null) {
           SequenceGenerator seqGen = sequenceGeneratorType.getConstructor(Environment.class).newInstance(env);
           services.setSequenceGenerator(seqGen);
+        }
+        if (accessRightsChecker != null) {
+          env.setAccessRightsChecker(accessRightsChecker);
         }
 
         return env;
