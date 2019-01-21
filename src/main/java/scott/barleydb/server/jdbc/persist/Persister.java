@@ -64,7 +64,6 @@ public class Persister {
 
     private static final Logger LOG = LoggerFactory.getLogger(Persister.class);
     private static final Logger LOG_PERSIST_REPORT = LoggerFactory.getLogger(PersistAnalyser.class.getName() + ".report");
-    private static final Logger AUDITLOG = LoggerFactory.getLogger(Persister.class.getName() + ".audit");
 
     private final Environment env;
     private final String namespace;
@@ -631,35 +630,9 @@ public class Persister {
         batchExecuter.execute(entityContextServices, env.getDefinitions(namespace));
     }
 
-    /**
-     * Checks access control to verify the right
-     */
-    private void verifyCreateRight(Entity entity) {
-        LOG.debug("VERIFYING CREATE RIGHT FOR " + entity);
-    }
-
-    /**
-     * Checks access control to verify the right
-     */
-    private void verifyUpdateRight(Entity entity) {
-        LOG.debug("VERIFYING UPDATE RIGHT FOR " + entity);
-    }
-
-    /**
-     * Checks access control to verify the right
-     */
-    private void verifyDeleteRight(Entity entity) {
-        LOG.debug("VERIFYING DELETE RIGHT FOR " + entity);
-    }
-
     private void insert(AuditInformation audit) {
-        logStep("Inserting audit records");
-        for (AuditRecord auditRecord : audit.getRecords()) {
-            for (Change change : auditRecord.changes()) {
-                AUDITLOG.debug( auditRecord.formatChange(change) );
-            }
-            AUDITLOG.debug("------------------------------------------------------------");
-        }
+      logStep("Performing audit using " + env.getAuditor().getClass().getSimpleName());
+      env.getAuditor().saveAuditInformation(audit);
     }
 
     private void verifyOptimisticLock(Entity entity, Entity databaseEntity) throws OptimisticLockMismatchException {

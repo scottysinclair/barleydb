@@ -49,6 +49,7 @@ import scott.barleydb.api.config.Definitions;
 import scott.barleydb.api.core.Environment;
 import scott.barleydb.api.core.proxy.ProxyFactory;
 import scott.barleydb.api.persist.AccessRightsChecker;
+import scott.barleydb.api.persist.Auditor;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.query.RuntimeProperties;
 import scott.barleydb.api.query.RuntimeProperties.Concurrency;
@@ -92,6 +93,7 @@ public class EnvironmentDef {
 
     private Class<? extends SequenceGenerator> sequenceGeneratorType;
     private AccessRightsChecker accessRightsChecker;
+    private Auditor auditor;
 
     //resources created during the create() method..
     private JdbcEntityContextServices services;
@@ -155,6 +157,11 @@ public class EnvironmentDef {
 
     public EnvironmentDef withAccessRightsChecker(AccessRightsChecker accessRightsChecker) {
       this.accessRightsChecker = accessRightsChecker;
+      return this;
+    }
+
+    public EnvironmentDef withAuditor(Auditor auditor) {
+      this.auditor = auditor;
       return this;
     }
 
@@ -279,6 +286,9 @@ public class EnvironmentDef {
         }
         if (accessRightsChecker != null) {
           env.setAccessRightsChecker(accessRightsChecker);
+        }
+        if (auditor != null) {
+          env.setAuditor(auditor);
         }
 
         return env;

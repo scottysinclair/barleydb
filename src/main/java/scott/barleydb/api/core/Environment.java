@@ -35,6 +35,8 @@ import scott.barleydb.api.core.proxy.ProxyFactory;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.model.ProxyCreationException;
 import scott.barleydb.api.persist.AccessRightsChecker;
+import scott.barleydb.api.persist.Auditor;
+import scott.barleydb.api.persist.LoggingAuditor;
 import scott.barleydb.api.persist.NoopAccessRightsChecker;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.query.RuntimeProperties;
@@ -62,6 +64,8 @@ public final class Environment {
     private final IEntityContextServices entityContextServices;
 
     private AccessRightsChecker accessRightsChecker = new NoopAccessRightsChecker();
+
+    private Auditor auditor = new LoggingAuditor();
 
     public Environment(IEntityContextServices entityContextServices) {
         this.entityContextServices = entityContextServices;
@@ -101,6 +105,14 @@ public final class Environment {
 
     public void setAccessRightsChecker(AccessRightsChecker accessRightsChecker) {
       this.accessRightsChecker = accessRightsChecker;
+    }
+
+    public Auditor getAuditor() {
+      return auditor;
+    }
+
+    public void setAuditor(Auditor auditor) {
+      this.auditor = auditor;
     }
 
     public IEntityContextServices getEntityContextServices() {
