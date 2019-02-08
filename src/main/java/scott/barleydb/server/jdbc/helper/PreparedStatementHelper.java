@@ -25,6 +25,7 @@ package scott.barleydb.server.jdbc.helper;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.Date;
 
 import org.slf4j.Logger;
@@ -278,6 +279,14 @@ public abstract class PreparedStatementHelper<PREPARING_EX extends BarleyDBExcep
                   throw newSetValueError("Int", x);
               }
               break;
+            case SMALLINT:
+                try {
+                    ps.setInt(index, value);
+                }
+                catch (SQLException x) {
+                    throw newSetValueError("Int", x);
+                }
+                break;
           default:
               fail(value, jdbcType);
           }
@@ -388,6 +397,14 @@ public abstract class PreparedStatementHelper<PREPARING_EX extends BarleyDBExcep
                 throw newSetValueError("String", x);
             }
             break;
+        case CLOB:
+            try {
+                ps.setString(index, value);
+            }
+            catch (SQLException x) {
+                throw newSetValueError("String", x);
+            }
+            break;
         default:
             fail(value, jdbcType);
         }
@@ -478,6 +495,8 @@ public abstract class PreparedStatementHelper<PREPARING_EX extends BarleyDBExcep
             return java.sql.Types.CHAR;
         case DATETIME:
             return java.sql.Types.TIMESTAMP;
+        case SMALLINT:
+            return java.sql.Types.SMALLINT;
         default:
             throw newPreparingStatementException("Unsupported jdbctype " + type);
         }

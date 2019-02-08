@@ -22,7 +22,11 @@ package scott.barleydb.server.jdbc.query;
  * #L%
  */
 
+import java.io.IOException;
+import java.io.Reader;
+import java.io.StringWriter;
 import java.math.BigDecimal;
+import java.sql.Clob;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -397,7 +401,7 @@ final class EntityLoader {
         return null;
     }
 
-    private String convertToString(JdbcType jdbcType, Object value) {
+    private String convertToString(JdbcType jdbcType, Object value) throws BarleyDBQueryException {
         if (value instanceof String) {
             String str = (String)value;
             if (jdbcType == JdbcType.CHAR) {
@@ -405,7 +409,25 @@ final class EntityLoader {
             }
             return str;
         }
+        else if (value instanceof Clob) {
+            return convertToString((Clob)value);
+        }
         return null;
+    }
+
+    private String convertToString(Clob clob) throws BarleyDBQueryException {
+        try ( Reader in = clob.getCharacterStream(); ) {
+            StringWriter out = new StringWriter();
+            char buf[] = new char[1024];
+            int len;
+            while((len = in.read(buf)) >= 0) {
+                out.write(buf, 0, len);
+            }
+            return out.toString();
+        }
+        catch(SQLException | IOException x) {
+            throw new BarleyDBQueryException("Could not convert CLOB to String", x);
+        }
     }
 
     private Date convertToUtilDate(Object value) {

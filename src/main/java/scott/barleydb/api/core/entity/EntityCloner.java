@@ -33,6 +33,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.exception.BarleyDBRuntimeException;
 import scott.barleydb.api.query.QJoin;
 import scott.barleydb.api.query.QueryObject;
@@ -56,13 +57,17 @@ public class EntityCloner {
     return destModel;
   }
 
+  protected Object newKey(EntityType entityType) {
+    return null;
+  }
+
   public Entity clone(Entity src, QueryObject<?> cloneGraph, String logPrefix) {
     Entity dest = cloneLookup.get(src);
     if (dest != null) {
       return dest;
     }
     EntityContext ctx = src.getEntityContext();
-    dest = ctx.newEntity(src.getEntityType(), null, EntityConstraint.mustNotExistInDatabase());
+    dest = ctx.newEntity(src.getEntityType(), newKey(src.getEntityType()), EntityConstraint.mustNotExistInDatabase());
     LOG.debug("{}Cloning entity {} to {}", logPrefix, src, dest.getUuidFirst7());
     cloneLookup.put(src, dest);
     copyValues(src, dest, logPrefix);
@@ -102,6 +107,11 @@ public class EntityCloner {
     /*
      * TODO: give sub classes the chance to handle ToManyNode cloning.
      */
+    for (ToManyNode toManyNode: src.getChildren(ToManyNode.class)) {
+        if (forceClone(toManyNode)) {
+          cloneToManyNodeRelation(toManyNode, dest, null, logPrefix);
+        }
+    }
 
     /*
      * all FK references which are not in the clone graph must be copied across
@@ -114,7 +124,7 @@ public class EntityCloner {
       }
       RefNode destNode = dest.getChild(refNode.getName(), RefNode.class);
       if (refNode.isLoaded()) {
-        Entity refEntity = refNode.getReference();
+        Entity refEntity = refNode.getReference(false);
         //if refEntity has been cloned then we need to use the cloned version
         Entity clonedRef = cloneLookup.get(refEntity);
         if (clonedRef != null) {
@@ -161,6 +171,10 @@ public class EntityCloner {
     return false;
   }
 
+  protected boolean forceClone(ToManyNode toManyNode) {
+    return false;
+  }
+
   private void copyValues(Entity src, Entity dest, String logPrefix) {
     for (ValueNode srcNode: src.getChildren(ValueNode.class)) {
       if (src.getKey() == srcNode) {
@@ -170,9 +184,19 @@ public class EntityCloner {
         continue;
       }
       ValueNode destNode = dest.getChild(srcNode.getName(), ValueNode.class);
-      destNode.setValue(srcNode.getValueNoFetch());
+      destNode.setValue(changeValue(srcNode, srcNode.getValueNoFetch()));
       LOG.debug("{}Copy value '{}' -> {}",  logPrefix, srcNode.getName(), srcNode.getValue());
     }
+  }
+
+  /**
+   * subclasses can change the value
+   * @param srcNode
+   * @param value
+   * @return
+   */
+  protected Object changeValue(ValueNode srcNode, Object value) {
+    return value;
   }
 
   private void cloneToManyNodeRelation(ToManyNode child, Entity dest, QueryObject<?> restOfGraph, String logPrefix) {
@@ -201,13 +225,13 @@ public class EntityCloner {
 
   private void cloneRefNodeRelation(RefNode child, Entity dest, QueryObject<?> restOfGraph, String logPrefix) {
     RefNode destNode = dest.getChild(child.getName(), RefNode.class);
-    Entity srcRefE = child.getReference();
+    Entity srcRefE = child.getReference(false);
     if (srcRefE != null) {
       if (LOG.isDebugEnabled() && !cloneLookup.containsKey(srcRefE)) {
         LOG.debug("{}Cloning N:1 relation '{}' -> {}", logPrefix, child.getName(), srcRefE);
       }
       destNode.setReference( clone(srcRefE, restOfGraph, logPrefix + "  "));
-      LOG.debug("{}Copy FK to cloned '{}' -> {}", logPrefix, child.getName(), destNode.getReference().getUuidFirst7());
+      LOG.debug("{}Copy FK to cloned '{}' -> {}", logPrefix, child.getName(), destNode.getReference(false).getUuidFirst7());
     }
     else {
       LOG.debug("{}Set N:1 relation '{}' to null", logPrefix, child.getName());

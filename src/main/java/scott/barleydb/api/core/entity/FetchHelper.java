@@ -132,8 +132,10 @@ public class FetchHelper implements Serializable {
         }
 
         final QProperty<Object> pk = new QProperty<Object>(qo, firstEntity.getEntityType().getKeyNodeName());
-        final Set<Object> entityPkValues = toEntityKeyValues(entities);
-        qo.where(pk.in(entityPkValues));
+        final Collection<Set<Object>> entityPkValues = toEntityKeyValues(entities, 1000);
+        for (Set<Object> pkValues : entityPkValues) {
+          qo.or(pk.in(pkValues));
+        }
 
         try {
             QueryResult<Object> result = ctx.performQuery(qo);
@@ -161,8 +163,24 @@ public class FetchHelper implements Serializable {
         }
     }
 
-    private Set<Object> toEntityKeyValues(Set<Entity> entities) {
-        return entities.stream().map(e -> e.getKey().getValue()).collect(Collectors.toSet());
+    private Collection<Set<Object>> toEntityKeyValues(Set<Entity> entities, int maxSize) {
+        Set<Object> oneBigGroup = entities.stream().map(e -> e.getKey().getValue()).collect(Collectors.toSet());
+        if (oneBigGroup.size() <= maxSize) {
+            return Collections.singletonList(oneBigGroup);
+        }
+        Collection result = new LinkedList();
+        Set<Object> group = new LinkedHashSet<>();
+        for (Object o: oneBigGroup) {
+            group.add(o);
+            if (group.size() >= maxSize) {
+                result.add(group);
+                group = new LinkedHashSet<>();
+            }
+        }
+        if (group.size() > 0) {
+            result.add(group);
+        }
+        return result;
     }
 
     private Set<Object> toEntityKeyValuesTmn(Collection<ToManyNode> toManyNodes) {
