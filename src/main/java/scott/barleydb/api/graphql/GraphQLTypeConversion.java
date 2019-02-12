@@ -1,5 +1,9 @@
 package scott.barleydb.api.graphql;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 /*-
  * #%L
  * BarleyDB
@@ -38,10 +42,24 @@ public class GraphQLTypeConversion {
 		switch (javaType) {
 			case LONG:
 				return convertToLong(value);
+			case UTIL_DATE: 
+				return convertToUtilDate(value);
 			default: return value;
 		}
 	}
 	
+	private static final SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy");
+	private static Object convertToUtilDate(Object value) {
+		if (value instanceof String) {
+			try {
+				return df.parse((String)value);
+			} catch (ParseException e) {
+				throw new IllegalStateException(String.format("Cannot convert %s to Util Date", value));
+			}
+		}
+		return value;
+	}
+
 	public static Long convertToLong(Object value) {
 		if (value instanceof Integer) {
 			return ((Integer)value).longValue();

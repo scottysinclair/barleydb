@@ -28,6 +28,7 @@ package scott.barleydb.api.graphql;
 import static java.util.Objects.requireNonNull;
 import static scott.barleydb.api.graphql.GraphQLTypeConversion.convertValue;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -110,12 +111,16 @@ public class QueryDataFetcher implements DataFetcher<Object> {
      */
     for (Map.Entry<String, Object> argument: graphEnv.getArguments().entrySet()) {
       QParameter<Object> param = findQueryParameter(query, argument.getKey());
+      Object value = typeConvertValue(entityType, argument.getKey(), argument.getValue());
       if (param != null) {
-        param.setValue(argument.getValue());
+    	  if (param.getType() != null) {
+    		  value = convertValue(value, param.getType());
+    	  }
+        param.setValue(value);
         LOG.debug("Set query parameter {}", param.getName());
       }
       else {
-        QPropertyCondition qcond = createCondition(query, entityType, argument.getKey(), QMathOps.EQ, argument.getValue());
+        QPropertyCondition qcond = createCondition(query, entityType, argument.getKey(), QMathOps.EQ, value);
         query.and(qcond);
         LOG.debug("Added query condition {}", qcond);
       }
@@ -138,7 +143,22 @@ public class QueryDataFetcher implements DataFetcher<Object> {
     return query;
   }
 
-  private QParameter<Object> findQueryParameter(QueryObject<?> query, String parameterName) {
+  private Object typeConvertValue(EntityType entityType, String property, Object value) {
+	 NodeType nodeType = entityType.getNodeType(property, false);
+	 if (nodeType == null) {
+		 return value;
+	 }
+	 if (nodeType.getJavaType() != null) {
+		 switch(nodeType.getJavaType()) {
+		 case BIGDECIMAL: if (value instanceof Double) {
+			 return new BigDecimal((Double)value);
+		 }
+		 }
+	 }
+	return value;
+}
+
+private QParameter<Object> findQueryParameter(QueryObject<?> query, String parameterName) {
     return CollectQParameters.forQuery(query, parameterName);
   }
 

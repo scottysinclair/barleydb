@@ -68,8 +68,20 @@ public class QProperty<VAL> implements Serializable {
         return new QPropertyCondition(this, QMathOps.GREATER_THAN_OR_EQUAL, value);
     }
 
+    public QPropertyCondition greaterOrEqualParam(QParameter<VAL> parameter) {
+        return new QPropertyCondition(this, QMathOps.GREATER_THAN_OR_EQUAL, parameter);
+    }
+
     public QPropertyCondition greater(VAL value) {
         return new QPropertyCondition(this, QMathOps.GREATER_THAN, value);
+    }
+
+    public QPropertyCondition less(VAL value) {
+        return new QPropertyCondition(this, QMathOps.LESS_THAN, value);
+    }
+
+    public QPropertyCondition lessParam(QParameter<VAL> parameter) {
+        return new QPropertyCondition(this, QMathOps.LESS_THAN, parameter);
     }
 
     public QPropertyCondition lessOrEqual(VAL value) {

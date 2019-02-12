@@ -86,6 +86,7 @@ public class EnvironmentDef {
     private DataSource dataSource;
     private List<Class<?>> specClasses = new LinkedList<>();
     private List<String> specFiles = new LinkedList<>();
+    private SpecRegistry fullSpecRegistry;
     private List<SpecRegistry> specRegistries = new LinkedList<>();
     private boolean createDDL;
     private boolean dropSchema;
@@ -133,6 +134,10 @@ public class EnvironmentDef {
      */
     public List<DefinitionsSpec> getAllSpecs() {
       return allSpecs;
+    }
+    
+    public SpecRegistry getFullSpecRegistry() {
+    	return fullSpecRegistry;
     }
 
     public EnvironmentDef withDroppingSchema(boolean drop) {
@@ -250,6 +255,8 @@ public class EnvironmentDef {
         for (DefinitionsSpec spec: allSpecs) {
             env.addDefinitions( Definitions.create( spec ) );
         }
+        
+        fullSpecRegistry = registry;
 
 
         /*

@@ -532,6 +532,8 @@ public class GenerateGrapqlSDL {
 			
 			@Override
 			public void visitLogicalOp(QLogicalOp qlo) throws IllegalQueryStateException, ForUpdateNotSupportedException {
+				qlo.getLeft().visit(this);
+				qlo.getRight().visit(this);
 			}
 			
 			@Override
