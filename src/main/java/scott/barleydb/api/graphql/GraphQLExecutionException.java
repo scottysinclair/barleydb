@@ -32,7 +32,9 @@ import java.util.List;
 
 public class GraphQLExecutionException extends BarleyDBRuntimeException {
 
-    private final List<GraphQLError> errors;
+	private static final long serialVersionUID = 1L;
+
+	private final List<GraphQLError> errors;
 
     public GraphQLExecutionException(List<GraphQLError> errors) {
         this.errors = errors;

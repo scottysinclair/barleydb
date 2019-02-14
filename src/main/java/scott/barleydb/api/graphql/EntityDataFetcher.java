@@ -37,6 +37,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLList;
@@ -46,6 +47,12 @@ import scott.barleydb.api.config.NodeType;
 import scott.barleydb.api.core.Environment;
 import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityContext;
+import scott.barleydb.api.core.entity.EntityState;
+import scott.barleydb.api.core.entity.Node;
+import scott.barleydb.api.core.entity.ProxyController;
+import scott.barleydb.api.core.entity.RefNode;
+import scott.barleydb.api.core.entity.ToManyNode;
+import scott.barleydb.api.core.entity.ValueNode;
 import scott.barleydb.api.query.JoinType;
 import scott.barleydb.api.query.QJoin;
 import scott.barleydb.api.query.QMathOps;
@@ -61,56 +68,105 @@ import scott.barleydb.build.specification.graphql.CustomQueries;
  * @author scott
  *
  */
-public class QueryDataFetcher implements DataFetcher<Object> {
+public class EntityDataFetcher implements DataFetcher<Object> {
 
-  private static final Logger LOG = LoggerFactory.getLogger(QueryDataFetcher.class);
+  private static final Logger LOG = LoggerFactory.getLogger(EntityDataFetcher.class);
 
   private final Environment env;
   private final String namespace;
-  private final CustomQueries customQueries;
 
-  public QueryDataFetcher(Environment env, String namespace, CustomQueries customQueries) {
+  public EntityDataFetcher(Environment env, String namespace) {
     this.env = env;
     this.namespace = namespace;
-    this.customQueries = customQueries;
   }
 
   @Override
   public Object get(DataFetchingEnvironment graphEnv) throws Exception {
-    EntityContext ctx = new EntityContext(env, namespace);
+    Entity entity;
+	if (graphEnv.getSource() instanceof ProxyController) {
+		entity = ((ProxyController) graphEnv.getSource()).getEntity();
+	} else if (graphEnv.getSource() instanceof Entity) {
+		entity = (Entity) graphEnv.getSource();
+	} else {
+		throw new IllegalStateException("Unknown source " + graphEnv.getSource().getClass());
+	}
 
-    QueryObject<Object> query = null;
-    if (customQueries != null) {
-      query = (QueryObject<Object>)customQueries.getQuery(graphEnv.getField().getName());
-    }
-    if (query == null) {
-      EntityType entityType = getEntityTypeForQuery(graphEnv);
-      query = buildQuery(graphEnv, entityType);
-    }
-    else {
-      buildQuery(graphEnv, query);
-    }
-    
-    breakQuery(graphEnv, query);
-    
-    List<Entity> result = ctx.performQuery(query).getEntityList();
-    LOG.debug("Processed {} rows", ctx.getStatistics().getNumberOfRowsRead());
-    if (graphEnv.getExecutionStepInfo().getType() instanceof GraphQLList) {
-      for (Entity e: result) {
-    	  ctx.batchFetchDescendants(e);
-      }
-      return result; //Entity2Map.toListOfMaps(result);
-    }
-    else if (result.size() == 1) {
-      Entity e = result.get(0);//Entity2Map.toMap(result.get(0));
-      ctx.batchFetchDescendants(e);
-      return e;
-    }
-    else if (result.size() == 0) {
-    	return null;
-    }
-    throw new IllegalStateException("too many results");
+		EntityContext ctx = entity.getEntityContext();
+		Field fieldToFetch = graphEnv.getExecutionStepInfo().getField();
+		Node node = entity.getChild(fieldToFetch.getName());
+		if (node == null) {
+			throw new IllegalStateException("Could not find node matching graphql field: " + fieldToFetch);
+		}
+		if (node instanceof ValueNode) {
+			return ((ValueNode)node).getValue();
+		}
+		else if (node instanceof RefNode) {
+			RefNode refNode = (RefNode)node;
+			Entity ref = refNode.getReference();
+			if (ref != null) {
+				if (ref.isFetchRequired()) {
+					/*
+					 * the entity it not yet fetched, so customize the fetch query so that only the required fields will be
+					 * in the projection
+					 */
+					List<SelectedField> selectedFields = graphEnv.getSelectionSet().getFields();
+					if (!selectedFields.isEmpty()) {
+						QueryObject<Object> fetchQuery = new QueryObject<>(refNode.getEntityType().getInterfaceName());
+						setProjection(graphEnv, refNode.getEntityType(), fetchQuery);
+						ctx.register(fetchQuery);
+					}
+				try {
+						refNode.getReference().fetchIfRequiredAndAllowed();
+					}
+					finally {
+						//reset fetch query
+						ctx.register(new QueryObject<>(refNode.getEntityType().getInterfaceName()));
+					}
+				}
+			}
+			return ref;
+		}
+		else if (node instanceof ToManyNode) {
+			ToManyNode tmNode = (ToManyNode)node;
+			if (!tmNode.isFetched()) {
+			/*
+				 * the list is not fetched, so customize the fetch query so that only the required fields will be in the projection 
+				 */
+				List<SelectedField> selectedFields = graphEnv.getSelectionSet().getFields();
+				if (!selectedFields.isEmpty()) {
+					QueryObject<Object> fetchQuery = new QueryObject<>(tmNode.getEntityType().getInterfaceName());
+					setProjection(graphEnv, tmNode.getEntityType(), fetchQuery); //tmNode.getNodeType().getSortNode()
+					ctx.register(fetchQuery);
+				}
+				try {
+					fetchIfNeeded(tmNode);
+					return tmNode.getList();
+				}
+				finally {
+				//reset fetch query
+					ctx.register(new QueryObject<>(tmNode.getEntityType().getInterfaceName()));
+				}
+		}
+			else {
+				return tmNode.getList();
+			}
+		}
+		else {
+			throw new IllegalStateException("Unknown node type " + node.getClass());
+		}
   }
+  
+  private void fetchIfNeeded(ToManyNode toManyNode) {
+      if (toManyNode.getParent().isClearlyNotInDatabase()) {
+          return;
+      }
+      if (toManyNode.getParent().getEntityState() == EntityState.LOADING) {
+          return;
+      }
+      if (!toManyNode.isFetched()) {
+          toManyNode.getEntityContext().fetch(toManyNode);
+      }
+  }  
 
   private void breakQuery(DataFetchingEnvironment graphEnv, QueryObject<Object> query) {
 	  GraphQLContext graphCtx = graphEnv.getContext();
@@ -160,7 +216,11 @@ public class QueryDataFetcher implements DataFetcher<Object> {
         LOG.debug("Added query condition {}", qcond);
       }
     }
-
+    setProjection(graphEnv, entityType, query);
+    return query;
+  }
+    
+  private void setProjection(DataFetchingEnvironment graphEnv, EntityType entityType, QueryObject<Object> query) {
     /*
      * set the projection
      */
@@ -175,7 +235,6 @@ public class QueryDataFetcher implements DataFetcher<Object> {
       }
     }
     forceSelectForeignKeysAndSortNodes(query);
-    return query;
   }
 
   private Object typeConvertValue(EntityType entityType, String property, Object value) {

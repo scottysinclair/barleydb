@@ -2,9 +2,12 @@ package scott.barleydb.api.graphql;
 
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 
+import java.util.Collection;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
@@ -39,7 +42,7 @@ import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import scott.barleydb.api.core.Environment;
-import scott.barleydb.api.core.entity.Statistics;
+import scott.barleydb.api.specification.DefinitionsSpec;
 import scott.barleydb.api.specification.SpecRegistry;
 import scott.barleydb.build.specification.graphql.CustomQueries;
 import scott.barleydb.build.specification.graphql.GenerateGrapqlSDL;
@@ -53,11 +56,13 @@ public class BarleyGraphQLSchema {
 	private final String namespace;
 	private final GraphQLSchema graphQLSchema;
 	private final String sdlString;
+	private final GraphQLQueryCustomizations queryCustomizations;
 	
 	public BarleyGraphQLSchema(SpecRegistry specRegistry, Environment env, String namespace, CustomQueries customQueries) {
 		this.specRegistry = specRegistry;
 		this.env = env;
 		this.namespace = namespace;
+		this.queryCustomizations = new GraphQLQueryCustomizations();
 		
         GenerateGrapqlSDL graphSdl = new GenerateGrapqlSDL(specRegistry, customQueries);
         
@@ -70,15 +75,24 @@ public class BarleyGraphQLSchema {
         RuntimeWiring.Builder wiringBuilder = newRuntimeWiring()
                 .type("Query", builder -> builder.defaultDataFetcher(new QueryDataFetcher(env, namespace, customQueries)));
         
-//        specRegistry.getDefinitions().stream()
-//        .map(DefinitionsSpec::getEntitySpecs)
-//        .flatMap(Collection::stream)
-//        .forEach(eSpec -> wiringBuilder.type(getSimpleName(eSpec.getClassName()), builder ->  builder.defaultDataFetcher(new BarleyDbDataFetcher2(eSpec))));
+        specRegistry.getDefinitions().stream()
+        .map(DefinitionsSpec::getEntitySpecs)
+        .flatMap(Collection::stream)
+        .forEach(eSpec -> wiringBuilder.type(getSimpleName(eSpec.getClassName()), builder ->  builder.defaultDataFetcher(new EntityDataFetcher(env, namespace))));
         
          RuntimeWiring runtimeWiring = wiringBuilder.build();        
         
         SchemaGenerator schemaGenerator = new SchemaGenerator();
         this.graphQLSchema = schemaGenerator.makeExecutableSchema(typeDefinitionRegistry, runtimeWiring);
+	}
+	
+	private String getSimpleName(String className) {
+		int i = className.lastIndexOf('.');
+		return i == -1 ? className : className.substring(i+1, className.length());
+	}
+
+	public GraphQLQueryCustomizations getQueryCustomizations() {
+		return queryCustomizations;
 	}
 
 	public String getSdlString() {
@@ -91,20 +105,33 @@ public class BarleyGraphQLSchema {
 	
 	class MyGraphQLContext implements GraphQLContext {
 
-		private GraphQL graphql;
+		private final GraphQL graphql;
+		private final GraphQLQueryCustomizations queryCustomizations;
 
 		public MyGraphQLContext() {
 			this.graphql = GraphQL.newGraphQL(graphQLSchema).build();
+			this.queryCustomizations = BarleyGraphQLSchema.this.queryCustomizations.copy();
 		}
 		
 		@Override
 		public <T> T execute(String body) {
-			ExecutionResult result = graphql.execute(body);
+			ExecutionResult result = graphql.execute(ExecutionInput.newExecutionInput()
+	                .query(body)
+	                .context(this)
+	                .build());
+			
 			if (!result.getErrors().isEmpty()) {
 				throw new GraphQLExecutionException(result.getErrors());
 			}
 			return result.getData();
 		}
+
+		@Override
+		public GraphQLQueryCustomizations getQueryCustomizations() {
+			return queryCustomizations;
+		}
+		
+		
 	}
 	
 }

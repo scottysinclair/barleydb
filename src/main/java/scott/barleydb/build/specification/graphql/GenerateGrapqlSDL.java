@@ -60,7 +60,7 @@ public class GenerateGrapqlSDL {
 		StringBuilder sb = new StringBuilder();
 		return sb.append("schema {\n")
 		.append("  query: Query \n")
-		.append("  mutation: Mutation \n")
+//		.append("  mutation: Mutation \n")
 		.append("} \n")
 		.append("\n")
 		.append("type Query {\n")
@@ -69,14 +69,14 @@ public class GenerateGrapqlSDL {
 		.append(printCustomQueries())
 		.append("\n}\n")
 		.append("\n")
-		.append("type Mutation {\n")
-		.append(printSchemaMutationFields())
-		.append("}\n")
+//		.append("type Mutation {\n")
+//		.append(printSchemaMutationFields())
+//		.append("}\n")
 		.append("\n")
 		.append(printQueryTypeDefinitions())
 		.append("\n")
-		.append(printInputTypeDefinitions())
-		.append("\n")
+//		.append(printInputTypeDefinitions())
+//		.append("\n")
 		.append(printEnumDefinitions())
 		.toString();
 	}

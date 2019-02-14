@@ -321,4 +321,8 @@ public class QueryObject<R> implements Serializable {
         return getClass().getSimpleName() + " ";
     }
 
+	public void removeJoin(QJoin join) {
+		joins.remove(join);
+	}
+
 }

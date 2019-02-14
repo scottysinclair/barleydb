@@ -1,3 +1,30 @@
+From database schema to GraphQL API in one hour.
+
+Summary: This article shows you how to generate an executable GraphQL API from an existing database schema. 
+Intended audience: companies who are moving to GraphQL as an alternative to rest and have a large and complex schema to migrate.  
+
+BarleyDB is a open source querying and persistence framework for relational databases. Using BarleyDB we can
+1) Autogenerate a BarleyDB schema specification from relational database meta-data.
+2) Autogenerate an executable GraphQL schema from the BarleyDB schema specification.
+
+BarleyDB will auto generate 2 queries per table:
+1)  query for a single row by the primary key
+2)  query for multiple rows use non-primary key columns.
+-----------------
+
+
+
+
+
+-----------------
+Comming soon:
+
+Integrate join-breaks into the GraphQL execution. Deeply nested GraphQL queries currently cause deeply nested left outer joins
+in the generated SQL. Join-breaks will force a separate query to be executed to collect the data after the join-break.  
+
+Integrate batch fetching into the GraphQL execution. Batch fetching prevents the N+1 problem by fetching all N associations in one query using the in() SQL clause. 
+
+
 Features:
 
  Querying:
