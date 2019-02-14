@@ -70,7 +70,7 @@ import scott.barleydb.server.jdbc.persist.Persister;
 import scott.barleydb.server.jdbc.resources.ConnectionResources;
 import scott.barleydb.test.TestEntityContextServices.PersisterFactory;
 
-@RunWith(Parameterized.class)
+//@RunWith(Parameterized.class)
 public class TestPersistence extends TestRemoteClientBase {
 
     private static final Logger LOG = LoggerFactory.getLogger(TestPersistence.class);
@@ -87,13 +87,13 @@ public class TestPersistence extends TestRemoteClientBase {
     private EntityContextGetter getter;
     private EntityContext theEntityContext;
 
-//    public TestPersistence() {
-//        this.getter = new EntityContextGetter(true);
-//    }
-
-    public TestPersistence(EntityContextGetter getter) {
-        this.getter = getter;
+    public TestPersistence() {
+        this.getter = new EntityContextGetter(true);
     }
+
+//    public TestPersistence(EntityContextGetter getter) {
+//        this.getter = getter;
+//    }
 
     @Override
     public void setup() throws Exception {
@@ -951,15 +951,15 @@ public class TestPersistence extends TestRemoteClientBase {
         LOG.debug("--------------------------- PERSISTING THE ORIGINAL SYNTAX END -----------------------");
 
         /*
-         * now we do something 'stupid' we add an XmlMapping entity to the entity context with key 100
+         * now we do something 'stupid' we add an XmlMapping entity to the entity context with key 1000
          * and we say we don't know if it already exists or not.
          *
          * We then add it to the syntax and persist the syntax, we expect it to work.
          * In the real world this would not be a good idea if the PK is framework generated, ie the
          * PK could be in use.
          */
-        XmlMapping m2PerhapsInDb = theEntityContext.newModel(XmlMapping.class, 100L);
-        assertEquals((Long)100L, m2PerhapsInDb.getId());
+        XmlMapping m2PerhapsInDb = theEntityContext.newModel(XmlMapping.class, 1000L);
+        assertEquals((Long)1000L, m2PerhapsInDb.getId());
         assertTrue(m2PerhapsInDb.getEntity().isUnclearIfInDatabase());
         assertFalse(m2PerhapsInDb.getEntity().isClearlyNotInDatabase());
         /*
@@ -978,7 +978,7 @@ public class TestPersistence extends TestRemoteClientBase {
         LOG.debug("--------------------------- PERSISTING THE UPDATED SYNTAX END -----------------------");
         assertFalse(m2PerhapsInDb.getEntity().isUnclearIfInDatabase());
         assertTrue(m2PerhapsInDb.getEntity().isLoaded());
-        assertEquals((Long)100L, m2PerhapsInDb.getId());
+        assertEquals((Long)1000L, m2PerhapsInDb.getId());
     }
 
     /**

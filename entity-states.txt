@@ -1,41 +1,6 @@
-when a pk is set, what do we o?
+----
 
- - check the db immediately or wait?
-   - wait and fail later
-   - allow the programmer to CHECK_ALL_ENTITIES
+add entity spec rules
+ - no delete
 
-
-
- - rule - reduce the amount of implicit db calls
-
-Entity
- - must be new
- - must exist
-
-
-
-
-
-entity expectations
-
- - instantiate an entity to:
-
- 1) create a new entry in the database
- 2) create an entity which may or may not yet exist in the database
-
- FETCH WHEN
-  - PK is defined and a getter is called
-
-
-
-
-
-use cases
-
-------------------------------------------------------------
-AUTO GEN OF PK
-------------------------------------------------------------
-CREATE AND SAVE A NEW ENTITY
-
-1) Create a new entity with no PK
-   - state = NEW
+when creating a entity via proxy - the proxy will point to the correct entity (and the data will be merged in.)
