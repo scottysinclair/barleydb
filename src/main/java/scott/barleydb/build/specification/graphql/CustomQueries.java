@@ -38,8 +38,13 @@ public class CustomQueries {
 
 	public void register(String name, QueryObject<?> query) {
 		queries.put(name, query);
-	}
+	} 
 	
+	/**
+	 * 
+	 * @param name
+	 * @return a new instance of the given query.
+	 */
 	public QueryObject<?> getQuery(String name) {
 		QueryObject<?> query = queries.get(name);
 		if (query != null) {

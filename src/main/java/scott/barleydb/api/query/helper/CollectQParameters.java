@@ -28,9 +28,12 @@ package scott.barleydb.api.query.helper;
 import java.util.LinkedList;
 import java.util.List;
 
+import scott.barleydb.api.exception.BarleyDBException;
+import scott.barleydb.api.exception.BarleyDBRuntimeException;
 import scott.barleydb.api.exception.execution.query.ForUpdateNotSupportedException;
 import scott.barleydb.api.exception.execution.query.IllegalQueryStateException;
 import scott.barleydb.api.query.ConditionVisitor;
+import scott.barleydb.api.query.QCondition;
 import scott.barleydb.api.query.QExists;
 import scott.barleydb.api.query.QLogicalOp;
 import scott.barleydb.api.query.QParameter;
@@ -38,6 +41,38 @@ import scott.barleydb.api.query.QPropertyCondition;
 import scott.barleydb.api.query.QueryObject;
 
 public class CollectQParameters {
+	
+	public static <T> List<QParameter<?>> forQuery(QueryObject<?> query) {
+		List<QParameter<?>> result = new LinkedList<>();
+		ConditionVisitor visitor = new ConditionVisitor() {
+			@Override
+			public void visitPropertyCondition(QPropertyCondition qpc) throws IllegalQueryStateException {
+				if (qpc.getValue() instanceof QParameter<?>) {
+					result.add((QParameter<?>)qpc.getValue());
+				}
+			}
+			
+			@Override
+			public void visitLogicalOp(QLogicalOp qlo) throws IllegalQueryStateException, ForUpdateNotSupportedException {
+				qlo.getLeft().visit(this);
+				qlo.getRight().visit(this);
+			}
+			
+			@Override
+			public void visitExists(QExists exists) throws IllegalQueryStateException, ForUpdateNotSupportedException {
+				exists.getSubQueryObject().getCondition().visit(this);
+			}
+		};
+		QCondition cond = query.getCondition();
+		try {
+			cond.visit(visitor);
+			return result;
+		} catch (IllegalQueryStateException x) {
+			throw new BarleyDBRuntimeException("Exception collecting QParameters", x);
+		} catch (ForUpdateNotSupportedException x) {
+			throw new BarleyDBRuntimeException("Exception collecting QParameters", x);
+		}
+	}
 	
 	public static <T> QParameter<T> forQuery(QueryObject<?> query, String parameterName) {
 		if (query.getCondition() == null) {

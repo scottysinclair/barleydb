@@ -49,13 +49,16 @@ public class GraphQLTypeConversion {
 	}
 	
 	private static final SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy");
+	private static synchronized Date parse(String dateString) {
+		try {
+			return df.parse(dateString);
+		} catch (ParseException e) {
+			throw new IllegalStateException(String.format("Cannot convert %s to Util Date", dateString));
+		}
+	}
 	private static Object convertToUtilDate(Object value) {
 		if (value instanceof String) {
-			try {
-				return df.parse((String)value);
-			} catch (ParseException e) {
-				throw new IllegalStateException(String.format("Cannot convert %s to Util Date", value));
-			}
+			return parse((String)value);
 		}
 		return value;
 	}

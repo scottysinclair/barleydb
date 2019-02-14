@@ -110,16 +110,25 @@ public class QueryDataFetcher implements DataFetcher<Object> {
      * build the where clause
      */
     for (Map.Entry<String, Object> argument: graphEnv.getArguments().entrySet()) {
+       /*
+        *  the condition if from a custom query can have any name and must match a query parameter	
+        */
       QParameter<Object> param = findQueryParameter(query, argument.getKey());
-      Object value = typeConvertValue(entityType, argument.getKey(), argument.getValue());
+      Object value = argument.getValue();
       if (param != null) {
     	  if (param.getType() != null) {
+    		  /*
+    		   * if the QParameter has a type then try type conversion (graphql layer type conversion)
+    		   */
     		  value = convertValue(value, param.getType());
     	  }
         param.setValue(value);
         LOG.debug("Set query parameter {}", param.getName());
       }
       else {
+    	  /*
+    	   * otherwise the parameter must match exactly a node.
+    	   */
         QPropertyCondition qcond = createCondition(query, entityType, argument.getKey(), QMathOps.EQ, value);
         query.and(qcond);
         LOG.debug("Added query condition {}", qcond);

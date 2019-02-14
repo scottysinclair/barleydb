@@ -36,15 +36,9 @@ import java.util.stream.Stream;
 
 import scott.barleydb.api.core.types.JavaType;
 import scott.barleydb.api.core.types.Nullable;
-import scott.barleydb.api.exception.execution.query.ForUpdateNotSupportedException;
-import scott.barleydb.api.exception.execution.query.IllegalQueryStateException;
-import scott.barleydb.api.query.ConditionVisitor;
-import scott.barleydb.api.query.QCondition;
-import scott.barleydb.api.query.QExists;
-import scott.barleydb.api.query.QLogicalOp;
 import scott.barleydb.api.query.QParameter;
-import scott.barleydb.api.query.QPropertyCondition;
 import scott.barleydb.api.query.QueryObject;
+import scott.barleydb.api.query.helper.CollectQParameters;
 import scott.barleydb.api.specification.DefinitionsSpec;
 import scott.barleydb.api.specification.EntitySpec;
 import scott.barleydb.api.specification.EnumSpec;
@@ -399,8 +393,7 @@ public class GenerateGrapqlSDL {
 			return getGraphQlTypeName(query);
 		}
 		public Collection<Argument> getArguments() {
-			Collection<QParameter<?>> params = new LinkedList<>();
-			collect(query, params);
+			Collection<QParameter<?>> params = collect(query);
 			return params.stream()
 					.map(QueryParameterArgument::new)
 					.collect(Collectors.toList());
@@ -521,34 +514,8 @@ public class GenerateGrapqlSDL {
 			.collect(Collectors.toMap(FieldDefinition::getName, fd -> fd)));		
 	}
 
-	public void collect(QueryObject<?> query, Collection<QParameter<?>> params) {
-		ConditionVisitor visitor = new ConditionVisitor() {
-			@Override
-			public void visitPropertyCondition(QPropertyCondition qpc) throws IllegalQueryStateException {
-				if (qpc.getValue() instanceof QParameter<?>) {
-					params.add((QParameter<?>)qpc.getValue());
-				}
-			}
-			
-			@Override
-			public void visitLogicalOp(QLogicalOp qlo) throws IllegalQueryStateException, ForUpdateNotSupportedException {
-				qlo.getLeft().visit(this);
-				qlo.getRight().visit(this);
-			}
-			
-			@Override
-			public void visitExists(QExists exists) throws IllegalQueryStateException, ForUpdateNotSupportedException {
-				exists.getSubQueryObject().getCondition().visit(this);
-			}
-		};
-		QCondition cond = query.getCondition();
-		try {
-			cond.visit(visitor);
-		} catch (IllegalQueryStateException e) {
-			e.printStackTrace();
-		} catch (ForUpdateNotSupportedException e) {
-			e.printStackTrace();
-		}
+	public Collection<QParameter<?>> collect(QueryObject<?> query) {
+		return CollectQParameters.forQuery(query);
 	}
 
 	public interface TypeDefinition {
