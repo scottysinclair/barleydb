@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.RefNode;
+import scott.barleydb.api.query.QueryObject;
 
 /**
  * Tracks information about an entity and also holds a weak reference to it.
@@ -61,8 +62,13 @@ public final class EntityInfo extends WeakReference<Entity>  {
     private Object primaryKey;
 
     private String primaryKeyName;
-
-    public EntityInfo(Entity entity, ReferenceQueue<Entity> entityReferenceQueue) {
+    
+    /**
+     * The query object responsible for loading the entity (if loaded from a query).
+     */
+    private final QueryObject<?> fromQuery;
+    
+    public EntityInfo(Entity entity, ReferenceQueue<Entity> entityReferenceQueue, QueryObject<?> fromQuery) {
         super(entity, entityReferenceQueue);
         this.entityType = entity.getEntityType();
         this.fkReferences = new WeakHashMap<>();
@@ -72,6 +78,7 @@ public final class EntityInfo extends WeakReference<Entity>  {
          */
         this.primaryKey = entity.getKey().getValue();
         this.primaryKeyName  = entity.getKey().getName();
+        this.fromQuery = fromQuery;
     }
 
     public Object getPrimaryKey() {
@@ -85,8 +92,12 @@ public final class EntityInfo extends WeakReference<Entity>  {
     public void setPrimaryKey(Object key) {
         this.primaryKey = key;
     }
+    
+    public QueryObject<?> getFromQuery() {
+		return fromQuery;
+	}
 
-    public EntityType getEntityType() {
+	public EntityType getEntityType() {
         return entityType;
     }
 

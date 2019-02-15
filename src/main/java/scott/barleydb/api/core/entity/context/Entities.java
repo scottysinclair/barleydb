@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 
 import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.core.entity.Entity;
+import scott.barleydb.api.query.QueryObject;
 
 public final class Entities implements Iterable<Entity>, Serializable {
     private static final long serialVersionUID = 1L;
@@ -84,11 +85,11 @@ public final class Entities implements Iterable<Entity>, Serializable {
         return allowGarbageCollection;
     }
 
-    public void add(Entity entity) {
+    public void add(Entity entity, QueryObject<?> optionalQuery) {
         pollForCollectedEntities();
         EntityInfo entityInfo = entityInfos.get(entity);
         if (entityInfo == null) {
-            entityInfo = new EntityInfo(entity, entityReferenceQueue);
+            entityInfo = new EntityInfo(entity, entityReferenceQueue, optionalQuery);
             entityInfos.put(entity, entityInfo);
             addEntityByType(entityInfo);
             entityByUuid.put(entity.getUuid(), entityInfo);
@@ -282,6 +283,11 @@ public final class Entities implements Iterable<Entity>, Serializable {
         }
         return false;
     }
+
+	public QueryObject<?> getAssociatedQuery(Entity entity) {
+		EntityInfo ei = entityInfos.get(entity);
+		return ei != null ? ei.getFromQuery() : null;
+	}
 
 
 }

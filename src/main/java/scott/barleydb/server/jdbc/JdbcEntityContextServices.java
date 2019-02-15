@@ -299,7 +299,7 @@ public class JdbcEntityContextServices implements IEntityContextServices {
             /*
              * convert the result stream to a full in-memory result
              */
-            return toQueryResult(entityContext, executer.execute(execution));
+            return toQueryResult(entityContext, executer.execute(execution), execution);
         }
         catch(EntityStreamException x) {
             throw new BarleyDBQueryException("Error processing entity stream", x);
@@ -327,7 +327,7 @@ public class JdbcEntityContextServices implements IEntityContextServices {
 
         try (OptionalyClosingResources con = new OptionalyClosingResources(conRes, returnToPool);) {
             QueryExecuter exec = new QueryExecuter(this, conRes, entityContext, props, returnToPool);
-            return toQueryBatchResult(entityContext, queryBatcher, exec.execute(queryExecutions) );
+            return toQueryBatchResult(entityContext, queryBatcher, exec.execute(queryExecutions), queryExecutions);
         }
         catch(EntityStreamException x) {
             throw new BarleyDBQueryException("Error processing entity stream", x);
@@ -421,7 +421,7 @@ public class JdbcEntityContextServices implements IEntityContextServices {
      * @return
      * @throws EntityStreamException
      */
-    private <T> QueryResult<T> toQueryResult(EntityContext entityContext, QueryEntityDataInputStream in) throws EntityStreamException {
+    private <T> QueryResult<T> toQueryResult(EntityContext entityContext, QueryEntityDataInputStream in, QueryExecution<?> queryExecution) throws EntityStreamException {
         LOG.debug("Consuming QueryEntityDataInputStream and generating a QueryResult...");
         QueryResult<T> result = new QueryResult<>(entityContext);
         QueryResultItem qitem;
@@ -430,7 +430,8 @@ public class JdbcEntityContextServices implements IEntityContextServices {
             LOG.debug("START PROCESSING QUERY RESULT ITEM FROM STEAM.");
             List<Entity> entities = new LinkedList<>();
             for (EntityData entityData:  qitem.getObjectGraph().getEntityData()) {
-                entities.add( entityContext.addEntityLoadedFromDB( entityData  ));
+            	Entity newE = entityContext.addEntityLoadedFromDB( entityData, getAssociatedQuery(entityData, queryExecution)  );
+                entities.add( newE );
                 if (entities.size() == 1) {
                     result.getEntityList().add( entities.get(0));
                 }
@@ -446,7 +447,7 @@ public class JdbcEntityContextServices implements IEntityContextServices {
         return result;
     }
 
-    private QueryBatcher toQueryBatchResult(EntityContext entityContext, QueryBatcher queryBatcher, QueryEntityDataInputStream in) throws EntityStreamException {
+    private QueryBatcher toQueryBatchResult(EntityContext entityContext, QueryBatcher queryBatcher, QueryEntityDataInputStream in, QueryExecution<?> queryExecutions[]) throws EntityStreamException {
         LOG.debug("Consuming QueryEntityDataInputStream and generating a QueryResult...");
         for (int i=0, n=queryBatcher.getQueries().size(); i<n; i++) {
             queryBatcher.addResult( new QueryResult<>(entityContext) );
@@ -458,7 +459,7 @@ public class JdbcEntityContextServices implements IEntityContextServices {
 
             List<Entity> entities = new LinkedList<>();
             for (EntityData entityData:  qitem.getObjectGraph().getEntityData()) {
-                entities.add( entityContext.addEntityLoadedFromDB( entityData  ));
+                entities.add( entityContext.addEntityLoadedFromDB( entityData,  getAssociatedQuery(entityData, queryExecutions)));
                 if (entities.size() == 1) {
                     queryBatcher.getResults().get( qitem.getQueryIndex() ).getEntityList().add( entities.get(0));
                 }
@@ -474,7 +475,17 @@ public class JdbcEntityContextServices implements IEntityContextServices {
     }
 
 
-    private OptionalyClosingResources newOptionallyClosingConnection(EntityContext entityContext) throws SortJdbcException {
+    private QueryObject<?> getAssociatedQuery(EntityData entityData, QueryExecution<?> ...queryExecutions) {
+    	for (QueryExecution<?> qe: queryExecutions) {
+    		QueryObject<?> qo = qe.getEntityToQueryMap().get(entityData);
+    		if (qo != null) {
+    			return qo;
+    		}
+    	}
+		return null;
+	}
+
+	private OptionalyClosingResources newOptionallyClosingConnection(EntityContext entityContext) throws SortJdbcException {
         ConnectionResources conRes = ConnectionResources.get(entityContext);
         boolean returnToPool = false;
         if (conRes == null) {

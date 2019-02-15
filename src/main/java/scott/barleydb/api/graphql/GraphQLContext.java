@@ -1,7 +1,12 @@
 package scott.barleydb.api.graphql;
 
+import java.util.Map;
+
+import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.FetchHelper.EntityPath;
 import scott.barleydb.api.query.QJoin;
+import scott.barleydb.api.query.QueryObject;
+import scott.barleydb.server.jdbc.query.QueryResult;
 
 /*-
  * #%L
@@ -36,6 +41,6 @@ public interface GraphQLContext {
 
 	void registerJoinBreak(QJoin join);
 
-	QJoin getJoinBreakFor(EntityPath entityPath, String property);
+	QJoin getJoinBreakFor(Entity entity, String property);
 
 }

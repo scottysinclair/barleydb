@@ -55,6 +55,7 @@ import scott.barleydb.api.query.QPropertyCondition;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.query.helper.CollectQParameters;
 import scott.barleydb.build.specification.graphql.CustomQueries;
+import scott.barleydb.server.jdbc.query.QueryResult;
 
 /**
  * Fetches data for a graphql query.
@@ -93,7 +94,10 @@ public class QueryDataFetcher implements DataFetcher<Object> {
     
     breakQuery(graphEnv, query);
     
-    List<Entity> result = ctx.performQuery(query).getEntityList();
+    GraphQLContext gctx = graphEnv.getContext();
+    QueryResult<Object> queryResult = ctx.performQuery(query);
+    
+    List<Entity> result = queryResult.getEntityList();
     LOG.debug("Processed {} rows", ctx.getStatistics().getNumberOfRowsRead());
     if (graphEnv.getExecutionStepInfo().getType() instanceof GraphQLList) {
       for (Entity e: result) {
@@ -121,7 +125,7 @@ public class QueryDataFetcher implements DataFetcher<Object> {
 			  gctx.registerJoinBreak(join);
 		  }
 		  //TODO:recurse through breaking queries
-		//  breakQuery(graphEnv, (QueryObject<Object>)join.getTo());
+		breakQuery(graphEnv, (QueryObject<Object>)join.getTo());
 	  }
   }
 

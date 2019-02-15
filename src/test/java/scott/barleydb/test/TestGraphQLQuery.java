@@ -64,6 +64,7 @@ import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.types.JavaType;
 import scott.barleydb.api.graphql.BarleyGraphQLSchema;
 import scott.barleydb.api.graphql.GraphQLContext;
+import scott.barleydb.api.query.QJoin;
 import scott.barleydb.api.query.QParameter;
 import scott.barleydb.api.query.QProperty;
 import scott.barleydb.api.query.QueryObject;
@@ -125,9 +126,22 @@ public class TestGraphQLQuery extends TestRemoteClientBase {
     	System.out.println(result);
     }
 
+    private int queryDepth(QJoin join) {
+    	if (join == null) {
+    		return 0;
+    	}
+    	return 2 + queryDepth(join.getFrom().getJoined());
+    }
+    
+    
     @Test
     public void testGraphQLQuery2() {
     	System.out.println("-----------------------------------------------------------------------------------------");
+
+    	gContext.getQueryCustomizations().setShouldBreakPredicate((qjoin) -> {
+    		int qDepth = queryDepth(qjoin);
+    		return  qDepth >= 3;
+    	});
     	Object result = gContext.execute("{xmlSyntaxModelById(id: 1) {" + 
     	" id \n " + 
     	" name \n " + 

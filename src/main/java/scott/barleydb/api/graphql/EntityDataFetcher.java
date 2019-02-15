@@ -28,11 +28,9 @@ package scott.barleydb.api.graphql;
 import static java.util.Objects.requireNonNull;
 import static scott.barleydb.api.graphql.GraphQLTypeConversion.convertValue;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +38,6 @@ import org.slf4j.LoggerFactory;
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import graphql.schema.GraphQLList;
 import graphql.schema.SelectedField;
 import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.config.NodeType;
@@ -53,7 +50,6 @@ import scott.barleydb.api.core.entity.ProxyController;
 import scott.barleydb.api.core.entity.RefNode;
 import scott.barleydb.api.core.entity.ToManyNode;
 import scott.barleydb.api.core.entity.ValueNode;
-import scott.barleydb.api.core.entity.FetchHelper.EntityPath;
 import scott.barleydb.api.query.JoinType;
 import scott.barleydb.api.query.QJoin;
 import scott.barleydb.api.query.QMathOps;
@@ -62,7 +58,6 @@ import scott.barleydb.api.query.QProperty;
 import scott.barleydb.api.query.QPropertyCondition;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.query.helper.CollectQParameters;
-import scott.barleydb.build.specification.graphql.CustomQueries;
 
 /**
  * Fetches data for a graphql query.
@@ -109,8 +104,8 @@ public class EntityDataFetcher implements DataFetcher<Object> {
 			if (!ref.isFetchRequired()) {
 				return ref;
 			}
-			EntityPath entityPath = ctx.getPathToBatchFetchRoot(entity);
-			QueryObject<Object> fetchQuery = getQueryFor(graphEnv, entityPath, fieldToFetch.getName());
+			QueryObject<Object> fetchQuery = getJoinAt(graphEnv, entity, fieldToFetch.getName());
+			Objects.requireNonNull(fetchQuery, () -> "fetch query must exist for entity " + entity + " and field " + fieldToFetch.getName());
 			ctx.register(fetchQuery);
 			try {
 				refNode.getReference().fetchIfRequiredAndAllowed();
@@ -124,8 +119,8 @@ public class EntityDataFetcher implements DataFetcher<Object> {
 			if (tmNode.isFetched()) {
 				return tmNode.getList();
 			}
-			EntityPath entityPath = ctx.getPathToBatchFetchRoot(entity);
-			QueryObject<Object> fetchQuery = getQueryFor(graphEnv, entityPath, fieldToFetch.getName());
+			QueryObject<Object> fetchQuery = getJoinAt(graphEnv, entity, fieldToFetch.getName());
+			Objects.requireNonNull(fetchQuery, () -> "fetch query must exist for entity " + entity + " and field " + fieldToFetch.getName());
 			ctx.register(fetchQuery);
 			try {
 				fetchIfNeeded(tmNode);
@@ -139,18 +134,24 @@ public class EntityDataFetcher implements DataFetcher<Object> {
 		}
 	}
   
+	private QueryObject<Object> getJoinAt(DataFetchingEnvironment graphEnv, Entity entity, String property) {
+		GraphQLContext gctx = graphEnv.getContext();
+		QJoin join = gctx.getJoinBreakFor(entity, property);
+	    return (QueryObject<Object> )(join != null ? join.getTo() : null);
+	}
+
 	/**
 	 * 
 	 * @param graphEnv
 	 * @param entityPath can be null if root entity
 	 * @param property
 	 * @return
-	 */
   private QueryObject<Object> getQueryFor(DataFetchingEnvironment graphEnv, EntityPath entityPath, String property) {
 	GraphQLContext gctx = graphEnv.getContext();
     QJoin join = gctx.getJoinBreakFor(entityPath, property);
     return (QueryObject<Object> )(join != null ? join.getTo() : null);
   }
+	 */
 
   private void fetchIfNeeded(ToManyNode toManyNode) {
       if (toManyNode.getParent().isClearlyNotInDatabase()) {
@@ -164,58 +165,6 @@ public class EntityDataFetcher implements DataFetcher<Object> {
       }
   }  
 
-  private void breakQuery(DataFetchingEnvironment graphEnv, QueryObject<Object> query) {
-	  GraphQLContext graphCtx = graphEnv.getContext();
-	  for (QJoin join: new ArrayList<>(query.getJoins())) {
-		  if (graphCtx.getQueryCustomizations().shouldBreakJoin(join)) {
-			  query.removeJoin(join);
-		  }
-	  }
-  }
-
-  private QueryObject<Object> buildQuery(DataFetchingEnvironment graphEnv, EntityType entityType) {
-    QueryObject<Object> query = new QueryObject<>(entityType.getInterfaceName());
-    return buildQuery(graphEnv, query, entityType);
-  }
-
-  private QueryObject<Object> buildQuery(DataFetchingEnvironment graphEnv, QueryObject<Object> query) {
-    EntityType entityType = env.getDefinitionsSet().getFirstEntityTypeByInterfaceName(query.getTypeName());
-    return buildQuery(graphEnv, query, entityType);
-  }
-
-  private QueryObject<Object> buildQuery(DataFetchingEnvironment graphEnv, QueryObject<Object> query, EntityType entityType) {
-    /*
-     * build the where clause
-     */
-    for (Map.Entry<String, Object> argument: graphEnv.getArguments().entrySet()) {
-       /*
-        *  the condition if from a custom query can have any name and must match a query parameter	
-        */
-      QParameter<Object> param = findQueryParameter(query, argument.getKey());
-      Object value = argument.getValue();
-      if (param != null) {
-    	  if (param.getType() != null) {
-    		  /*
-    		   * if the QParameter has a type then try type conversion (graphql layer type conversion)
-    		   */
-    		  value = convertValue(value, param.getType());
-    	  }
-        param.setValue(value);
-        LOG.debug("Set query parameter {}", param.getName());
-      }
-      else {
-    	  /*
-    	   * otherwise the parameter must match exactly a node.
-    	   */
-        QPropertyCondition qcond = createCondition(query, entityType, argument.getKey(), QMathOps.EQ, value);
-        query.and(qcond);
-        LOG.debug("Added query condition {}", qcond);
-      }
-    }
-    setProjection(graphEnv, entityType, query);
-    return query;
-  }
-    
   private void setProjection(DataFetchingEnvironment graphEnv, EntityType entityType, QueryObject<Object> query) {
     /*
      * set the projection
@@ -233,20 +182,6 @@ public class EntityDataFetcher implements DataFetcher<Object> {
     forceSelectForeignKeysAndSortNodes(query);
   }
 
-  private Object typeConvertValue(EntityType entityType, String property, Object value) {
-	 NodeType nodeType = entityType.getNodeType(property, false);
-	 if (nodeType == null) {
-		 return value;
-	 }
-	 if (nodeType.getJavaType() != null) {
-		 switch(nodeType.getJavaType()) {
-		 case BIGDECIMAL: if (value instanceof Double) {
-			 return new BigDecimal((Double)value);
-		 }
-		 }
-	 }
-	return value;
-}
 
 private QParameter<Object> findQueryParameter(QueryObject<?> query, String parameterName) {
     return CollectQParameters.forQuery(query, parameterName);
@@ -340,16 +275,6 @@ private QParameter<Object> findQueryParameter(QueryObject<?> query, String param
     QProperty<Object> prop = new QProperty<>(query, propertyName);
     value = convertValue(entityType.getNodeType(propertyName, true), value);
     return new QPropertyCondition(prop, QMathOps.EQ, value);
-  }
-
-  private EntityType getEntityTypeForQuery(DataFetchingEnvironment graphEnv) {
-    String entityName = graphEnv.getExecutionStepInfo().getType().getName();
-    if (entityName == null) {
-      entityName = graphEnv.getExecutionStepInfo().getType().getChildren().get(0).getName();
-    }
-    EntityType et = env.getDefinitionsSet().getFirstEntityTypeByInterfaceName(namespace + ".model." + entityName);
-    requireNonNull(et, "EntityType must exist");
-    return et;
   }
 
 }

@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 
 import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.config.NodeType;
+import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityConstraint;
 import scott.barleydb.api.core.entity.EntityState;
 import scott.barleydb.api.core.types.JavaType;
@@ -75,7 +76,7 @@ final class EntityLoader {
     private final QueryObject<?> queryObject;
     private final ResultSet resultSet;
     private final Map<Integer, Object> rowCache;
-    private final LinkedHashMap<EntityKey, EntityData> loadedEntityData;;
+    private final LinkedHashMap<EntityKey, EntityData> loadedEntityData;
 
     public EntityLoader(EntityLoaders entityLoaders, Projection projection, QueryObject<?> queryObject,
             ResultSet resultSet) {
@@ -149,6 +150,7 @@ final class EntityLoader {
         EntityKey key = new EntityKey(entityType, getKey(entityData, entityType));
         entityLoaders.getLoadedEntityData().put(key, entityData);
         loadedEntityData.put(key, entityData);
+        entityLoaders.associateEntityDataToQuery(entityData, queryObject);
         return entityData;
     }
 

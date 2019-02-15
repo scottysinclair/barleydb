@@ -24,8 +24,10 @@ package scott.barleydb.server.jdbc.query;
 
 import java.io.Serializable;
 import java.util.AbstractList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +36,7 @@ import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.entity.EntityContextHelper;
 import scott.barleydb.api.core.entity.EntityContextState;
+import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.server.jdbc.query.QueryResult;
 import scott.barleydb.server.jdbc.query.QueryResultList;
 
@@ -58,7 +61,7 @@ public class QueryResult<T> implements Serializable {
         this.entityContext = entityContext;
         this.result = new QueryResultList<T>(entityContext, entities);
     }
-
+    
     /**
      * Gets the result list
      * @return

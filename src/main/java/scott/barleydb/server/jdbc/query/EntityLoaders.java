@@ -29,6 +29,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import scott.barleydb.api.config.Definitions;
 import scott.barleydb.api.config.EntityType;
@@ -48,10 +49,12 @@ final class EntityLoaders implements Iterable<EntityLoader> {
     private final List<EntityLoader> entityLoadersList;
     private final Definitions definitions;
     private final LinkedHashMap<EntityKey, EntityData> loadedEntityData = new LinkedHashMap<>();
+    private final Map<EntityData, QueryObject<?>> entityDataToQueryMap;
 
-    public EntityLoaders(JdbcEntityContextServices entityContextServices, Definitions definitions, Projection projection, ResultSet resultSet) {
+    public EntityLoaders(JdbcEntityContextServices entityContextServices, Definitions definitions, Projection projection, ResultSet resultSet, Map<EntityData, QueryObject<?>> entityDataToQueryMap) {
         this.entityContextServices = entityContextServices;
         this.definitions = definitions;
+        this.entityDataToQueryMap = entityDataToQueryMap;
         this.entityLoadersList = build(projection, resultSet);
     }
 
@@ -105,6 +108,10 @@ final class EntityLoaders implements Iterable<EntityLoader> {
             loader.clearLoadedEntityData();
         }
     }
+
+	public void associateEntityDataToQuery(EntityData entityData, QueryObject<?> queryObject) {
+		entityDataToQueryMap.put(entityData, queryObject);
+	}
 }
 
 class EntityKey {

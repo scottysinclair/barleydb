@@ -24,9 +24,12 @@ package scott.barleydb.server.jdbc.query;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import scott.barleydb.api.config.Definitions;
 import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.config.NodeType;
+import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.entity.Statistics;
 import scott.barleydb.api.exception.execution.jdbc.SortJdbcException;
@@ -68,6 +72,7 @@ public class QueryExecution<T> {
     private final Projection projection;
     private final Database database;
     private EntityLoaders entityLoaders;
+    private final Map<EntityData, QueryObject<?>> entityDataToQueryMap;
     private QueryGenerator qGen;
     private int rowCount = 1;
 
@@ -76,10 +81,11 @@ public class QueryExecution<T> {
         this.query = query;
         this.definitions = definitions;
         this.projection = new Projection(definitions);
+        this.entityDataToQueryMap = new ConcurrentHashMap<>();
         this.database = ConnectionResources.getMandatoryForQuery(entityContext).getDatabase();
         projection.build(query);
     }
-
+    
     public String getSql(List<Param> queryParameters) throws IllegalQueryStateException, ForUpdateNotSupportedException {
         qGen = new QueryGenerator(database, query, definitions);
         return qGen.generateSQL(projection, queryParameters);
@@ -172,7 +178,7 @@ public class QueryExecution<T> {
 
     private void prepareEntityLoadersForNewRow(ResultSet resultSet) {
         if (entityLoaders == null) {
-            entityLoaders = new EntityLoaders(entityContextServices, definitions, projection, resultSet);
+            entityLoaders = new EntityLoaders(entityContextServices, definitions, projection, resultSet, entityDataToQueryMap);
         }
         else {
             entityLoaders.clearRowCache();
@@ -205,5 +211,9 @@ public class QueryExecution<T> {
     private Object getKey(EntityData entityData, EntityType entityType) {
         return entityData.getData().get( entityType.getKeyNodeName() );
     }
+
+	public Map<EntityData,QueryObject<?>> getEntityToQueryMap() {
+		return entityDataToQueryMap;
+	}
 
 }

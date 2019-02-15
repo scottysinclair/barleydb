@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +52,11 @@ public class QueryObject<R> implements Serializable {
 
     @SuppressWarnings("unused")
     private static final Logger LOG = LoggerFactory.getLogger(QueryObject.class);
+    
+    /*
+     * clone safe UUID
+     */
+    private final UUID uuid = UUID.randomUUID();
 
     //private final Class<R> typeClass;
     private final String typeName;
@@ -112,7 +118,12 @@ public class QueryObject<R> implements Serializable {
         }
         return this;
     }
-    /**
+    
+    public UUID getUuid() {
+		return uuid;
+	}
+
+	/**
      * The select clause defines what columns are selected for.<br/>
      *<br/>
      * note: the underlying query executer may decide to select more columns than specified, if required.<br/>
@@ -320,11 +331,28 @@ public class QueryObject<R> implements Serializable {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + " ";
+        return getClass().getSimpleName() + " " + getSimpleTypeName();
+    }
+    
+    public String getSimpleTypeName() {
+    	int i = typeName.lastIndexOf('.');
+    	if (i >= 0 && i<typeName.length()) {
+    		return typeName.substring(i+1);
+    	}
+    	return typeName;
     }
 
 	public void removeJoin(QJoin join) {
 		joins.remove(join);
+	}
+
+	public QJoin getJoinTo(String property) {
+		for (QJoin join: joins) {
+			if (join.getFkeyProperty().equals(property)) {
+				return join;
+			}
+		}
+		return null;
 	}
 
 }

@@ -1,5 +1,7 @@
 package scott.barleydb.api.graphql;
 
+import java.util.function.Predicate;
+
 import scott.barleydb.api.query.QJoin;
 
 /**
@@ -8,9 +10,18 @@ import scott.barleydb.api.query.QJoin;
  *
  */
 public class GraphQLQueryCustomizations {
+	
+	private Predicate<QJoin> shouldBreakPredicate;
 
 	public boolean shouldBreakJoin(QJoin join) {
-		return true;
+		if (shouldBreakPredicate == null) {
+			return false;
+		}
+		return shouldBreakPredicate.test(join);
+	}
+
+	public void setShouldBreakPredicate(Predicate<QJoin> shouldBreakPredicate) {
+		this.shouldBreakPredicate = shouldBreakPredicate;
 	}
 
 	public GraphQLQueryCustomizations copy() {

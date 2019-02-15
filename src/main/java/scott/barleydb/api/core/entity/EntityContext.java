@@ -135,6 +135,7 @@ public class EntityContext implements Serializable {
 
     private Statistics statistics = new Statistics();
 
+
     public EntityContext(Environment env, String namespace) {
         this.env = env;
         this.namespace = namespace;
@@ -508,14 +509,14 @@ public class EntityContext implements Serializable {
      * @param entityData
      * @return
      */
-    public Entity addEntityLoadedFromDB(EntityData entityData) {
+    public Entity addEntityLoadedFromDB(EntityData entityData, QueryObject<?> optionalQuery) {
         EntityType entityType = definitions.getEntityTypeMatchingInterface(entityData.getEntityType(), true);
         Object key = entityData.getData().get( entityType.getKeyNodeName() );
         LOG.debug("Adding or creating Entity for EntityData {} with key {}", entityType, key);
         Entity entity = getEntity(entityType, key, false);
         if (entity == null) {
             entity = new Entity(this, entityType, key, entityData.getConstraints());
-            add(entity);
+            add(entity, optionalQuery);
         }
         else {
             LOG.debug("Found entity already in ctx {}", entity);
@@ -578,15 +579,21 @@ public class EntityContext implements Serializable {
     }
 
 
+    public QueryObject<?> getAssociatedQuery(Entity entity) {
+    	return entities.getAssociatedQuery(entity);
+    }
 
     void add(Entity entity) {
+    	add(entity, null);
+    }
+    void add(Entity entity, QueryObject<?> optionalQuery) {
         if (getEntityByUuid(entity.getUuid(), false) != null) {
             throw new IllegalStateException("Entity with uuid '" + entity.getUuid() + "' already exists.");
         }
         if (entity.getKey().getValue() != null && getEntity(entity.getEntityType(), entity.getKey().getValue(), false) != null) {
             throw new IllegalStateException("Entity with key '" + entity.getKey().getValue() + "' already exists.");
         }
-        entities.add(entity);
+        entities.add(entity, optionalQuery);
         LOG.debug("Added to entityContext " + entity);
     }
 

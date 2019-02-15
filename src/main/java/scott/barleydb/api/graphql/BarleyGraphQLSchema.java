@@ -4,8 +4,7 @@ import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -46,7 +45,7 @@ import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import scott.barleydb.api.core.Environment;
-import scott.barleydb.api.core.entity.FetchHelper.EntityPath;
+import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.query.QJoin;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.specification.DefinitionsSpec;
@@ -138,47 +137,32 @@ public class BarleyGraphQLSchema {
 		public GraphQLQueryCustomizations getQueryCustomizations() {
 			return queryCustomizations;
 		}
-
+		
 		@Override
 		public void registerJoinBreak(QJoin join) {
 			this.joinBreaks.add(join);
 		}
 
 		@Override
-		public QJoin getJoinBreakFor(EntityPath entityPath, String property) {
-			for (QJoin join: joinBreaks) {
-				if (pathMatchesJoin(join, entityPath, property)) {
-					return join;
+		public QJoin getJoinBreakFor(Entity entity, String property) {
+			QueryObject<?> query = entity.getEntityContext().getAssociatedQuery(entity);
+			Objects.requireNonNull(query, "query must exist for loaded entity " + entity);
+			return getJoinBreakFor(query, property);
+		}
+		
+		private QJoin getJoinBreakFor(QueryObject<?> query, String property) {
+			for (QJoin joinBreak: joinBreaks) {
+				/*
+				 * compare UUIDs because registered queries are cloned and then executed
+				 * UUIDs are kept across cloning.
+				 */
+				if (joinBreak.getFrom().getUuid().equals(query.getUuid()) && joinBreak.getFkeyProperty().equals(property)) {
+					return joinBreak;
 				}
 			}
 			return null;
 		}
 
-		private boolean pathMatchesJoin(QJoin join, EntityPath entityPath, String property) {
-			if (!join.getFkeyProperty().equals(property)) {
-				return false;
-			}
-			if (entityPath == null) {
-				return true;
-			}
-			List<QueryObject<Object>> queriesInJoin = toListOfQueries(join); 
-			for (int i = 0; i<queriesInJoin.size(); i++) {
-				QueryObject<Object> q = queriesInJoin.get(i);
-				if (!q.getTypeName().equals( entityPath.getEntity().getEntityType().getInterfaceName())) {
-					return false;
-				}
-			}
-			return true;
-		}
-
-		private List<QueryObject<Object>> toListOfQueries(QJoin join) {
-			LinkedList<QueryObject<Object>> result = new LinkedList<>();
-			while (join != null) {
-				result.addLast((QueryObject<Object>)join.getFrom());
-				join = join.getFrom().getJoined();
-			}
-			return result;
-		}
 	}
 	
 }

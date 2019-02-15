@@ -45,7 +45,7 @@ public class EntityData implements Serializable {
     private EntityConstraint constraints;
     private EntityState entityState;
     private UUID uuid;
-
+    
     public String getNamespace() {
         return namespace;
     }
