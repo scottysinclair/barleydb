@@ -78,6 +78,8 @@ import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.execution.persist.OptimisticLockMismatchException;
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
 import scott.barleydb.api.exception.execution.query.BarleyDBQueryException;
+import scott.barleydb.api.exception.execution.query.ForUpdateNotSupportedException;
+import scott.barleydb.api.exception.execution.query.IllegalQueryStateException;
 import scott.barleydb.api.exception.model.ProxyCreationException;
 import scott.barleydb.api.persist.OperationType;
 import scott.barleydb.api.persist.PersistAnalyser;
@@ -89,7 +91,9 @@ import scott.barleydb.api.stream.EntityStreamException;
 import scott.barleydb.api.stream.ObjectInputStream;
 import scott.barleydb.api.stream.QueryEntityDataInputStream;
 import scott.barleydb.api.stream.QueryEntityInputStream;
+import scott.barleydb.server.jdbc.query.QueryGenerator;
 import scott.barleydb.server.jdbc.query.QueryResult;
+import scott.barleydb.server.jdbc.query.QueryGenerator.Param;
 
 /**
  * Contains a set of entities.<br/>
@@ -521,6 +525,7 @@ public class EntityContext implements Serializable {
         else {
             LOG.debug("Found entity already in ctx {}", entity);
             entity.getConstraints().set( entityData.getConstraints() );
+            entity.getEntityContext().setAssociatedQuery(entity, optionalQuery);
         }
         if (entity.getEntityState() == EntityState.NOTLOADED) {
             for (Node child: entity.getChildren()) {
@@ -579,7 +584,11 @@ public class EntityContext implements Serializable {
     }
 
 
-    public QueryObject<?> getAssociatedQuery(Entity entity) {
+    private void setAssociatedQuery(Entity entity, QueryObject<?> query) {
+    	entities.setAssociatedQuery(entity, query);
+	}
+
+	public QueryObject<?> getAssociatedQuery(Entity entity) {
     	return entities.getAssociatedQuery(entity);
     }
 
@@ -1332,4 +1341,9 @@ public class EntityContext implements Serializable {
 	public EntityPath getPathToBatchFetchRoot(Entity entity) {
 		return fetchHelper.findShortestPath(entity);
 	}
+	
+	public String debugQueryString(QueryObject<Object> query) {
+	  return env.services().debugQueryString(query, namespace);
+	}
+
 }

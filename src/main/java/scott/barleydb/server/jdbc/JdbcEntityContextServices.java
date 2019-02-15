@@ -26,6 +26,7 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -73,6 +74,7 @@ import scott.barleydb.server.jdbc.persist.Persister;
 import scott.barleydb.server.jdbc.persist.SequenceGenerator;
 import scott.barleydb.server.jdbc.query.QueryExecuter;
 import scott.barleydb.server.jdbc.query.QueryExecution;
+import scott.barleydb.server.jdbc.query.QueryGenerator;
 import scott.barleydb.server.jdbc.query.QueryResult;
 import scott.barleydb.server.jdbc.resources.ConnectionResources;
 import scott.barleydb.server.jdbc.vendor.Database;
@@ -551,6 +553,17 @@ public class JdbcEntityContextServices implements IEntityContextServices {
         return typeConverters.get(typeConverterFqn);
     }
 
+	public String debugQueryString(QueryObject<Object> query, String namespace) {
+		try {
+			QueryGenerator qGen = new QueryGenerator(databases.get(0), query, env.getDefinitionsSet().getDefinitions(namespace));
+	        return qGen.generateSQL(null, new LinkedList<>());
+		}
+		catch(Exception x) {
+			x.printStackTrace(System.err);
+			return null;
+		}
+	}
+
 }
 
 class OptionalyClosingResources implements AutoCloseable {
@@ -577,5 +590,4 @@ class OptionalyClosingResources implements AutoCloseable {
     public Connection getConnection() {
         return conRes.getConnection();
     }
-
 }

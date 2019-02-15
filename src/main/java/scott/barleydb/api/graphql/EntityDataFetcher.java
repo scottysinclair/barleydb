@@ -86,9 +86,11 @@ public class EntityDataFetcher implements DataFetcher<Object> {
 		} else {
 			throw new IllegalStateException("Unknown source " + graphEnv.getSource().getClass());
 		}
+		
 
 		EntityContext ctx = entity.getEntityContext();
 		Field fieldToFetch = graphEnv.getExecutionStepInfo().getField();
+		LOG.debug("Fetching {} property {}", entity, fieldToFetch.getName());
 		Node node = entity.getChild(fieldToFetch.getName());
 		if (node == null) {
 			throw new IllegalStateException("Could not find node matching graphql field: " + fieldToFetch);

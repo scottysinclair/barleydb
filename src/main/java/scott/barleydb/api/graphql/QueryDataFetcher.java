@@ -91,6 +91,7 @@ public class QueryDataFetcher implements DataFetcher<Object> {
     else {
       buildQuery(graphEnv, query);
     }
+    LOG.debug("Built full query which will be broken into chunks, query => {}", ctx.debugQueryString(query));
     
     breakQuery(graphEnv, query);
     

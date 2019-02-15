@@ -157,4 +157,8 @@ public interface IEntityContextServices {
      * @throws SortPersistException
      */
     PersistAnalyser execute(PersistRequest persistRequest, RuntimeProperties props) throws SortServiceProviderException, SortPersistException;
+
+
+	String debugQueryString(QueryObject<Object> query, String namespace);
+
 }

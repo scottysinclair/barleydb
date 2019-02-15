@@ -66,7 +66,7 @@ public final class EntityInfo extends WeakReference<Entity>  {
     /**
      * The query object responsible for loading the entity (if loaded from a query).
      */
-    private final QueryObject<?> fromQuery;
+    private QueryObject<?> fromQuery;
     
     public EntityInfo(Entity entity, ReferenceQueue<Entity> entityReferenceQueue, QueryObject<?> fromQuery) {
         super(entity, entityReferenceQueue);
@@ -146,6 +146,10 @@ public final class EntityInfo extends WeakReference<Entity>  {
             return getEntityType().getInterfaceShortName() + " [uuid=" + getUuid().toString().substring(0, 7) + "..]";
         }
     }
+
+	public void setFromQuery(QueryObject<?> query) {
+		this.fromQuery = query;
+	}
 
 }
 

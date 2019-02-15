@@ -289,5 +289,13 @@ public final class Entities implements Iterable<Entity>, Serializable {
 		return ei != null ? ei.getFromQuery() : null;
 	}
 
+	public void setAssociatedQuery(Entity entity, QueryObject<?> query) {
+		EntityInfo ei = entityInfos.get(entity);
+		if (ei != null) {
+			ei.setFromQuery(query);
+		}
+		
+	}
+
 
 }

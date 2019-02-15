@@ -35,6 +35,7 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import org.example.acl.query.QUser;
+import org.example.etl.EtlEntityContext;
 import org.example.etl.model.CsvSyntaxModel;
 import org.example.etl.model.SyntaxModel;
 import org.example.etl.model.Template;
@@ -62,8 +63,11 @@ import org.springframework.test.jdbc.SimpleJdbcTestUtils;
 import scott.barleydb.api.core.QueryBatcher;
 import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.types.JavaType;
+import scott.barleydb.api.exception.execution.SortServiceProviderException;
+import scott.barleydb.api.exception.execution.persist.SortPersistException;
 import scott.barleydb.api.graphql.BarleyGraphQLSchema;
 import scott.barleydb.api.graphql.GraphQLContext;
+import scott.barleydb.api.persist.PersistRequest;
 import scott.barleydb.api.query.QJoin;
 import scott.barleydb.api.query.QParameter;
 import scott.barleydb.api.query.QProperty;
@@ -95,7 +99,7 @@ public class TestGraphQLQuery extends TestRemoteClientBase {
     @Override
     protected void prepareData() throws Exception {
         super.prepareData();
-        executeScript("/inserts.sql", false);
+        //executeScript("/inserts.sql", false);
     }
 
     @Override
@@ -135,12 +139,21 @@ public class TestGraphQLQuery extends TestRemoteClientBase {
     
     
     @Test
-    public void testGraphQLQuery2() {
+    public void testGraphQLQuery2() throws SortServiceProviderException, SortPersistException {
     	System.out.println("-----------------------------------------------------------------------------------------");
 
+    	EtlEntityContext ctx = new EtlEntityContext(env);
+    	XmlSyntaxModel syntax = TestPersistence.buildSyntax(ctx);
+    	syntax.getMappings().get(0).setSubSyntax(TestPersistence.buildSyntax(ctx));
+    	syntax.getMappings().get(1).setSubSyntax(TestPersistence.buildSyntax(ctx));
+    	syntax.getMappings().get(2).setSubSyntax(TestPersistence.buildSyntax(ctx));
+    	ctx.persist(new PersistRequest().insert(syntax));
+    	
     	gContext.getQueryCustomizations().setShouldBreakPredicate((qjoin) -> {
-    		int qDepth = queryDepth(qjoin);
-    		return  qDepth >= 3;
+    		return qjoin.getFkeyProperty().equals("subSyntax");
+//    		return true;
+//    		int qDepth = queryDepth(qjoin);
+  //  		return  qDepth % 4 == 0;
     	});
     	Object result = gContext.execute("{xmlSyntaxModelById(id: 1) {" + 
     	" id \n " + 
@@ -153,7 +166,14 @@ public class TestGraphQLQuery extends TestRemoteClientBase {
     	             "targetFieldName \n" + 
     	             " subSyntax { " + 
     	                   "id \n" + 
-    	                    " name } } }}");
+    	                    "name \n" + 
+	    	               	" mappings {" + 
+		        	             " id \n " + 
+		        	             "targetFieldName \n" + 
+		        	             " subSyntax { " + 
+		        	                   "id \n" + 
+		        	                    " name } } }} }}");
+    	                   
     	System.out.println(result);
     }
 
