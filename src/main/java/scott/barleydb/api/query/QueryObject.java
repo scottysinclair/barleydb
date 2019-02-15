@@ -221,7 +221,9 @@ public class QueryObject<R> implements Serializable {
         if (this.condition == null) {
             this.condition = condition;
         }
-        this.condition = new QLogicalOp(this.condition, condition, QBooleanOps.OR);
+        else {
+        	this.condition = new QLogicalOp(this.condition, condition, QBooleanOps.OR);
+        }
         return this;
     }
 

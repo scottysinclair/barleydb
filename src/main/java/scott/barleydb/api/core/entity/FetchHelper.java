@@ -188,14 +188,18 @@ public class FetchHelper implements Serializable {
     }
 
     private boolean attemptBatchFetch(Entity entity, boolean fetchInternal) {
-        Set<EntityPath> paths = calculatePathsFromBatchFetchEntities(entity);
-        EntityPath shortest = findShortestPath(paths);
+    	EntityPath shortest = findShortestPath(entity);
         if (shortest == null) {
             return false;
         }
         Set<Entity> tofetch = findAllEntitiesWithSamePath(shortest);
         fetchEntities(tofetch, fetchInternal);
         return true;
+    }
+    
+    public EntityPath findShortestPath(Entity entity) {
+        Set<EntityPath> paths = calculatePathsFromBatchFetchEntities(entity);
+        return findShortestPath(paths);
     }
 
     private Set<EntityPath> calculatePathsFromBatchFetchEntities(Entity entity) {
@@ -282,7 +286,7 @@ public class FetchHelper implements Serializable {
     }
 
 
-    final class EntityPath {
+    public final class EntityPath {
         private final  Entity entity;
         private final Node node;
         private final EntityPath next;

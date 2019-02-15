@@ -113,11 +113,15 @@ public class QueryDataFetcher implements DataFetcher<Object> {
   }
 
   private void breakQuery(DataFetchingEnvironment graphEnv, QueryObject<Object> query) {
-	  GraphQLContext graphCtx = graphEnv.getContext();
+	  GraphQLContext graphCtx = graphEnv.getContext();	  
 	  for (QJoin join: new ArrayList<>(query.getJoins())) {
 		  if (graphCtx.getQueryCustomizations().shouldBreakJoin(join)) {
 			  query.removeJoin(join);
+			  GraphQLContext gctx = graphEnv.getContext();
+			  gctx.registerJoinBreak(join);
 		  }
+		  //TODO:recurse through breaking queries
+		//  breakQuery(graphEnv, (QueryObject<Object>)join.getTo());
 	  }
   }
 

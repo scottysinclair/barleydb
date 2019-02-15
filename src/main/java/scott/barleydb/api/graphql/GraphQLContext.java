@@ -1,5 +1,8 @@
 package scott.barleydb.api.graphql;
 
+import scott.barleydb.api.core.entity.FetchHelper.EntityPath;
+import scott.barleydb.api.query.QJoin;
+
 /*-
  * #%L
  * BarleyDB
@@ -30,5 +33,9 @@ public interface GraphQLContext {
 	<T> T execute(String body);
 	
 	GraphQLQueryCustomizations getQueryCustomizations();
+
+	void registerJoinBreak(QJoin join);
+
+	QJoin getJoinBreakFor(EntityPath entityPath, String property);
 
 }

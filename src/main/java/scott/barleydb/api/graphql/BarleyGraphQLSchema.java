@@ -3,6 +3,10 @@ package scott.barleydb.api.graphql;
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +46,9 @@ import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import scott.barleydb.api.core.Environment;
+import scott.barleydb.api.core.entity.FetchHelper.EntityPath;
+import scott.barleydb.api.query.QJoin;
+import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.specification.DefinitionsSpec;
 import scott.barleydb.api.specification.SpecRegistry;
 import scott.barleydb.build.specification.graphql.CustomQueries;
@@ -107,6 +114,7 @@ public class BarleyGraphQLSchema {
 
 		private final GraphQL graphql;
 		private final GraphQLQueryCustomizations queryCustomizations;
+		private final Set<QJoin> joinBreaks = new HashSet<>();
 
 		public MyGraphQLContext() {
 			this.graphql = GraphQL.newGraphQL(graphQLSchema).build();
@@ -130,8 +138,47 @@ public class BarleyGraphQLSchema {
 		public GraphQLQueryCustomizations getQueryCustomizations() {
 			return queryCustomizations;
 		}
-		
-		
+
+		@Override
+		public void registerJoinBreak(QJoin join) {
+			this.joinBreaks.add(join);
+		}
+
+		@Override
+		public QJoin getJoinBreakFor(EntityPath entityPath, String property) {
+			for (QJoin join: joinBreaks) {
+				if (pathMatchesJoin(join, entityPath, property)) {
+					return join;
+				}
+			}
+			return null;
+		}
+
+		private boolean pathMatchesJoin(QJoin join, EntityPath entityPath, String property) {
+			if (!join.getFkeyProperty().equals(property)) {
+				return false;
+			}
+			if (entityPath == null) {
+				return true;
+			}
+			List<QueryObject<Object>> queriesInJoin = toListOfQueries(join); 
+			for (int i = 0; i<queriesInJoin.size(); i++) {
+				QueryObject<Object> q = queriesInJoin.get(i);
+				if (!q.getTypeName().equals( entityPath.getEntity().getEntityType().getInterfaceName())) {
+					return false;
+				}
+			}
+			return true;
+		}
+
+		private List<QueryObject<Object>> toListOfQueries(QJoin join) {
+			LinkedList<QueryObject<Object>> result = new LinkedList<>();
+			while (join != null) {
+				result.addLast((QueryObject<Object>)join.getFrom());
+				join = join.getFrom().getJoined();
+			}
+			return result;
+		}
 	}
 	
 }

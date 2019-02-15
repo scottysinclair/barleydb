@@ -53,6 +53,7 @@ import scott.barleydb.api.core.entity.ProxyController;
 import scott.barleydb.api.core.entity.RefNode;
 import scott.barleydb.api.core.entity.ToManyNode;
 import scott.barleydb.api.core.entity.ValueNode;
+import scott.barleydb.api.core.entity.FetchHelper.EntityPath;
 import scott.barleydb.api.query.JoinType;
 import scott.barleydb.api.query.QJoin;
 import scott.barleydb.api.query.QMathOps;
@@ -80,16 +81,16 @@ public class EntityDataFetcher implements DataFetcher<Object> {
     this.namespace = namespace;
   }
 
-  @Override
-  public Object get(DataFetchingEnvironment graphEnv) throws Exception {
-    Entity entity;
-	if (graphEnv.getSource() instanceof ProxyController) {
-		entity = ((ProxyController) graphEnv.getSource()).getEntity();
-	} else if (graphEnv.getSource() instanceof Entity) {
-		entity = (Entity) graphEnv.getSource();
-	} else {
-		throw new IllegalStateException("Unknown source " + graphEnv.getSource().getClass());
-	}
+	@Override
+	public Object get(DataFetchingEnvironment graphEnv) throws Exception {
+		Entity entity;
+		if (graphEnv.getSource() instanceof ProxyController) {
+			entity = ((ProxyController) graphEnv.getSource()).getEntity();
+		} else if (graphEnv.getSource() instanceof Entity) {
+			entity = (Entity) graphEnv.getSource();
+		} else {
+			throw new IllegalStateException("Unknown source " + graphEnv.getSource().getClass());
+		}
 
 		EntityContext ctx = entity.getEntityContext();
 		Field fieldToFetch = graphEnv.getExecutionStepInfo().getField();
@@ -98,64 +99,59 @@ public class EntityDataFetcher implements DataFetcher<Object> {
 			throw new IllegalStateException("Could not find node matching graphql field: " + fieldToFetch);
 		}
 		if (node instanceof ValueNode) {
-			return ((ValueNode)node).getValue();
-		}
-		else if (node instanceof RefNode) {
-			RefNode refNode = (RefNode)node;
+			return ((ValueNode) node).getValue();
+		} else if (node instanceof RefNode) {
+			RefNode refNode = (RefNode) node;
 			Entity ref = refNode.getReference();
-			if (ref != null) {
-				if (ref.isFetchRequired()) {
-					/*
-					 * the entity it not yet fetched, so customize the fetch query so that only the required fields will be
-					 * in the projection
-					 */
-					List<SelectedField> selectedFields = graphEnv.getSelectionSet().getFields();
-					if (!selectedFields.isEmpty()) {
-						QueryObject<Object> fetchQuery = new QueryObject<>(refNode.getEntityType().getInterfaceName());
-						setProjection(graphEnv, refNode.getEntityType(), fetchQuery);
-						ctx.register(fetchQuery);
-					}
-				try {
-						refNode.getReference().fetchIfRequiredAndAllowed();
-					}
-					finally {
-						//reset fetch query
-						ctx.register(new QueryObject<>(refNode.getEntityType().getInterfaceName()));
-					}
-				}
+			if (ref == null) {
+				return null;
 			}
-			return ref;
-		}
-		else if (node instanceof ToManyNode) {
-			ToManyNode tmNode = (ToManyNode)node;
-			if (!tmNode.isFetched()) {
-			/*
-				 * the list is not fetched, so customize the fetch query so that only the required fields will be in the projection 
-				 */
-				List<SelectedField> selectedFields = graphEnv.getSelectionSet().getFields();
-				if (!selectedFields.isEmpty()) {
-					QueryObject<Object> fetchQuery = new QueryObject<>(tmNode.getEntityType().getInterfaceName());
-					setProjection(graphEnv, tmNode.getEntityType(), fetchQuery); //tmNode.getNodeType().getSortNode()
-					ctx.register(fetchQuery);
-				}
-				try {
-					fetchIfNeeded(tmNode);
-					return tmNode.getList();
-				}
-				finally {
-				//reset fetch query
-					ctx.register(new QueryObject<>(tmNode.getEntityType().getInterfaceName()));
-				}
-		}
-			else {
+			if (!ref.isFetchRequired()) {
+				return ref;
+			}
+			EntityPath entityPath = ctx.getPathToBatchFetchRoot(entity);
+			QueryObject<Object> fetchQuery = getQueryFor(graphEnv, entityPath, fieldToFetch.getName());
+			ctx.register(fetchQuery);
+			try {
+				refNode.getReference().fetchIfRequiredAndAllowed();
+				return ref;
+			} finally {
+				// reset fetch query
+				ctx.register(new QueryObject<>(refNode.getEntityType().getInterfaceName()));
+			}
+		} else if (node instanceof ToManyNode) {
+			ToManyNode tmNode = (ToManyNode) node;
+			if (tmNode.isFetched()) {
 				return tmNode.getList();
 			}
-		}
-		else {
+			EntityPath entityPath = ctx.getPathToBatchFetchRoot(entity);
+			QueryObject<Object> fetchQuery = getQueryFor(graphEnv, entityPath, fieldToFetch.getName());
+			ctx.register(fetchQuery);
+			try {
+				fetchIfNeeded(tmNode);
+				return tmNode.getList();
+			} finally {
+				// reset fetch query
+				ctx.register(new QueryObject<>(tmNode.getEntityType().getInterfaceName()));
+			}
+		} else {
 			throw new IllegalStateException("Unknown node type " + node.getClass());
 		}
-  }
+	}
   
+	/**
+	 * 
+	 * @param graphEnv
+	 * @param entityPath can be null if root entity
+	 * @param property
+	 * @return
+	 */
+  private QueryObject<Object> getQueryFor(DataFetchingEnvironment graphEnv, EntityPath entityPath, String property) {
+	GraphQLContext gctx = graphEnv.getContext();
+    QJoin join = gctx.getJoinBreakFor(entityPath, property);
+    return (QueryObject<Object> )(join != null ? join.getTo() : null);
+  }
+
   private void fetchIfNeeded(ToManyNode toManyNode) {
       if (toManyNode.getParent().isClearlyNotInDatabase()) {
           return;

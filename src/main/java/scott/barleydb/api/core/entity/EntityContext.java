@@ -65,6 +65,7 @@ import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.core.Environment;
 import scott.barleydb.api.core.QueryBatcher;
 import scott.barleydb.api.core.QueryRegistry;
+import scott.barleydb.api.core.entity.FetchHelper.EntityPath;
 import scott.barleydb.api.core.entity.context.Entities;
 import scott.barleydb.api.core.entity.context.EntityInfo;
 import scott.barleydb.api.core.proxy.ProxyList;
@@ -1320,4 +1321,8 @@ public class EntityContext implements Serializable {
             throw new IllegalStateException("Could not print xml", x);
         }
     }
+
+	public EntityPath getPathToBatchFetchRoot(Entity entity) {
+		return fetchHelper.findShortestPath(entity);
+	}
 }
