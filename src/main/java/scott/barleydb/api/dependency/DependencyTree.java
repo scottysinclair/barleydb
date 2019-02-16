@@ -281,7 +281,10 @@ public class DependencyTree implements Serializable {
     }
 
     private boolean findShortestPath(DependencyTreeNode from, DependencyTreeNode to, LinkedList<Dependency> path) {
-        for (Dependency next: from.getDependencies()) {
+    	/*
+    	 * TODO: finding the shortest path should be breadth first
+    	 */
+    	for (Dependency next: from.getDependencies()) {
             path.add(next);
             if (next.getTo() == to) {
                 return true;

@@ -121,10 +121,8 @@ public class FetchHelper implements Serializable {
 
     public void fetchEntities(Set<Entity> entities, boolean fetchInternal) {
         EntityContext ctx = entities.iterator().next().getEntityContext();
-        LOG.debug("Fetching {}" , entities);
         Entity firstEntity = entities.iterator().next();
-        System.out.println("BATCH FETCHING ENTITIES: " + entities.size() + " of type " + firstEntity.getEntityType().getTableName());
-
+        LOG.debug("Batch Fetching {} entities of type {}" , entities.size(), firstEntity.getEntityType().getInterfaceShortName());
 
         QueryObject<Object> qo = ctx.getQuery(firstEntity.getEntityType(), fetchInternal);
         if (qo == null) {
@@ -189,6 +187,7 @@ public class FetchHelper implements Serializable {
 
     private boolean attemptBatchFetch(Entity entity, boolean fetchInternal) {
     	EntityPath shortest = findShortestPath(entity);
+        LOG.debug("Found shortest path from ROOT to entity {}", shortest.getPathAsString());
         if (shortest == null) {
             return false;
         }
@@ -199,18 +198,21 @@ public class FetchHelper implements Serializable {
     
     public EntityPath findShortestPath(Entity entity) {
         Set<EntityPath> paths = calculatePathsFromBatchFetchEntities(entity);
+        if (LOG.isDebugEnabled()) {
+	        LOG.debug("Found {} paths from ROOT to entity {}", paths.size(), entity);
+	        for (EntityPath ep: paths) {
+		        LOG.debug("Found path from ROOT to entity {}", ep.getPathAsString());
+	        }
+        }
         return findShortestPath(paths);
     }
 
     private Set<EntityPath> calculatePathsFromBatchFetchEntities(Entity entity) {
         Set<EntityPath> result = new HashSet<>();
         for (Entity batchRoot: new HashSet<>(batchFetchEntities.keySet())) {
-            //GC safe
-            if (batchFetchEntities.containsKey(batchRoot)) {
-                EntityPath path = findPath(batchRoot, entity);
-                if (path != null) {
-                    result.add(path);
-                }
+            EntityPath path = findPath(batchRoot, entity);
+            if (path != null) {
+                result.add(path);
             }
         }
         return result;
@@ -221,7 +223,6 @@ public class FetchHelper implements Serializable {
         if (tree == null) {
             tree = new DependencyTree();
             tree.build(Collections.singleton(new EntityDependencyTreeNode(batchRoot)), false);
-            batchFetchEntities.put(entity, tree);
         }
         else {
             for (EntityDependencyTreeNode node: tree.<EntityDependencyTreeNode>getNodes()) {
@@ -229,8 +230,8 @@ public class FetchHelper implements Serializable {
             }
             tree.build(Collections.emptyList(), false);
         }
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("yuml: " + tree.generateYumlString(Collections.emptySet()));
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("yuml: " + tree.generateYumlString(Collections.emptySet()));
         }
         /*
          * the tree did not discover entity from batchRoot, there is no link
@@ -307,6 +308,37 @@ public class FetchHelper implements Serializable {
         public Node getNode() {
             return node;
         }
+        public String getPathAsString() {
+        	String me = entity.toString() + "." + getNodeAsString();
+        	if (next != null) {
+        		return me + "." + next.getRestOfPathAsString();
+        	}
+        	return me;
+        }
+
+        private String getRestOfPathAsString() {
+        	String me = getNodeAsString();
+        	if (next != null) {
+        		return me + "." + next.getRestOfPathAsString();
+        	}
+        	return me;
+        }
+        
+        private String getNodeAsString() {
+        	if (node instanceof RefNode) {
+        		RefNode rn = (RefNode)node;
+        		return rn.getName() + "(" + (rn.getReference() != null ? rn.getReference().toString() : "null") + ")";
+        	}
+        	else if (node instanceof ToManyNode) {
+        		ToManyNode tmn = (ToManyNode)node;
+        		return tmn.getName() + "[]";
+        	}
+        	else if (node instanceof ValueNode) {
+        		return node.getName();
+        	}
+        	throw new IllegalArgumentException("unkndown node type " + node.getClass());
+        }
+   
     }
 
     /**

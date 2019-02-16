@@ -86,26 +86,28 @@ public class EntityDataFetcher implements DataFetcher<Object> {
 		} else {
 			throw new IllegalStateException("Unknown source " + graphEnv.getSource().getClass());
 		}
-		
 
 		EntityContext ctx = entity.getEntityContext();
 		Field fieldToFetch = graphEnv.getExecutionStepInfo().getField();
-		LOG.debug("Fetching {} property {}", entity, fieldToFetch.getName());
 		Node node = entity.getChild(fieldToFetch.getName());
 		if (node == null) {
 			throw new IllegalStateException("Could not find node matching graphql field: " + fieldToFetch);
 		}
 		if (node instanceof ValueNode) {
+			LOG.debug("Direct value access {} {}", entity, fieldToFetch.getName());
 			return ((ValueNode) node).getValue();
 		} else if (node instanceof RefNode) {
 			RefNode refNode = (RefNode) node;
 			Entity ref = refNode.getReference();
 			if (ref == null) {
+				LOG.debug("FK ref is null {} {}", entity, fieldToFetch.getName());
 				return null;
 			}
 			if (!ref.isFetchRequired()) {
+				LOG.debug("FK ref is already fetched {} {}", entity, fieldToFetch.getName());
 				return ref;
 			}
+			LOG.debug("FK ref requires fetch {} {}", entity, fieldToFetch.getName());
 			QueryObject<Object> fetchQuery = getJoinAt(graphEnv, entity, fieldToFetch.getName());
 			Objects.requireNonNull(fetchQuery, () -> "fetch query must exist for entity " + entity + " and field " + fieldToFetch.getName());
 			ctx.register(fetchQuery);
@@ -119,8 +121,10 @@ public class EntityDataFetcher implements DataFetcher<Object> {
 		} else if (node instanceof ToManyNode) {
 			ToManyNode tmNode = (ToManyNode) node;
 			if (tmNode.isFetched()) {
+				LOG.debug("1:N ref is already fetched {} {}", entity, fieldToFetch.getName());
 				return tmNode.getList();
 			}
+			LOG.debug("1:N ref requires fetch {} {}", entity, fieldToFetch.getName());
 			QueryObject<Object> fetchQuery = getJoinAt(graphEnv, entity, fieldToFetch.getName());
 			Objects.requireNonNull(fetchQuery, () -> "fetch query must exist for entity " + entity + " and field " + fieldToFetch.getName());
 			ctx.register(fetchQuery);
