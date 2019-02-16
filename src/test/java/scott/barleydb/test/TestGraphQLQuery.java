@@ -150,7 +150,7 @@ public class TestGraphQLQuery extends TestRemoteClientBase {
     	ctx.persist(new PersistRequest().insert(syntax));
     	
     	gContext.getQueryCustomizations().setShouldBreakPredicate((qjoin) -> {
-    		return qjoin.getFkeyProperty().equals("subSyntax");
+    		return true; //qjoin.getFkeyProperty().equals("subSyntax");
 //    		return true;
 //    		int qDepth = queryDepth(qjoin);
   //  		return  qDepth % 4 == 0;
@@ -172,7 +172,14 @@ public class TestGraphQLQuery extends TestRemoteClientBase {
 		        	             "targetFieldName \n" + 
 		        	             " subSyntax { " + 
 		        	                   "id \n" + 
-		        	                    " name } } }} }}");
+		        	                    " name \n" + 
+			    	    	               	" mappings {" + 
+					        	             " id \n " + 
+					        	             "targetFieldName \n" + 
+					        	             " subSyntax { " + 
+					        	                   "id \n" + 
+					        	                    " name } } }} }} }}");
+
     	                   
     	System.out.println(result);
     }
