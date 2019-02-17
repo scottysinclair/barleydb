@@ -406,6 +406,7 @@ public class FromDatabaseSchemaToSpecification {
         case TIMESTAMP: return JavaType.UTIL_DATE;
         case BLOB: return JavaType.BYTE_ARRAY;
         case CLOB: return JavaType.STRING;
+        case SMALLINT: return JavaType.INTEGER;
         default: throw new IllegalArgumentException("Unsupported JDBC type " + jdbcType);
         }
     }
