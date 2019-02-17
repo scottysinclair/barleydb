@@ -66,6 +66,7 @@ import scott.barleydb.api.core.types.JavaType;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
 import scott.barleydb.api.graphql.BarleyGraphQLSchema;
+import scott.barleydb.api.graphql.DefaultQueryBreaker;
 import scott.barleydb.api.graphql.GraphQLContext;
 import scott.barleydb.api.persist.PersistRequest;
 import scott.barleydb.api.query.QJoin;
@@ -148,13 +149,14 @@ public class TestGraphQLQuery extends TestRemoteClientBase {
     	syntax.getMappings().get(1).setSubSyntax(TestPersistence.buildSyntax(ctx));
     	syntax.getMappings().get(2).setSubSyntax(TestPersistence.buildSyntax(ctx));
     	ctx.persist(new PersistRequest().insert(syntax));
-    	
-    	gContext.getQueryCustomizations().setShouldBreakPredicate((qjoin) -> {
-    		return true; //qjoin.getFkeyProperty().equals("subSyntax");
-//    		return true;
-//    		int qDepth = queryDepth(qjoin);
-  //  		return  qDepth % 4 == 0;
-    	});
+
+    	gContext.getQueryCustomizations().setShouldBreakPredicate(new DefaultQueryBreaker(env, ctx.getNamespace(), 1));
+//    	gContext.getQueryCustomizations().setShouldBreakPredicate((qjoin, gctx) -> {
+//    		return true; //qjoin.getFkeyProperty().equals("subSyntax");
+////    		return true;
+////    		int qDepth = queryDepth(qjoin);
+//  //  		return  qDepth % 4 == 0;
+//    	});
     	Object result = gContext.execute("{xmlSyntaxModelById(id: 1) {" + 
     	" id \n " + 
     	" name \n " + 
@@ -167,17 +169,23 @@ public class TestGraphQLQuery extends TestRemoteClientBase {
     	             " subSyntax { " + 
     	                   "id \n" + 
     	                    "name \n" + 
+		    	               	 "user { id \n " + 
+		    	     	        "name } \n" + 
 	    	               	" mappings {" + 
 		        	             " id \n " + 
 		        	             "targetFieldName \n" + 
 		        	             " subSyntax { " + 
 		        	                   "id \n" + 
 		        	                    " name \n" + 
+				        	               	 "user { id \n " + 
+				        	     	        "name } \n" + 
 			    	    	               	" mappings {" + 
 					        	             " id \n " + 
 					        	             "targetFieldName \n" + 
 					        	             " subSyntax { " + 
 					        	                   "id \n" + 
+						        	              	 "user { id \n " + 
+						        	     	        "name } \n" + 
 					        	                    " name } } }} }} }}");
 
     	                   

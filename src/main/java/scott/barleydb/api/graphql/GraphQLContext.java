@@ -42,5 +42,9 @@ public interface GraphQLContext {
 	void registerJoinBreak(QJoin join);
 
 	QJoin getJoinBreakFor(Entity entity, String property);
+	
+	<T> T get(String key);
+	
+	Object put(String key, Object value);
 
 }

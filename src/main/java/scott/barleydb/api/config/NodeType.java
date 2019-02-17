@@ -218,6 +218,10 @@ public class NodeType implements Serializable, Cloneable {
 	public boolean isForeignKeyColumn() {
 		return columnName != null && relation != null;
 	}
+	
+	public boolean isOneToManyRelation() {
+		return columnName == null && relation != null;
+	}
 
 	public String getRelationInterfaceName() {
         return relation != null ? relation.getInterfaceName() : null;

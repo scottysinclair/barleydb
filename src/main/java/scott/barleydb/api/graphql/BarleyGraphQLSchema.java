@@ -3,7 +3,9 @@ package scott.barleydb.api.graphql;
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -114,6 +116,7 @@ public class BarleyGraphQLSchema {
 		private final GraphQL graphql;
 		private final GraphQLQueryCustomizations queryCustomizations;
 		private final Set<QJoin> joinBreaks = new HashSet<>();
+		private final Map<String, Object> attributes = new HashMap<>();
 
 		public MyGraphQLContext() {
 			this.graphql = GraphQL.newGraphQL(graphQLSchema).build();
@@ -162,6 +165,18 @@ public class BarleyGraphQLSchema {
 			}
 			return null;
 		}
+
+		@Override
+		public <T> T get(String key) {
+			return (T)attributes.get(key);
+		}
+
+		@Override
+		public Object put(String key, Object value) {
+			return attributes.put(key, value);
+		}
+		
+		
 
 	}
 	
