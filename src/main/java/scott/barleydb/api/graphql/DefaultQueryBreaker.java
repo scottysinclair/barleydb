@@ -57,7 +57,7 @@ public class DefaultQueryBreaker implements BiPredicate<QJoin, GraphQLContext> {
 		QueryObject<?> queryObject = getRootQuery(qjoin);
 		ArrayList<QJoin> allJoins = getOneToManyJoins(queryObject, true, new ArrayList<>());
 		for (int i=0; i<allJoins.size(); i++) {
-			if (i == 0) {
+			if (maximumDepth > 1 && i == 0) {
 				continue;
 			}
 			if (forceBreakSet.contains(allJoins.get(i).getTo().getTypeName())) {
