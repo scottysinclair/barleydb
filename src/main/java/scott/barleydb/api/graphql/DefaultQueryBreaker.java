@@ -80,29 +80,78 @@ public class DefaultQueryBreaker implements BiPredicate<QJoin, GraphQLContext> {
 	private Set<QJoin> calculateJoinsToBreak(QJoin qjoin) {
 		Set<QJoin> result = new HashSet<>();
 		QueryObject<?> queryObject = getRootQuery(qjoin);
-		ArrayList<QJoin> allJoins = getOneToManyJoins(queryObject, true, new ArrayList<>());
-		for (int i=0; i<allJoins.size(); i++) {
-			if (maximumDepth > 1 && i == 0) {
-				continue;
-			}
-			if (forceBreakSet.contains(allJoins.get(i).getTo().getTypeName())) {
-				result.add(allJoins.get(i));
-			}
-			else if (i % maximumDepth == 0) {
-				result.add(allJoins.get(i));
-			}
-		}
+        List<QJoin> allJoins = getAllJoins(queryObject, true, new LinkedList<>());
+		List<QJoin> all1toNJoins = getOneToManyJoins(queryObject, true, new LinkedList<>());
+        result.addAll( breakAllJoinsWhichAreForced(all1toNJoins) );
+		result.addAll( breakAllJoinsWhichShouldntNest(allJoins) );
+		result.addAll( breakAllJoinsWhichAreTooDeeplyNested(all1toNJoins, result));
 		return result;
 	}
 
-	private QueryObject<?> getRootQuery(QJoin qjoin) {
+    private Set<QJoin> breakAllJoinsWhichAreForced(List<QJoin> all1toNJoins) {
+        Set<QJoin> result = new HashSet<>();
+        for (QJoin qj: all1toNJoins) {
+            if (forceBreakSet.contains(qj.getTo().getTypeName())) {
+                result.add(qj);
+            }
+        }
+        return result;
+    }
+
+
+    private Set<QJoin> breakAllJoinsWhichShouldntNest(List<QJoin> allJoinsInTheQuery) {
+        Set<QJoin> result = new HashSet<>();
+	    QJoin prev = null;
+        for (QJoin qj: allJoinsInTheQuery) {
+            if (prev != null && isOneToMany(prev) && prev.getTo() != qj.getFrom()) {
+                result.add(qj);
+            }
+            prev = qj;
+        }
+        return result;
+    }
+
+    private Set<QJoin> breakAllJoinsWhichAreTooDeeplyNested(List<QJoin> all1toNJoins, Set<QJoin> breaks) {
+        Set<QJoin> result = new HashSet<>();
+        int counter = 0;
+        for (QJoin qj: all1toNJoins) {
+            if (breaks.contains(qj)) {
+                counter = 0;
+            }
+            else {
+                counter++;
+            }
+            if (counter > maximumDepth) {
+                result.add(qj);
+            }
+        }
+        return result;
+    }
+
+    private QueryObject<?> getRootQuery(QJoin qjoin) {
 		if (qjoin.getFrom().getJoined() == null) {
 			return qjoin.getFrom();
 		}
 		return getRootQuery(qjoin.getFrom().getJoined());
 	}
 
-	private ArrayList<QJoin> getOneToManyJoins(QueryObject<?> queryObject, boolean includeNested, ArrayList<QJoin> result) {
+    /**
+     * @return all joins in order of evaluation.
+     */
+    private List<QJoin> getAllJoins(QueryObject<?> queryObject, boolean includeNested, List<QJoin> result) {
+        for (QJoin qj: queryObject.getJoins()) {
+             result.add(qj);
+            if (includeNested) {
+                getAllJoins(qj.getTo() ,  true, result);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @return all 1:N joins in order of evaluation.
+     */
+	private List<QJoin> getOneToManyJoins(QueryObject<?> queryObject, boolean includeNested, List<QJoin> result) {
 		for (QJoin qj: queryObject.getJoins()) {
 			if (isOneToMany(qj)) {
 				result.add(qj);
