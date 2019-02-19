@@ -187,10 +187,10 @@ public class FetchHelper implements Serializable {
 
     private boolean attemptBatchFetch(Entity entity, boolean fetchInternal) {
     	EntityPath shortest = findShortestPath(entity);
-        LOG.debug("Found shortest path from ROOT to entity {}", shortest.getPathAsString());
         if (shortest == null) {
             return false;
         }
+        LOG.debug("Found shortest path from ROOT to entity {}", shortest.getPathAsString());
         Set<Entity> tofetch = findAllEntitiesWithSamePath(shortest);
         fetchEntities(tofetch, fetchInternal);
         return true;

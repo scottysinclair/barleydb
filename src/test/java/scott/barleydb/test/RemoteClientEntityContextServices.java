@@ -320,5 +320,8 @@ public class RemoteClientEntityContextServices implements IEntityContextServices
         }
     }
 
-
+    @Override
+    public String debugQueryString(QueryObject<Object> query, String namespace) {
+        return serverEntityContextServices.debugQueryString(query, namespace);
+    }
 }

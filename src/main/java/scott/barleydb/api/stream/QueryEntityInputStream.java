@@ -87,7 +87,7 @@ public class QueryEntityInputStream implements EntityInputStream {
             List<Entity> entities = new LinkedList<>();
             Entity rootEntity = null;
             for (EntityData entityData:  queryItem.getObjectGraph().getEntityData()) {
-                Entity e = ctx.addEntityLoadedFromDB( entityData  );
+                Entity e = ctx.addEntityLoadedFromDB( entityData, null  );
                 entities.add( e );
                 if (rootEntity == null) {
                     rootEntity = e;
