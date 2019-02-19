@@ -150,7 +150,7 @@ public class TestGraphQLQuery extends TestRemoteClientBase {
     	syntax.getMappings().get(2).setSubSyntax(TestPersistence.buildSyntax(ctx));
     	ctx.persist(new PersistRequest().insert(syntax));
 
-    	gContext.getQueryCustomizations().setShouldBreakPredicate(new DefaultQueryBreaker(env, ctx.getNamespace(), 3));
+    	gContext.getQueryCustomizations().setShouldBreakPredicate(new DefaultQueryBreaker(env, ctx.getNamespace(), 1, 3));
 //    	gContext.getQueryCustomizations().setShouldBreakPredicate((qjoin, gctx) -> {
 //    		return true; //qjoin.getFkeyProperty().equals("subSyntax");
 //    		return true;

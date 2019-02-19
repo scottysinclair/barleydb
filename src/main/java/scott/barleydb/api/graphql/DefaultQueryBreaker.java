@@ -25,7 +25,6 @@ package scott.barleydb.api.graphql;
  * #L%
  */
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -51,18 +50,20 @@ public class DefaultQueryBreaker implements BiPredicate<QJoin, GraphQLContext> {
 	
 	private final Environment env;
 	private final String namespace;
+	private final int breakBadNestingEvery;
 	private final int maximumDepth;
 	/**
 	 * types which we force a break when joining to
 	 */
 	private final Set<String> forceBreakSet;
 	
-	public DefaultQueryBreaker(Environment env, String namespace,int maximumDepth) {
-		this(env, namespace, maximumDepth, null);
+	public DefaultQueryBreaker(Environment env, String namespace, int breakBadNestingEvery, int maximumDepth) {
+		this(env, namespace, breakBadNestingEvery, maximumDepth, null);
 	}
-	public DefaultQueryBreaker(Environment env, String namespace,int maximumDepth, Collection<String> forceBreak) {
+	public DefaultQueryBreaker(Environment env, String namespace, int breakBadNestingEvery, int maximumDepth, Collection<String> forceBreak) {
 		this.env = env;
 		this.namespace = namespace;
+		this.breakBadNestingEvery = breakBadNestingEvery;
 		this.maximumDepth = maximumDepth;
 		this.forceBreakSet = new HashSet<>(forceBreak != null ? forceBreak : Collections.emptyList());
 	}
@@ -83,7 +84,7 @@ public class DefaultQueryBreaker implements BiPredicate<QJoin, GraphQLContext> {
         List<QJoin> allJoins = getAllJoins(queryObject, true, new LinkedList<>());
 		List<QJoin> all1toNJoins = getOneToManyJoins(queryObject, true, new LinkedList<>());
         result.addAll( breakAllJoinsWhichAreForced(all1toNJoins) );
-		result.addAll( breakAllJoinsWhichShouldntNest(allJoins) );
+		result.addAll( breakOneToManyJoinsWhichShouldntNest(allJoins) );
 		result.addAll( breakAllJoinsWhichAreTooDeeplyNested(all1toNJoins, result));
 		return result;
 	}
@@ -91,7 +92,7 @@ public class DefaultQueryBreaker implements BiPredicate<QJoin, GraphQLContext> {
     private Set<QJoin> breakAllJoinsWhichAreForced(List<QJoin> all1toNJoins) {
         Set<QJoin> result = new HashSet<>();
         for (QJoin qj: all1toNJoins) {
-            if (forceBreakSet.contains(qj.getTo().getTypeName())) {
+            if (isOneToMany(qj) && forceBreakSet.contains(qj.getTo().getTypeName())) {
                 result.add(qj);
             }
         }
@@ -99,12 +100,16 @@ public class DefaultQueryBreaker implements BiPredicate<QJoin, GraphQLContext> {
     }
 
 
-    private Set<QJoin> breakAllJoinsWhichShouldntNest(List<QJoin> allJoinsInTheQuery) {
+    private Set<QJoin> breakOneToManyJoinsWhichShouldntNest(List<QJoin> allJoinsInTheQuery) {
         Set<QJoin> result = new HashSet<>();
 	    QJoin prev = null;
+	    int counter = 0;
         for (QJoin qj: allJoinsInTheQuery) {
             if (prev != null && isOneToMany(prev) && prev.getTo() != qj.getFrom()) {
-                result.add(qj);
+		        if (++counter >= breakBadNestingEvery) {
+          			result.add(qj);
+          			counter = 0;
+				}
             }
             prev = qj;
         }
