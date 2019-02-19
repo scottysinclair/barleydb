@@ -1,15 +1,75 @@
 From database schema to GraphQL API in one hour.
 
 Summary: This article shows you how to generate an executable GraphQL API from an existing database schema. 
-Intended audience: companies who are moving to GraphQL as an alternative to rest and have a large and complex schema to migrate.  
+Intended audience: companies who are moving to GraphQL as an alternative to rest and have a large and complex schema to publish.  
 
 BarleyDB is a open source querying and persistence framework for relational databases. Using BarleyDB we can
-1) Autogenerate a BarleyDB schema specification from relational database meta-data.
-2) Autogenerate an executable GraphQL schema from the BarleyDB schema specification.
+1) Autogenerate a BarleyDB specification by connecting to a database and reading the database meta-data.
+2) Run BarleyDB with the generated specification and a database pool and expose a GraphQL endpoint. 
 
 BarleyDB will auto generate 2 queries per table:
 1)  query for a single row by the primary key
 2)  query for multiple rows use non-primary key columns.
+
+BarleyDB has a query execution engine which allows with advanced features to achieve extrememly high performance.
+
+Batch Fetching:
+Batch fetching prevents the N+1 problem by fetching all N associations in one query using the in() SQL clause. 
+For example:
+ 1 Order has 100 items and each item has a delivery and a review.
+ - When the order is loaded with it's 100 items
+ - When batch fetching is enabled for the order.
+ - When a single delivery is accessed triggering a lazy load.
+ - Then BarleyDB will use the Sql in (...) clause to load all 100 delivery records for all items in one go. 
+
+The SQL used to batch fetch the deliveries looks like so:
+select * from delivery d where d.id in (?,?,....,?) 
+
+
+Join Breaking:
+Join Breaking breaks a large query with many joins into multiple smaller  queries. The queries on the far side of the breaks are then used by the GraphQL data fetchers to further fetch the data. 
+For example:
+ - A GraphQL query request with 100 nested parts across various levels of nesting.
+ - A query with 100 left outer joins is created.
+ - The 100 joins a processed by a join breaking algorithm which breaks 2 joins.
+ - The root query is executed fetch the first large batch of data.
+ - Per Join Break:
+ --- GraphQL finds all loaded data until it reaches the join break boundary.
+ --- The GraphQL datafetcher is called to fetch data which is missing. 
+ --- BarkeyDB executes the query on the other side of the break to fetch the missing data.
+ - All data is fetched (3 queries were executed in total).
+
+
+Join Breaking is used to reduce the number of rows which the database has to process by reducing the number of cross-products in a given query.
+Add table: 
+
+
+Join Breaking and Batch Fetching compliment each other, because when the data fetcher is called to fetch data from the other side of a break. Batch Fetching uses the in (...) SQL clause to fetch not just the requested entity but ALL entities which correspond to the position in the  data graph.    
+
+Join Breaking and Batch Fetching operating together create queries which look like so:
+
+;root query
+select * from a 
+left outer join b on a.b_id = b.id   ;1:1
+left outer join c on b.c_id = c.id   ;1:1
+left outer join d on c.id = d.c_id   ;1:N
+
+;query after break from table d to table e
+select * from e
+left outer join f on e.id = f.e_id   ;1:N
+left outer join g on e.id = g.e_id   ;1:N
+where e.ID in (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,??,?,?,?,?,?,?,?,?)
+
+
+;query after break from table d to table h
+select * from h
+left outer join i on h.id = i.e_id   ;1:N
+left outer join j on h.id = j.e_id   ;1:N
+where h.ID in (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+
+
+BarleyDB ships with a default algorithm for breaking joins called DefaultQueryBreaker.
+
 -----------------
 
 
