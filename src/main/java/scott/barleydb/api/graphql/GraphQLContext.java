@@ -47,4 +47,8 @@ public interface GraphQLContext {
 	
 	Object put(String key, Object value);
 
+	void setBatchFetchEnabled(boolean batchFetchEnabled);
+
+	boolean isBatchFetchEnabled();
+
 }

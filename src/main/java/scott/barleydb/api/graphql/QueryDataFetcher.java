@@ -101,14 +101,18 @@ public class QueryDataFetcher implements DataFetcher<Object> {
     List<Entity> result = queryResult.getEntityList();
     LOG.debug("Processed {} rows", ctx.getStatistics().getNumberOfRowsRead());
     if (graphEnv.getExecutionStepInfo().getType() instanceof GraphQLList) {
-      for (Entity e: result) {
-    	  ctx.batchFetchDescendants(e);
+      if (gctx.isBatchFetchEnabled()) {
+        for (Entity e : result) {
+          ctx.batchFetchDescendants(e);
+        }
       }
       return result; //Entity2Map.toListOfMaps(result);
     }
     else if (result.size() == 1) {
       Entity e = result.get(0);//Entity2Map.toMap(result.get(0));
-      ctx.batchFetchDescendants(e);
+      if (gctx.isBatchFetchEnabled()) {
+        ctx.batchFetchDescendants(e);
+      }
       return e;
     }
     else if (result.size() == 0) {

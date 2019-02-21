@@ -39,10 +39,7 @@ import scott.barleydb.api.query.QJoin;
 import scott.barleydb.api.query.QueryObject;
 
 /**
- * breaks a query on a join based on the following rules.
- * <ul>
- *  <li>If a query has more than one join from it and the previous joins have their own nested joins</li>
- * </ul>
+ * breaks a query on a join based on various rules aimed at optimizing data fetching.
  * @author scott
  *
  */

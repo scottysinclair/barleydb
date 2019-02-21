@@ -117,6 +117,7 @@ public class BarleyGraphQLSchema {
 		private final GraphQLQueryCustomizations queryCustomizations;
 		private final Set<QJoin> joinBreaks = new HashSet<>();
 		private final Map<String, Object> attributes = new HashMap<>();
+		private boolean batchFetchEnabled = true;
 
 		public MyGraphQLContext() {
 			this.graphql = GraphQL.newGraphQL(graphQLSchema).build();
@@ -175,9 +176,16 @@ public class BarleyGraphQLSchema {
 		public Object put(String key, Object value) {
 			return attributes.put(key, value);
 		}
-		
-		
 
+		@Override
+		public void setBatchFetchEnabled(boolean batchFetchEnabled) {
+			this.batchFetchEnabled = batchFetchEnabled;
+		}
+
+		@Override
+		public boolean isBatchFetchEnabled() {
+			return batchFetchEnabled;
+		}
 	}
 	
 }
