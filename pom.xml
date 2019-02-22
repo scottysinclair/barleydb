@@ -6,7 +6,7 @@
   <artifactId>scott.barleydb</artifactId>
   <packaging>jar</packaging>
   <name>BarleyDB</name>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>1.0.0</version>
 
   <properties>
     <slf4j.version>1.4.3</slf4j.version>
@@ -33,6 +33,29 @@
       <version>1.2.16</version>
       <scope>provided</scope>
     </dependency>
+
+    <!-- added explicit dependencies to JDK 10 -->
+    <dependency>
+      <groupId>javax.xml.bind</groupId>
+      <artifactId>jaxb-api</artifactId>
+      <version>2.2.11</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.xml.bind</groupId>
+      <artifactId>jaxb-core</artifactId>
+      <version>2.2.11</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.xml.bind</groupId>
+      <artifactId>jaxb-impl</artifactId>
+      <version>2.2.11</version>
+    </dependency>
+    <dependency>
+      <groupId>javax.activation</groupId>
+      <artifactId>activation</artifactId>
+      <version>1.1.1</version>
+    </dependency>
+    <!-- added explicit dependencies to JDK 10 -->
 
     <dependency>
       <groupId>org.springframework</groupId>

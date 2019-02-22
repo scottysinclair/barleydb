@@ -50,7 +50,9 @@ public class GraphQLQueryCustomizations {
 	}
 
 	public GraphQLQueryCustomizations copy() {
-		return new GraphQLQueryCustomizations();
+		GraphQLQueryCustomizations gc = new GraphQLQueryCustomizations();
+		gc.shouldBreakPredicate = shouldBreakPredicate;
+		return gc;
 	}
 	
 	

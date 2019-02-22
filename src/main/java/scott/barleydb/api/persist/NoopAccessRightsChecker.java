@@ -42,7 +42,7 @@ public class NoopAccessRightsChecker implements AccessRightsChecker {
 
   @Override
   public void verifyCreateRight(EntityContext ctx, Entity entity) {
-    LOG.info("No access rights check for insert of {}", entity);
+    LOG.debug("No access rights check for insert of {}", entity);
   }
 
   @Override

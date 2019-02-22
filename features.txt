@@ -5,42 +5,91 @@ Intended audience: companies who are moving to GraphQL as an alternative to rest
 
 BarleyDB is a open source querying and persistence framework for relational databases. Using BarleyDB we can
 1) Autogenerate a BarleyDB specification by connecting to a database and reading the database meta-data.
-2) Run BarleyDB with the generated specification and a database pool and expose a GraphQL endpoint. 
+2) Run BarleyDB against the specification, connect to a database and expose a GraphQL endpoint. 
 
 BarleyDB will auto generate 2 queries per table:
 1)  query for a single row by the primary key
 2)  query for multiple rows use non-primary key columns.
 
-BarleyDB has a query execution engine which allows with advanced features to achieve extrememly high performance.
+BarleyDB has a query execution engine which allows with advanced features to achieve extremely high performance. More on that here ->
 
 Batch Fetching:
-Batch fetching prevents the N+1 problem by fetching all N associations in one query using the in() SQL clause. 
+Batch fetching prevents the classic N+1 problem by fetching all N associations in one query using the in(...) SQL clause. 
 For example:
- 1 Order has 100 items and each item has a delivery and a review.
- - When the order is loaded with it's 100 items
- - When batch fetching is enabled for the order.
+ - Given a database with an Order which has 100 items and each item has a delivery and a feedback.
+ - Given the order is loaded with it's 100 items
+ - Given batch fetching is enabled for the order.
  - When a single delivery is accessed triggering a lazy load.
- - Then BarleyDB will use the Sql in (...) clause to load all 100 delivery records for all items in one go. 
+ - Then BarleyDB will use the SQL in (...) clause to load all 100 delivery records for all items in one go. 
 
 The SQL used to batch fetch the deliveries looks like so:
-select * from delivery d where d.id in (?,?,....,?) 
+select * from delivery d where d.id in (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) 
 
 
-Join Breaking:
-Join Breaking breaks a large query with many joins into multiple smaller  queries. The queries on the far side of the breaks are then used by the GraphQL data fetchers to further fetch the data. 
+Join Breaking: 
+Joining in SQL must be managed with care as each 1:N join has a exponential effect on the resultset size. 
+Join Breaking breaks a large query with many joins into multiple smaller queries, thus mitigating the problem. 
+The queries on the far side of the join-breaks are then later used by the GraphQL data fetchers to further fetch the data. 
 For example:
- - A GraphQL query request with 100 nested parts across various levels of nesting.
- - A query with 100 left outer joins is created.
- - The 100 joins a processed by a join breaking algorithm which breaks 2 joins.
- - The root query is executed fetch the first large batch of data.
- - Per Join Break:
- --- GraphQL finds all loaded data until it reaches the join break boundary.
- --- The GraphQL datafetcher is called to fetch data which is missing. 
- --- BarkeyDB executes the query on the other side of the break to fetch the missing data.
- - All data is fetched (3 queries were executed in total).
+ - A GraphQL query request is received with 100 nested parts across various depths.
+ - A full query with 100 left outer joins is created.
+ - The 100 joins are processed by a join breaking algorithm which breaks (in this case) 2 joins.
+ - The root query is executed which fetches the first large batch of data.
+ - GraphQL finds all loaded data until it reaches one of the join break boundaries.
+ --- The GraphQL datafetcher is called to fetch the data which is missing. 
+ --- BarkeyDB executes the query on the other side of the given break to fetch the missing data.
+ - All data is fetched (3 queries are executed in total).
+
+Give the following query structure
+SELECT A
+ A JOIN B
+ B JOIN C
+ A JOIN D
+ D JOIN E
+ E JOIN F
+
+ If a join break is made at A JOIN D then we have the following 2 queries
+
+SELECT A
+ A JOIN B
+ B JOIN C
+
+Data for tables A, B and C are fetched in the inital query.
+
+Data for tables D, E and F are fetched soon after by the GraphQL datafetcher.
+
+SELECT D
+ D JOIN E
+ E JOIN F
+
+If the cardinality of relations are as follows 
+ A -> B  = 10x      
+ B -> C  = 100x 
+ A -> D  = 10x
+ D -> E  = 100x
+ E -> F  = 10x
+
+Then a single full query for a given 'A' will have return the following number of rows
+ full query =  1 * 10 * 100 * 10 * 100 * 10 = 10'000'000 rows
+
+If instead the split queries are used then we have
+
+query for a given 'A' joining to B and C = 1 * 10 * 100 = 1000 rows
+query for the 10 'D' rows for the given 'A' joining to E and F = 10 * 100 * 10 = 10'000  rows
+total rows = 11'000 rows
 
 
-Join Breaking is used to reduce the number of rows which the database has to process by reducing the number of cross-products in a given query.
+
+The following tables provides a comparison
+A    B     C    D    E    F        FULL_QUERY    SPLIT QUERIES    
+1    10    100  10   100  10      1'000'000'000     20'000      
+
+
+
+
+
+Join Breaking is used to reduce the number of rows which the database has to process by reducing the number of cross-products in a given query. There are two aspects to join breaking:
+- Reducing the amount of row multiplication reduces the amount of resources required by the database server and by the Java program which consumes the data. 
 Add table: 
 
 
@@ -68,21 +117,65 @@ left outer join j on h.id = j.e_id   ;1:N
 where h.ID in (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
 
 
-BarleyDB ships with a default algorithm for breaking joins called DefaultQueryBreaker.
+BarleyDB ships with a default algorithm for breaking joins called DefaultQueryBreaker which has the following rules.
+- Never ever break a 1:1 join as it doesn't multiply the number of rows in the resultset
+- Break any 1:N joins which are being specifically broken by force.
+- Break any 1:N joins which will cause more row multiplication than is *naturally required by the data.
+- Break any 1:N joins which exceed the maximum number of joins allowed in a query.  
+
+*naturally required by the data.
+Given the same cardinality as before
+ A -> B  = 10x      
+ B -> C  = 100x 
+ A -> D  = 10x
+ D -> E  = 100x
+ E -> F  = 10x
+
+So:
+Query A -> B  => When A = 1 Then (A -> B) = 10 rows
+ =>  A is duplicated 10x
+
+Query B -> C  => When B = 1 Then (B -> C) = 100 rows
+ =>  B is duplicated 100x
+
+Query A -> B -> C => When A = 1 Then (A -> B -> C) = 1000 rows 
+ => A is duplicated 1000x
+    B is duplicated 100x
+
+But there _really are_ 1000 unique C rows to load, so there is no waste in terms of C records.
+
+But Query A -> B -> C, A -> D is a different story
+
+Query A -> B -> C, A -> D => When A = 1 Then (A -> B -> C, A -> D) = 10'000 rows
+ => A is duplicated 10000x
+    B is duplicated 1000x
+    C is duplicated 10x
+    D is duplicated 1000x 
+
+D is duplicated 1000x because the cardinality of (A -> D) is 10x and there are already 1000 duplicate As from (A -> B -> C)
+
+
+In summary, scenarios like the above should be avoided when querying large datasets. BarleyDB's DefaultQueryBreaker detects such scenarios and transparently breaks the query for you. There is even a parameter 'breakBadNestingEvery' which controls how often such breaking is performed.   
+
+
+
+--- a (very) few numbers
+BarleyDB GraphQL support has been tested against complex real world database schemas.
+Comparing the naive Hibernate lazy loading approach (all relations lazy loaded) with GraphQL-BarleyDB
+
+Terms:
+HHL - hibernate lazy loading
+GQLDBD-1BQ - graphql + barleydb, one big query with everything joined.
+GQLDBD-JBBF - graphql + barleydb, with join breaks and batch fetches.
+
+Loading a single entity and lots of deeply nested relations.
+HLL            GQL-BDB-1BQ   GQL-BDB-JBBF
+10 minutes     1 second      5 seconds
+
+As can be seen the GraphQL + BarleyDB outperforms Hibernate lazy loading by a significant margin.
+The cool thing with using GraphQL + BarleyDB is that changing the fetch granularity can be done on the fly. Changing the fetch granularity of a hand-coded Hibernate persistence layer can be 3 month, high-risk rewrite.
 
 -----------------
-
-
-
-
-
------------------
-Comming soon:
-
-Integrate join-breaks into the GraphQL execution. Deeply nested GraphQL queries currently cause deeply nested left outer joins
-in the generated SQL. Join-breaks will force a separate query to be executed to collect the data after the join-break.  
-
-Integrate batch fetching into the GraphQL execution. Batch fetching prevents the N+1 problem by fetching all N associations in one query using the in() SQL clause. 
 
 
 Features:

@@ -71,7 +71,8 @@ public class BarleyGraphQLSchema {
 		this.env = env;
 		this.namespace = namespace;
 		this.queryCustomizations = new GraphQLQueryCustomizations();
-		
+		this.queryCustomizations.setShouldBreakPredicate(new DefaultQueryBreaker(env, namespace, 3, 4));
+
         GenerateGrapqlSDL graphSdl = new GenerateGrapqlSDL(specRegistry, customQueries);
         
         SchemaParser schemaParser = new SchemaParser();

@@ -150,13 +150,14 @@ public class TestGraphQLQuery extends TestRemoteClientBase {
     	syntax.getMappings().get(2).setSubSyntax(TestPersistence.buildSyntax(ctx));
     	ctx.persist(new PersistRequest().insert(syntax));
 
-    	gContext.getQueryCustomizations().setShouldBreakPredicate(new DefaultQueryBreaker(env, ctx.getNamespace(), 1, 3));
-//    	gContext.getQueryCustomizations().setShouldBreakPredicate((qjoin, gctx) -> {
-//    		return true; //qjoin.getFkeyProperty().equals("subSyntax");
+
+    	//gContext.getQueryCustomizations().setShouldBreakPredicate(new DefaultQueryBreaker(env, ctx.getNamespace(), 1, 3));
+    	gContext.getQueryCustomizations().setShouldBreakPredicate((qjoin, gctx) -> {
+    		return true; //qjoin.getFkeyProperty().equals("subSyntax");
 //    		return true;
 //    		int qDepth = queryDepth(qjoin);
   //  		return  qDepth % 4 == 0;
-//    	});
+    	});
     	Object result = gContext.execute("{xmlSyntaxModelById(id: 1) {" + 
     	" id \n " + 
     	" name \n " + 
