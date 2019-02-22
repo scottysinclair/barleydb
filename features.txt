@@ -1,7 +1,7 @@
 From database schema to GraphQL API in one hour.
 
 Summary: This article shows you how to generate an executable GraphQL API from an existing database schema. 
-Intended audience: companies who are moving to GraphQL as an alternative to rest and have a large and complex schema to publish.  
+Intended audience: companies who are moving to GraphQL as an alternative to RESTfull endpoints and want to provide access to their database data out of the box.
 
 BarleyDB is a open source querying and persistence framework for relational databases. Using BarleyDB we can
 1) Autogenerate a BarleyDB specification by connecting to a database and reading the database meta-data.
@@ -11,7 +11,44 @@ BarleyDB will auto generate 2 queries per table:
 1)  query for a single row by the primary key
 2)  query for multiple rows use non-primary key columns.
 
+
 BarleyDB has a query execution engine which allows with advanced features to achieve extremely high performance. More on that here ->
+
+BarleyDB uses https://github.com/graphql-java/graphql-java for processing of the GraphQL query. BarleyDB uses it's own Fetchers to fetch the data from the database in a highly optimized manner.
+
+Optimized Fetching:
+BarleyDB uses the concepts of Join-Breaks and Batch-Fetching to execute highly efficient queries against the RDBMS.
+Join-Breaks:
+Left outer join is the typical mechanism used to query data across multiple tables. If table A is joined to table B then the cross product A x B is returned. If there are four nested joins (A, B, C & D) then the cross product A x B x C x D is generated which can be prohibitly expensive if the multiplication factors are too high.
+
+EG
+A   B   C   D   ROWS   
+10  1   1   1   10
+10  10  1   1   100
+10  10  10  10  10000
+100 100 10  10  1000000
+
+There is a trade off between reducing the database roundtrips and the database returning too many rows. BarleyDB uses join breaking to manage this trade off. It works as follows:
+
+1) The full query is built with all left outer joins according to the GraphQL query.
+2) A pluggable join-breaking algorithm walks the query graph and breaks specific joins.
+3) The graphql-java framework will request an extra  fetch at the join break. At which point BarleyDB can execute the query for the other side of the break.
+
+EG.
+Full query would perform:
+
+A x B x C x D x E x F
+
+After Join Breaking
+
+A x B x C
+D x E x F where D.id in (C*) - where C* are all C records returned from the previous cross product.
+
+Comparing record counts:
+
+A   B   C   D   E    F      NO-BREAKS     C<-BREAK->D
+10  100 10  100 10   100    1000000000    10000 + 100000 = 110000 => 0.011% of the rows are returned.
+
 
 Batch Fetching:
 Batch fetching prevents the classic N+1 problem by fetching all N associations in one query using the in(...) SQL clause. 
