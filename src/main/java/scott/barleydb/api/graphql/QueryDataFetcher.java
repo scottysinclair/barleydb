@@ -102,9 +102,7 @@ public class QueryDataFetcher implements DataFetcher<Object> {
     LOG.debug("Processed {} rows", ctx.getStatistics().getNumberOfRowsRead());
     if (graphEnv.getExecutionStepInfo().getType() instanceof GraphQLList) {
       if (gctx.isBatchFetchEnabled()) {
-        for (Entity e : result) {
-          ctx.batchFetchDescendants(e);
-        }
+    	  ctx.batchFetchDescendants(result);
       }
       return result; //Entity2Map.toListOfMaps(result);
     }

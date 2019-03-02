@@ -1053,6 +1053,10 @@ public class EntityContext implements Serializable {
         fetchHelper.batchFetchDescendants(entity);
     }
 
+	public void batchFetchDescendants(Collection<Entity> entites) {
+		fetchHelper.batchFetchDescendants(entites);
+	}
+
     /**
      *
      * @param toManyNode the node to fetch
@@ -1345,5 +1349,6 @@ public class EntityContext implements Serializable {
 	public String debugQueryString(QueryObject<Object> query) {
 	  return env.services().debugQueryString(query, namespace);
 	}
+
 
 }

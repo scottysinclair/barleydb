@@ -158,7 +158,7 @@ public class TestGraphQLQuery extends TestRemoteClientBase {
 //    		int qDepth = queryDepth(qjoin);
   //  		return  qDepth % 4 == 0;
     	});
-    	Object result = gContext.execute("{xmlSyntaxModelById(id: 1) {" + 
+    	Object result = gContext.execute("{xmlSyntaxModels {" + 
     	" id \n " + 
     	" name \n " + 
     	"structureType \n " + 

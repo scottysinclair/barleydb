@@ -1,6 +1,7 @@
 package scott.barleydb.api.core.entity;
 
 import java.io.Serializable;
+import java.lang.ref.WeakReference;
 
 /*-
  * #%L
@@ -59,7 +60,9 @@ public class FetchHelper implements Serializable {
      *
      */
     private final WeakHashMap<Entity, DependencyTree> batchFetchEntities;
-
+    private final Set<Set<WeakReference<Entity>>> batchGroups = new HashSet<>();
+    
+    
     public FetchHelper(EntityContext ctx) {
         this.ctx = ctx;
         this.batchFetchEntities = new WeakHashMap<>();
@@ -69,7 +72,22 @@ public class FetchHelper implements Serializable {
         batchFetchEntities.put(entity, null);
     }
 
-    public void fetchEntity(Entity entity, boolean force, boolean fetchInternal, boolean evenIfLoaded, String singlePropertyName) {
+    public void batchFetchDescendants(Collection<Entity> entities) {
+    	for (Entity entity: entities) {
+    		batchFetchEntities.put(entity, null);
+    	}
+        batchGroups.add(toSetOfWeakRefs(entities));
+    }
+
+    private Set<WeakReference<Entity>> toSetOfWeakRefs(Collection<Entity> entities) {
+    	Set<WeakReference<Entity>> result = new LinkedHashSet<>();
+    	for (Entity e: entities) {
+    		result.add(new WeakReference<Entity>(e));
+    	}
+		return result;
+	}
+
+	public void fetchEntity(Entity entity, boolean force, boolean fetchInternal, boolean evenIfLoaded, String singlePropertyName) {
         if (!force && entity.getEntityContext().isInternal()) {
             return;
         }
@@ -196,7 +214,27 @@ public class FetchHelper implements Serializable {
         return true;
     }
     
-    public EntityPath findShortestPath(Entity entity) {
+	private Set<Entity> defererence(Set<WeakReference<Entity>> set) {
+		Set<Entity> result = new LinkedHashSet<>();
+		for (WeakReference<Entity> ref: set) {
+			Entity e = ref.get();
+			if (e != null) {
+				result.add(e);
+			}
+		}
+		return result;
+	}
+	
+	private boolean containsEntity(Set<WeakReference<Entity>> set, Entity entity) {
+		for (WeakReference<Entity> e: set) {
+			if (e.get() == entity) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public EntityPath findShortestPath(Entity entity) {
         Set<EntityPath> paths = calculatePathsFromBatchFetchEntities(entity);
         if (LOG.isDebugEnabled()) {
 	        LOG.debug("Found {} paths from ROOT to entity {}", paths.size(), entity);
@@ -262,7 +300,8 @@ public class FetchHelper implements Serializable {
     private Set<Entity> findAllEntitiesWithSamePath(EntityPath path) {
         Set<Entity> result = new HashSet<>();
         Set<Entity> workingSet = new HashSet<>();
-        workingSet.add(path.getEntity());
+        workingSet.addAll(asBatchGroup(path.getEntity()));
+        
         EntityPath p = path;
         while(p != null) {
             Set<Entity> nextWorkingSet = new HashSet<>();
@@ -287,7 +326,20 @@ public class FetchHelper implements Serializable {
     }
 
 
-    public final class EntityPath {
+    private Collection<Entity> asBatchGroup(Entity entity) {
+    	if (!batchFetchEntities.containsKey(entity)) {
+    		return Collections.emptySet();
+    	}
+    	for (Set<WeakReference<Entity>> set: batchGroups) {
+    		if (containsEntity(set, entity)) {
+    			return defererence(set);
+    		}
+    	}
+		return Collections.singleton(entity);
+	}
+
+
+	public final class EntityPath {
         private final  Entity entity;
         private final Node node;
         private final EntityPath next;
@@ -518,12 +570,22 @@ public class FetchHelper implements Serializable {
 
 
     private boolean attemptBatchFetch(ToManyNode toManyNode, boolean fetchInternal) {
-        Set<EntityPath> paths = calculatePathsFromBatchFetchEntities(toManyNode.getParent());
-        EntityPath shortest = findShortestPath(paths);
-        if (shortest == null) {
-            return false;
-        }
-        Set<Entity> entites = findAllEntitiesWithSamePath(shortest);
+    	Set<Entity> entites = new LinkedHashSet<>();
+    	Collection<Entity> batchGroup = asBatchGroup(toManyNode.getParent());
+    	if (!batchGroup.isEmpty()) {
+    		/*
+    		 * ToManyNode parent is a batch fetch entity which is part of a batch group.
+    		 */
+    		entites.addAll(batchGroup);
+    	}
+    	else {
+	    	Set<EntityPath> paths = calculatePathsFromBatchFetchEntities(toManyNode.getParent());
+	        EntityPath shortest = findShortestPath(paths);
+	        if (shortest == null) {
+	        	return false;
+	        }
+	        entites.addAll(findAllEntitiesWithSamePath(shortest));
+    	}
         Set<ToManyNode> toFetch = entites.stream()
                 .map(e -> e.getChild(toManyNode.getName(), ToManyNode.class))
                 .collect(Collectors.toSet());
