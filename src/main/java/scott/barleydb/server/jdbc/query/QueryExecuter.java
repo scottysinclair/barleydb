@@ -181,7 +181,6 @@ public class QueryExecuter {
         LOG.debug("Executing individual query:\n" + sql);
 
         if (!params.isEmpty()) {
-            //TODO:stmt cant be closed before resultset
             try {
                 PreparedStatement stmt = prepareStatement(sql, runtimeProperties);
 

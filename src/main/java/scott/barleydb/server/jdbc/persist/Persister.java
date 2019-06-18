@@ -143,9 +143,6 @@ public class Persister {
          * in the update and delete statements.
          * This is why we have to manually apply the OL audit information, it was not automatically detected.
          */
-        /*
-         * TODO:The optimistic lock should be type converted to the String timestamp for mysql
-         */
         setNewOptimisticLockOnAuditRecords(audit, analyser.getCreateGroup(), analyser.getUpdateGroup(), newOptimisticLockTime);
 
 
@@ -694,9 +691,6 @@ public class Persister {
     private void cleanDeletedItems(EntityContext entityContext, OperationGroup deleteGroup) {
         logStep("setting deleted entity keys to null and state NEW");
         for (Entity entity : deleteGroup.getEntities()) {
-            //TODO:only set to null if key is auto generated.
-            //no longer setting it to null seems to have no impact
-//            entity.getKey().setValue(null);
             entity.setEntityState(EntityState.NOT_IN_DB);
             entity.getConstraints().setMustNotExistInDatabase();
         }

@@ -105,7 +105,7 @@ public class EntityCloner {
     }
 
     /*
-     * TODO: give sub classes the chance to handle ToManyNode cloning.
+     * give sub classes the chance to handle ToManyNode cloning.
      */
     for (ToManyNode toManyNode: src.getChildren(ToManyNode.class)) {
         if (forceClone(toManyNode)) {

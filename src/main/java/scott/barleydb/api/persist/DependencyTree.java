@@ -892,19 +892,6 @@ public class DependencyTree implements Serializable {
                          */
                         dependentNode.dependency.add(this);
                         LOG.debug("Added dependency from {} to {}", dependentNode, this);
-//
-//                        if (dependentNode.operation.opType != OperationType.NONE &&
-//                            dependentNode.operation.opType != OperationType.DEPENDS) {
-//                            /*
-//                             * a non-op or a depends-op doesn't need any dependency
-//                             */
-//                            dependentNode.dependency.add(this);
-//                            LOG.debug("Added dependency from {} to {}", dependentNode, this);
-//                        }
-//                        else {
-//                            //TODO: dependentNode.dependency.add(this);
-//                            LOG.debug("No dependencies created from {} to {} for OPTYPE {}", dependentNode, this, dependentNode.operation.opType);
-//                        }
                     }
                 }
             } else {

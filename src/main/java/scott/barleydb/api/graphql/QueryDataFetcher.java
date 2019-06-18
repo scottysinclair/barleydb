@@ -129,7 +129,6 @@ public class QueryDataFetcher implements DataFetcher<Object> {
 			  GraphQLContext gctx = graphEnv.getContext();
 			  gctx.registerJoinBreak(join);
 		  }
-		  //TODO:recurse through breaking queries
 		breakQuery(graphEnv, (QueryObject<Object>)join.getTo());
 	  }
   }

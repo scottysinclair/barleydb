@@ -74,7 +74,7 @@ import scott.barleydb.server.jdbc.resources.ConnectionResources;
  *
  */
 @SuppressWarnings({ "deprecation", "unused" })
-//@RunWith(Parameterized.class)
+@RunWith(Parameterized.class)
 public class TestQuery extends TestRemoteClientBase {
 
     @Parameters
@@ -89,7 +89,7 @@ public class TestQuery extends TestRemoteClientBase {
     private EntityContextGetter getter;
     private EntityContext theEntityContext;
 
-    public TestQuery() {
+    public TestQuery(EntityContextGetter getter, boolean autoCommitMode) {
         this.getter = new EntityContextGetter(false);
         this.autoCommitMode = false;
     }
