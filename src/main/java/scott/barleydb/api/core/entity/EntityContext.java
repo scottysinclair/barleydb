@@ -509,7 +509,7 @@ public class EntityContext implements Serializable {
     }
 
     /**
-     * Bit of a hacky method thrown in for new streaming support, will most likely be replaced...
+     * Creates an Entity in the EntityContext for the given EntityData
      * @param entityData
      * @return
      */
