@@ -1272,16 +1272,6 @@ public class DependencyTree implements Serializable {
         };
 
         List<Entity> copied = juggler.importEntities(toCopy, ctx);
-//        List<Entity> copied = EntityContextHelper.addEntities(toCopy, ctx, true, false);
-//        EntityContextHelper.copyRefStates(dctx, ctx, copied, new EntityContextHelper.EntityFilter() {
-//            @Override
-//            public boolean includesEntity(Entity entity) {
-//                //we only copy ref states for entites which have been copied into the ctx.
-//                //need to make sure any references which we can't load are lasy
-//                return toCopy.contains(entity);
-//              //return true;
-//            }
-//        });
 
         List<Node> nodes = new LinkedList<>();
         for (Entity e : copied) {
