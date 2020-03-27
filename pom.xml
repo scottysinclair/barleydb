@@ -189,12 +189,10 @@
   <!-- ================================================ -->
 
   <repositories>
-
     <repository>
       <id>central</id>
-      <url>http://central.maven.org/maven2/</url>
+      <url>https://repo1.maven.org/maven2</url>
     </repository>
-
 
     <repository>
       <id>swt-repo</id>
