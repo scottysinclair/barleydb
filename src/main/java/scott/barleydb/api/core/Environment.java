@@ -143,6 +143,10 @@ public final class Environment {
         entityContextServices.commit(entityContext);
     }
 
+    public void close(EntityContext entityContext) throws SortServiceProviderException {
+        entityContextServices.close(entityContext);
+    }
+
     /**
      *
      * @param namespace

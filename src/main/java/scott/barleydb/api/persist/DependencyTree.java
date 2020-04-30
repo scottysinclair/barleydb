@@ -203,7 +203,7 @@ public class DependencyTree implements Serializable {
     public void build(Collection<Operation> operations) throws SortServiceProviderException, BarleyDBQueryException {
         if (LOG.isDebugEnabled()) {
             LOG.debug("---------------------------------------------------------------------------------------");
-            LOG.debug(" STARTING DEPENDENCY TREE BUILD ");
+            LOG.debug(" STARTING PERSIST DEPENDENCY TREE BUILD ");
             LOG.debug("---------------------------------------------------------------------------------------");
         }
 

@@ -6,7 +6,7 @@
   <artifactId>scott.barleydb</artifactId>
   <packaging>jar</packaging>
   <name>BarleyDB</name>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.1.0-SNAPSHOT</version>
 
   <properties>
     <slf4j.version>1.4.3</slf4j.version>
@@ -60,29 +60,25 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-core</artifactId>
-      <version>3.1.1.RELEASE</version>
-      <scope>test</scope>
+      <version>5.2.5.RELEASE</version>
     </dependency>
 
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-orm</artifactId>
-      <version>3.1.1.RELEASE</version>
-      <scope>test</scope>
+      <version>5.2.5.RELEASE</version>
     </dependency>
 
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-jdbc</artifactId>
-      <version>3.1.1.RELEASE</version>
-      <scope>compile</scope>
+      <version>5.2.5.RELEASE</version>
     </dependency>
 
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-test</artifactId>
-      <version>3.1.1.RELEASE</version>
-      <scope>compile</scope>
+      <version>5.2.5.RELEASE</version>
     </dependency>
     
         <dependency>

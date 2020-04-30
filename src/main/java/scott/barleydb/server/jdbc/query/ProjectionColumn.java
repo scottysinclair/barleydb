@@ -50,19 +50,7 @@ class ProjectionColumn {
     public QueryObject<?> getQueryObject() {
         return queryObject;
     }
-
-    public boolean isPrimaryKey() {
-        return nodeType.isPrimaryKey();
-    }
-
-    public boolean isForeignKey() {
-        return nodeType.isForeignKey();
-    }
-
-    public boolean isJoined() {
-        return qJoin != null;
-    }
-
+    
     public QJoin getQJoin() {
         return qJoin;
     }

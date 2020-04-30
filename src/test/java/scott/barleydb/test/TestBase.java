@@ -23,6 +23,7 @@ package scott.barleydb.test;
  */
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.sql.Connection;
@@ -57,6 +58,7 @@ import org.example.etl.model.XmlSyntaxModel;
 import org.junit.After;
 import org.junit.Before;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -165,11 +167,23 @@ public abstract class TestBase {
       executeScript("/clean.sql", false);
     }
 
+    public static String consume(String classPathResource) throws IOException {
+        try ( LineNumberReader in = new LineNumberReader(new InputStreamReader(new ClassPathResource(classPathResource).getInputStream() ) ) )  {
+            StringBuilder sb = new StringBuilder();
+            String line = null;
+            while ((line = in.readLine()) != null) {
+                sb.append(line);
+                sb.append('\n');
+            }
+            return sb.toString();
+        }
+    }
+
     public static void executeScript(String script, boolean continueOnError) throws Exception {
         System.out.println("EXECUTING SCRIPT " + script);
-        LineNumberReader in = new LineNumberReader(new InputStreamReader(new ClassPathResource(script).getInputStream(), "UTF-8"));
+        String scriptContent = consume(script);
         List<String> statements = new LinkedList<>();
-        JdbcTestUtils.splitSqlScript(JdbcTestUtils.readScript(in), ';', statements);
+        ScriptUtils.splitSqlScript(null, scriptContent, ";", "--", "/*", "*/", statements);
         try (Connection c = dataSource.getConnection(); ) {
             c.setAutoCommit(false);
             try ( Statement s = c.createStatement(); ) {

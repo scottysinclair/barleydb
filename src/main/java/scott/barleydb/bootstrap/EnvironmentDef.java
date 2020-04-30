@@ -1,7 +1,6 @@
 package scott.barleydb.bootstrap;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.*;
 
 /*-
  * #%L
@@ -28,8 +27,6 @@ import java.io.FileNotFoundException;
  * #L%
  */
 
-import java.io.LineNumberReader;
-import java.io.StringReader;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -42,7 +39,9 @@ import javax.sql.DataSource;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.test.jdbc.JdbcTestUtils;
 
 import scott.barleydb.api.config.Definitions;
@@ -317,10 +316,10 @@ public class EnvironmentDef {
         throw new IllegalStateException("Unknown dbInfo " + dbInfo);
     }
 
-    public static void executeScript(Connection con, String script, boolean continueOnError) throws Exception {
-        LineNumberReader in = new LineNumberReader(new StringReader( script ));
+
+    public static void executeScript(Connection con, String scriptContent, boolean continueOnError) throws Exception {
         List<String> statements = new LinkedList<>();
-        JdbcTestUtils.splitSqlScript(JdbcTestUtils.readScript(in), ';', statements);
+        ScriptUtils.splitSqlScript(null, scriptContent, ";", "--", "/*", "*/", statements);
         if (continueOnError){
             con.setAutoCommit(true);
         }

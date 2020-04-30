@@ -91,6 +91,13 @@ public interface IEntityContextServices {
     void commit(EntityContext entityContext) throws SortServiceProviderException;
 
     /**
+     * Closes the connection  associated with the entity context transaction (if any)
+     *
+     * @param entityContext
+     * @throws SortJdbcException if the commit failed, if we are in auto commit mode.
+     */
+    void close(EntityContext entityContext) throws SortServiceProviderException;
+    /**
      * Rolls the transaction for the given entity context back.
      * @param entityContext
      * @throws SortJdbcException

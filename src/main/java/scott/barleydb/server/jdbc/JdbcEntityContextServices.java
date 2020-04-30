@@ -259,6 +259,19 @@ public class JdbcEntityContextServices implements IEntityContextServices {
         }
     }
 
+    @Override
+    public void close(EntityContext entityContext) throws SortServiceProviderException {
+        ConnectionResources conRes = ConnectionResources.get(entityContext);
+        if (conRes != null) {
+            try {
+                conRes.close();
+            }
+            catch(SQLException x) {
+                throw new ClosingConnectionException("Error closing connection", x);
+            }
+        }
+    }
+
     public <T> QueryEntityDataInputStream streamQuery(EntityContext entityContext, QueryObject<T> query, RuntimeProperties props) throws SortJdbcException, BarleyDBQueryException {
         env.preProcess(query, entityContext.getDefinitions());
 

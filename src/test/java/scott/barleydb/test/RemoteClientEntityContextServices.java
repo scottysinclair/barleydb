@@ -131,6 +131,11 @@ public class RemoteClientEntityContextServices implements IEntityContextServices
     }
 
     @Override
+    public void close(EntityContext entityContext) throws SortServiceProviderException {
+        throw new RollbackWithoutTransactionException("Remote client cannot have a transaction");
+    }
+
+    @Override
     public void rollback(EntityContext entityContext) throws SortServiceProviderException {
         throw new RollbackWithoutTransactionException("Remote client cannot have a transaction");
     }

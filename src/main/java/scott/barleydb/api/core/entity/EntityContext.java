@@ -208,6 +208,10 @@ public class EntityContext implements Serializable {
         env.commit(this);
     }
 
+    public void close() throws SortServiceProviderException {
+        env.close(this);
+    }
+
     /**
      * gets a resource associated with the entity context.
      * @param key

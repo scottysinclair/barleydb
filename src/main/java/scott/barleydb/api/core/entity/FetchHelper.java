@@ -486,7 +486,7 @@ public class FetchHelper implements Serializable {
 
    private void fetchToManys(Collection<ToManyNode> toFetch, boolean fetchInternal) {
        ToManyNode firstToMany = toFetch.iterator().next();
-       System.out.println("BATCH FETCHING TOMANYS: " + toFetch.size() + " " + firstToMany.getNodeType().getEntityType().getTableName() + "." + firstToMany.getNodeType().getName());
+       LOG.debug("BATCH FETCHING TOMANYS: " + toFetch.size() + " " + firstToMany.getNodeType().getEntityType().getTableName() + "." + firstToMany.getNodeType().getName());
        final NodeType toManyDef = firstToMany.getNodeType();
 
        //get the name of the node/property which we need to filter on to get the correct entities back on the many side

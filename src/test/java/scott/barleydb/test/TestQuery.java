@@ -22,10 +22,18 @@ package scott.barleydb.test;
  * #L%
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static scott.barleydb.api.query.JoinType.INNER;
-import static scott.barleydb.api.query.JoinType.LEFT_OUTER;
+import org.example.acl.query.QUser;
+import org.example.etl.model.*;
+import org.example.etl.query.*;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
+import scott.barleydb.api.core.QueryBatcher;
+import scott.barleydb.api.core.entity.EntityContext;
+import scott.barleydb.api.stream.DataStream;
+import scott.barleydb.api.stream.ObjectInputStream;
+import scott.barleydb.server.jdbc.query.QueryResult;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -33,37 +41,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-import org.example.acl.query.QUser;
-import org.example.etl.model.CsvSyntaxModel;
-import org.example.etl.model.SyntaxModel;
-import org.example.etl.model.Template;
-import org.example.etl.model.TemplateBusinessType;
-import org.example.etl.model.XmlMapping;
-import org.example.etl.model.XmlSyntaxModel;
-import org.example.etl.query.QBusinessType;
-import org.example.etl.query.QCsvStructure;
-import org.example.etl.query.QCsvSyntaxModel;
-import org.example.etl.query.QSyntaxModel;
-import org.example.etl.query.QTemplate;
-import org.example.etl.query.QTemplateBusinessType;
-import org.example.etl.query.QXmlMapping;
-import org.example.etl.query.QXmlSyntaxModel;
-import org.example.etl.model.SyntaxType;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
-import org.springframework.test.jdbc.SimpleJdbcTestUtils;
-
-import scott.barleydb.api.core.QueryBatcher;
-import scott.barleydb.api.core.entity.EntityContext;
-import scott.barleydb.api.query.QueryObject;
-import scott.barleydb.api.stream.DataStream;
-import scott.barleydb.api.stream.ObjectInputStream;
-import scott.barleydb.server.jdbc.query.QueryResult;
-import scott.barleydb.server.jdbc.resources.ConnectionResources;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static scott.barleydb.api.query.JoinType.INNER;
+import static scott.barleydb.api.query.JoinType.LEFT_OUTER;
 
 /**
  * Tests various types of queries in a server environment and a remote client environment.
