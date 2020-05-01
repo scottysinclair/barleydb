@@ -100,12 +100,13 @@
         <version>14.16.02</version>
     </dependency>
 
-<!-- https://mvnrepository.com/artifact/com.graphql-java/graphql-java -->
-<dependency>
-    <groupId>com.graphql-java</groupId>
-    <artifactId>graphql-java</artifactId>
-    <version>11.0</version>
-</dependency>
+    <!-- https://mvnrepository.com/artifact/com.graphql-java/graphql-java -->
+    <dependency>
+        <groupId>com.graphql-java</groupId>
+        <artifactId>graphql-java</artifactId>
+        <version>13.0</version>
+        <scope>provided</scope>
+    </dependency>
 
     <dependency>
       <groupId>junit</groupId>

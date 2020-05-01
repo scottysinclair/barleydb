@@ -407,6 +407,9 @@ public class Persister {
             updateRequired.add(entity);
             return true;
         }
+        if (entity.getOptimisticLock() == null) {
+            return false;
+        }
         /*
          *loop through all refnodes nodes to check if they cause us to require modification.
          */

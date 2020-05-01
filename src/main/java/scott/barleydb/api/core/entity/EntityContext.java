@@ -114,7 +114,7 @@ import scott.barleydb.server.jdbc.query.QueryGenerator.Param;
  * @author scott
  *
  */
-public class EntityContext implements Serializable {
+public class EntityContext implements Serializable, AutoCloseable {
     private static final long serialVersionUID = 1L;
 
     private static final Logger LOG = LoggerFactory.getLogger(EntityContext.class);

@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import graphql.execution.MergedField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,7 +89,7 @@ public class EntityDataFetcher implements DataFetcher<Object> {
 		}
 
 		EntityContext ctx = entity.getEntityContext();
-		Field fieldToFetch = graphEnv.getExecutionStepInfo().getField();
+		MergedField fieldToFetch = graphEnv.getExecutionStepInfo().getField();
 		Node node = entity.getChild(fieldToFetch.getName());
 		if (node == null) {
 			throw new IllegalStateException("Could not find node matching graphql field: " + fieldToFetch);

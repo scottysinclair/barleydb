@@ -1144,14 +1144,14 @@ public class DependencyTree implements Serializable {
              * create delete operations for the orphan checks and the data it
              * owns (data which it eagerly loaded in our case).
              */
-            for (ToManyNode refNode : oc.result.getChildren(ToManyNode.class)) {
-                if (!refNode.getNodeType().isOwns()) {
+            for (ToManyNode toManyNode : oc.result.getChildren(ToManyNode.class)) {
+                if (!toManyNode.getNodeType().isOwns()) {
                     continue;
                 }
-                if (!refNode.isFetched()) {
+                if (!toManyNode.isFetched()) {
                     continue;
                 }
-                for (Entity reffedEntity : refNode.getList()) {
+                for (Entity reffedEntity : toManyNode.getList()) {
                     if (reffedEntity == null) {
                         continue;
                     }
@@ -1161,7 +1161,7 @@ public class DependencyTree implements Serializable {
                         continue;
                     }
                     if (dependencyNode.operation.isUpdate()) {
-                        if (wasRemovedFromList(oc.entity, refNode.getName(), reffedEntity)) {
+                        if (wasRemovedFromList(oc.entity, toManyNode.getName(), reffedEntity)) {
                             LOG.debug("Adding delete operation entity {} which was removde from list", reffedEntity);
                             copyIntoContextAndCreateDeleteNodes(reffedEntity);
                         } else {
@@ -1176,9 +1176,10 @@ public class DependencyTree implements Serializable {
                     if (dependencyNode.operation.isDelete()) {
                         LOG.debug("Adding delete operation for reffed entity {} because the owner is being deleted",
                                 reffedEntity);
-                        copyIntoContextAndCreateDeleteNodes(refNode, reffedEntity);
+                        copyIntoContextAndCreateDeleteNodes(toManyNode, reffedEntity);
                         continue;
                     }
+                    LOG.error("Unexpected state: {}", generateDiagramYumlString());
                     throw new IllegalStateException("Unexpected state reached when processing orphan check " + oc
                             + " for integrating into the dependency tree");
                 }
@@ -1218,6 +1219,7 @@ public class DependencyTree implements Serializable {
              * the list cannot have something removed if the list was never
              * fetched.
              */
+            LOG.debug("Entity {} ToMany list {} is not considered fetched - so no orphan removal", entity.getName(), name);
             return false;
         }
         for (Entity e : toManyNode.getList()) {

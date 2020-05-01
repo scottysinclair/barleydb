@@ -378,9 +378,11 @@ public abstract class GenerateDatabaseScript {
     protected abstract void generateColumnType(NodeSpec nodeSpec, StringBuilder sb);
 
     protected void generateLength(NodeSpec nodeSpec, StringBuilder sb) {
-        sb.append('(');
-        sb.append(nodeSpec.getLength());
-        sb.append(')');
+        if (nodeSpec.getLength() != null) {
+            sb.append('(');
+            sb.append(nodeSpec.getLength());
+            sb.append(')');
+        }
     }
 
 }

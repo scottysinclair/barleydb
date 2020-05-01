@@ -1,4 +1,4 @@
-package scott.barleydb.api.json;
+package scott.barleydb.api.maptoentity;
 
 /*-
  * #%L
@@ -28,17 +28,15 @@ package scott.barleydb.api.json;
 import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.config.NodeType;
 import scott.barleydb.api.core.entity.*;
-import scott.barleydb.api.specification.EntitySpec;
-import scott.barleydb.api.specification.NodeSpec;
 
 import java.util.List;
 import java.util.Map;
 
-public class MapToEntityConverter {
+public class JavaMapToEntityConverter {
 
     private final EntityContext ctx;
 
-    public MapToEntityConverter(EntityContext ctx) {
+    public JavaMapToEntityConverter(EntityContext ctx) {
         this.ctx = ctx;
     }
 

@@ -278,6 +278,18 @@ public class EnvironmentDef {
               env.getDefinitions(spec.getNamespace()).registerProxyFactory((ProxyFactory)facClass.newInstance());
           }
         }
+        else {
+            /*
+             * register dynamic queries when there are no query classes
+             */
+            for (DefinitionsSpec spec: allSpecs) {
+                for (EntitySpec entitySpec: spec.getEntitySpecs()) {
+                    QueryObject<Object> query = new QueryObject<Object>(entitySpec.getClassName());
+                    env.getDefinitions(spec.getNamespace()).registerQueries(query);
+                }
+            }
+
+        }
 
         if (dropSchema) {
             dropSchema();

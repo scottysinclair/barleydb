@@ -55,7 +55,7 @@ public class Operation implements Serializable {
     }
 
     public boolean isUpdate() {
-        return opType == OperationType.UPDATE;
+        return opType == OperationType.UPDATE || (opType == OperationType.SAVE && entity.isClearlyInDatabase());
     }
 
     @Override
