@@ -35,6 +35,7 @@ import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.core.QueryBatcher;
 import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityContext;
+import scott.barleydb.api.core.entity.EntityContextHelper;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.execution.jdbc.SortJdbcException;
 import scott.barleydb.api.exception.execution.query.BarleyDBQueryException;
@@ -71,6 +72,16 @@ public class DatabaseDataSet {
         myentityContext = entityContext.newEntityContextSharingTransaction();
         myentityContext.setAllowGarbageCollection(false);
         this.loadKeysOnly = loadKeysOnly;
+    }
+
+    public void prepopulate(EntityContext other) {
+        List<Entity> copied = EntityContextHelper.addEntities(other.getEntities(), myentityContext, true, false);
+        EntityContextHelper.copyRefStates(other, myentityContext, copied, new EntityContextHelper.EntityFilter() {
+            @Override
+            public boolean includesEntity(Entity entity) {
+                return true;
+            }
+        });
     }
 
     public EntityContext getOwnEntityContext() {
@@ -141,13 +152,6 @@ public class DatabaseDataSet {
         batchLoader.load();
     }
 
-    public Entity loadEntity(EntityType entityType, Object entityKey) throws Exception {
-        BatchEntityLoader batchLoader = new BatchEntityLoader();
-        batchLoader.addEntityKey(entityType, entityKey);
-        batchLoader.load();
-        return myentityContext.getEntity(entityType, entityKey, false);
-    }
-
     /**
      * Loads entities from the database in batches
      * the order of loading on the different tables is fixed
@@ -162,12 +166,10 @@ public class DatabaseDataSet {
 
         public void addEntities(List<Entity> entities) {
             for (Entity entity : entities) {
-                addKeyCondition(entity);
+                if (!myentityContext.containsKey(entity)) {
+                    addKeyCondition(entity);
+                }
             }
-        }
-
-        public void addEntityKey(EntityType entityType, Object key) {
-            addKeyCondition(entityType, key);
         }
 
         public void load() throws SortServiceProviderException, BarleyDBQueryException  {
@@ -187,8 +189,6 @@ public class DatabaseDataSet {
 
         /**
          * Adds a filter for a specific entity key
-         * @param entityType
-         * @param entityKey
          */
         private void addKeyCondition(Entity entity) {
             addKeyCondition(entity.getEntityType(), entity.getKey().getValue());

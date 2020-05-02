@@ -105,9 +105,9 @@ public class DependencyTree implements Serializable {
      */
     private final boolean tryAndOrderInBatches;
 
-    public DependencyTree(EntityContext refCtx, boolean tryAndOrderInBatches) {
+    public DependencyTree(EntityContext refCtx, EntityContext dctx, boolean tryAndOrderInBatches) {
         this.ctx = refCtx;
-        this.dctx = refCtx.newEntityContextSharingTransaction();
+        this.dctx = dctx;
         this.tryAndOrderInBatches = tryAndOrderInBatches;
     }
 

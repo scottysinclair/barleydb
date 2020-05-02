@@ -73,6 +73,8 @@ public class PersistAnalyser implements Serializable {
 
     private final EntityContext entityContext;
 
+    private final EntityContext analyserContext;
+
     private final DependencyTree dependencyTree;
 
     private final Set<Entity> analysing = new HashSet<>();
@@ -83,16 +85,22 @@ public class PersistAnalyser implements Serializable {
 
     private PersistAnalyser(EntityContext entityContext, OperationGroup createGroup, OperationGroup updateGroup, OperationGroup deleteGroup, OperationGroup dependsOnGroup) {
         this.entityContext = entityContext;
+        this.analyserContext = entityContext.newEntityContextSharingTransaction();
+        this.analyserContext.setAllowGarbageCollection(false);
         this.createGroup = createGroup;
         this.updateGroup = updateGroup;
         this.deleteGroup = deleteGroup;
         this.dependsOnGroup = dependsOnGroup;
         this.allGroups = new OperationGroup[] { createGroup, updateGroup, deleteGroup, dependsOnGroup };
-        this.dependencyTree = new DependencyTree(entityContext, true);
+        this.dependencyTree = new DependencyTree(entityContext, analyserContext, true);
     }
 
     public EntityContext getEntityContext() {
         return entityContext;
+    }
+
+    public EntityContext getAnalyserContext() {
+        return analyserContext;
     }
 
     /**

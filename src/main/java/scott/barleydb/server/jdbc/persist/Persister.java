@@ -97,6 +97,7 @@ public class Persister {
         }
         Database database = ConnectionResources.getMandatoryForPersist(analyser.getEntityContext()).getDatabase();
         DatabaseDataSet databaseDataSet = new DatabaseDataSet(analyser.getEntityContext());
+        databaseDataSet.prepopulate(analyser.getAnalyserContext());
         try {
             loadAndValidate(databaseDataSet, analyser.getUpdateGroup(), analyser.getDeleteGroup(), analyser.getDependsOnGroup());
         } catch (SortServiceProviderException x) {
