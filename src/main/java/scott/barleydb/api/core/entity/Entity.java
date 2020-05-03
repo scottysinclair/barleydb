@@ -98,10 +98,10 @@ public class Entity implements Serializable {
         this.constraints = constraints != null ? constraints : new EntityConstraint(false, false);
         this.entityState = entityState;
         if (constraints.isMustExistInDatabase()) {
-            entityState = EntityState.NOTLOADED;
+            this.entityState = EntityState.NOTLOADED;
         }
         else if (constraints.isMustNotExistInDatabase()) {
-            entityState = EntityState.NOT_IN_DB;
+            this.entityState = EntityState.NOT_IN_DB;
         }
         initNodes();
         if (key != null) {

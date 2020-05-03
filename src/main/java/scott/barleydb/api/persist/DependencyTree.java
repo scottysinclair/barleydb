@@ -47,11 +47,7 @@ import org.slf4j.LoggerFactory;
 import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.config.NodeType;
 import scott.barleydb.api.core.QueryBatcher;
-import scott.barleydb.api.core.entity.Entity;
-import scott.barleydb.api.core.entity.EntityContext;
-import scott.barleydb.api.core.entity.EntityJuggler;
-import scott.barleydb.api.core.entity.RefNode;
-import scott.barleydb.api.core.entity.ToManyNode;
+import scott.barleydb.api.core.entity.*;
 import scott.barleydb.api.dependency.diagram.DependencyDiagram;
 import scott.barleydb.api.dependency.diagram.Link;
 import scott.barleydb.api.dependency.diagram.LinkType;
@@ -261,6 +257,11 @@ public class DependencyTree implements Serializable {
                  * query for the data as efficiently as possible
                  */
                 performOrphanChecks();
+                /*
+                 * update loaded state of any entities
+                 */
+                updateLoadedStateAfterOrphanChecks();
+
                 /*
                  * integrate into the dependency tree
                  */
@@ -597,7 +598,15 @@ public class DependencyTree implements Serializable {
                  */
                 return;
             }
-
+            /*
+             * if we do not know if this entity exists in the database or not, then we force an orphan check
+             * to find out (as this loads the original entity). This way we can save database calls by combining existence
+             * check and orphan check
+             */
+            if (operation.entity.isUnclearIfInDatabase()) {
+                LOG.debug("Forcing orphan check for {} as we need to know if it exists in the database", operation.entity);
+                addOrphanCheck(operation.entity);
+            }
             /*
              * we need to check what should be deleted from the database based
              * on the set of operations. ie entities which are owned by RefNodes
@@ -684,10 +693,6 @@ public class DependencyTree implements Serializable {
                              * and we have it loaded into memory then we should
                              * perform an update
                              */
-                            if (entity.isUnclearIfInDatabase()) {
-                                throw new IllegalStateException(
-                                        "Entities should be clearly defined at this point: " + entity);
-                            }
                             if (entity.isClearlyInDatabase() && !entity.isFetchRequired() && ref.getNodeType().isOwns()) {
                                 dependentNode = createOrGetNode(entity, OperationType.UPDATE);
                             }
@@ -700,7 +705,11 @@ public class DependencyTree implements Serializable {
                              */
                             else if (entity.isClearlyNotInDatabase()) {
                                 dependentNode = createOrGetNode(entity, OperationType.INSERT);
-                            } else {
+                            }
+                            else if (entity.isUnclearIfInDatabase() && ref.getNodeType().isOwns()) {
+                                dependentNode = createOrGetNode(entity, OperationType.SAVE);
+                            }
+                            else {
                                 /*
                                  * the dependency is there but there is nothing
                                  * to.do.
@@ -708,13 +717,8 @@ public class DependencyTree implements Serializable {
                                 dependentNode = createOrGetNode(entity, OperationType.NONE);
                             }
                         }
-                        if (operation.opType != OperationType.NONE && operation.opType != OperationType.DEPENDS) {
-                            dependency.add(dependentNode);
-                            LOG.debug("Added dependency from {} to {}", this, dependentNode);
-                        }
-                        else {
-                            LOG.debug("No dependencies created from {} to {} for OPTYPE {}", this, dependentNode, dependentNode.operation.opType);
-                       }
+                        dependency.add(dependentNode);
+                        LOG.debug("Added dependency from {} to {}", this, dependentNode);
                     }
                 }
 
@@ -751,9 +755,15 @@ public class DependencyTree implements Serializable {
                              */
                             else if (entity.isClearlyNotInDatabase()) {
                                 dependentNode = createOrGetNode(entity, OperationType.INSERT);
-                            } else if (toManyNode.getNodeType().isDependsOn()) {
+                            }
+                            else if (entity.isUnclearIfInDatabase() && toManyNode.getNodeType().isOwns()) {
+                                //not clear if it us an insert or update  so setup the dependent node as a SAVE keeping the abiguity
+                                dependentNode = createOrGetNode(entity, OperationType.SAVE);
+                            }
+                            else if (toManyNode.getNodeType().isDependsOn()) {
                                 dependentNode = createOrGetNode(entity, OperationType.DEPENDS);
-                            } else {
+                            }
+                            else {
                                 /*
                                  * the dependency is there but there is nothing
                                  * to.do.
@@ -765,13 +775,7 @@ public class DependencyTree implements Serializable {
                          * the direction of the FK dependency is reversed for
                          * ToManyNodes
                          */
-                        if (dependentNode.operation.opType != OperationType.NONE && dependentNode.operation.opType != OperationType.DEPENDS) {
-                            dependentNode.dependency.add(this);
-                            LOG.debug("Added dependency from {} to {}", dependentNode, this);
-                        }
-                        else {
-                            LOG.debug("No dependencies created from {} to {} for OPTYPE {}", dependentNode, this, dependentNode.operation.opType);
-                        }
+                        dependentNode.dependency.add(this);
                     }
                 }
             } else {
@@ -1076,6 +1080,34 @@ public class DependencyTree implements Serializable {
         LOG.debug("END Executing queries for all pending orphan checks");
         LOG.debug("-------------------------------------------------------------");
 
+    }
+
+    private void updateLoadedStateAfterOrphanChecks() {
+        LOG.debug("-------------------------------------------------------------");
+        LOG.debug("START Checking if we can update entity state based on the orphan check.");
+        LOG.debug("-------------------------------------------------------------");
+
+        for (OrphanCheck oc : orphanChecks.values()) {
+            if (oc.entity.isUnclearIfInDatabase()) {
+                if (oc.result == null) {
+                    LOG.debug("Entity {} is not in the database", oc.entity);
+                    oc.entity.setEntityState(EntityState.NOT_IN_DB);
+                    Node dependencyNode = getDependencyNode(oc.entity);
+                    dependencyNode.operation.updateOpType(OperationType.INSERT);
+                }
+                else {
+                    LOG.debug("Found entity {} in the database", oc.entity);
+                    oc.entity.setEntityState(EntityState.LOADED); //we change the state to LOADED to indicate that it exits in DB
+                    Node dependencyNode = getDependencyNode(oc.entity);
+                    dependencyNode.operation.updateOpType(OperationType.INSERT);
+
+                }
+            }
+        }
+
+        LOG.debug("-------------------------------------------------------------");
+        LOG.debug("END Checking if we can update entity state based on the orphan check.");
+        LOG.debug("-------------------------------------------------------------");
     }
 
     /**

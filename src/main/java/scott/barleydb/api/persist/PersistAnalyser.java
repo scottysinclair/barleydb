@@ -196,7 +196,7 @@ public class PersistAnalyser implements Serializable {
     public void analyse(PersistRequest persistRequest) throws SortPersistException, EntityMissingException {
         try {
 
-            setCorrectStateForEntitiesWhichMayOrMayNotBeInTheDatabase( persistRequest.getOperations() );
+//            setCorrectStateForEntitiesWhichMayOrMayNotBeInTheDatabase( persistRequest.getOperations() );
 
             try {
                 dependencyTree.build( persistRequest.getOperations() );
@@ -304,7 +304,7 @@ public class PersistAnalyser implements Serializable {
         }
         for (Entity eToSave: matches) {
             if (dds.getEntity(eToSave.getEntityType(), eToSave.getKey().getValue()) != null) {
-                LOG.debug("Found enity {} in the database.", eToSave);
+                LOG.debug("Found entity {} in the database.", eToSave);
                 eToSave.setEntityState(EntityState.LOADED);
             }
             else {
