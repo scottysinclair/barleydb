@@ -106,7 +106,7 @@ public final class Entities implements Iterable<Entity>, Serializable {
         pollForCollectedEntities();
         final Object pk = entity.getKey().getValue();
         if (pk != null) {
-            entityByPk.remove( pk );
+            entityByPk.remove( new EntityPkKey(entity) );
         }
         entityByUuid.remove( entity.getUuid() );
         EntityInfo entityInfo = entityInfos.remove(entity);

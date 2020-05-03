@@ -1,6 +1,9 @@
 package scott.barleydb.api.core.entity;
 
-import java.util.Arrays;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
 
 /*
  * #%L
@@ -23,21 +26,6 @@ import java.util.Arrays;
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import scott.barleydb.api.core.entity.Entity;
-import scott.barleydb.api.core.entity.EntityContext;
-import scott.barleydb.api.core.entity.RefNode;
-import scott.barleydb.api.core.entity.ToManyNode;
 
 public class EntityContextHelper {
 

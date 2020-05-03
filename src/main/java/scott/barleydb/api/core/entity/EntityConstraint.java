@@ -26,6 +26,7 @@ package scott.barleydb.api.core.entity;
  */
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Constraints on an entity
@@ -36,25 +37,28 @@ import java.io.Serializable;
 public class EntityConstraint implements Serializable {
 
     public static EntityConstraint mustExistInDatabase() {
-        return new EntityConstraint(true, false, false);
+        return new EntityConstraint(true, false, false, false);
     }
 
     public static EntityConstraint mustNotExistInDatabase() {
-        return new EntityConstraint(false, true, false);
+        return new EntityConstraint(false, true, false, false);
     }
 
     public static EntityConstraint noConstraints() {
-        return new EntityConstraint(false, false, false);
+        return new EntityConstraint(false, false, false, false);
     }
 
     public static EntityConstraint mustExistAndDontFetch() {
-        return new EntityConstraint(true, false, true);
+        return new EntityConstraint(true, false, true, false);
     }
 
     public static EntityConstraint dontFetch() {
-        return new EntityConstraint(false, false, true);
+        return new EntityConstraint(false, false, true, false);
     }
 
+    public static EntityConstraint saveRequired() {
+        return new EntityConstraint(false, false, false, true);
+    }
 
     private static final long serialVersionUID = 1L;
 
@@ -64,16 +68,23 @@ public class EntityConstraint implements Serializable {
 
     private boolean neverFetch;
 
+    private boolean saveRequired;
+
     public EntityConstraint(boolean mustExistInDatabase, boolean mustNotExistInDatabase) {
-        this(mustExistInDatabase, mustNotExistInDatabase, false);
+        this(mustExistInDatabase, mustNotExistInDatabase, false, false);
     }
-    public EntityConstraint(boolean mustExistInDatabase, boolean mustNotExistInDatabase, boolean neverFetch) {
+    public EntityConstraint(boolean mustExistInDatabase, boolean mustNotExistInDatabase, boolean neverFetch, boolean saveRequired) {
         this.mustExistInDatabase = mustExistInDatabase;
         this.mustNotExistInDatabase = mustNotExistInDatabase;
         if (mustExistInDatabase && mustNotExistInDatabase) {
             throw new IllegalArgumentException("Invalid constraint");
         }
         this.neverFetch = neverFetch;
+        this.saveRequired = saveRequired;
+    }
+
+    public boolean isSaveRequired() {
+        return saveRequired;
     }
 
     public boolean isMustExistInDatabase() {
@@ -98,47 +109,35 @@ public class EntityConstraint implements Serializable {
         this.mustNotExistInDatabase = true;
     }
 
-    public boolean hasNoConstraints() {
-        return !mustExistInDatabase && !mustNotExistInDatabase  && !neverFetch;
-    }
-
     public boolean isNeverFetch() {
         return neverFetch;
+    }
+
+    public void setSaveRequired(boolean value) {
+        this.saveRequired = saveRequired;
     }
 
     public void set(EntityConstraint constraints) {
         this.mustExistInDatabase = constraints.mustExistInDatabase;
         this.mustNotExistInDatabase = constraints.mustNotExistInDatabase;
         this.neverFetch = constraints.neverFetch;
+        this.saveRequired = constraints.saveRequired;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EntityConstraint that = (EntityConstraint) o;
+        return mustExistInDatabase == that.mustExistInDatabase &&
+                mustNotExistInDatabase == that.mustNotExistInDatabase &&
+                neverFetch == that.neverFetch &&
+                saveRequired == that.saveRequired;
+    }
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + (mustExistInDatabase ? 1231 : 1237);
-        result = prime * result + (mustNotExistInDatabase ? 1231 : 1237);
-        result = prime * result + (neverFetch ? 1231 : 1237);
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        EntityConstraint other = (EntityConstraint) obj;
-        if (mustExistInDatabase != other.mustExistInDatabase)
-            return false;
-        if (mustNotExistInDatabase != other.mustNotExistInDatabase)
-            return false;
-        if (neverFetch != other.neverFetch)
-            return false;
-        return true;
+        return Objects.hash(mustExistInDatabase, mustNotExistInDatabase, neverFetch, saveRequired);
     }
 
     @Override
@@ -151,6 +150,5 @@ public class EntityConstraint implements Serializable {
         }
         return "N/A" + (neverFetch ? " + NeverFetch" : "");
     }
-
 
 }

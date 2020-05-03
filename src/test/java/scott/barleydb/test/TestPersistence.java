@@ -58,10 +58,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import scott.barleydb.api.core.Environment;
-import scott.barleydb.api.core.entity.Entity;
-import scott.barleydb.api.core.entity.EntityContext;
-import scott.barleydb.api.core.entity.EntityContextHelper;
-import scott.barleydb.api.core.entity.ProxyController;
+import scott.barleydb.api.core.entity.*;
 import scott.barleydb.api.exception.BarleyDBException;
 import scott.barleydb.api.exception.execution.persist.EntityMissingException;
 import scott.barleydb.api.exception.execution.persist.OptimisticLockMismatchException;
@@ -918,7 +915,7 @@ public class TestPersistence extends TestRemoteClientBase {
    }
 
     @Test
-    public void testSaveSyntaxWithMappingWhichIsPerhapsInTheDatabaseAndIsNot() throws BarleyDBException {
+    public void testSaveSyntaxWithMappingWhichIsPerhapsInTheDatabaseAndIsNot1() throws BarleyDBException {
         //first create a syntax with 2 mappings
         XmlSyntaxModel syntax = theEntityContext.newModel(XmlSyntaxModel.class);
         syntax.setUser( theEntityContext.newModel(User.class) );
@@ -947,36 +944,33 @@ public class TestPersistence extends TestRemoteClientBase {
         LOG.debug("--------------------------- PERSISTING THE ORIGINAL SYNTAX END -----------------------");
 
         /*
-         * now we do something 'stupid' we add an XmlMapping entity to the entity context with key 1000
-         * and we say we don't know if it already exists or not.
-         *
-         * We then add it to the syntax and persist the syntax, we expect it to work.
-         * In the real world this would not be a good idea if the PK is framework generated, ie the
-         * PK could be in use.
+         * we have a fixed PK for the new mapping, the framework must detect that it is an insert
          */
-        XmlMapping m2PerhapsInDb = theEntityContext.newModel(XmlMapping.class, 1000L);
+        XmlMapping m2PerhapsInDb = theEntityContext.newModel(XmlMapping.class, 1000L, EntityConstraint.noConstraints());
         assertEquals((Long)1000L, m2PerhapsInDb.getId());
-        assertTrue(m2PerhapsInDb.getEntity().isUnclearIfInDatabase());
-        assertFalse(m2PerhapsInDb.getEntity().isClearlyNotInDatabase());
         /*
          * setting the reference no longer forces loading.
          */
         m2PerhapsInDb.setSyntax(syntax);
-        assertTrue(m2PerhapsInDb.getEntity().isUnclearIfInDatabase());
-        assertFalse(m2PerhapsInDb.getEntity().isClearlyNotInDatabase());
         m2PerhapsInDb.setXpath("/root");
         m2PerhapsInDb.setTargetFieldName("root");
         syntax.getMappings().add(m2PerhapsInDb);
 
 
+        theEntityContext.getStatistics().clear();
         LOG.debug("--------------------------- PERSISTING THE UPDATED SYNTAX START -----------------------");
         theEntityContext.persist(new PersistRequest().save(syntax));
         LOG.debug("--------------------------- PERSISTING THE UPDATED SYNTAX END -----------------------");
         assertFalse(m2PerhapsInDb.getEntity().isUnclearIfInDatabase());
         assertTrue(m2PerhapsInDb.getEntity().isLoaded());
         assertEquals((Long)1000L, m2PerhapsInDb.getId());
-    }
 
+        EntityContext newEx = theEntityContext.newEntityContextSharingTransaction();
+        QXmlSyntaxModel q = new QXmlSyntaxModel();
+        q.joinToMappings();
+        assertEquals(newEx.performQuery(q).getList().get(0).getMappings().size(), 2);
+    }
+    
     /**
      * since we no longer track the deleted entries in tomanynodes, this test no longer makes sense.
      * @throws BarleyDBException

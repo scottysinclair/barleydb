@@ -61,6 +61,9 @@ public final class RefNode extends Node {
      */
     private Entity reference;
 
+    /**
+     * if this column was not fetched from the DB
+     */
     private boolean loaded = true;
 
 

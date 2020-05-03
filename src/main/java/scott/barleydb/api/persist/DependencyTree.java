@@ -1082,6 +1082,7 @@ public class DependencyTree implements Serializable {
 
     }
 
+
     private void updateLoadedStateAfterOrphanChecks() {
         LOG.debug("-------------------------------------------------------------");
         LOG.debug("START Checking if we can update entity state based on the orphan check.");
@@ -1097,10 +1098,14 @@ public class DependencyTree implements Serializable {
                 }
                 else {
                     LOG.debug("Found entity {} in the database", oc.entity);
-                    oc.entity.setEntityState(EntityState.LOADED); //we change the state to LOADED to indicate that it exits in DB
-                    Node dependencyNode = getDependencyNode(oc.entity);
-                    dependencyNode.operation.updateOpType(OperationType.INSERT);
-
+                    if (oc.entity.getConstraints().isSaveRequired()) {
+                        oc.entity.setEntityState(EntityState.LOADED);
+                        Node dependencyNode = getDependencyNode(oc.entity);
+                        dependencyNode.operation.updateOpType(OperationType.UPDATE);
+                    }
+                    else {
+                        throw new IllegalStateException("Not clear if entity should be saved or not " + oc.entity);
+                    }
                 }
             }
         }

@@ -732,6 +732,7 @@ public class EntityContext implements Serializable, AutoCloseable {
     public void unload(Object object, boolean includeOwnedEntities) {
         if (object instanceof ProxyController) {
             ProxyController pc = (ProxyController) object;
+            entities.remove(pc.getEntity());
             pc.getEntity().unload(includeOwnedEntities);
         }
     }

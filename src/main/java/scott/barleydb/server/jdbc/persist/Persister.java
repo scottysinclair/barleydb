@@ -203,6 +203,12 @@ public class Persister {
          * and all of their ToMany refs should be fetched.
          */
         setLoadedAndFetchedForCreatedEntities(analyser.getCreateGroup());
+
+        for (Entity e: analyser.getCreateGroup().mergedCopy(analyser.getUpdateGroup()).getEntities()) {
+            if (e.getConstraints().isSaveRequired()) {
+                e.getConstraints().setSaveRequired(false);
+            }
+        }
     }
 
     protected void preJdbcWorkHook() {}
