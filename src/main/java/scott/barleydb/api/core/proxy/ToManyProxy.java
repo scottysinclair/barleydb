@@ -128,6 +128,12 @@ public class ToManyProxy<R> extends AbstractList<R> implements Serializable {
              */
             return;
         }
+        if (toManyNode.getParent().getConstraints().isNeverFetch()) {
+            /*
+             * we should never fetch
+             */
+            return;
+        }
         /*
          * ok, we got here..
          * if we have not yet been fetched then try it

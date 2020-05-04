@@ -56,6 +56,10 @@ public class EntityConstraint implements Serializable {
         return new EntityConstraint(false, false, true, false);
     }
 
+    public static EntityConstraint dontFetchAndSaveRequired() {
+        return new EntityConstraint(false, false, true, true);
+    }
+
     public static EntityConstraint saveRequired() {
         return new EntityConstraint(false, false, false, true);
     }

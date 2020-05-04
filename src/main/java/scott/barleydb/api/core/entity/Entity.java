@@ -436,7 +436,9 @@ public class Entity implements Serializable {
                     if (includeOwnedEntities && node.getNodeType().isOwns()) {
                         RefNode refNode = (RefNode) node;
                         Entity reffedEntity = refNode.getReference();
-                        reffedEntity.unload(includeOwnedEntities);
+                        if (reffedEntity != null) {
+                            reffedEntity.unload(includeOwnedEntities);
+                        }
                         refNode.setReference(null);
                     }
                 } else if (node instanceof ToManyNode) {

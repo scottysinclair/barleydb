@@ -582,9 +582,9 @@ public class DependencyTree implements Serializable {
             if (builtOrphanChecks) {
                 return;
             }
-            LOG.debug("Building orphan checks for {}", this);
+            //LOG.debug("Building orphan checks for {}", this);
             builtOrphanChecks = true;
-            if (operation.entity.getKey().getValue() == null) {
+            if (operation.entity.getKey().getValue() == null || operation.opType == OperationType.INSERT) {
                 /*
                  * this entity has no PK, it cannot exist in the DB, therefore
                  * nothing to do
@@ -606,6 +606,7 @@ public class DependencyTree implements Serializable {
             if (operation.entity.isUnclearIfInDatabase()) {
                 LOG.debug("Forcing orphan check for {} as we need to know if it exists in the database", operation.entity);
                 addOrphanCheck(operation.entity);
+                return;
             }
             /*
              * we need to check what should be deleted from the database based
@@ -613,7 +614,7 @@ public class DependencyTree implements Serializable {
              * but no longer pointed to need to be deleted, the same goes for to
              * many nodes.
              */
-            LOG.debug("Analysing orphan checks for {}", this);
+//            LOG.debug("Analysing orphan checks for {}", this);
             /*
              * go through our FK refs and build dependencies TO them
              */

@@ -970,6 +970,71 @@ public class TestPersistence extends TestRemoteClientBase {
         q.joinToMappings();
         assertEquals(newEx.performQuery(q).getList().get(0).getMappings().size(), 2);
     }
+
+    @Test
+    public void testNotClearIfEntityShouldBeSavedOrNot() throws BarleyDBException {
+        //first create a syntax with 1 mappings
+        XmlSyntaxModel syntax = theEntityContext.newModel(XmlSyntaxModel.class);
+        syntax.setUser( theEntityContext.newModel(User.class) );
+        syntax.setAccessArea( theEntityContext.newModel(AccessArea.class) );
+        syntax.setName("whatever");
+        syntax.setUuid("");
+        syntax.setSyntaxType(SyntaxType.ROOT);
+        syntax.setStructure( theEntityContext.newModel(XmlStructure.class));
+
+        syntax.getAccessArea().setName("root");
+        syntax.getUser().setName("fred");
+        syntax.getUser().setAccessArea(syntax.getAccessArea());
+        syntax.getUser().setUuid("");
+        syntax.getStructure().setName("struct");
+        syntax.getStructure().setAccessArea(syntax.getAccessArea());
+        syntax.getStructure().setUuid("");
+
+        XmlMapping m1 = theEntityContext.newModel(XmlMapping.class);
+        m1.setSyntax(syntax);
+        m1.setXpath("/root");
+        m1.setTargetFieldName("root");
+        syntax.getMappings().add(m1);
+
+        LOG.debug("--------------------------- PERSISTING THE ORIGINAL SYNTAX START -----------------------");
+        theEntityContext.persist(new PersistRequest().save(syntax));
+        LOG.debug("--------------------------- PERSISTING THE ORIGINAL SYNTAX END -----------------------");
+
+        long sId = syntax.getId();
+        long mId = syntax.getMappings().get(0).getId();
+        EntityContext newCtx = theEntityContext.newEntityContextSharingTransaction();
+
+        syntax = newCtx.newModel(XmlSyntaxModel.class, sId, EntityConstraint.dontFetch());
+        syntax.setUser( newCtx.newModel(User.class) );
+        syntax.setAccessArea( newCtx.newModel(AccessArea.class) );
+        syntax.setName("whatever");
+        syntax.setUuid("");
+        syntax.setSyntaxType(SyntaxType.ROOT);
+        syntax.setStructure( newCtx.newModel(XmlStructure.class));
+
+        syntax.getAccessArea().setName("root");
+        syntax.getUser().setName("fred");
+        syntax.getUser().setAccessArea(syntax.getAccessArea());
+        syntax.getUser().setUuid("");
+        syntax.getStructure().setName("struct");
+        syntax.getStructure().setAccessArea(syntax.getAccessArea());
+        syntax.getStructure().setUuid("");
+
+        m1 = newCtx.newModel(XmlMapping.class, mId, EntityConstraint.dontFetch());
+        m1.setSyntax(syntax);
+        m1.setXpath("/root");
+        m1.setTargetFieldName("root");
+        syntax.getMappings().add(m1);
+
+        LOG.debug("--------------------------- PERSISTING THE UPDATED SYNTAX START -----------------------");
+        try {
+            newCtx.persist(new PersistRequest().save(syntax));
+        }
+        catch(IllegalStateException x) {
+            assertTrue(x.getMessage().contains("Not clear if entity should be saved or not"));
+        }
+        LOG.debug("--------------------------- PERSISTING THE UPDATED SYNTAX END -----------------------");
+    }
     
     /**
      * since we no longer track the deleted entries in tomanynodes, this test no longer makes sense.
