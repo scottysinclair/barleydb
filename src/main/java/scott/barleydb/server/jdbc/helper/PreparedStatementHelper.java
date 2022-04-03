@@ -27,6 +27,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Date;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -195,6 +196,9 @@ public abstract class PreparedStatementHelper<PREPARING_EX extends BarleyDBExcep
             return;
         case STRING:
             setString(ps, index, jdbcType, (String) value);
+            return;
+        case UUID:
+            setString(ps, index, jdbcType, ((UUID) value).toString());
             return;
         case UTIL_DATE:
             setUtilDate(ps, index, jdbcType, (Date) value);

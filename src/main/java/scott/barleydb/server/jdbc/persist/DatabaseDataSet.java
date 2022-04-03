@@ -25,6 +25,7 @@ import java.util.Collection;
  */
 
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -39,8 +40,14 @@ import scott.barleydb.api.core.entity.EntityContextHelper;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.execution.jdbc.SortJdbcException;
 import scott.barleydb.api.exception.execution.query.BarleyDBQueryException;
+import scott.barleydb.api.exception.execution.query.ForUpdateNotSupportedException;
+import scott.barleydb.api.exception.execution.query.IllegalQueryStateException;
+import scott.barleydb.api.query.ConditionVisitor;
 import scott.barleydb.api.query.QCondition;
+import scott.barleydb.api.query.QExists;
+import scott.barleydb.api.query.QLogicalOp;
 import scott.barleydb.api.query.QProperty;
+import scott.barleydb.api.query.QPropertyCondition;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.server.jdbc.resources.ConnectionResources;
 import scott.barleydb.server.jdbc.vendor.Database;
@@ -56,6 +63,9 @@ import scott.barleydb.server.jdbc.vendor.Database;
 public class DatabaseDataSet {
 
     private static final Logger LOG = LoggerFactory.getLogger(DatabaseDataSet.class);
+
+    //the max number of conditions a query can have
+    private static final Integer MAX_QUERY_SIZE = 500;
 
     private final boolean loadKeysOnly;
     private final EntityContext myentityContext;
@@ -158,7 +168,7 @@ public class DatabaseDataSet {
      * by the order of the entities we receive.
      */
     private class BatchEntityLoader {
-        private final LinkedHashMap<EntityType, QueryObject<Object>> map;
+        private final LinkedHashMap<EntityType, List<QueryObject<Object>>> map;
 
         public BatchEntityLoader() {
             this.map = new LinkedHashMap<>();
@@ -181,8 +191,10 @@ public class DatabaseDataSet {
             }
 
             QueryBatcher batcher = new QueryBatcher();
-            for (Map.Entry<EntityType, QueryObject<Object>> entry : map.entrySet()) {
-                batcher.addQuery(entry.getValue());
+            for (Map.Entry<EntityType, List<QueryObject<Object>>> entry : map.entrySet()) {
+                for (QueryObject<Object> qo: entry.getValue()) {
+                    batcher.addQuery(qo);
+                }
             }
             myentityContext.performQueries(batcher);
         }
@@ -200,7 +212,7 @@ public class DatabaseDataSet {
          * @param entityKey
          */
         private void addKeyCondition(final EntityType entityType, Object entityKey) {
-            final QueryObject<Object> query = getQueryForEntityType(entityType);
+            final QueryObject<Object> query = getQueryForEntityType(entityType, true);
             final QCondition condition = getKeyCondition(entityType, query, entityKey);
             if (query.getCondition() == null) {
                 query.where(condition);
@@ -211,34 +223,72 @@ public class DatabaseDataSet {
         }
 
         private QCondition getKeyCondition(EntityType entityType, QueryObject<Object> query, Object key) {
-            final QProperty<Object> pk = new QProperty<Object>(query, entityType.getKeyNodeName());
+            final QProperty<Object> pk = new QProperty<>(query, entityType.getKeyNodeName());
             return pk.equal(key);
         }
 
-        private QueryObject<Object> getQueryForEntityType(EntityType entityType) {
-            QueryObject<Object> qo = map.get(entityType);
-            if (qo == null) {
-                qo = new QueryObject<>(entityType.getInterfaceName());
+        private QueryObject<Object> getQueryForEntityType(EntityType entityType, boolean newQueryIfMaxSizeReached) {
+            List<QueryObject<Object>> queries = map.get(entityType);
+            if (queries == null) {
+                queries = new LinkedList<>();
+                QueryObject<Object> qo = new QueryObject<>(entityType.getInterfaceName());
                 if (loadKeysOnly) {
                     QProperty<?> keyProp = new QProperty<>(qo, entityType.getKeyNodeName());
                     qo.select(keyProp);
                 }
-                map.put(entityType, qo);
+                queries.add(qo);
+                map.put(entityType, queries);
             }
-            return qo;
+            else {
+                QueryObject<Object> qo = queries.get(queries.size()-1);
+                if (newQueryIfMaxSizeReached && countPropertyConditions(qo) >= MAX_QUERY_SIZE) {
+                    qo = new QueryObject<>(entityType.getInterfaceName());
+                    if (loadKeysOnly) {
+                        QProperty<?> keyProp = new QProperty<>(qo, entityType.getKeyNodeName());
+                        qo.select(keyProp);
+                    }
+                    queries.add(qo);
+                }
+            }
+            return queries.get(queries.size()-1);
+        }
+
+        private int countPropertyConditions(QueryObject<?> query) {
+            PropertyConditionCounter counter = new PropertyConditionCounter();
+            try { query.getCondition().visit(counter); }
+            catch(Exception x) { throw new IllegalStateException("Could not count the property conditions in query object"); }
+            return counter.getCount();
         }
 
         private void addForUpdatePessimistickLockToQueries(Database database) {
-            for (Map.Entry<EntityType, QueryObject<Object>> entry : map.entrySet()) {
-                QueryObject<Object> query = entry.getValue();
-                if (database.supportsSelectForUpdateWaitN()) {
-                    query.forUpdateWait(10);
-                }
-                else {
-                    query.forUpdate();
+            for (Map.Entry<EntityType, List<QueryObject<Object>>> entry : map.entrySet()) {
+                for (QueryObject<Object> query: entry.getValue()) {
+                    if (database.supportsSelectForUpdateWaitN()) {
+                        query.forUpdateWait(10);
+                    } else {
+                        query.forUpdate();
+                    }
                 }
             }
         }
 
+    }
+}
+
+class PropertyConditionCounter implements ConditionVisitor {
+    private int count = 0;
+    public int getCount() { return count; }
+    @Override
+    public void visitPropertyCondition(final QPropertyCondition qpc) throws IllegalQueryStateException {
+        count++;
+    }
+    @Override
+    public void visitLogicalOp(final QLogicalOp qlo) throws IllegalQueryStateException, ForUpdateNotSupportedException  {
+        qlo.getLeft().visit(this);
+        qlo.getRight().visit(this);
+    }
+    @Override
+    public void visitExists(final QExists exists) throws IllegalQueryStateException, ForUpdateNotSupportedException {
+        exists.getSubQueryObject().getCondition().visit(this);
     }
 }

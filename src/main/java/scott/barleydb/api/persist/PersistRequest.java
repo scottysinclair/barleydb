@@ -76,6 +76,10 @@ public class PersistRequest implements Serializable {
         return this;
     }
 
+    public void add(Operation op) {
+        this.operations.add(op);
+    }
+
     public Collection<Operation> getOperations() {
         return operations;
     }

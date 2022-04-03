@@ -24,12 +24,15 @@ package scott.barleydb.server.jdbc.persist;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import scott.barleydb.api.config.Definitions;
 import scott.barleydb.api.config.EntityType;
+import scott.barleydb.api.config.NodeType;
 import scott.barleydb.api.core.Environment;
 import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityContext;
+import scott.barleydb.api.core.types.JavaType;
 import scott.barleydb.api.exception.BarleyDBRuntimeException;
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
 import scott.barleydb.api.query.QueryObject;
@@ -42,7 +45,9 @@ public class QuickHackSequenceGenerator implements SequenceGenerator {
         this.env = env;
         for (Definitions defs: env.getDefinitionsSet().getDefinitions()) {
           for (EntityType entityType: defs.getEntityTypes()) {
-            try {
+             NodeType nodeType = entityType.getNodeType(entityType.getKeyNodeName(), true);
+             if (nodeType.getJavaType() == JavaType.UUID) continue;
+             try {
               QueryObject<?> qo = new QueryObject<>(entityType.getInterfaceName());
               // a new entity context will consume a new connection
               // as it is not sharing in a transaction.
@@ -66,6 +71,10 @@ public class QuickHackSequenceGenerator implements SequenceGenerator {
 
     @Override
     public synchronized Object getNextKey(EntityType entityType) throws SortPersistException {
+        NodeType nodeType = entityType.getNodeType(entityType.getKeyNodeName(), true);
+        if (nodeType.getJavaType() == JavaType.UUID) {
+           return UUID.randomUUID();
+        }
         Long value = values.get(entityType);
         if (value == null) {
             try {

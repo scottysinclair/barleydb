@@ -28,6 +28,7 @@ import java.io.Serializable;
  */
 
 import scott.barleydb.api.core.entity.Entity;
+import scott.barleydb.api.core.entity.ProxyController;
 
 public class Operation implements Serializable {
 
@@ -35,6 +36,12 @@ public class Operation implements Serializable {
 
     public final Entity entity;
     public OperationType opType;
+
+    public Operation(ProxyController proxy, OperationType opType) {
+        this.entity = proxy.getEntity();
+        this.opType = opType;
+    }
+
 
     public Operation(Entity entity, OperationType opType) {
         this.entity = entity;

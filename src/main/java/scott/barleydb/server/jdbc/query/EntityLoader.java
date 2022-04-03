@@ -454,7 +454,7 @@ final class EntityLoader {
 
     private UUID convertToUuid(Object value) {
         if (value instanceof String) {
-            UUID.fromString((String)value);
+            return UUID.fromString((String)value);
         }
         return null;
     }

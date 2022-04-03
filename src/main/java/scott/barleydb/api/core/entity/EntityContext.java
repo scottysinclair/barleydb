@@ -928,6 +928,7 @@ public class EntityContext implements Serializable, AutoCloseable {
         persist(persistRequest, null);
     }
     public void persist(PersistRequest persistRequest, RuntimeProperties runtimeProperties) throws SortServiceProviderException, SortPersistException  {
+        if (persistRequest.isEmpty()) return;
         EntityContextState prev = switchToInternalMode();
         runtimeProperties = env.overrideProps( runtimeProperties );
         try {
