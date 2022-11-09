@@ -34,7 +34,8 @@ public enum JdbcType {
     DATETIME,
     TIMESTAMP,
     DECIMAL,
-    SMALLINT;
+    SMALLINT,
+    UUID;
 
     public static boolean isStringType(JdbcType e) {
         return e == VARCHAR || e == NVARCHAR || e == CLOB;

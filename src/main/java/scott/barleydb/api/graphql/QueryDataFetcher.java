@@ -159,7 +159,7 @@ public class QueryDataFetcher implements DataFetcher<Object> {
     		  value = convertValue(value, param.getType());
     	  }
         param.setValue(value);
-        LOG.debug("Set query parameter {}", param.getName());
+        LOG.trace("Set query parameter {}", param.getName());
       }
       else {
     	  /*
@@ -167,7 +167,7 @@ public class QueryDataFetcher implements DataFetcher<Object> {
     	   */
         QPropertyCondition qcond = createCondition(query, entityType, argument.getKey(), QMathOps.EQ, value);
         query.and(qcond);
-        LOG.debug("Added query condition {}", qcond);
+        LOG.trace("Added query condition {}", qcond);
       }
     }
 
@@ -181,7 +181,7 @@ public class QueryDataFetcher implements DataFetcher<Object> {
         QueryObject<Object> q = getQueryForPath(query, entityType, Arrays.asList(parts).subList(0, parts.length - 1));
         QProperty<Object> qprop = createProperty(q, parts[ parts.length - 1]);
         q.andSelect(qprop);
-        LOG.debug("Added {} to select for {}", qprop.getName(), qprop.getQueryObject().getTypeName());
+        LOG.trace("Added {} to select for {}", qprop.getName(), qprop.getQueryObject().getTypeName());
       }
     }
     forceSelectForeignKeysAndSortNodes(query);
@@ -213,7 +213,7 @@ private QParameter<Object> findQueryParameter(QueryObject<?> query, String param
       if (nodeType.isForeignKeyColumn() && !query.isProjected(nodeType.getName())) {
         QProperty<Object> qprop = createProperty(query, nodeType.getName());
         query.andSelect(qprop);
-        LOG.debug("Added FK {} to select for {}", qprop.getName(), qprop.getQueryObject().getTypeName());
+        LOG.trace("Added FK {} to select for {}", qprop.getName(), qprop.getQueryObject().getTypeName());
       }
     }
 
@@ -235,7 +235,7 @@ private QParameter<Object> findQueryParameter(QueryObject<?> query, String param
     if (nodeType.getSortNode() != null && !query.isProjected(nodeType.getSortNode())) {
       QProperty<Object> qprop = createProperty(query, nodeType.getSortNode());
       query.andSelect(qprop);
-      LOG.debug("Added FK {} to select for {}", qprop.getName(), qprop.getQueryObject().getTypeName());
+      LOG.trace("Added FK {} to select for {}", qprop.getName(), qprop.getQueryObject().getTypeName());
     }
   }
 
@@ -263,10 +263,10 @@ private QParameter<Object> findQueryParameter(QueryObject<?> query, String param
     QueryObject<Object> result = getJoinQuery(query, propertyName);
     if (result == null) {
       result = createJoinQuery(query, entityType, propertyName);
-      LOG.debug("Created join from {} to {} for property {}", query.getTypeName(), result.getTypeName(), propertyName);
+      LOG.trace("Created join from {} to {} for property {}", query.getTypeName(), result.getTypeName(), propertyName);
     }
     else {
-      LOG.debug("Found join query from {} to {} for property {}", query.getTypeName(), result.getTypeName(), propertyName);
+      LOG.trace("Found join query from {} to {} for property {}", query.getTypeName(), result.getTypeName(), propertyName);
     }
     return result;
   }
@@ -303,7 +303,7 @@ private QParameter<Object> findQueryParameter(QueryObject<?> query, String param
       entityName = graphEnv.getExecutionStepInfo().getType().getChildren().get(0).getName();
     }
     EntityType et = env.getDefinitionsSet().getFirstEntityTypeByInterfaceName(namespace + ".model." + entityName);
-    requireNonNull(et, "EntityType must exist");
+    requireNonNull(et, "EntityType '" + entityName + "' must exist");
     return et;
   }
 

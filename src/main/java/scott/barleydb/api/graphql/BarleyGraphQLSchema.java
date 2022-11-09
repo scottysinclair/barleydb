@@ -78,7 +78,6 @@ public class BarleyGraphQLSchema {
         SchemaParser schemaParser = new SchemaParser();
         sdlString = graphSdl.createSdl();
         LOG.info(sdlString);
-        System.out.println(sdlString);
         
         TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(sdlString);
         RuntimeWiring.Builder wiringBuilder = newRuntimeWiring()

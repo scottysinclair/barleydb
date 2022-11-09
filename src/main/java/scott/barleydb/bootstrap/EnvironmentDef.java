@@ -342,7 +342,7 @@ public class EnvironmentDef {
             for (String line: statements) {
                 try {
                     s.addBatch(line);
-                    System.out.println(line);
+                    //System.out.println(line);
                     s.executeBatch();
                 }
                 catch(Exception x) {
@@ -350,7 +350,7 @@ public class EnvironmentDef {
                         con.rollback();
                         throw x;
                     }
-                    System.err.println(x.getMessage());
+                    //System.err.println(x.getMessage());
                 }
             }
             con.commit();

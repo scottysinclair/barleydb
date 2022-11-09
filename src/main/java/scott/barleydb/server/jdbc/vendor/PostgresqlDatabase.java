@@ -41,7 +41,7 @@ public class PostgresqlDatabase implements Database {
     @Override
     public boolean matches(DatabaseMetaData metaData) throws SQLException {
         return metaData.getDatabaseProductName().equals("PostgreSQL") &&
-                SemVer.compare(metaData.getDatabaseProductVersion(), "11") <= 0;
+                SemVer.compare(metaData.getDatabaseProductVersion(), "12.10") <= 0;
     }
 
     @Override
@@ -73,7 +73,4 @@ public class PostgresqlDatabase implements Database {
     public boolean supportsLimitAndOffset() {
       return true;
     }
-
-
-
 }

@@ -30,10 +30,13 @@ import java.sql.SQLException;
  */
 
 import java.sql.Types;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -77,9 +80,23 @@ public class FromDatabaseSchemaToSpecification {
     private static Logger LOG = LoggerFactory.getLogger(FromDatabaseSchemaToSpecification.class);
 
   public interface ExclusionRules {
-    boolean excludeTable(Table tableName);
+    boolean excludeTable(Table table);
 
     boolean excludeColumn(Column column);
+  }
+
+  public static ExclusionRules excludeTables(String... tableNames) {
+     return new ExclusionRules() {
+        @Override
+        public boolean excludeTable(final Table table) {
+           return Arrays.asList(tableNames).contains(table.getName());
+        }
+
+        @Override
+        public boolean excludeColumn(final Column column) {
+           return false;
+        }
+     };
   }
 
     private final String namespace;
@@ -407,6 +424,7 @@ public class FromDatabaseSchemaToSpecification {
         case BLOB: return JavaType.BYTE_ARRAY;
         case CLOB: return JavaType.STRING;
         case SMALLINT: return JavaType.INTEGER;
+        case UUID: return JavaType.UUID;
         default: throw new IllegalArgumentException("Unsupported JDBC type " + jdbcType);
         }
     }
@@ -425,6 +443,7 @@ public class FromDatabaseSchemaToSpecification {
         case Types.BIT: return JdbcType.SMALLINT;
         case Types.BLOB: return JdbcType.BLOB;
         case Types.CLOB: return JdbcType.CLOB;
+        case 1111: return JdbcType.UUID;
         case 2147483647: {
           JdbcType jt = getJdbcTypeForUnknownJavaSqlType(column);
           if (jt != null) {
@@ -446,18 +465,18 @@ public class FromDatabaseSchemaToSpecification {
     }
 
     protected String generateQueryClassName(Table table) {
-        String ccName = "Q" + removePrefixes( toCamelCase(table.getName()) );
+        String ccName = "Q" + removePrefixes( toCamelCase(table.getName().replace("\"", "")) );
         return  namespace + ".query." + ccName;
     }
 
     protected String generateDtoClassName(Table table) {
-      String ccName = toCamelCase(table.getName());
+      String ccName = toCamelCase(table.getName().replace("\"", ""));
       ccName = Character.toUpperCase( ccName.charAt(0) ) + ccName.substring(1, ccName.length());
       return namespace + ".dto." + removePrefixes( ccName )+ "Dto";
   }
 
     protected String generateClassName(Table table) {
-        String ccName = toCamelCase(table.getName());
+        String ccName = toCamelCase(table.getName().replace("\"", ""));
         ccName = Character.toUpperCase( ccName.charAt(0) ) + ccName.substring(1, ccName.length());
         return namespace + ".model." + removePrefixes( ccName );
     }

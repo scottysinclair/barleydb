@@ -456,6 +456,9 @@ final class EntityLoader {
         if (value instanceof String) {
             return UUID.fromString((String)value);
         }
+        else if (value instanceof UUID) {
+            return (UUID)value;
+        }
         return null;
     }
 

@@ -22,20 +22,26 @@ package scott.barleydb.test;
  * #L%
  */
 
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
 import org.example.etl.EtlEntityContext;
 import org.example.etl.model.XmlSyntaxModel;
 import org.example.etl.query.QXmlStructure;
 import org.example.etl.query.QXmlSyntaxModel;
 import org.junit.Test;
+import org.slf4j.LoggerFactory;
+import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.core.types.JavaType;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
 import scott.barleydb.api.graphql.BarleyGraphQLSchema;
 import scott.barleydb.api.graphql.GraphQLContext;
+import scott.barleydb.api.graphql.QueryDataFetcher;
 import scott.barleydb.api.persist.PersistRequest;
 import scott.barleydb.api.query.QJoin;
 import scott.barleydb.api.query.QParameter;
 import scott.barleydb.build.specification.graphql.CustomQueries;
+import scott.barleydb.server.jdbc.query.QueryExecuter;
 
 import java.util.List;
 import java.util.Map;
@@ -79,6 +85,8 @@ public class TestGraphQLQuery extends TestRemoteClientBase {
         
     	schema = new BarleyGraphQLSchema(specRegistry, env, "org.example.etl", cq);
     	gContext = schema.newContext();
+	  LogManager.getLogger(QueryExecuter.class.getName()).setLevel(Level.DEBUG);
+	  LogManager.getLogger(QueryDataFetcher.class.getName()).setLevel(Level.DEBUG);
     }
     
     @Test
@@ -115,17 +123,24 @@ public class TestGraphQLQuery extends TestRemoteClientBase {
 
     	//gContext.getQueryCustomizations().setShouldBreakPredicate(new DefaultQueryBreaker(env, ctx.getNamespace(), 1, 3));
     	gContext.getQueryCustomizations().setShouldBreakPredicate((qjoin, gctx) -> {
-    		return true; //qjoin.getFkeyProperty().equals("subSyntax");
-//    		return true;
-//    		int qDepth = queryDepth(qjoin);
-  //  		return  qDepth % 4 == 0;
+			EntityType entityFrom = ctx.getDefinitions().getEntityTypeMatchingInterface(qjoin.getFrom().getTypeName(), true);
+			String nodeNameOfForeignKey = entityFrom.getNodeType(qjoin.getFkeyProperty(), true).getForeignNodeName();
+			return nodeNameOfForeignKey != null;
+			 //return true;
+			 /*
+    		if (qjoin.getFkeyProperty().equals("subSyntax")) {
+				return true;
+			}
+    		int qDepth = queryDepth(qjoin);
+    		return  qDepth % 4 == 0;
+			  */
     	});
     	Object result = gContext.execute("{xmlSyntaxModels {" + 
     	" id \n " + 
-    	" name \n " + 
+    	" name \n " +
     	"structureType \n " + 
     	 "user { id \n " + 
-    	        "name } \n" + 
+    	        "name } \n" +
     	 " mappings {" + 
     	             " id \n " + 
     	             "targetFieldName \n" + 
