@@ -24,6 +24,9 @@ package scott.barleydb.server.jdbc.vendor;
 
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * The abstract interface for working with a specific database.
@@ -84,4 +87,12 @@ public interface Database {
 
     boolean supportsLimitAndOffset();
 
+    default List<String> getKeywords() { return Collections.emptyList(); }
+
+    default String formatTableName(final String tableName) {
+        if (getKeywords().contains(tableName)) {
+            return "\"" + tableName + "\"";
+        }
+        else return tableName;
+    }
 }

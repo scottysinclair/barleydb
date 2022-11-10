@@ -24,8 +24,13 @@ package scott.barleydb.server.jdbc.vendor;
 
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class PostgresqlDatabase implements Database {
+
+    private static final String[] KEYWORDS = new String[] { "case" };
 
     private String info;
 
@@ -72,5 +77,10 @@ public class PostgresqlDatabase implements Database {
     @Override
     public boolean supportsLimitAndOffset() {
       return true;
+    }
+
+    @Override
+    public List<String> getKeywords() {
+        return List.of("case");
     }
 }

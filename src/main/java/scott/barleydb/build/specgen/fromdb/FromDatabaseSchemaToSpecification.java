@@ -39,24 +39,29 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 
 import javax.sql.DataSource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import schemacrawler.inclusionrule.RegularExpressionInclusionRule;
 import schemacrawler.schema.Catalog;
 import schemacrawler.schema.Column;
+import schemacrawler.schema.ColumnReference;
 import schemacrawler.schema.ForeignKey;
-import schemacrawler.schema.ForeignKeyColumnReference;
 import schemacrawler.schema.IndexColumn;
 import schemacrawler.schema.Schema;
 import schemacrawler.schema.Table;
-import schemacrawler.schemacrawler.SchemaCrawlerException;
+import schemacrawler.schema.TableConstraintColumn;
+import schemacrawler.schemacrawler.InfoLevel;
+import schemacrawler.schemacrawler.LimitOptionsBuilder;
+import schemacrawler.schemacrawler.LoadOptionsBuilder;
 import schemacrawler.schemacrawler.SchemaCrawlerOptions;
-import schemacrawler.schemacrawler.SchemaInfoLevelBuilder;
-import schemacrawler.utility.SchemaCrawlerUtility;
-import scott.barleydb.api.config.NodeType;
+import schemacrawler.schemacrawler.SchemaCrawlerOptionsBuilder;
+import schemacrawler.schemacrawler.exceptions.SchemaCrawlerException;
+import schemacrawler.tools.utility.SchemaCrawlerUtility;
 import scott.barleydb.api.config.RelationType;
 import scott.barleydb.api.core.types.JavaType;
 import scott.barleydb.api.core.types.JdbcType;
@@ -127,6 +132,8 @@ public class FromDatabaseSchemaToSpecification {
         spec = new DefinitionsSpec();
         spec.setNamespace( namespace );
         registry.add(spec);
+       java.util.logging.Logger.getLogger("schemacrawler").setLevel(Level.OFF);
+       java.util.logging.Logger.getLogger("us.fatehi").setLevel(Level.OFF);
     }
 
     public void removePrefix(String ...prefixes) {
@@ -136,13 +143,16 @@ public class FromDatabaseSchemaToSpecification {
     }
 
     public SpecRegistry generateSpecification(DataSource dataSource, String schemaName) throws Exception {
-        SchemaCrawlerOptions options = new SchemaCrawlerOptions();
-        // Set what details are required in the schema - this affects the
-        // time taken to crawl the schema
-        options.setSchemaInfoLevel(SchemaInfoLevelBuilder.detailed());
-        if (schemaName != null) {
-          options.setSchemaInclusionRule(s -> s.equals( schemaName ));
-        }
+       LimitOptionsBuilder limitOptionsBuilder = LimitOptionsBuilder.builder()
+                          .includeSchemas(new RegularExpressionInclusionRule(schemaName));
+
+       LoadOptionsBuilder loadOptionsBuilder = LoadOptionsBuilder.builder()
+                         .withInfoLevel(InfoLevel.detailed);
+
+       SchemaCrawlerOptions options = SchemaCrawlerOptionsBuilder.newSchemaCrawlerOptions()
+             .withLimitOptions(limitOptionsBuilder.toOptions())
+             .withLoadOptions(loadOptionsBuilder.toOptions());
+
 
         Catalog catalog = loadCatalog(dataSource, options);
 
@@ -153,8 +163,8 @@ public class FromDatabaseSchemaToSpecification {
     }
 
     protected Catalog loadCatalog(DataSource dataSource, SchemaCrawlerOptions options) throws SchemaCrawlerException, SQLException {
-        return SchemaCrawlerUtility.getCatalog( dataSource.getConnection(),
-                options);
+        return SchemaCrawlerUtility.getCatalog(dataSource.getConnection(),
+                                               options);
     }
 
     /**
@@ -262,7 +272,7 @@ public class FromDatabaseSchemaToSpecification {
             LOG.debug(schema.toString());
             for (Table table: catalog.getTables(schema)) {
                 for (ForeignKey fk: table.getForeignKeys()) {
-                    for (ForeignKeyColumnReference fkRef: fk.getColumnReferences()) {
+                    for (ColumnReference fkRef: fk.getColumnReferences()) {
                         Column fkCol = fkRef.getForeignKeyColumn();
                         Column pkCol = fkRef.getPrimaryKeyColumn();
                         Table pkTable = pkCol.getParent();
@@ -376,7 +386,7 @@ public class FromDatabaseSchemaToSpecification {
 
   protected boolean isPrimaryKey(Table table, Column column) {
     if (table.getPrimaryKey() != null) {
-      for (IndexColumn col : table.getPrimaryKey().getColumns()) {
+      for (TableConstraintColumn col : table.getPrimaryKey().getConstrainedColumns()) {
         if (col.getName().equalsIgnoreCase(column.getName())) {
           return true;
         }
@@ -430,7 +440,7 @@ public class FromDatabaseSchemaToSpecification {
     }
 
     protected JdbcType getNodeJdbcType(Column column) {
-        switch(column.getColumnDataType().getJavaSqlType().getJavaSqlType()) {
+        switch(column.getColumnDataType().getJavaSqlType().getVendorTypeNumber()) {
         case Types.VARCHAR: return JdbcType.VARCHAR;
         case Types.INTEGER: return JdbcType.INT;
         case Types.BIGINT: return JdbcType.BIGINT;
@@ -451,7 +461,7 @@ public class FromDatabaseSchemaToSpecification {
           }
         }
         }
-       throw new IllegalArgumentException("Unsupported column type " + column.getColumnDataType().getJavaSqlType() + " (" + column.getColumnDataType().getJavaSqlType().getJavaSqlType() + ")");
+       throw new IllegalArgumentException("Unsupported column type " + column.getColumnDataType().getJavaSqlType() + " (" + column.getColumnDataType().getJavaSqlType() + ")");
     }
 
     protected JdbcType getJdbcTypeForUnknownJavaSqlType(Column column) {

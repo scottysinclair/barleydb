@@ -114,11 +114,11 @@ public class TestOnTheFlySchemaPlusGraphQL {
                               }
                              } 
                          }""";
+      System.out.println("-----------------------------------------------------------------------------------------");
       System.out.println("Executing query");
       System.out.println(query);
       System.out.println("-----------------------------------------------------------------------------------------");
-      Map<String,Object> result =
-            graphql.execute(query);
+      Map<String,Object> result = graphql.execute(query);
 
       ObjectMapper mapper = new ObjectMapper();
       mapper.configure(SerializationFeature.INDENT_OUTPUT, true);

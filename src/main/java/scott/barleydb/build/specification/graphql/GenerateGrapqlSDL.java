@@ -58,27 +58,31 @@ public class GenerateGrapqlSDL {
 
 	public String createSdl() {
 		StringBuilder sb = new StringBuilder();
-		return sb.append("schema {\n")
-		.append("  query: Query \n")
-//		.append("  mutation: Mutation \n")
-		.append("} \n")
-		.append("\n")
-		.append("type Query {\n")
-		.append(printSchemQueryFields())
-		.append("\n")
-		.append(printCustomQueries())
-		.append("\n}\n")
-		.append("\n")
-//		.append("type Mutation {\n")
-//		.append(printSchemaMutationFields())
-//		.append("}\n")
-		.append("\n")
-		.append(printQueryTypeDefinitions())
-		.append("\n")
-//		.append(printInputTypeDefinitions())
-//		.append("\n")
-		.append(printEnumDefinitions())
-		.toString();
+		sb.append("schema {\n");
+		sb.append("  query: Query \n");
+//		sb.append("  mutation: Mutation \n");
+		sb.append("} \n");
+		sb.append("\n");
+		sb.append("type Query {\n");
+		sb.append(printSchemQueryFields());
+		sb.append("\n");
+		String customQueries = printCustomQueries();
+		if (!customQueries.isEmpty()) {
+			sb.append(customQueries);
+			sb.append("\n");
+		}
+		sb.append("}\n");
+		sb.append("\n");
+//		sb.append("type Mutation {\n");
+//		sb.append(printSchemaMutationFields());
+//		sb.append("}\n");
+		sb.append("\n");
+		sb.append(printQueryTypeDefinitions());
+		sb.append("\n");
+//		sb.append(printInputTypeDefinitions());
+//		sb.append("\n");
+		sb.append(printEnumDefinitions());
+		return sb.toString();
 	}
 
 	private String printSchemQueryFields() {

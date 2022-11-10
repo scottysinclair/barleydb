@@ -22,7 +22,6 @@ package scott.barleydb.server.jdbc.query;
  * #L%
  */
 
-
 import java.util.List;
 
 import scott.barleydb.api.config.Definitions;
@@ -36,9 +35,6 @@ import scott.barleydb.api.query.QOrderBy;
 import scott.barleydb.api.query.QParameter;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.server.jdbc.vendor.Database;
-import scott.barleydb.server.jdbc.query.ConditionRenderer;
-import scott.barleydb.server.jdbc.query.Projection;
-import scott.barleydb.server.jdbc.query.ProjectionColumn;
 
 public class QueryGenerator {
 
@@ -90,7 +86,7 @@ public class QueryGenerator {
             sb.append(' ');
         }
         sb.append("from ");
-        sb.append(entityType.getTableName());
+        sb.append(database.formatTableName(entityType.getTableName()));
         sb.append(" ");
         sb.append(query.getAlias());
         boolean hasInnerJoins = generateInnerJoinTableDeclarations(sb, query);
@@ -150,7 +146,7 @@ public class QueryGenerator {
                 foundOne = true;
                 sb.append(", ");
                 EntityType entityType = definitions.getEntityTypeMatchingInterface(qj.getTo().getTypeName(), true);
-                sb.append(entityType.getTableName());
+                sb.append(database.formatTableName(entityType.getTableName()));
                 sb.append(' ');
                 sb.append(qj.getTo().getAlias());
             }
@@ -304,7 +300,7 @@ public class QueryGenerator {
         if (nodeNameOfForeignKey != null) {
             String foreignKeyCol = entityTo.getNodeType(nodeNameOfForeignKey, true).getColumnName();
             sb.append("\nleft outer join ");
-            sb.append(entityTo.getTableName() + " " + join.getTo().getAlias());
+            sb.append(database.formatTableName(entityTo.getTableName()) + " " + join.getTo().getAlias());
             sb.append(" on ");
             sb.append(join.getTo().getAlias() + "." + foreignKeyCol);
             sb.append(" = ");
@@ -313,7 +309,7 @@ public class QueryGenerator {
         else {
             //simple 1:1 join
             sb.append("\nleft outer join ");
-            sb.append(entityTo.getTableName() + " " + join.getTo().getAlias());
+            sb.append(database.formatTableName(entityTo.getTableName()) + " " + join.getTo().getAlias());
             sb.append(" on ");
             sb.append(join.getTo().getAlias() + "." + entityTo.getKeyColumn());
             sb.append(" = ");
