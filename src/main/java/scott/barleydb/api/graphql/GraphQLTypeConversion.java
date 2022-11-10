@@ -29,13 +29,24 @@ import java.util.Date;
  * #L%
  */
 
+import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.config.NodeType;
 import scott.barleydb.api.core.types.JavaType;
 
 public class GraphQLTypeConversion {
 
 	public static Object convertValue(NodeType nodeType, Object value) {
-		return convertValue(value, nodeType.getJavaType());
+		if (nodeType.getJavaType() != null) {
+			return convertValue(value, nodeType.getJavaType());
+		}
+		else if (nodeType.getRelation() != null && nodeType.getRelation().getForeignNodeName() == null && nodeType.getRelation().getForeignNodeName() == null) {
+			/*
+			 * we support direct foreign key references
+			 */
+			EntityType entityType = nodeType.getEntityType().getDefinitions().getEntityTypeMatchingInterface(nodeType.getRelationInterfaceName(), true);
+			return convertValue(value, entityType.getNodeType(entityType.getKeyNodeName(),true).getJavaType());
+		}
+		throw new IllegalStateException("Could not get JavaType for NodeType " + nodeType.getName());
 	}
 
 	public static Object convertValue(Object value, JavaType javaType) {

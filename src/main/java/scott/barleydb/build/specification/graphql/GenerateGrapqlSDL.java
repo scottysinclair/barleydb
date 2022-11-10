@@ -375,7 +375,7 @@ public class GenerateGrapqlSDL {
 			return et.getNodeSpecs(true)
 			.stream()
 			.filter(ns -> !ns.isPrimaryKey())
-			.filter(ns -> ns.getRelation() == null)
+			.filter(ns -> ns.getRelationSpec() == null || ns.getRelationSpec().getBackReference() == null) //not a one to many reference
 			.map(NodeQueryArgument::new)
 			.collect(Collectors.toList());
 		} 
@@ -420,7 +420,12 @@ public class GenerateGrapqlSDL {
 		}
 		
 		public String getType() {
-			return getGraphQlTypeName(nodeSpec, false);
+			if (nodeSpec.getRelation() != null) {
+				return getGraphQlTypeName(nodeSpec.getRelation().getEntitySpec().getPrimaryKeyNodes(true).iterator().next(), false);
+			}
+			else {
+				return getGraphQlTypeName(nodeSpec, false);
+			}
 		}
 
 		public String getName() {
@@ -428,7 +433,7 @@ public class GenerateGrapqlSDL {
 				return nodeSpec.getName();
 			}
 			else {
-				return nodeSpec.getName() + getPrimaryKeyName(nodeSpec.getRelation().getEntitySpec());
+				return nodeSpec.getName();
 			}
 		}
 		

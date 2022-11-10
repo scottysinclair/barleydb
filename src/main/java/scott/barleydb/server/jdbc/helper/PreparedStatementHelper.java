@@ -159,7 +159,7 @@ public abstract class PreparedStatementHelper<PREPARING_EX extends BarleyDBExcep
         return newPreparingStatementException("Error seting value of type " + type + " on prepared statement", cause);
     }
 
-    private final void setValue(PreparedStatement ps, int index, EnumSpec enumSpec, JavaType javaType, JdbcType jdbcType, Object value) throws PREPARING_EX  {
+    private void setValue(PreparedStatement ps, int index, EnumSpec enumSpec, JavaType javaType, JdbcType jdbcType, Object value) throws PREPARING_EX  {
         switch (javaType) {
         case ENUM:
             if (value instanceof Enum) {
@@ -198,7 +198,12 @@ public abstract class PreparedStatementHelper<PREPARING_EX extends BarleyDBExcep
             setString(ps, index, jdbcType, (String) value);
             return;
         case UUID:
-            setString(ps, index, jdbcType, ((UUID) value).toString());
+            if (value instanceof  String) {
+                setString(ps, index, jdbcType, (String)value);
+            }
+            else {
+                setString(ps, index, jdbcType, ((UUID) value).toString());
+            }
             return;
         case UTIL_DATE:
             setUtilDate(ps, index, jdbcType, (Date) value);
@@ -404,6 +409,14 @@ public abstract class PreparedStatementHelper<PREPARING_EX extends BarleyDBExcep
         case CLOB:
             try {
                 ps.setString(index, value);
+            }
+            catch (SQLException x) {
+                throw newSetValueError("String", x);
+            }
+            break;
+        case UUID:
+            try {
+                ps.setObject(index, UUID.fromString(value));
             }
             catch (SQLException x) {
                 throw newSetValueError("String", x);

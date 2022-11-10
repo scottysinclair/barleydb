@@ -223,7 +223,11 @@ public class NodeType implements Serializable, Cloneable {
 		return columnName == null && relation != null;
 	}
 
-	public String getRelationInterfaceName() {
+    public Relation getRelation() {
+        return relation;
+    }
+
+    public String getRelationInterfaceName() {
         return relation != null ? relation.getInterfaceName() : null;
     }
 

@@ -96,9 +96,11 @@ public class TestOnTheFlySchemaPlusGraphQL {
                               userId
                               refType
                               case {
+                                id
                                 createdAt
                                 caseContents {
                                   address {
+                                   id
                                    street
                                    house
                                    stair
@@ -123,6 +125,32 @@ public class TestOnTheFlySchemaPlusGraphQL {
       ObjectMapper mapper = new ObjectMapper();
       mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
       System.out.println(mapper.writeValueAsString(result));
+
+
+      /*
+       * execute query
+       */
+      query = """
+                         {
+                         addresss(case: "215e0d2c-814f-4b43-a09a-575eceff64f5") { 
+                                   id
+                                   street
+                                   house
+                                   stair
+                                   door
+                                   city
+                                   postcode
+                             } 
+                         }""";
+      System.out.println("-----------------------------------------------------------------------------------------");
+      System.out.println("Executing query");
+      System.out.println(query);
+      System.out.println("-----------------------------------------------------------------------------------------");
+      result = graphql.execute(query);
+
+      mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+      System.out.println(mapper.writeValueAsString(result));
+
    }
 
 }
