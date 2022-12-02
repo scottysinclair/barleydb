@@ -30,6 +30,7 @@ import javax.sql.DataSource;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import schemacrawler.schema.Column;
@@ -55,6 +56,7 @@ public class TestOnTheFlySchemaPlusGraphQL {
    public TestOnTheFlySchemaPlusGraphQL() {}
 
 
+   @Ignore
    @Test
    public void goforit() throws Exception {
       /*
@@ -132,7 +134,7 @@ public class TestOnTheFlySchemaPlusGraphQL {
        */
       query = """
                          {
-                         addresss(case: "215e0d2c-814f-4b43-a09a-575eceff64f5") { 
+                         addresss(case: "320a587d-acdf-4190-aacc-e927be0ba9f2") { 
                                    id
                                    street
                                    house
@@ -140,6 +142,9 @@ public class TestOnTheFlySchemaPlusGraphQL {
                                    door
                                    city
                                    postcode
+                                   case {
+                                    id
+                                   }
                              } 
                          }""";
       System.out.println("-----------------------------------------------------------------------------------------");

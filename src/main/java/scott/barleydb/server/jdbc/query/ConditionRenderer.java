@@ -38,10 +38,10 @@ import scott.barleydb.api.query.QCondition;
 import scott.barleydb.api.query.QExists;
 import scott.barleydb.api.query.QLogicalOp;
 import scott.barleydb.api.query.QMathOps;
+import scott.barleydb.api.query.QProperty;
 import scott.barleydb.api.query.QPropertyCondition;
 import scott.barleydb.server.jdbc.query.QueryGenerator.Param;
 import scott.barleydb.server.jdbc.vendor.Database;
-import scott.barleydb.server.jdbc.query.QueryGenerator;
 
 public class ConditionRenderer implements ConditionVisitor {
     private final Database database;
@@ -119,6 +119,12 @@ public class ConditionRenderer implements ConditionVisitor {
             sb.append("?,");
           }
           sb.setLength(sb.length()-1);
+        }
+        else if (qpc.getValue() instanceof QProperty<?>) {
+            QProperty<?> prop = (QProperty<?>)qpc.getValue();
+            EntityType otherEt = definitions.getEntityTypeMatchingInterface(prop.getQueryObject().getTypeName(), true);
+            NodeType otherNodeType = otherEt.getNodeType(prop.getName(), true);
+            sb.append(prop.getQueryObject().getAlias() + "." + otherNodeType.getColumnName());
         }
         else if (qpc.getValue() != null) {
           params.add(new QueryGenerator.Param(nodeType, qpc.getValue()));

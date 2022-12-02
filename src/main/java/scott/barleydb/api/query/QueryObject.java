@@ -215,6 +215,7 @@ public class QueryObject<R> implements Serializable {
 
     public QueryObject<R> whereExists(QueryObject<?> subQuery) {
         this.condition = new QExists(subQuery);
+        subQuery.aliasGenerator = getAliasGenerator();
         return this;
     }
 

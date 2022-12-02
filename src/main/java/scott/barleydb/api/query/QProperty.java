@@ -52,7 +52,11 @@ public class QProperty<VAL> implements Serializable {
         return new QPropertyCondition(this, QMathOps.EQ, value);
     }
 
-    public QPropertyCondition equalsParam(QParameter<VAL> parameter) {
+   public QPropertyCondition equalProp(QProperty<VAL> otherProperty) {
+      return new QPropertyCondition(this, QMathOps.EQ, otherProperty);
+   }
+
+   public QPropertyCondition equalsParam(QParameter<VAL> parameter) {
         return new QPropertyCondition(this, QMathOps.EQ, parameter);
     }
 
@@ -60,7 +64,11 @@ public class QProperty<VAL> implements Serializable {
         return new QPropertyCondition(this, QMathOps.NOT_EQ, value);
     }
 
-    public QPropertyCondition like(VAL value) {
+   public QPropertyCondition notEqualProp(QProperty<VAL> value) {
+      return new QPropertyCondition(this, QMathOps.NOT_EQ, value);
+   }
+
+   public QPropertyCondition like(VAL value) {
         return new QPropertyCondition(this, QMathOps.LIKE, value);
     }
 
