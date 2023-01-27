@@ -25,16 +25,18 @@ package scott.barleydb.test;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.example.etl.EtlEntityContext;
+import org.example.etl.model.XmlMapping;
 import org.example.etl.model.XmlSyntaxModel;
 import org.example.etl.query.QXmlStructure;
 import org.example.etl.query.QXmlSyntaxModel;
 import org.junit.Test;
-import org.slf4j.LoggerFactory;
 import scott.barleydb.api.config.EntityType;
+import scott.barleydb.api.core.entity.ProxyController;
 import scott.barleydb.api.core.types.JavaType;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.execution.persist.SortPersistException;
 import scott.barleydb.api.graphql.BarleyGraphQLSchema;
+import scott.barleydb.api.graphql.BarleyGraphQLSchema.BarleyGraphQLContext;
 import scott.barleydb.api.graphql.GraphQLContext;
 import scott.barleydb.api.graphql.QueryDataFetcher;
 import scott.barleydb.api.persist.PersistRequest;
@@ -68,7 +70,7 @@ public class TestGraphQLQuery extends TestRemoteClientBase {
     @Override
     protected void prepareData() throws Exception {
         super.prepareData();
-        //executeScript("/inserts.sql", false);
+		  //some tests use this insert
     }
 
     @Override
@@ -90,10 +92,11 @@ public class TestGraphQLQuery extends TestRemoteClientBase {
     }
     
     @Test
-    public void testGraphQLQuery1() {
+    public void testGraphQLQuery1() throws Exception{
+  	   executeScript("/inserts.sql", false);
     	System.out.println("-----------------------------------------------------------------------------------------");
     Object result =
-        gContext.execute(
+			 ((BarleyGraphQLContext)gContext).executeAndGetEntities(
             "{"
                 + "\nsyn1: xmlSyntaxModelById(id: 1) { id \n name \n structureType }  "
                 + "\nsyn2: xmlSyntaxModelById(id: 1) { id \n name \n structureType }  "
@@ -123,10 +126,13 @@ public class TestGraphQLQuery extends TestRemoteClientBase {
 
     	//gContext.getQueryCustomizations().setShouldBreakPredicate(new DefaultQueryBreaker(env, ctx.getNamespace(), 1, 3));
     	gContext.getQueryCustomizations().setShouldBreakPredicate((qjoin, gctx) -> {
+			 /*
 			EntityType entityFrom = ctx.getDefinitions().getEntityTypeMatchingInterface(qjoin.getFrom().getTypeName(), true);
 			String nodeNameOfForeignKey = entityFrom.getNodeType(qjoin.getFkeyProperty(), true).getForeignNodeName();
 			return nodeNameOfForeignKey != null;
-			 //return true;
+
+			  */
+			 return false;
 			 /*
     		if (qjoin.getFkeyProperty().equals("subSyntax")) {
 				return true;
@@ -135,7 +141,8 @@ public class TestGraphQLQuery extends TestRemoteClientBase {
     		return  qDepth % 4 == 0;
 			  */
     	});
-    	Object result = gContext.execute("{xmlSyntaxModels {" + 
+		 //or executeAndGetEntities
+		 List<XmlSyntaxModel> result = ((BarleyGraphQLContext)gContext).executeAndGetProxies("{xmlSyntaxModels {" +
     	" id \n " + 
     	" name \n " +
     	"structureType \n " + 
@@ -166,8 +173,16 @@ public class TestGraphQLQuery extends TestRemoteClientBase {
 						        	     	        "name } \n" + 
 					        	                    " name } } }} }} }}");
 
-    	                   
+
+	   System.out.println("QUERIES EXECUTED => " + ((ProxyController)result.get(0)).getEntity().getEntityContext().getStatistics().getNumberOfQueryDatabseCalls());
+   	System.out.println("ROWS READ => " + ((ProxyController)result.get(0)).getEntity().getEntityContext().getStatistics().getNumberOfRowsRead());
     	System.out.println(result);
+		 for (XmlSyntaxModel sm: result) {
+			 System.out.println(sm.getName());
+			 for (XmlMapping m: sm.getMappings()) {
+				 System.out.println(m.getXpath() + " => " +  m.getTargetFieldName());
+			 }
+		 }
     }
 
     @Test

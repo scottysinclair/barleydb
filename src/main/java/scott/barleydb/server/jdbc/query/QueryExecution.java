@@ -169,7 +169,7 @@ public class QueryExecution<T> {
     }
 
     private ObjectGraph prepareObjectGraphFromLoadedData(ObjectGraph objectGraph) {
-        objectGraph.addAll( entityLoaders.getLoadedEntityData().values() );
+        objectGraph.addAll( entityLoaders.getLoadedEntityData().values(), entityDataToQueryMap );
 
         setFetchedFlag(query, objectGraph);
 

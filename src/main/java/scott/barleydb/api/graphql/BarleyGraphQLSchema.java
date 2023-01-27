@@ -5,6 +5,8 @@ import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -108,10 +110,10 @@ public class BarleyGraphQLSchema {
 	}
 
 	public GraphQLContext newContext() {
-		return new MyGraphQLContext();	
+		return new BarleyGraphQLContext();
 	}
 	
-	class MyGraphQLContext implements GraphQLContext {
+	public class BarleyGraphQLContext implements GraphQLContext {
 
 		private final GraphQL graphql;
 		private final GraphQLQueryCustomizations queryCustomizations;
@@ -119,11 +121,21 @@ public class BarleyGraphQLSchema {
 		private final Map<String, Object> attributes = new HashMap<>();
 		private boolean batchFetchEnabled = true;
 
-		public MyGraphQLContext() {
+		private List<Entity> rootEntities = new LinkedList<>();
+
+		public BarleyGraphQLContext() {
 			this.graphql = GraphQL.newGraphQL(graphQLSchema).build();
 			this.queryCustomizations = BarleyGraphQLSchema.this.queryCustomizations.copy();
 		}
-		
+
+		public List<Entity> getRootEntities() {
+			return rootEntities;
+		}
+
+		public void addRootEntity(final Entity rootEntity) {
+			this.rootEntities.add(rootEntity);
+		}
+
 		@Override
 		public <T> T execute(String body) {
 			ExecutionResult result = graphql.execute(ExecutionInput.newExecutionInput()
@@ -135,6 +147,34 @@ public class BarleyGraphQLSchema {
 				throw new GraphQLExecutionException(result.getErrors());
 			}
 			return result.getData();
+		}
+
+		public List<Entity> executeAndGetEntities(String body) {
+			ExecutionResult result = graphql.execute(ExecutionInput.newExecutionInput()
+																					 .query(body)
+																					 .context(this)
+																					 .build());
+
+			if (!result.getErrors().isEmpty()) {
+				throw new GraphQLExecutionException(result.getErrors());
+			}
+			return rootEntities;
+		}
+
+		public <T> List<T> executeAndGetProxies(String body) {
+			ExecutionResult result = graphql.execute(ExecutionInput.newExecutionInput()
+																					 .query(body)
+																					 .context(this)
+																					 .build());
+
+			if (!result.getErrors().isEmpty()) {
+				throw new GraphQLExecutionException(result.getErrors());
+			}
+			List<T> proxies = new LinkedList<>();
+			for (Entity e: rootEntities) {
+				proxies.add(e.getEntityContext().getProxy(e));
+			}
+			return proxies;
 		}
 
 		@Override

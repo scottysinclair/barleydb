@@ -445,7 +445,7 @@ public class JdbcEntityContextServices implements IEntityContextServices {
             LOG.debug("START PROCESSING QUERY RESULT ITEM FROM STEAM.");
             List<Entity> entities = new LinkedList<>();
             for (EntityData entityData:  qitem.getObjectGraph().getEntityData()) {
-            	Entity newE = entityContext.addEntityLoadedFromDB( entityData, getAssociatedQuery(entityData, queryExecution)  );
+            	Entity newE = entityContext.addEntityLoadedFromDB( entityData, qitem.getObjectGraph().getQueryObject(entityData) );
                 entities.add( newE );
                 if (entities.size() == 1) {
                     result.getEntityList().add( entities.get(0));
@@ -474,7 +474,7 @@ public class JdbcEntityContextServices implements IEntityContextServices {
 
             List<Entity> entities = new LinkedList<>();
             for (EntityData entityData:  qitem.getObjectGraph().getEntityData()) {
-                entities.add( entityContext.addEntityLoadedFromDB( entityData,  getAssociatedQuery(entityData, queryExecutions)));
+                entities.add( entityContext.addEntityLoadedFromDB( entityData,  qitem.getObjectGraph().getQueryObject(entityData)));
                 if (entities.size() == 1) {
                     queryBatcher.getResults().get( qitem.getQueryIndex() ).getEntityList().add( entities.get(0));
                 }
@@ -488,17 +488,6 @@ public class JdbcEntityContextServices implements IEntityContextServices {
         }
         return queryBatcher;
     }
-
-
-    private QueryObject<?> getAssociatedQuery(EntityData entityData, QueryExecution<?> ...queryExecutions) {
-    	for (QueryExecution<?> qe: queryExecutions) {
-    		QueryObject<?> qo = qe.getEntityToQueryMap().get(entityData);
-    		if (qo != null) {
-    			return qo;
-    		}
-    	}
-		return null;
-	}
 
 	private OptionalyClosingResources newOptionallyClosingConnection(EntityContext entityContext) throws SortJdbcException {
         ConnectionResources conRes = ConnectionResources.get(entityContext);

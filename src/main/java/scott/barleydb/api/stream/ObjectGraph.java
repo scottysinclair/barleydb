@@ -26,10 +26,14 @@ package scott.barleydb.api.stream;
  */
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import scott.barleydb.api.query.QueryObject;
 
 /**
  * a result item which came out of a query execution
@@ -42,16 +46,24 @@ public class ObjectGraph {
      */
     private final List<EntityData> entityData = new LinkedList<>();
 
+    private Map<EntityData, QueryObject<?>> entityDataToQueryMap = new HashMap<>();
+
     private final Set<NodeId> fetchedToManyNodes = new HashSet<>();
 
     public void add(EntityData ed) {
         entityData.add( ed );
     }
 
-    public void addAll(Collection<EntityData> ed) {
-        entityData.addAll( ed );
+    public void addAll(Collection<EntityData> eds, Map<EntityData, QueryObject<?>> entityDataToQueryMap) {
+        entityData.addAll( eds );
+        for (EntityData ed: entityData) {
+            this.entityDataToQueryMap.put(ed, entityDataToQueryMap.get(ed));
+        }
     }
 
+    public QueryObject<?> getQueryObject(EntityData entityData) {
+        return entityDataToQueryMap.get(entityData);
+    }
 
     public void setFetched(String entityType, Object entityKey, String nodeName) {
         fetchedToManyNodes.add(new NodeId(entityType, entityKey, nodeName));

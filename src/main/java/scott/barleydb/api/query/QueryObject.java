@@ -54,7 +54,7 @@ public class QueryObject<R> implements Serializable {
     private static final Logger LOG = LoggerFactory.getLogger(QueryObject.class);
     
     /*
-     * clone safe UUID
+     * clone safe UUID (UUID maintained across clone)
      */
     private final UUID uuid = UUID.randomUUID();
 

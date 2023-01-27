@@ -94,8 +94,8 @@ public class QueryDataFetcher implements DataFetcher<Object> {
     LOG.debug("Built full query which will be broken into chunks, query => {}", ctx.debugQueryString(query));
     
     breakQuery(graphEnv, query);
-    
-    GraphQLContext gctx = graphEnv.getContext();
+
+    BarleyGraphQLSchema.BarleyGraphQLContext gctx = graphEnv.getContext();
     QueryResult<Object> queryResult = ctx.performQuery(query);
     
     List<Entity> result = queryResult.getEntityList();
@@ -104,6 +104,9 @@ public class QueryDataFetcher implements DataFetcher<Object> {
       if (gctx.isBatchFetchEnabled()) {
     	  ctx.batchFetchDescendants(result);
       }
+      for (Entity e: result) {
+        gctx.addRootEntity(e);
+      }
       return result; //Entity2Map.toListOfMaps(result);
     }
     else if (result.size() == 1) {
@@ -111,6 +114,7 @@ public class QueryDataFetcher implements DataFetcher<Object> {
       if (gctx.isBatchFetchEnabled()) {
         ctx.batchFetchDescendants(e);
       }
+      gctx.addRootEntity(e);
       return e;
     }
     else if (result.size() == 0) {
