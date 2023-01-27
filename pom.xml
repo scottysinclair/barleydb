@@ -6,7 +6,7 @@
   <artifactId>scott.barleydb</artifactId>
   <packaging>jar</packaging>
   <name>BarleyDB</name>
-  <version>1.1.1-SNAPSHOT</version>
+  <version>1.1.2-SNAPSHOT</version>
 
   <properties>
     <slf4j.version>1.4.3</slf4j.version>
