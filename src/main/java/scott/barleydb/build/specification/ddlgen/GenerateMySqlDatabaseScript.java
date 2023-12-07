@@ -66,6 +66,9 @@ public class GenerateMySqlDatabaseScript extends GenerateDatabaseScript {
             case BLOB:
                 sb.append("MEDIUMBLOB");
                 break;
+            case UUID:
+                sb.append("UUID");
+                break;
             default:
                 throw new IllegalStateException("Invalid JDBC type: " + nodeSpec.getJdbcType());
         }

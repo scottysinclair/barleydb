@@ -452,6 +452,7 @@ public class FromDatabaseSchemaToSpecification {
         case Types.SMALLINT: return JdbcType.SMALLINT;
         case Types.BIT: return JdbcType.SMALLINT;
         case Types.BLOB: return JdbcType.BLOB;
+        case Types.BINARY: return JdbcType.BLOB;
         case Types.CLOB: return JdbcType.CLOB;
         case 1111: return JdbcType.UUID;
         case 2147483647: {

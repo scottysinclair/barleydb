@@ -34,6 +34,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +48,7 @@ import scott.barleydb.api.config.NodeType;
 import scott.barleydb.api.core.Environment;
 import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityContext;
+import scott.barleydb.api.graphql.BarleyGraphQLSchema.BarleyGraphQLContext;
 import scott.barleydb.api.query.JoinType;
 import scott.barleydb.api.query.QJoin;
 import scott.barleydb.api.query.QMathOps;
@@ -79,6 +82,8 @@ public class QueryDataFetcher implements DataFetcher<Object> {
   @Override
   public Object get(DataFetchingEnvironment graphEnv) throws Exception {
     EntityContext ctx = new EntityContext(env, namespace);
+    ((BarleyGraphQLContext)graphEnv.getContext()).setEntityContext(ctx);
+
 
     QueryObject<Object> query = null;
     if (customQueries != null) {
@@ -95,7 +100,7 @@ public class QueryDataFetcher implements DataFetcher<Object> {
     
     breakQuery(graphEnv, query);
 
-    BarleyGraphQLSchema.BarleyGraphQLContext gctx = graphEnv.getContext();
+    BarleyGraphQLContext gctx = graphEnv.getContext();
     QueryResult<Object> queryResult = ctx.performQuery(query);
     
     List<Entity> result = queryResult.getEntityList();
@@ -302,13 +307,20 @@ private QParameter<Object> findQueryParameter(QueryObject<?> query, String param
   }
 
   private EntityType getEntityTypeForQuery(DataFetchingEnvironment graphEnv) {
-    String entityName = graphEnv.getExecutionStepInfo().getType().getName();
-    if (entityName == null) {
-      entityName = graphEnv.getExecutionStepInfo().getType().getChildren().get(0).getName();
-    }
+    String entityName = getEntityName(graphEnv.getExecutionStepInfo().getType());
     EntityType et = env.getDefinitionsSet().getFirstEntityTypeByInterfaceName(namespace + ".model." + entityName);
     requireNonNull(et, "EntityType '" + entityName + "' must exist");
     return et;
+  }
+
+  private String getEntityName(GraphQLType type) {
+    if (type instanceof GraphQLList) {
+      return getEntityName(((GraphQLList) type).getWrappedType());
+    }
+    else if (type instanceof GraphQLObjectType) {
+      return ((GraphQLObjectType)type).getName();
+    }
+    throw new IllegalStateException("Cannot find entity type from GraphQL type " + type);
   }
 
 }

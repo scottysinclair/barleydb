@@ -369,7 +369,7 @@ public class QueryExecuter {
         private void closeCurrentResultSetAndStatement() throws EntityStreamException {
             if (resultSet != null) {
                 try {
-                    LOG.debug("Closing result-set");
+                    LOG.trace("Closing result-set");
                     resultSet.close();
                 }
                 catch (SQLException x) {
@@ -390,7 +390,7 @@ public class QueryExecuter {
             }
             if (stmt != null) {
                 try {
-                    LOG.debug("Closing statement");
+                    LOG.trace("Closing statement");
                     stmt.close();
                 }
                 catch(SQLException x) {

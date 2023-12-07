@@ -28,9 +28,11 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.sql.DataSource;
 
@@ -441,14 +443,17 @@ public class JdbcEntityContextServices implements IEntityContextServices {
         QueryResult<T> result = new QueryResult<>(entityContext);
         QueryResultItem qitem;
         Definitions defs = entityContext.getDefinitions();
+        Set<Entity> alreadyAddedToResult = new HashSet<>();
         while( (qitem = in.read()) != null) {
             LOG.debug("START PROCESSING QUERY RESULT ITEM FROM STEAM.");
             List<Entity> entities = new LinkedList<>();
             for (EntityData entityData:  qitem.getObjectGraph().getEntityData()) {
             	Entity newE = entityContext.addEntityLoadedFromDB( entityData, qitem.getObjectGraph().getQueryObject(entityData) );
                 entities.add( newE );
-                if (entities.size() == 1) {
-                    result.getEntityList().add( entities.get(0));
+                Entity firstEntityProcessed = entities.get(0);
+                if (entities.size() == 1 && !alreadyAddedToResult.contains(firstEntityProcessed)) {
+                    result.getEntityList().add( firstEntityProcessed );
+                    alreadyAddedToResult.add( firstEntityProcessed );
                 }
             }
             for (NodeId nodeId: qitem.getObjectGraph().getFetchedToManyNodes()) {

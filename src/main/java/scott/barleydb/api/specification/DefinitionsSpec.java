@@ -90,6 +90,10 @@ public class DefinitionsSpec implements Serializable {
         return Collections.unmodifiableCollection( entitySpecs.values() );
     }
 
+    public void removeEntitySpec(EntitySpec entitySpec) {
+        entitySpecs.remove(entitySpec.getClassName());
+    }
+
     public Collection<EnumSpec> getEnumSpecs() {
         return Collections.unmodifiableCollection( enumSpecs.values() );
     }

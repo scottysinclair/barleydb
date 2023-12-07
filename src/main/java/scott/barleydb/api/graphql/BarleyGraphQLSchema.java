@@ -50,6 +50,7 @@ import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import scott.barleydb.api.core.Environment;
 import scott.barleydb.api.core.entity.Entity;
+import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.query.QJoin;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.api.specification.DefinitionsSpec;
@@ -122,6 +123,8 @@ public class BarleyGraphQLSchema {
 		private boolean batchFetchEnabled = true;
 
 		private List<Entity> rootEntities = new LinkedList<>();
+
+		private EntityContext entityContext;
 
 		public BarleyGraphQLContext() {
 			this.graphql = GraphQL.newGraphQL(graphQLSchema).build();
@@ -225,6 +228,14 @@ public class BarleyGraphQLSchema {
 		@Override
 		public boolean isBatchFetchEnabled() {
 			return batchFetchEnabled;
+		}
+
+		public void setEntityContext(EntityContext ctx) {
+			this.entityContext = ctx;
+		}
+
+		public EntityContext getEntityContext() {
+			return entityContext;
 		}
 	}
 	

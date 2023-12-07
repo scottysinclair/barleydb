@@ -63,6 +63,9 @@ public class GenerateHsqlDatabaseScript extends GenerateDatabaseScript {
             case BLOB:
                 sb.append("VARBINARY(1073741824)");
                 break;
+            case UUID:
+                sb.append("UUID");
+                break;
             default:
                 throw new IllegalStateException("Invalid JDBC type: " + nodeSpec.getJdbcType());
         }

@@ -152,6 +152,10 @@ public class EntitySpec implements Serializable {
     public Collection<NodeSpec> getNodeSpecs() {
         return Collections.unmodifiableCollection( nodeSpecs.values() );
     }
+
+    public void removeNodeSpec(NodeSpec nodeSpec) {
+        nodeSpecs.remove(nodeSpec.getName());
+    }
     
 	public Collection<NodeSpec> getNodeSpecs(boolean includeInherited) {
 		if (includeInherited && parentEntitySpec != null) {

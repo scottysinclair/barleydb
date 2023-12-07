@@ -68,6 +68,9 @@ public class GenerateOracleDatabaseScript extends GenerateDatabaseScript {
             case SMALLINT:
                 sb.append("SMALLINT");
                 break;
+            case UUID:
+                sb.append("UUID");
+                break;
             default:
                 throw new IllegalStateException("Invalid JDBC type: " + nodeSpec.getJdbcType());
         }
