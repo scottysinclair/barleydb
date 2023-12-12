@@ -82,6 +82,7 @@ public class QueryDataFetcher implements DataFetcher<Object> {
   @Override
   public Object get(DataFetchingEnvironment graphEnv) throws Exception {
     EntityContext ctx = new EntityContext(env, namespace);
+    ctx.setAllowGarbageCollection(false);
     ((BarleyGraphQLContext)graphEnv.getContext()).setEntityContext(ctx);
 
 

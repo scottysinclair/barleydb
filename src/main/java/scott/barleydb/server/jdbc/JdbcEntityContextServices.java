@@ -49,6 +49,7 @@ import scott.barleydb.api.core.QueryBatcher;
 import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.entity.ToManyNode;
+import scott.barleydb.api.core.entity.context.EntityId;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.execution.jdbc.AquireConnectionException;
 import scott.barleydb.api.exception.execution.jdbc.ClosingConnectionException;
@@ -316,7 +317,7 @@ public class JdbcEntityContextServices implements IEntityContextServices {
             /*
              * convert the result stream to a full in-memory result
              */
-            return toQueryResult(entityContext, executer.execute(execution), execution);
+            return toQueryResult(entityContext, executer.execute(execution));
         }
         catch(EntityStreamException x) {
             throw new BarleyDBQueryException("Error processing entity stream", x);
@@ -438,31 +439,41 @@ public class JdbcEntityContextServices implements IEntityContextServices {
      * @return
      * @throws EntityStreamException
      */
-    private <T> QueryResult<T> toQueryResult(EntityContext entityContext, QueryEntityDataInputStream in, QueryExecution<?> queryExecution) throws EntityStreamException {
+    private <T> QueryResult<T> toQueryResult(EntityContext entityContext, QueryEntityDataInputStream in) throws EntityStreamException {
         LOG.debug("Consuming QueryEntityDataInputStream and generating a QueryResult...");
         QueryResult<T> result = new QueryResult<>(entityContext);
         QueryResultItem qitem;
         Definitions defs = entityContext.getDefinitions();
-        Set<Entity> alreadyAddedToResult = new HashSet<>();
+        Set<EntityId> alreadyInRoot = new HashSet<>();
+        Set<EntityId> alreadyProcessed = new HashSet<>();
+        Set<NodeId> allFetchedTooManyNodes = new HashSet<>();
         while( (qitem = in.read()) != null) {
             LOG.debug("START PROCESSING QUERY RESULT ITEM FROM STEAM.");
-            List<Entity> entities = new LinkedList<>();
+            List<EntityId> entitiyIds = new LinkedList<>();
             for (EntityData entityData:  qitem.getObjectGraph().getEntityData()) {
-            	Entity newE = entityContext.addEntityLoadedFromDB( entityData, qitem.getObjectGraph().getQueryObject(entityData) );
-                entities.add( newE );
-                Entity firstEntityProcessed = entities.get(0);
-                if (entities.size() == 1 && !alreadyAddedToResult.contains(firstEntityProcessed)) {
-                    result.getEntityList().add( firstEntityProcessed );
-                    alreadyAddedToResult.add( firstEntityProcessed );
+                EntityId entityId = entityData.getEntityId(entityContext);
+                entitiyIds.add(entityId);
+                Entity theEntity = null;
+                if (!alreadyProcessed.contains(entityId)) {
+                    theEntity = entityContext.addEntityLoadedFromDB(entityData, qitem.getObjectGraph().getQueryObject(entityData));
+                    alreadyProcessed.add(entityId);
+                }
+                else {
+                    theEntity = entityContext.getEntity(entityId.getEntityType(), entityId.getKey(), true);
+                }
+                if (entitiyIds.size() == 1 && !alreadyInRoot.contains(entityId)) {
+                    result.getEntityList().add( theEntity );
+                    alreadyInRoot.add( entityId );
                 }
             }
-            for (NodeId nodeId: qitem.getObjectGraph().getFetchedToManyNodes()) {
-                EntityType entityType = defs.getEntityTypeMatchingInterface( nodeId.getEntityType(), true);
-                Entity entity = entityContext.getEntity(entityType, nodeId.getEntityKey(), true);
-                entity.getChild(nodeId.getNodeName(), ToManyNode.class, true).setFetched(true);
-                entity.getChild(nodeId.getNodeName(), ToManyNode.class, true).refresh();
-            }
+            allFetchedTooManyNodes.addAll(qitem.getObjectGraph().getFetchedToManyNodes());
             LOG.debug("END PROCESSING QUERY RESULT ITEM FROM STEAM.");
+        }
+        for (NodeId nodeId: allFetchedTooManyNodes) {
+            EntityType entityType = defs.getEntityTypeMatchingInterface( nodeId.getEntityType(), true);
+            Entity entity = entityContext.getEntity(entityType, nodeId.getEntityKey(), true);
+            entity.getChild(nodeId.getNodeName(), ToManyNode.class, true).setFetched(true);
+            entity.getChild(nodeId.getNodeName(), ToManyNode.class, true).refresh();
         }
         return result;
     }

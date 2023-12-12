@@ -29,8 +29,11 @@ import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.UUID;
 
+import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.core.entity.EntityConstraint;
+import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.entity.EntityState;
+import scott.barleydb.api.core.entity.context.EntityId;
 
 public class EntityData implements Serializable {
 
@@ -79,6 +82,20 @@ public class EntityData implements Serializable {
     public void setUuid(UUID uuid) {
         this.uuid = uuid;
     }
+
+    public EntityType getEntityType(EntityContext ctx, Boolean mustExist) {
+        return ctx.getDefinitions().getEntityTypeMatchingInterface(entityType, mustExist);
+    }
+
+    public Object getKey(EntityType entityType) {
+        return data.get( entityType.getKeyNodeName() );
+    }
+
+    public EntityId getEntityId(EntityContext ctx) {
+        EntityType entityType = getEntityType(ctx, true);
+        return new EntityId(entityType, getKey(entityType));
+    }
+
     @Override
     public String toString() {
         return "EntityData [namespace=" + namespace + ", entityType=" + entityType + ", data=" + data + ", constraints="
