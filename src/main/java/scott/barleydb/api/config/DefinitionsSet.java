@@ -46,14 +46,20 @@ public class DefinitionsSet implements Serializable {
             definitions.setDefinitionsSet(this);
         }
     }
-    
-    public EntityType getFirstEntityTypeByInterfaceName(String interfaceName) {
+
+   public EntityType getFirstEntityTypeByInterfaceName(String interfaceName) {
+       return getFirstEntityTypeByInterfaceName(interfaceName, false);
+   }
+    public EntityType getFirstEntityTypeByInterfaceName(String interfaceName, boolean mustExist) {
     	for (Definitions def: definitionsByNamespace.values()) {
     		EntityType et = def.getEntityTypeMatchingInterface(interfaceName, false);
     		if (et != null) {
     			return et;
     		}
     	}
+      if (mustExist) {
+         throw new IllegalStateException("EntityType '" + interfaceName + "' must exist");
+      }
     	return null;
     }
 

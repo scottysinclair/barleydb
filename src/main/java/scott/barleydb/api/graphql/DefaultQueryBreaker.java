@@ -45,8 +45,6 @@ import scott.barleydb.api.query.QueryObject;
  */
 public class DefaultQueryBreaker implements BiPredicate<QJoin, GraphQLContext> {
 	
-	private final Environment env;
-	private final String namespace;
 	private final int breakBadNestingEvery;
 	private final int maximumDepth;
 	/**
@@ -54,12 +52,10 @@ public class DefaultQueryBreaker implements BiPredicate<QJoin, GraphQLContext> {
 	 */
 	private final Set<String> forceBreakSet;
 	
-	public DefaultQueryBreaker(Environment env, String namespace, int breakBadNestingEvery, int maximumDepth) {
-		this(env, namespace, breakBadNestingEvery, maximumDepth, null);
+	public DefaultQueryBreaker(int breakBadNestingEvery, int maximumDepth) {
+		this(breakBadNestingEvery, maximumDepth, null);
 	}
-	public DefaultQueryBreaker(Environment env, String namespace, int breakBadNestingEvery, int maximumDepth, Collection<String> forceBreak) {
-		this.env = env;
-		this.namespace = namespace;
+	public DefaultQueryBreaker(int breakBadNestingEvery, int maximumDepth, Collection<String> forceBreak) {
 		this.breakBadNestingEvery = breakBadNestingEvery;
 		this.maximumDepth = maximumDepth;
 		this.forceBreakSet = new HashSet<>(forceBreak != null ? forceBreak : Collections.emptyList());
@@ -67,29 +63,30 @@ public class DefaultQueryBreaker implements BiPredicate<QJoin, GraphQLContext> {
 
 	@Override
 	public boolean test(QJoin qjoin, GraphQLContext gctx) {
+		 Environment env = ((BarleyGraphQLSchema.BarleyGraphQLContext)gctx).getEntityContext().getEnv();
 	    Set<QJoin> joinsToBreak = gctx.get(DefaultQueryBreaker.class.getName());
 	    if (joinsToBreak == null) {
-	    	joinsToBreak = calculateJoinsToBreak(qjoin);
+	    	joinsToBreak = calculateJoinsToBreak(qjoin, env);
 	    	gctx.put(DefaultQueryBreaker.class.getName(), joinsToBreak);
 	    }
 	    return joinsToBreak.contains(qjoin);
 	}
 	
-	private Set<QJoin> calculateJoinsToBreak(QJoin qjoin) {
+	private Set<QJoin> calculateJoinsToBreak(QJoin qjoin, Environment env) {
 		Set<QJoin> result = new HashSet<>();
 		QueryObject<?> queryObject = getRootQuery(qjoin);
         List<QJoin> allJoins = getAllJoins(queryObject, true, new LinkedList<>());
-		List<QJoin> all1toNJoins = getOneToManyJoins(queryObject, true, new LinkedList<>());
-        result.addAll( breakAllJoinsWhichAreForced(all1toNJoins) );
-		result.addAll( breakOneToManyJoinsWhichShouldntNest(allJoins) );
+		List<QJoin> all1toNJoins = getOneToManyJoins(queryObject, true, new LinkedList<>(), env);
+        result.addAll( breakAllJoinsWhichAreForced(all1toNJoins, env) );
+		result.addAll( breakOneToManyJoinsWhichShouldntNest(allJoins, env) );
 		result.addAll( breakAllJoinsWhichAreTooDeeplyNested(all1toNJoins, result));
 		return result;
 	}
 
-    private Set<QJoin> breakAllJoinsWhichAreForced(List<QJoin> all1toNJoins) {
+    private Set<QJoin> breakAllJoinsWhichAreForced(List<QJoin> all1toNJoins, Environment env) {
         Set<QJoin> result = new HashSet<>();
         for (QJoin qj: all1toNJoins) {
-            if (isOneToMany(qj) && forceBreakSet.contains(qj.getTo().getTypeName())) {
+            if (isOneToMany(qj, env) && forceBreakSet.contains(qj.getTo().getTypeName())) {
                 result.add(qj);
             }
         }
@@ -97,12 +94,12 @@ public class DefaultQueryBreaker implements BiPredicate<QJoin, GraphQLContext> {
     }
 
 
-    private Set<QJoin> breakOneToManyJoinsWhichShouldntNest(List<QJoin> allJoinsInTheQuery) {
+    private Set<QJoin> breakOneToManyJoinsWhichShouldntNest(List<QJoin> allJoinsInTheQuery, Environment env) {
         Set<QJoin> result = new HashSet<>();
 	    QJoin prev = null;
 	    int counter = 0;
         for (QJoin qj: allJoinsInTheQuery) {
-            if (prev != null && isOneToMany(prev) && prev.getTo() != qj.getFrom()) {
+            if (prev != null && isOneToMany(prev, env) && prev.getTo() != qj.getFrom()) {
 		        if (++counter >= breakBadNestingEvery) {
           			result.add(qj);
           			counter = 0;
@@ -153,20 +150,20 @@ public class DefaultQueryBreaker implements BiPredicate<QJoin, GraphQLContext> {
     /**
      * @return all 1:N joins in order of evaluation.
      */
-	private List<QJoin> getOneToManyJoins(QueryObject<?> queryObject, boolean includeNested, List<QJoin> result) {
+	private List<QJoin> getOneToManyJoins(QueryObject<?> queryObject, boolean includeNested, List<QJoin> result, Environment env) {
 		for (QJoin qj: queryObject.getJoins()) {
-			if (isOneToMany(qj)) {
+			if (isOneToMany(qj, env)) {
 				result.add(qj);
 			}
 			if (includeNested) {
-				getOneToManyJoins(qj.getTo() ,  true, result);
+				getOneToManyJoins(qj.getTo() ,  true, result, env);
 			}
 		}
 		return result;
 	}
 
-	private boolean isOneToMany(QJoin qj) {
-		EntityType entityType = env.getDefinitions(namespace).getEntityTypeMatchingInterface(qj.getFrom().getTypeName(), true);
+	private boolean isOneToMany(QJoin qj, Environment env) {
+		EntityType entityType = env.getDefinitionsSet().getFirstEntityTypeByInterfaceName(qj.getFrom().getTypeName(), true);
 		return entityType.getNodeType(qj.getFkeyProperty(), true).isOneToManyRelation();
 	}
 

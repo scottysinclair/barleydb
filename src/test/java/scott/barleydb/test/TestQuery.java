@@ -108,6 +108,7 @@ public class TestQuery extends TestRemoteClientBase {
 
         System.out.println();
         System.out.println("printing syntax models (" + result.getList().size() + ") => ");
+        assertEquals(2, result.getList().size());
         for (CsvSyntaxModel syntaxModel : result.getList()) {
             print("", syntaxModel);
         }
@@ -117,7 +118,55 @@ public class TestQuery extends TestRemoteClientBase {
         assertEquals(autoCommitMode, serverEntityContext.getAutocommit());
     }
 
-    @Test
+   @Test
+   public void testSyntaxModelQueryResultsCount() throws Exception {
+      System.out.println();
+      System.out.println();
+      System.out.println();
+      System.out.println();
+
+      /*
+       * create and registery all fetch queries
+       */
+      QXmlSyntaxModel qxsm = new QXmlSyntaxModel();
+      qxsm.joinToStructure();
+      qxsm.joinToUser();
+      qxsm.joinToMappings();
+
+      System.out.println();
+      System.out.println();
+      System.out.println();
+      System.out.println();
+
+      /*
+       * Execute the query and process the result
+       */
+      QueryResult<XmlSyntaxModel> result = theEntityContext.performQuery(qxsm);
+      assertEquals(2, result.getList().size());
+
+      //result.getList().get(0).getMappings();
+
+      System.out.println();
+      System.out.println();
+      System.out.println();
+      System.out.println();
+      System.out.println("printing syntax models (" + result.getList().size() + ") => ");
+      for (XmlSyntaxModel syntaxModel : result.getList()) {
+         print("", syntaxModel);
+      }
+
+      System.out.println("printing again no fetching this time) => ");
+      for (XmlSyntaxModel syntaxModel : result.getList()) {
+         print("", syntaxModel);
+      }
+      /*
+       * check the server auto-commit mode hasn't changed somehow
+       */
+      assertEquals(autoCommitMode, serverEntityContext.getAutocommit());
+   }
+
+
+   @Test
     public void testSyntaxModelComplexQuery() throws Exception {
         System.out.println();
         System.out.println();
@@ -169,6 +218,7 @@ public class TestQuery extends TestRemoteClientBase {
          * Execute the query and process the result
          */
         QueryResult<XmlSyntaxModel> result = theEntityContext.performQuery(syntax);
+        assertEquals(1, result.getList().size());
 
         //result.getList().get(0).getMappings();
 

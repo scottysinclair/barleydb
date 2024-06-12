@@ -126,14 +126,13 @@ public class TestGraphQLQuery extends TestRemoteClientBase {
 
     	//gContext.getQueryCustomizations().setShouldBreakPredicate(new DefaultQueryBreaker(env, ctx.getNamespace(), 1, 3));
     	gContext.getQueryCustomizations().setShouldBreakPredicate((qjoin, gctx) -> {
-			 /*
 			EntityType entityFrom = ctx.getDefinitions().getEntityTypeMatchingInterface(qjoin.getFrom().getTypeName(), true);
 			String nodeNameOfForeignKey = entityFrom.getNodeType(qjoin.getFkeyProperty(), true).getForeignNodeName();
 			return nodeNameOfForeignKey != null;
 
-			  */
-			 return false;
 			 /*
+			 return false;
+
     		if (qjoin.getFkeyProperty().equals("subSyntax")) {
 				return true;
 			}
