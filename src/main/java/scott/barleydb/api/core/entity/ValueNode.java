@@ -51,7 +51,7 @@ public class ValueNode extends Node {
     public <T> T getValue() {
         fetchParentIfRequiredAndAllowed();
         if (value == NotLoaded.VALUE) {
-            if (getParent().getKey().getValue() != null) {
+            if (getParent().getKeyValue() != null) {
                 //normal fetch didn't work, we force a load of this specific property
                 getEntityContext().fetch(getParent(), false, true, true, getName());
             }

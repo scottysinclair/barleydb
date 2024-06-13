@@ -155,10 +155,10 @@ public class EntityContextHelper {
         List<Entity> copiedEntities = new LinkedList<Entity>();
         for (Entity entity : entities) {
             //check if we are including non-fetched entities
-            if (!includeNonFetchedEntities && entity.getKey().getValue() != null && entity.isFetchRequired()) {
+            if (!includeNonFetchedEntities && entity.getKeyValue() != null && entity.isFetchRequired()) {
                 continue;
             }
-            Entity e = newContext.getEntityByUuidOrKey(entity.getUuid(), entity.getEntityType(), entity.getKey().getValue(), false);
+            Entity e = newContext.getEntityByUuidOrKey(entity.getUuid(), entity.getEntityType(), entity.getKeyValue(), false);
             if (e != null) {
                 if (e.isLoaded() && entity.isNotLoaded()) {
                     //nothing to do...
@@ -188,7 +188,7 @@ public class EntityContextHelper {
                 LOG.trace("Entity {} filtered out from changes being applied to the other context", entity);
                 continue;
             }
-            Entity e = newContext.getEntityByUuidOrKey(entity.getUuid(), entity.getEntityType(), entity.getKey().getValue(), true);
+            Entity e = newContext.getEntityByUuidOrKey(entity.getUuid(), entity.getEntityType(), entity.getKeyValue(), true);
             LOG.trace("Copying entity values for {}", e);
             e.copyValueNodesToMe(entity);
             e.getConstraints().set( entity.getConstraints() );
@@ -212,7 +212,7 @@ public class EntityContextHelper {
 
         //we need	 to process all refs first as the tomany refs depend on the refs
         for (Entity entity : newEntities) {
-            Entity orig = entityContext.getEntityByUuidOrKey(entity.getUuid(), entity.getEntityType(), entity.getKey().getValue(), true);
+            Entity orig = entityContext.getEntityByUuidOrKey(entity.getUuid(), entity.getEntityType(), entity.getKeyValue(), true);
             for (RefNode refNode : entity.getChildren(RefNode.class)) {
                 LOG.trace("Copying ref state for {}.{}", entity, refNode.getName());
                 RefNode origRefNode = orig.getChild(refNode.getName(), RefNode.class);
@@ -224,7 +224,7 @@ public class EntityContextHelper {
                 if (refNode.isLoaded()) {
                   Entity origRefE = origRefNode.getReference(false);
                   if (origRefE != null) {
-                    Entity e = newContext.getEntityByUuidOrKey(origRefE.getUuid(), origRefE.getEntityType(), origRefE.getKey().getValue(), true);
+                    Entity e = newContext.getEntityByUuidOrKey(origRefE.getUuid(), origRefE.getEntityType(), origRefE.getKeyValue(), true);
                     refNode.setReference(e);
                   }
                   else{
@@ -234,7 +234,7 @@ public class EntityContextHelper {
             }
         }
         for (Entity entity : newEntities) {
-            Entity orig = entityContext.getEntityByUuidOrKey(entity.getUuid(), entity.getEntityType(), entity.getKey().getValue(), true);
+            Entity orig = entityContext.getEntityByUuidOrKey(entity.getUuid(), entity.getEntityType(), entity.getKeyValue(), true);
             for (ToManyNode toManyNode : entity.getChildren(ToManyNode.class)) {
                 LOG.trace("Copying tomanynode state for {}.{}", entity, toManyNode.getName());
                 ToManyNode origToManyNode = orig.getChild(toManyNode.getName(), ToManyNode.class);
@@ -267,7 +267,7 @@ public class EntityContextHelper {
                         if (!processed.add(e)) {
                             continue;
                         }
-                        Entity e2 = newContext.getEntityByUuidOrKey(e.getUuid(), e.getEntityType(), e.getKey().getValue(), true);
+                        Entity e2 = newContext.getEntityByUuidOrKey(e.getUuid(), e.getEntityType(), e.getKeyValue(), true);
                         if (!toManyNode.contains( e2 )) {
                             toManyNode.add(e2);
                         }

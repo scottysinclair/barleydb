@@ -163,7 +163,7 @@ public class NodeType implements Serializable, Cloneable {
     }
 
     public boolean isPrimaryKey() {
-        return entityType.getKeyNodeName().equals(name);
+        return entityType.getKeyNodeNames().contains(name);
     }
 
     public boolean isForeignKey() {

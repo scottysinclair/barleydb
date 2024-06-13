@@ -36,7 +36,7 @@ class EntityPkKey implements Serializable {
 
     public EntityPkKey(Entity entity) {
         this.interfaceName = entity.getEntityType().getInterfaceName();
-        this.key = entity.getKey().getValue();
+        this.key = entity.getKeyValue();
     }
 
     public EntityPkKey(String interfaceName, Object key) {

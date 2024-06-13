@@ -90,8 +90,8 @@ public class ToManyNode extends Node {
         element.setAttribute("fetched", String.valueOf(fetched));
         for (final Entity en : entities) {
             Element el = doc.createElement("ref");
-            if (en.getKey().getValue() != null) {
-                el.setAttribute("key", en.getKey().getValue().toString());
+            if (en.getKeyValue() != null) {
+                el.setAttribute("key", en.getKeyValue().toString());
             }
             else {
                 el.setAttribute("uuid", en.getUuid().toString());
@@ -135,14 +135,14 @@ public class ToManyNode extends Node {
         /*
          * do the refresh
          */
-        if (getParent().getKey().getValue() != null) {
+        if (getParent().getKeyValue() != null) {
             List<Entity> result = Collections.emptyList();
             if (getNodeType().getForeignNodeName() != null) {
                 result = getEntityContext().getEntitiesWithReferenceKey(
                         entityType,
                         getNodeType().getForeignNodeName(),
                         getParent().getEntityType(),
-                        getParent().getKey().getValue());
+                        getParent().getKeyValue());
 
             }
 
@@ -157,12 +157,20 @@ public class ToManyNode extends Node {
                 entities.addAll(refreshedEntities);
                 if (entities.size() > 0) {
                     //the list of entities must have a consistent order
-                    //we sort on the sort column or the PL if not specified.
-                    String sortNodeName = getNodeType().getSortNode();
-                    if (sortNodeName == null) {
-                        sortNodeName = entityType.getKeyNodeName();
+                    //we sort on the sort column or the PK if not specified.
+                    List<String> sortNodeNames = new LinkedList<>();
+                    if (getNodeType().getSortNode() != null) {
+                        sortNodeNames.add(getNodeType().getSortNode());
                     }
-                    Collections.sort(entities, new MyComparator(sortNodeName));
+                    if (sortNodeNames.isEmpty()) {
+                        sortNodeNames = entityType.getKeyNodeNames();
+                    }
+                    MyComparator comparator = null;
+                    Collections.reverse(sortNodeNames);
+                   for (String sortNodeName : sortNodeNames) {
+                      comparator = new MyComparator(sortNodeName, comparator);
+                   }
+                   Collections.sort(entities, comparator);
                 }
                 if (result.isEmpty()) {
                     LOG.debug("no entities for " + getParent() + "." + getName() + "=" + this);
@@ -274,7 +282,7 @@ public class ToManyNode extends Node {
         final String foreignNodeName = getNodeType().getForeignNodeName();
         if (foreignNodeName != null) {
             final QProperty<Object> manyFk = new QProperty<Object>(query, foreignNodeName);
-            final Object primaryKeyOfOneSide = getParent().getKey().getValue();
+            final Object primaryKeyOfOneSide = getParent().getKeyValue();
             query.where(manyFk.equal(primaryKeyOfOneSide));
         }
         else {
@@ -317,11 +325,14 @@ public class ToManyNode extends Node {
     private final class MyComparator implements Comparator<Entity> {
         private final String sortNodeName;
 
-        public MyComparator(String sortNodeName) {
+        private final MyComparator next;
+
+        public MyComparator(String sortNodeName, MyComparator next) {
             if (LOG.isTraceEnabled()) {
                 LOG.trace("Comparing entities for {} according to {}", getNodeType().getShortId(), sortNodeName);
             }
             this.sortNodeName = sortNodeName;
+            this.next = next;
         }
 
         @SuppressWarnings("unchecked")
@@ -331,9 +342,27 @@ public class ToManyNode extends Node {
             Object value2 = getValue(o2, sortNodeName);
             if (value1 != null) {
                 if (value2 == null) return 1;
-                else return ((Comparable<Object>) value1).compareTo(value2);
+                else {
+                    int result = ((Comparable<Object>) value1).compareTo(value2);
+                    if (result == 0) {
+                        if (next != null) {
+                            return next.compare(o1, o2);
+                        }
+                        else {
+                            return 0;
+                        }
+                    }
+                    else return result;
+                }
             }
-            else if (value2 == null) return 0;
+            else if (value2 == null) {
+                if (next != null) {
+                    return next.compare(o1, o2);
+                }
+                else {
+                    return 0;
+                }
+            }
             else return -1;
         }
 

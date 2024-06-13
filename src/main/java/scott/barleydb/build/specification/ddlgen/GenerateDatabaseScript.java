@@ -214,15 +214,16 @@ public abstract class GenerateDatabaseScript {
     private void generatePkConstraint(EntitySpec entitySpec, StringBuilder sb) {
         PrimaryKeyConstraintSpec pkSpec = entitySpec.getPrimaryKeyConstraint();
         if (pkSpec != null) {
-            if (pkSpec.getNodes().size() != 1) {
-                throw new IllegalStateException("Only PKs of 1 column are currently supported: " + pkSpec);
-            }
             sb.append("\nalter table ");
             sb.append(entitySpec.getTableName());
             sb.append(" add constraint ");
             sb.append(pkSpec.getName());
             sb.append(" primary key (");
-            sb.append(pkSpec.getNodes().iterator().next().getColumnName());
+            for (NodeSpec nodeSpec: pkSpec.getNodes()) {
+                sb.append(nodeSpec.getColumnName());
+                sb.append(',');
+            }
+            sb.setLength(sb.length()-1);
             sb.append(");");
         }
     }

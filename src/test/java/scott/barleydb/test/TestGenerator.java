@@ -206,7 +206,7 @@ public class TestGenerator {
 
         DefinitionsSpec aclSpec = registry.getDefinitionsSpec("org.example.acl");
 
-        GenerateDatabaseScript gen = new GenerateMySqlDatabaseScript();
+        GenerateDatabaseScript gen = new GenerateHsqlDatabaseScript();
 
         System.out.println(gen.generateScript( MySqlSpecConverter.convertSpec(aclSpec)) );
         System.out.println();

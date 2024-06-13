@@ -222,11 +222,11 @@ public class QueryGenerator {
         if (nodeNameInTo != null) {
             sb.append(qjoin.getTo().getAlias() + "." + entityTo.getNodeType(nodeNameInTo, true).getColumnName());
             sb.append(" = ");
-            sb.append(qjoin.getFrom().getAlias() + "." + entityFrom.getKeyColumn());
+            sb.append(qjoin.getFrom().getAlias() + "." + entityFrom.getKeyColumns().get(0));
         }
         else {
             NodeType nodeType = entityFrom.getNodeType(qjoin.getFkeyProperty(), true);
-            sb.append(qjoin.getTo().getAlias() + "." + entityTo.getKeyColumn());
+            sb.append(qjoin.getTo().getAlias() + "." + entityTo.getKeyColumns().get(0));
             sb.append(" = ");
             sb.append(qjoin.getFrom().getAlias() + "." + nodeType.getColumnName());
         }

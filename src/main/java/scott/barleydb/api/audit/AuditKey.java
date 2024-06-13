@@ -36,7 +36,7 @@ class AuditKey implements Serializable {
 
     public AuditKey(Entity entity) {
         this.entityType = entity.getEntityType();
-        this.entityKey = entity.getKey().getValue();
+        this.entityKey = entity.getKeyValue();
     }
 
     public AuditKey(AuditRecord auditRecord) {

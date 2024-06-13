@@ -73,7 +73,7 @@ public final class RefNode extends Node {
     }
 
     public Object getEntityKey() {
-        return reference != null ? reference.getKey().getValue() : null;
+        return reference != null ? reference.getKeyValue() : null;
     }
 
     private void checkFetched() {
@@ -162,8 +162,8 @@ public final class RefNode extends Node {
             element.setAttribute("loaded", "false");
         }
         if (ref != null) {
-            if (ref.getKey().getValue() != null) {
-                element.setAttribute("key", String.valueOf( (Object)ref.getKey().getValue() ));
+            if (ref.getKeyValue() != null) {
+                element.setAttribute("key", String.valueOf( (Object)ref.getKeyValue() ));
             }
             else if (ref.getUuid() != null) {
                 element.setAttribute("uuid", ref.getUuid().toString());

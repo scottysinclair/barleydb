@@ -24,6 +24,7 @@ import java.util.Collection;
  * #L%
  */
 
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,6 +38,8 @@ import scott.barleydb.api.core.QueryBatcher;
 import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.entity.EntityContextHelper;
+import scott.barleydb.api.core.entity.FetchHelper;
+import scott.barleydb.api.core.entity.ValueNode;
 import scott.barleydb.api.exception.execution.SortServiceProviderException;
 import scott.barleydb.api.exception.execution.jdbc.SortJdbcException;
 import scott.barleydb.api.exception.execution.query.BarleyDBQueryException;
@@ -203,17 +206,16 @@ public class DatabaseDataSet {
          * Adds a filter for a specific entity key
          */
         private void addKeyCondition(Entity entity) {
-            addKeyCondition(entity.getEntityType(), entity.getKey().getValue());
+            addKeyConditions(entity.getEntityType(), entity.getKeyValue());
         }
 
         /**
          * Adds a filter for a specific entity key
          * @param entityType
-         * @param entityKey
          */
-        private void addKeyCondition(final EntityType entityType, Object entityKey) {
+        private void addKeyConditions(final EntityType entityType, Object key) {
             final QueryObject<Object> query = getQueryForEntityType(entityType, true);
-            final QCondition condition = getKeyCondition(entityType, query, entityKey);
+            final QCondition condition = FetchHelper.getKeyConditions(entityType, query, key);
             if (query.getCondition() == null) {
                 query.where(condition);
             }
@@ -222,10 +224,6 @@ public class DatabaseDataSet {
             }
         }
 
-        private QCondition getKeyCondition(EntityType entityType, QueryObject<Object> query, Object key) {
-            final QProperty<Object> pk = new QProperty<>(query, entityType.getKeyNodeName());
-            return pk.equal(key);
-        }
 
         private QueryObject<Object> getQueryForEntityType(EntityType entityType, boolean newQueryIfMaxSizeReached) {
             List<QueryObject<Object>> queries = map.get(entityType);
@@ -233,8 +231,10 @@ public class DatabaseDataSet {
                 queries = new LinkedList<>();
                 QueryObject<Object> qo = new QueryObject<>(entityType.getInterfaceName());
                 if (loadKeysOnly) {
-                    QProperty<?> keyProp = new QProperty<>(qo, entityType.getKeyNodeName());
-                    qo.select(keyProp);
+                   for (String keyNodeName : entityType.getKeyNodeNames()) {
+                      QProperty<?> keyProp = new QProperty<>(qo, keyNodeName);
+                      qo.select(keyProp);
+                   }
                 }
                 queries.add(qo);
                 map.put(entityType, queries);
@@ -244,8 +244,10 @@ public class DatabaseDataSet {
                 if (newQueryIfMaxSizeReached && countPropertyConditions(qo) >= MAX_QUERY_SIZE) {
                     qo = new QueryObject<>(entityType.getInterfaceName());
                     if (loadKeysOnly) {
-                        QProperty<?> keyProp = new QProperty<>(qo, entityType.getKeyNodeName());
-                        qo.select(keyProp);
+                       for (String keyNodeName : entityType.getKeyNodeNames()) {
+                          QProperty<?> keyProp = new QProperty<>(qo, keyNodeName);
+                          qo.select(keyProp);
+                       }
                     }
                     queries.add(qo);
                 }

@@ -584,7 +584,7 @@ public class DependencyTree implements Serializable {
             }
             //LOG.debug("Building orphan checks for {}", this);
             builtOrphanChecks = true;
-            if (operation.entity.getKey().getValue() == null || operation.opType == OperationType.INSERT) {
+            if (operation.entity.getKeyValue() == null || operation.opType == OperationType.INSERT) {
                 /*
                  * this entity has no PK, it cannot exist in the DB, therefore
                  * nothing to do
@@ -1022,7 +1022,7 @@ public class DependencyTree implements Serializable {
              * at the top level of this loop we just need 1 orphCheck of each
              * EntityType.
              */
-            EntityId eid = new EntityId(orphCheck.entity.getEntityType(), orphCheck.entity.getKey().getValue());
+            EntityId eid = new EntityId(orphCheck.entity.getEntityType(), orphCheck.entity.getKeyValue());
             /*
              * create a query for the entity type, which includes all orphan
              * checks of the same type
@@ -1044,9 +1044,9 @@ public class DependencyTree implements Serializable {
                 if (sub.entity.getEntityType() != orphCheck.entity.getEntityType()) {
                     continue;
                 }
-                EntityId eidSub = new EntityId(sub.entity.getEntityType(), sub.entity.getKey().getValue());
+                EntityId eidSub = new EntityId(sub.entity.getEntityType(), sub.entity.getKeyValue());
                 QProperty<Object> keyProp = new QProperty<>(query, sub.entity.getKey().getName());
-                query.or(keyProp.equal(sub.entity.getKey().getValue()));
+                query.or(keyProp.equal(sub.entity.getKeyValue()));
                 logNumberOfQueryConditions++;
 
                 sub.setCheckWasPerformed(true);
@@ -1069,7 +1069,7 @@ public class DependencyTree implements Serializable {
             for (QueryResult<?> result : qbatcher.getResults()) {
                 for (Entity entityResult : result.getEntityList()) {
                     OrphanCheck check = lookup
-                            .get(new EntityId(entityResult.getEntityType(), entityResult.getKey().getValue()));
+                            .get(new EntityId(entityResult.getEntityType(), entityResult.getKeyValue()));
                     LOG.debug("Setting orphan check result {}", entityResult);
                     check.setResult(entityResult);
                 }
@@ -1261,8 +1261,8 @@ public class DependencyTree implements Serializable {
             return false;
         }
         for (Entity e : toManyNode.getList()) {
-            if (e.getKey().getValue() != null
-                    && Objects.equals(e.getKey().getValue(), reffedEntity.getKey().getValue())) {
+            if (e.getKeyValue() != null
+                    && Objects.equals(e.getKeyValue(), reffedEntity.getKeyValue())) {
                 // we found the entity, so it wasn't removed
                 return false;
             }
@@ -1319,7 +1319,7 @@ public class DependencyTree implements Serializable {
             /*
              * as this entity ori...
              */
-            Entity eDctx = getEntityInCollection(toCopy, e.getEntityType(), e.getKey().getValue());
+            Entity eDctx = getEntityInCollection(toCopy, e.getEntityType(), e.getKeyValue());
             if (eDctx == null) {
                 throw new IllegalStateException("Cannot find entity " + e + " in dCtx");
             }
@@ -1333,7 +1333,7 @@ public class DependencyTree implements Serializable {
 
     private Entity getEntityInCollection(Collection<Entity> col, EntityType entityType, Object key) {
         for (Entity e: col) {
-            if (e.getEntityType() == entityType && e.getKey().getValue() != null && e.getKey().getValue().equals(key)) {
+            if (e.getEntityType() == entityType && e.getKeyValue() != null && e.getKeyValue().equals(key)) {
                 return e;
             }
         }
@@ -1435,7 +1435,7 @@ public class DependencyTree implements Serializable {
 
         // filter on PK
         final QProperty<Object> keyProp = new QProperty<Object>(query, entity.getKey().getName());
-        query.where(keyProp.equal(entity.getKey().getValue()));
+        query.where(keyProp.equal(entity.getKeyValue()));
         LOG.trace("Added property {} to query {}", keyProp.getName(), query.getTypeName());
 
         /*

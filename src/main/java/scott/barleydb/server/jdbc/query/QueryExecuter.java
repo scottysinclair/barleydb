@@ -324,7 +324,9 @@ public class QueryExecuter {
                     return false;
                 }
                 try {
+                    long start = System.currentTimeMillis();
                     resultSet = executeQuery( queryExecutions[ queryIndex ] );
+                    long end = System.currentTimeMillis();
                     stmt = resultSet.getStatement();
                     /*
                      * after we get the result set, we "fall through" and call resultSet.next so that

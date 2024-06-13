@@ -303,7 +303,7 @@ public class PersistAnalyser implements Serializable {
             throw new SortPersistException("Error checking which entities are in the database", x);
         }
         for (Entity eToSave: matches) {
-            if (dds.getEntity(eToSave.getEntityType(), eToSave.getKey().getValue()) != null) {
+            if (dds.getEntity(eToSave.getEntityType(), eToSave.getKeyValue()) != null) {
                 LOG.debug("Found entity {} in the database.", eToSave);
                 eToSave.setEntityState(EntityState.LOADED);
             }
@@ -339,7 +339,7 @@ public class PersistAnalyser implements Serializable {
                 if (e2 != null) {
                     return true;
                 }
-                Object key = entity.getKey().getValue();
+                Object key = entity.getKeyValue();
                 return key != null && otherContext.getEntity(entity.getEntityType(), key, false) != null;
             }
         };

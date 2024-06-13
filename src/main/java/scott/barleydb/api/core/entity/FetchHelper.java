@@ -40,6 +40,7 @@ import scott.barleydb.api.dependency.Dependency;
 import scott.barleydb.api.dependency.DependencyTree;
 import scott.barleydb.api.dependency.EntityDependencyTreeNode;
 import scott.barleydb.api.exception.constraint.EntityMustExistInDBException;
+import scott.barleydb.api.query.QCondition;
 import scott.barleydb.api.query.QProperty;
 import scott.barleydb.api.query.QueryObject;
 import scott.barleydb.server.jdbc.query.QueryResult;
@@ -87,7 +88,30 @@ public class FetchHelper implements Serializable {
 		return result;
 	}
 
-	public void fetchEntity(Entity entity, boolean force, boolean fetchInternal, boolean evenIfLoaded, String singlePropertyName) {
+    public static QCondition getKeyConditions(EntityType entityType, QueryObject<Object> query, Object key) {
+        QCondition condition = null;
+        if (key instanceof List) {
+            Iterator<String> itKeyNames = entityType.getKeyNodeNames().iterator();
+            Iterator<Object> itValues = ((List<Object>)key).iterator();
+            while (itKeyNames.hasNext() && itValues.hasNext()) {
+                QProperty<Object> pk = new QProperty<>(query, itKeyNames.next());
+                if (condition == null) {
+                    condition = pk.equal(itValues.next());
+                }
+                else {
+                    condition = condition.and(pk.equal(itValues.next()));
+                }
+            }
+        }
+        else {
+            QProperty<Object> pk = new QProperty<>(query, entityType.getKeyNodeNames().get(0));
+            condition = pk.equal(key);
+        }
+        return condition;
+    }
+
+
+    public void fetchEntity(Entity entity, boolean force, boolean fetchInternal, boolean evenIfLoaded, String singlePropertyName) {
         if (!force && entity.getEntityContext().isInternal()) {
             return;
         }
@@ -106,9 +130,7 @@ public class FetchHelper implements Serializable {
             qo = new QueryObject<Object>(entity.getEntityType().getInterfaceName());
         }
 
-        final QProperty<Object> pk = new QProperty<Object>(qo, entity.getEntityType().getKeyNodeName());
-        qo.where(pk.equal(entity.getKey().getValue()));
-
+        qo.where(getKeyConditions(entity.getEntityType(), qo, entity.getKeyValue()));
         try {
             if (singlePropertyName != null) {
                 QProperty<?> property =  qo.getMandatoryQProperty( singlePropertyName );
@@ -147,12 +169,19 @@ public class FetchHelper implements Serializable {
             qo = new QueryObject<Object>(firstEntity.getEntityType().getInterfaceName());
         }
 
-        final QProperty<Object> pk = new QProperty<Object>(qo, firstEntity.getEntityType().getKeyNodeName());
-        final Collection<Set<Object>> entityPkValues = toEntityKeyValues(entities, 1000);
-        for (Set<Object> pkValues : entityPkValues) {
-          qo.or(pk.in(pkValues));
+        List<String> keyNodeNames = firstEntity.getEntityType().getKeyNodeNames();
+        if (keyNodeNames.size() == 1) {
+            final QProperty<Object> pk = new QProperty<Object>(qo, keyNodeNames.get(0));
+            final Collection<Set<Object>> entityPkValues = toEntityKeyValues(entities, 1000);
+            for (Set<Object> pkValues : entityPkValues) {
+                qo.or(pk.in(pkValues));
+            }
         }
-
+        else {
+            for (Entity e: entities) {
+                qo.or(getKeyConditions(e.getEntityType(), qo, e.getKeyValue()));
+            }
+        }
         try {
             QueryResult<Object> result = ctx.performQuery(qo);
             /*
@@ -180,7 +209,7 @@ public class FetchHelper implements Serializable {
     }
 
     private Collection<Set<Object>> toEntityKeyValues(Set<Entity> entities, int maxSize) {
-        Set<Object> oneBigGroup = entities.stream().map(e -> e.getKey().getValue()).collect(Collectors.toSet());
+        Set<Object> oneBigGroup = entities.stream().map(e -> e.getKeyValue()).collect(Collectors.toSet());
         if (oneBigGroup.size() <= maxSize) {
             return Collections.singletonList(oneBigGroup);
         }
@@ -200,7 +229,7 @@ public class FetchHelper implements Serializable {
     }
 
     private Set<Object> toEntityKeyValuesTmn(Collection<ToManyNode> toManyNodes) {
-        return toManyNodes.stream().map(t -> t.getParent().getKey().getValue()).collect(Collectors.toSet());
+        return toManyNodes.stream().map(t -> t.getParent().getKeyValue()).collect(Collectors.toSet());
     }
 
     private boolean attemptBatchFetch(Entity entity, boolean fetchInternal) {
@@ -419,7 +448,7 @@ public class FetchHelper implements Serializable {
            }
 
            final QProperty<Object> manyFk = new QProperty<Object>(qo, foreignNodeName);
-           final Object primaryKeyOfOneSide = toManyNode.getParent().getKey().getValue();
+           final Object primaryKeyOfOneSide = toManyNode.getParent().getKeyValue();
            qo.where(manyFk.equal(primaryKeyOfOneSide));
            /*
             * If a user call is causing a fetch to a "join entity"
@@ -471,8 +500,11 @@ public class FetchHelper implements Serializable {
             * constrain from query to only return data for the entity we are fetching for
             * ie constrain the template query by the id of the template we are fetching for
             */
-           final QProperty<Object> fromPk = new QProperty<Object>(fromQo, toManyNode.getParent().getKey().getName());
-           fromQo.where(fromPk.equal(toManyNode.getParent().getKey().getValue()));
+           if (toManyNode.getParent().getKey().size() > 1) {
+               throw new IllegalStateException("ToMany fetches from a parent entity without a single PK is not yet supported");
+           }
+           final QProperty<Object> fromPk = new QProperty<Object>(fromQo, toManyNode.getParent().getKey().get(0).getName());
+           fromQo.where(fromPk.equal(toManyNode.getParent().getKeyValue()));
 
            try {
                ctx.performQuery(fromQo);
@@ -552,7 +584,10 @@ public class FetchHelper implements Serializable {
             * constrain from query to only return data for the entity we are fetching for
             * ie constrain the template query by the id of the template we are fetching for
             */
-           final QProperty<Object> fromPk = new QProperty<Object>(fromQo, firstToMany.getParent().getKey().getName());
+           if (firstToMany.getParent().getKey().size() > 1) {
+               throw new IllegalStateException("ToMany fetches from a parent entity without a single PK is not yet supported");
+           }
+           final QProperty<Object> fromPk = new QProperty<Object>(fromQo, firstToMany.getParent().getKey().get(0).getName());
            final Set<Object> primaryKeysOfOneSide = toEntityKeyValuesTmn(toFetch);
            fromQo.where(fromPk.in(primaryKeysOfOneSide));
 

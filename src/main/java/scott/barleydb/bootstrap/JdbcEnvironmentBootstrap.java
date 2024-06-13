@@ -276,6 +276,7 @@ public class JdbcEnvironmentBootstrap {
                 }
             }
             catch(Exception x) {
+                x.printStackTrace();
                 LOG.error("Could not load spec " + specFile, x);
             }
         }

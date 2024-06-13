@@ -29,7 +29,9 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import scott.barleydb.api.core.util.EnvironmentAccessor;
 import scott.barleydb.api.specification.EntitySpec;
@@ -65,7 +67,7 @@ public class EntityType implements Serializable {
 
     private String parentTypeName;
 
-    private String keyNodeName;
+    private List<String> keyNodeNames;
 
     private KeyGenSpec keyGenSpec;
 
@@ -80,9 +82,6 @@ public class EntityType implements Serializable {
         if (keyNodes == null || keyNodes.isEmpty()) {
             throw new IllegalArgumentException("Entity type must have a key node");
         }
-        if (keyNodes.size() > 1) {
-            throw new IllegalArgumentException("Entity type " + entityTypeSpec.getTableName() +  " must currently have a single key node");
-        }
         EntityType entityType = new EntityType(definitions);
         entityType.interfaceName = entityTypeSpec.getClassName();
         entityType.tableName = entityTypeSpec.getTableName();
@@ -91,7 +90,7 @@ public class EntityType implements Serializable {
         if (entityTypeSpec.getParentEntity() != null) {
             entityType.parentTypeName = entityTypeSpec.getParentEntity().getClassName();
         }
-        entityType.keyNodeName = keyNodes.iterator().next().getName();
+        entityType.keyNodeNames = keyNodes.stream().map(NodeSpec::getName).collect(Collectors.toList());
         /*
          * if there is only 1 primary key then we check for the generation policy.
          * if there is any other number of keys, then we assume it is a business key.
@@ -173,12 +172,12 @@ public class EntityType implements Serializable {
         return tableName;
     }
 
-    public String getKeyNodeName() {
-        return keyNodeName;
+    public List<String> getKeyNodeNames() {
+        return keyNodeNames;
     }
 
-    public String getKeyColumn() {
-        return getNodeType(keyNodeName, true).getColumnName();
+    public List<String> getKeyColumns() {
+       return keyNodeNames.stream().map(keyNodeName -> getNodeType(keyNodeName, true).getColumnName()).collect(Collectors.toList());
     }
 
     public Collection<NodeType> getNodeTypes() {

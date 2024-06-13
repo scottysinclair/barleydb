@@ -25,6 +25,7 @@ package org.example.etl;
  * #L%
  */
 
+import static scott.barleydb.api.specification.CoreSpec.mandatoryRefersToAndPk;
 import static scott.barleydb.api.specification.CoreSpec.optionallyDependsOn;
 import static scott.barleydb.api.specification.CoreSpec.mandatoryRefersTo;
 import static scott.barleydb.api.specification.CoreSpec.optionallyOwns;
@@ -229,11 +230,9 @@ public class EtlSpec extends PlatformSpec {
     @Entity("SS_TEMPLATE_DATATYPE")
     public static class TemplateBusinessType {
 
-        public static final NodeSpec id = longPrimaryKey();
+        public static final NodeSpec template = mandatoryRefersToAndPk(Template.class);
 
-        public static final NodeSpec template = mandatoryRefersTo(Template.class);
-
-        public static final NodeSpec businessType = mandatoryRefersTo(BusinessType.class);
+        public static final NodeSpec businessType = mandatoryRefersToAndPk(BusinessType.class);
     }
 
     @Entity("SS_DATATYPE")

@@ -112,7 +112,7 @@ public class QueryResult<T> implements Serializable {
                 }
             });
             for (Entity e : entities) {
-                result.entities.add(newEntityContext.getEntityByUuidOrKey(e.getUuid(), e.getEntityType(), e.getKey().getValue(), true));
+                result.entities.add(newEntityContext.getEntityByUuidOrKey(e.getUuid(), e.getEntityType(), e.getKeyValue(), true));
             }
 
             return result;

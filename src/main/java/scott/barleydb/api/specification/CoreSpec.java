@@ -112,6 +112,16 @@ public class CoreSpec {
                 Nullable.NOT_NULL);
     }
 
+    public static NodeSpec mandatoryRefersToAndPk(Class<?> type) {
+        NodeSpec nodeSpec = relation(
+              RelationType.REFERS,
+              type,
+              null,
+              Nullable.NOT_NULL);
+        nodeSpec.setPrimaryKey(true);
+        return nodeSpec;
+    }
+
     public static NodeSpec mandatoryRefersTo(Class<?> type, String columnName) {
         return relation(
                 RelationType.REFERS,
