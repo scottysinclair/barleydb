@@ -48,6 +48,7 @@ public class GenerateModelsHelper {
                 else {
                     if (useFkType) {
                         Collection<NodeSpec> pks = nodeSpec.getRelationSpec().getEntitySpec().getPrimaryKeyNodes(true);
+                        if (pks.isEmpty()) throw new IllegalStateException("No PK for entity " + nodeSpec.getRelationSpec().getEntitySpec().getClassName());
                         out.write(pks.iterator().next().getJavaType().getJavaTypeClass().getSimpleName());
                     }
                     else {

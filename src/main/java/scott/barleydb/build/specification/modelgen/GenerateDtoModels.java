@@ -97,10 +97,12 @@ public class GenerateDtoModels extends GenerateModelsHelper {
       out.write("  public String toString() {\n");
       out.write("    return getClass().getSimpleName() + \"[");
       Collection<NodeSpec> col = entitySpec.getPrimaryKeyNodes(true);
-      Objects.requireNonNull(col, "EntitySpec " + entitySpec.getClassName() + " has no PK defined");
-      NodeSpec ns = col.iterator().next();
-      out.write(ns.getName());
-      out.write(" = \" + " + toGetterName(ns) + "() + \"]\";\n");
+      if (!col.isEmpty()) {
+          NodeSpec ns = col.iterator().next();
+          out.write(ns.getName());
+          out.write(" = \" + " + toGetterName(ns) + "() + \"");
+      }
+      out.write("]\";\n");
       out.write("  }\n");
     }
 
@@ -350,6 +352,7 @@ public class GenerateDtoModels extends GenerateModelsHelper {
               else {
                   if (useFkType) {
                       Collection<NodeSpec> pks = nodeSpec.getRelationSpec().getEntitySpec().getPrimaryKeyNodes(true);
+                      if (pks.isEmpty()) throw new IllegalStateException("empty pk");
                       out.write(pks.iterator().next().getJavaType().getJavaTypeClass().getSimpleName());
                   }
                   else {

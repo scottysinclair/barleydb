@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.Objects;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -163,7 +165,7 @@ public class NodeType implements Serializable, Cloneable {
     }
 
     public boolean isPrimaryKey() {
-        return entityType.getKeyNodeName().equals(name);
+        return Objects.equals(entityType.getKeyNodeName(), name);
     }
 
     public boolean isForeignKey() {

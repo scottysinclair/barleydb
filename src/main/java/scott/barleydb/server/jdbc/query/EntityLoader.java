@@ -33,6 +33,7 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -131,7 +132,18 @@ final class EntityLoader {
                 return value;
             }
         }
-        throw new IllegalQueryStateException("Cannot find primary key node definition for: " + getEntityType());
+        /*
+         * there is no PK, so we take all columns of the first entity type as a "EntityKey"
+         */
+        EntityType entityType = myProjectionCols.get(0).getNodeType().getEntityType();
+        List<Object> combinedKey = new LinkedList<>();
+        for (ProjectionColumn column : myProjectionCols) {
+            if (column.getNodeType().getEntityType() == entityType) {
+                combinedKey.add(getValue(column));
+            }
+        }
+        if (mustExist && combinedKey.isEmpty()) throw new IllegalStateException("Some kind of key must exist");
+        return combinedKey;
     }
 
     public EntityData load() throws BarleyDBQueryException, SortJdbcException {

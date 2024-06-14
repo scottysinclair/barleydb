@@ -242,6 +242,9 @@ public class EntitySpec implements Serializable {
         if (key == null && checkParent && parentEntitySpec != null) {
             key = parentEntitySpec.getPrimaryKeyNodes(true);
         }
+        if (key == null) {
+            key = Collections.emptyList();
+        }
         return key;
     }
 

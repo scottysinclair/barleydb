@@ -34,6 +34,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import scott.barleydb.api.core.entity.Node;
 import scott.barleydb.api.core.types.JavaType;
 import scott.barleydb.api.core.types.Nullable;
 import scott.barleydb.api.query.QParameter;
@@ -87,6 +88,7 @@ public class GenerateGrapqlSDL {
 
 	private String printSchemQueryFields() {
 		return streamSchemaQueryFields()
+				.filter(f -> f.getPrimaryKeyArguments() != null)
 		.map(f -> new StringBuilder()
 				.append("  ")
 				.append(f.getName())
@@ -367,8 +369,12 @@ public class GenerateGrapqlSDL {
 		}
 		
 		public List<Argument> getPrimaryKeyArguments() {
-			NodeSpec nt = et.getPrimaryKeyNodes(true).iterator().next();
-			return Collections.singletonList(new NodeQueryArgument(nt));
+			Collection<NodeSpec> keyNodes = et.getPrimaryKeyNodes(true);
+			if (!keyNodes.isEmpty()) {
+				NodeSpec nt = keyNodes.iterator().next();
+				return Collections.singletonList(new NodeQueryArgument(nt));
+			}
+			return null;
 		} 
 
 		public List<Argument> getNonPrimaryKeyArguments() {

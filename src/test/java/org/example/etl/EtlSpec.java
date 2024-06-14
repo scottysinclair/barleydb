@@ -33,7 +33,7 @@ import static scott.barleydb.api.specification.CoreSpec.ownsMany;
 import static scott.barleydb.api.specification.CoreSpec.sortedBy;
 import static scott.barleydb.api.specification.CoreSpec.mandatoryEnum;
 import static scott.barleydb.api.specification.CoreSpec.mandatoryFixedEnum;
-
+import static scott.barleydb.api.specification.CoreSpec.uniqueConstraint;
 
 import org.example.PlatformSpec;
 import org.example.acl.AclSpec;
@@ -42,6 +42,7 @@ import org.example.acl.AclSpec.User;
 
 import scott.barleydb.api.core.types.JdbcType;
 import scott.barleydb.api.specification.NodeSpec;
+import scott.barleydb.api.specification.constraint.UniqueConstraintSpec;
 import scott.barleydb.build.specification.staticspec.AbstractEntity;
 import scott.barleydb.build.specification.staticspec.Entity;
 import scott.barleydb.build.specification.staticspec.Enumeration;
@@ -228,12 +229,12 @@ public class EtlSpec extends PlatformSpec {
 
     @Entity("SS_TEMPLATE_DATATYPE")
     public static class TemplateBusinessType {
-
-        public static final NodeSpec id = longPrimaryKey();
-
         public static final NodeSpec template = mandatoryRefersTo(Template.class);
 
         public static final NodeSpec businessType = mandatoryRefersTo(BusinessType.class);
+
+        public static final UniqueConstraintSpec templateAndBusinessType = uniqueConstraint(template, businessType);
+
     }
 
     @Entity("SS_DATATYPE")

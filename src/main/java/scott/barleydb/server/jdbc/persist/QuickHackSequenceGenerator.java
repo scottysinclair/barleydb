@@ -45,25 +45,27 @@ public class QuickHackSequenceGenerator implements SequenceGenerator {
         this.env = env;
         for (Definitions defs: env.getDefinitionsSet().getDefinitions()) {
           for (EntityType entityType: defs.getEntityTypes()) {
-             NodeType nodeType = entityType.getNodeType(entityType.getKeyNodeName(), true);
-             if (nodeType.getJavaType() == JavaType.UUID) continue;
-             try {
-              QueryObject<?> qo = new QueryObject<>(entityType.getInterfaceName());
-              // a new entity context will consume a new connection
-              // as it is not sharing in a transaction.
-              EntityContext entityContext = new EntityContext(env, entityType.getDefinitions().getNamespace());
-              entityContext.performQuery(qo);
-              Long highest = 0l;
-              for (Entity e : entityContext.getEntitiesByType(entityType)) {
-                  Long key = getKeyValueAsLong(e);
-                  if (key > highest) {
-                      highest = key;
-                  }
-              }
-              values.put(entityType, highest);
-            } catch (Exception x) {
-              throw new BarleyDBRuntimeException("Could not get next key for " + entityType, x);
-            }
+             if (entityType.hasPk()) {
+                NodeType nodeType = entityType.getNodeType(entityType.getKeyNodeName(), true);
+                if (nodeType.getJavaType() == JavaType.UUID) continue;
+                try {
+                   QueryObject<?> qo = new QueryObject<>(entityType.getInterfaceName());
+                   // a new entity context will consume a new connection
+                   // as it is not sharing in a transaction.
+                   EntityContext entityContext = new EntityContext(env, entityType.getDefinitions().getNamespace());
+                   entityContext.performQuery(qo);
+                   Long highest = 0l;
+                   for (Entity e : entityContext.getEntitiesByType(entityType)) {
+                      Long key = getKeyValueAsLong(e);
+                      if (key > highest) {
+                         highest = key;
+                      }
+                   }
+                   values.put(entityType, highest);
+                } catch (Exception x) {
+                   throw new BarleyDBRuntimeException("Could not get next key for " + entityType, x);
+                }
+             }
           }
         }
     }

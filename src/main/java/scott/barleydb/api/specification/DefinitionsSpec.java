@@ -106,7 +106,7 @@ public class DefinitionsSpec implements Serializable {
         for (EntitySpec entitySpec: entitySpecs.values()) {
             if (entitySpec.getPrimaryKeyConstraint() != null) {
                 if (!constraintNames.add(entitySpec.getPrimaryKeyConstraint().getName())) {
-                    throw new IllegalStateException("Constraint already exists: " + entitySpec.getPrimaryKeyConstraint());
+                    throw new IllegalStateException("Duplicate Constraint: " + entitySpec.getPrimaryKeyConstraint());
                 }
             }
             for (ForeignKeyConstraintSpec spec: entitySpec.getForeignKeyConstraints()) {

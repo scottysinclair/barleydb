@@ -180,7 +180,7 @@ public class FromDatabaseSchemaToSpecification {
         EntitySpec toEntitySpec = relationSpec.getEntitySpec();
 
         Collection<NodeSpec> toPrimaryKey = toEntitySpec.getPrimaryKeyNodes(true);
-        if (toPrimaryKey == null) {
+        if (toPrimaryKey.isEmpty()) {
             throw new IllegalStateException("Cannot create foreign key reference to entity " + toEntitySpec.getClassName() + " which  has no primary key");
         }
         ForeignKeyConstraintSpec spec = new ForeignKeyConstraintSpec(keySpecName, asList(nodeSpec), toEntitySpec, toPrimaryKey);

@@ -252,9 +252,9 @@ public abstract class StaticDefinitions {
         for (EntitySpec entitySpec: definitionsSpec.getEntitySpecs()) {
             //System.out.println("Checking primary key constraint to " + entitySpec.getTableName());
             Collection<NodeSpec> key = entitySpec.getPrimaryKeyNodes(false);
-            if (key != null) {
-                //System.out.println("Added primary key constraint to " + entitySpec.getTableName());
+            if (!key.isEmpty()) {
                 createPrimaryKeyConstraint(entitySpec, key);
+//                System.out.println("Added primary key constraint to " + entitySpec.getTableName());
             }
         }
     }
@@ -307,7 +307,7 @@ public abstract class StaticDefinitions {
         EntitySpec toEntitySpec = relationSpec.getEntitySpec();
 
         Collection<NodeSpec> toPrimaryKey = toEntitySpec.getPrimaryKeyNodes(true);
-        if (toPrimaryKey == null) {
+        if (toPrimaryKey.isEmpty()) {
             throw new IllegalStateException("Cannot create foreign key reference to entity " + toEntitySpec.getClassName() + " which  has no primary key");
         }
         ForeignKeyConstraintSpec spec = new ForeignKeyConstraintSpec(keySpecName, asList(nodeSpec), toEntitySpec, toPrimaryKey);

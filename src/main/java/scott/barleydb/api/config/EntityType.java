@@ -77,9 +77,6 @@ public class EntityType implements Serializable {
             throw new IllegalArgumentException("Entity type must have a table name");
         }
         Collection<NodeSpec> keyNodes = entityTypeSpec.getPrimaryKeyNodes(true);
-        if (keyNodes == null || keyNodes.isEmpty()) {
-            throw new IllegalArgumentException("Entity type must have a key node");
-        }
         if (keyNodes.size() > 1) {
             throw new IllegalArgumentException("Entity type " + entityTypeSpec.getTableName() +  " must currently have a single key node");
         }
@@ -91,7 +88,9 @@ public class EntityType implements Serializable {
         if (entityTypeSpec.getParentEntity() != null) {
             entityType.parentTypeName = entityTypeSpec.getParentEntity().getClassName();
         }
-        entityType.keyNodeName = keyNodes.iterator().next().getName();
+        if (!keyNodes.isEmpty()) {
+           entityType.keyNodeName = keyNodes.iterator().next().getName();
+        }
         /*
          * if there is only 1 primary key then we check for the generation policy.
          * if there is any other number of keys, then we assume it is a business key.
@@ -171,6 +170,10 @@ public class EntityType implements Serializable {
 
     public String getTableName() {
         return tableName;
+    }
+
+    public boolean hasPk() {
+       return keyNodeName != null;
     }
 
     public String getKeyNodeName() {
