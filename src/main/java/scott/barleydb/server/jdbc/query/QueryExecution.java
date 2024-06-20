@@ -24,7 +24,6 @@ package scott.barleydb.server.jdbc.query;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +36,6 @@ import org.slf4j.LoggerFactory;
 import scott.barleydb.api.config.Definitions;
 import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.config.NodeType;
-import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityContext;
 import scott.barleydb.api.core.entity.Statistics;
 import scott.barleydb.api.exception.execution.jdbc.SortJdbcException;
@@ -122,9 +120,9 @@ public class QueryExecution<T> {
 
                 if (rootEntityKey == null) {
                     //first time in the loop, lets set the root entity key
-                    rootEntityKey = entityDataLoader.getEntityKey(true);
+                    rootEntityKey = entityDataLoader.getEntityLoadingKey(true);
                 }
-                else if (!Objects.equals(rootEntityKey, entityDataLoader.getEntityKey(true))) {
+                else if (!Objects.equals(rootEntityKey, entityDataLoader.getEntityLoadingKey(true))) {
                     //the PK of the root entity record has changed, so we have all of the data
                     //for the object graph...
                     moreData = true;

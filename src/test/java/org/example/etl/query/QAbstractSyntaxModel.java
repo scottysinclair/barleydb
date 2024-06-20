@@ -1,35 +1,12 @@
 package org.example.etl.query;
 
-/*-
- * #%L
- * BarleyDB
- * $Id:$
- * $HeadURL:$
- * %%
- * Copyright (C) 2014 - 2017 Scott Sinclair
- *       <scottysinclair@gmail.com>
- * %%
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Lesser Public License for more details.
- * 
- * You should have received a copy of the GNU General Lesser Public
- * License along with this program.  If not, see
- * <http://www.gnu.org/licenses/lgpl-3.0.html>.
- * #L%
- */
-
 import scott.barleydb.api.query.JoinType;
 import scott.barleydb.api.query.QProperty;
 import scott.barleydb.api.query.QueryObject;
 import org.example.etl.model.SyntaxModel;
 import org.example.acl.query.QAccessArea;
+import org.example.etl.model.StructureType;
+import org.example.etl.model.SyntaxType;
 import org.example.acl.query.QUser;
 
 /**
@@ -48,6 +25,10 @@ class QAbstractSyntaxModel<T extends SyntaxModel, CHILD extends QAbstractSyntaxM
 
   public QProperty<Long> id() {
     return new QProperty<Long>(this, "id");
+  }
+
+  public QProperty<Long> accessAreaId() {
+    return new QProperty<Long>(this, "accessArea");
   }
 
   public QAccessArea joinToAccessArea() {
@@ -80,12 +61,16 @@ class QAbstractSyntaxModel<T extends SyntaxModel, CHILD extends QAbstractSyntaxM
     return new QProperty<String>(this, "name");
   }
 
-  public QProperty<org.example.etl.model.StructureType> structureType() {
-    return new QProperty<org.example.etl.model.StructureType>(this, "structureType");
+  public QProperty<StructureType> structureType() {
+    return new QProperty<StructureType>(this, "structureType");
   }
 
-  public QProperty<org.example.etl.model.SyntaxType> syntaxType() {
-    return new QProperty<org.example.etl.model.SyntaxType>(this, "syntaxType");
+  public QProperty<SyntaxType> syntaxType() {
+    return new QProperty<SyntaxType>(this, "syntaxType");
+  }
+
+  public QProperty<Long> userId() {
+    return new QProperty<Long>(this, "user");
   }
 
   public QUser joinToUser() {

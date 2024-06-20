@@ -43,7 +43,6 @@ import org.slf4j.LoggerFactory;
 
 import scott.barleydb.api.config.EntityType;
 import scott.barleydb.api.config.NodeType;
-import scott.barleydb.api.core.entity.Entity;
 import scott.barleydb.api.core.entity.EntityConstraint;
 import scott.barleydb.api.core.entity.EntityState;
 import scott.barleydb.api.core.types.JavaType;
@@ -77,7 +76,7 @@ final class EntityLoader {
     private final QueryObject<?> queryObject;
     private final ResultSet resultSet;
     private final Map<Integer, Object> rowCache;
-    private final LinkedHashMap<EntityKey, EntityData> loadedEntityData;
+    private final LinkedHashMap<EntityLoadingKey, EntityData> loadedEntityData;
 
     public EntityLoader(EntityLoaders entityLoaders, Projection projection, QueryObject<?> queryObject,
             ResultSet resultSet) {
@@ -93,7 +92,7 @@ final class EntityLoader {
         return queryObject;
     }
 
-    public LinkedHashMap<EntityKey, EntityData> getLoadedEntityData() {
+    public LinkedHashMap<EntityLoadingKey, EntityData> getLoadedEntityData() {
         return loadedEntityData;
     }
 
@@ -104,11 +103,11 @@ final class EntityLoader {
      * @throws InvalidNodeTypeException
      */
     public boolean isEntityThere() throws SortJdbcException, BarleyDBQueryException {
-        return getEntityKey(false) != null;
+        return getEntityLoadingKey(false) != null;
     }
 
     public boolean isNotYetLoaded() throws SortJdbcException, BarleyDBQueryException  {
-        EntityKey key = new EntityKey(getEntityType(), getEntityKey(true));
+        EntityLoadingKey key = new EntityLoadingKey(getEntityType(), getEntityLoadingKey(true));
         return !entityLoaders.getLoadedEntityData().containsKey( key );
     }
 
@@ -120,7 +119,7 @@ final class EntityLoader {
         loadedEntityData.clear();
     }
 
-    public Object getEntityKey(boolean mustExist) throws SortJdbcException, BarleyDBQueryException {
+    public Object getEntityLoadingKey(boolean mustExist) throws SortJdbcException, BarleyDBQueryException {
         for (ProjectionColumn column : myProjectionCols) {
             if (column.getNodeType().isPrimaryKey()) {
                 Object value = getValue(column);
@@ -154,21 +153,22 @@ final class EntityLoader {
         entityData.setEntityType(entityType.getInterfaceName());
         entityData.setConstraints( EntityConstraint.mustExistInDatabase() );
         entityData.setEntityState(EntityState.LOADED);
+        entityData.setUuid(UUID.randomUUID());
 
         for (ProjectionColumn column : myProjectionCols) {
             Object value = getValue(column);
             entityData.getData().put(column.getProperty(), value);
         }
-        EntityKey key = new EntityKey(entityType, getKey(entityData, entityType));
-        entityLoaders.getLoadedEntityData().put(key, entityData);
-        loadedEntityData.put(key, entityData);
+        EntityLoadingKey loadingKey = new EntityLoadingKey(entityType, getEntityLoadingKey(entityData, entityType));
+        entityLoaders.getLoadedEntityData().put(loadingKey, entityData);
+        loadedEntityData.put(loadingKey, entityData);
         entityLoaders.associateEntityDataToQuery(entityData, queryObject);
         return entityData;
     }
 
     public void associateAsLoaded() throws SortJdbcException, BarleyDBQueryException {
         final EntityType entityType = getEntityType();
-        EntityKey key = new EntityKey(entityType, getEntityKey(true));
+        EntityLoadingKey key = new EntityLoadingKey(entityType, getEntityLoadingKey(true));
         EntityData entityData = entityLoaders.getLoadedEntityData().get(key);
         if (entityData == null) {
             //we only associate if the entity was already loaded, something went wrong...
@@ -177,12 +177,17 @@ final class EntityLoader {
         loadedEntityData.put(key, entityData);
     }
 
-    private static Object getKey(EntityData entityData, EntityType entityType) {
+    private static Object getEntityLoadingKey(EntityData entityData, EntityType entityType) {
         if (entityType.hasPk()) {
             return entityData.getData().get(entityType.getKeyNodeName());
         }
-        else if (entityType.)
-        return null;
+        else {
+            List<Object> combinedKey = new LinkedList<>();
+            for (NodeType nodeType : entityType.getNodeTypes()) {
+                combinedKey.add(entityData.getData().get(nodeType.getColumnName()));
+            }
+            return combinedKey;
+        }
     }
 
     public void clearRowCache() {

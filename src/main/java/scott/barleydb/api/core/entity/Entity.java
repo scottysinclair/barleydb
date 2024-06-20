@@ -115,7 +115,7 @@ public class Entity implements Serializable {
     }
 
     public boolean isClearlyNotInDatabase() {
-        return getKey().getValue() == null || constraints.isMustNotExistInDatabase() || entityState == EntityState.NOT_IN_DB;
+        return getKeyValue() == null || constraints.isMustNotExistInDatabase() || entityState == EntityState.NOT_IN_DB;
     }
 
     public boolean isClearlyInDatabase() {
@@ -141,7 +141,7 @@ public class Entity implements Serializable {
     }
 
     public boolean isUnclearIfInDatabase() {
-        return getKey().getValue() != null &&  entityState == EntityState.NOTLOADED && constraints.noDatabaseExistenceConstraints();
+        return getKeyValue() != null &&  entityState == EntityState.NOTLOADED && constraints.noDatabaseExistenceConstraints();
     }
 
     public boolean isFetchRequired() {
@@ -151,7 +151,7 @@ public class Entity implements Serializable {
         if (constraints.isMustNotExistInDatabase()) {
             return false;
         }
-        return getKey().getValue() != null && entityState == EntityState.NOTLOADED;
+        return getKeyValue() != null && entityState == EntityState.NOTLOADED;
     }
 
     public EntityConstraint getConstraints() {
@@ -195,7 +195,7 @@ public class Entity implements Serializable {
     }
 
     public boolean hasKey(final Object key) {
-        return key != null && key.equals(getKey().getValue());
+        return key != null && key.equals(getKeyValue());
     }
 
     public final ValueNode getKey() {
@@ -330,7 +330,7 @@ public class Entity implements Serializable {
     }
 
     public void handleKeySet(Object oldKey) {
-        entityContext.handleKeySet(this, oldKey, getKey().getValue());
+        entityContext.handleKeySet(this, oldKey, getKeyValue());
     }
 
     public int compareOptimisticLocks(Entity other) {
@@ -393,18 +393,22 @@ public class Entity implements Serializable {
         if (constraints.isNeverFetch()) {
             return;
         }
-        if (getKey().getValue() != null) {
-            switch(entityState) {
-                case NOTLOADED:
-                    entityContext.fetch(this); break;
-                /*
-                 * do nothing for the rest.
-                 */
-                case LOADED:
-                case LOADING:
-                case NOT_IN_DB:
-            }
-        }
+         switch(entityState) {
+             case NOTLOADED:
+                if (getKeyValue() != null) {
+                   entityContext.fetch(this);
+                   break;
+                }
+                else {
+                   LOG.debug("Not fetching entity {} as it has no key", this);
+                }
+             /*
+              * do nothing for the rest.
+              */
+             case LOADED:
+             case LOADING:
+             case NOT_IN_DB:
+         }
     }
 
     private Node newChild(NodeType nd) {
@@ -471,7 +475,7 @@ public class Entity implements Serializable {
         oos.writeObject(constraints);
         oos.writeUTF(entityType.getInterfaceName());
         oos.writeObject(uuid);
-        oos.writeObject(getKey().getValue());
+        oos.writeObject(getKeyValue());
         oos.writeObject(children);
     }
 
@@ -536,7 +540,7 @@ public class Entity implements Serializable {
     @Override
     public String toString() {
         if (getKeyValue() != null) {
-            return getEntityType().getInterfaceShortName() + " [" + getEntityState() + " " + getKey().getName() + "=" + getKey().getValue() + "]";
+            return getEntityType().getInterfaceShortName() + " [" + getEntityState() + " " + getKey().getName() + "=" + getKeyValue() + "]";
         }
         else {
             return getEntityType().getInterfaceShortName() + " [" + getEntityState() + " uuid=" + getUuidFirst7()  + "..]";

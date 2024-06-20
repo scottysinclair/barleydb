@@ -48,7 +48,7 @@ final class EntityLoaders implements Iterable<EntityLoader> {
     private final JdbcEntityContextServices entityContextServices;
     private final List<EntityLoader> entityLoadersList;
     private final Definitions definitions;
-    private final LinkedHashMap<EntityKey, EntityData> loadedEntityData = new LinkedHashMap<>();
+    private final LinkedHashMap<EntityLoadingKey, EntityData> loadedEntityData = new LinkedHashMap<>();
     private final Map<EntityData, QueryObject<?>> entityDataToQueryMap;
 
     public EntityLoaders(JdbcEntityContextServices entityContextServices, Definitions definitions, Projection projection, ResultSet resultSet, Map<EntityData, QueryObject<?>> entityDataToQueryMap) {
@@ -66,7 +66,7 @@ final class EntityLoaders implements Iterable<EntityLoader> {
         return entityContextServices.getTypeConverter(typeConverterFqn);
     }
 
-    public LinkedHashMap<EntityKey, EntityData> getLoadedEntityData() {
+    public LinkedHashMap<EntityLoadingKey, EntityData> getLoadedEntityData() {
         return loadedEntityData;
     }
 
@@ -114,10 +114,10 @@ final class EntityLoaders implements Iterable<EntityLoader> {
 	}
 }
 
-class EntityKey {
+class EntityLoadingKey {
     private EntityType entityType;
     private Object entityKey;
-    public EntityKey(EntityType entityType, Object entityKey) {
+    public EntityLoadingKey(EntityType entityType, Object entityKey) {
         this.entityType = entityType;
         this.entityKey = entityKey;
     }
@@ -137,7 +137,7 @@ class EntityKey {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        EntityKey other = (EntityKey) obj;
+        EntityLoadingKey other = (EntityLoadingKey) obj;
         if (entityKey == null) {
             if (other.entityKey != null)
                 return false;

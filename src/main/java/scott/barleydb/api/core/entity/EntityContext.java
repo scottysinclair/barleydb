@@ -523,7 +523,7 @@ public class EntityContext implements Serializable, AutoCloseable {
         LOG.debug("Adding or creating Entity for EntityData {} with key {}", entityType, key);
         Entity entity = getEntity(entityType, key, false);
         if (entity == null) {
-            entity = new Entity(this, entityType, key, entityData.getConstraints());
+            entity = new Entity(this, entityType, key, entityData.getUuid(), entityData.getConstraints());
             add(entity, optionalQuery);
         }
         else {

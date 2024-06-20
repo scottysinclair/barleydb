@@ -93,7 +93,7 @@ public class EntityData implements Serializable {
 
     public EntityId getEntityId(EntityContext ctx) {
         EntityType entityType = getEntityType(ctx, true);
-        return new EntityId(entityType, getKey(entityType));
+        return new EntityId(entityType, getUuid());
     }
 
     @Override
