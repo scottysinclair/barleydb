@@ -430,7 +430,7 @@ public class DtoConverter {
     String joinProperty = node.getNodeType().getJoinProperty();
 
     Set<Entity> toProcess = new HashSet<>(entities);
-    if (entity.getKey().getValue() != null) {
+    if (entity.getKeyValue() != null) {
       if (LOG.isTraceEnabled()) {
         LOG.trace("{}:  Executing query (in separate ctx) to load and reuse existing join table records for entity {}", entity.getUuidFirst7(), entity);
       }
@@ -440,7 +440,7 @@ public class DtoConverter {
        */
       EntityContext ctx = this.ctx.newEntityContextSharingTransaction();
       QueryObject<Object> q = ctx.getUnitQuery( entity.getEntityType() );
-      QPropertyCondition qcond = new QProperty<>(q, entity.getKey().getName() ).equal(entity.getKey().getValue());
+      QPropertyCondition qcond = new QProperty<>(q, entity.getKey().getName() ).equal(entity.getKeyValue());
       q.where(qcond);
 
       //left outer join to the join entity (template -> template busines type).
@@ -495,7 +495,7 @@ public class DtoConverter {
   private boolean joinEntityReferencesOneOf(Entity joinEntity, String joinProperty, List<Entity> entities) {
     Entity toMatch = joinEntity.getChild(joinProperty, RefNode.class).getReference();
     for (Entity e: entities) {
-      if (Objects.equals(toMatch.getKey().getValue(), e.getKey().getValue())) {
+      if (Objects.equals(toMatch.getKeyValue(), e.getKeyValue())) {
         return true;
       }
     }

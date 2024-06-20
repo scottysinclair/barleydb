@@ -93,7 +93,7 @@ public final class Entities implements Iterable<Entity>, Serializable {
             entityInfos.put(entity, entityInfo);
             addEntityByType(entityInfo);
             entityByUuid.put(entity.getUuid(), entityInfo);
-            if (entity.getKey().getValue() != null) {
+            if (entity.getKeyValue() != null) {
                 entityByPk.put(new EntityPkKey(entity), entityInfo);
             }
             if (!allowGarbageCollection) {
@@ -104,7 +104,7 @@ public final class Entities implements Iterable<Entity>, Serializable {
 
     public void remove(Entity entity) {
         pollForCollectedEntities();
-        final Object pk = entity.getKey().getValue();
+        final Object pk = entity.getKeyValue();
         if (pk != null) {
             entityByPk.remove( new EntityPkKey(entity) );
         }
@@ -137,11 +137,11 @@ public final class Entities implements Iterable<Entity>, Serializable {
     public EntityInfo keyChanged(Entity entity, Object origKey) {
         LOG.trace("Key changed from {} for entity {}", origKey, entity);
         final String iname = entity.getEntityType().getInterfaceName();
-        final Object key = entity.getKey().getValue();
+        final Object key = entity.getKeyValue();
         EntityInfo entityInfo = entityByUuid.get(entity.getUuid());
         if (origKey == null && key != null) {
             entityByPk.put(new EntityPkKey(iname, key), entityInfo);
-            entityInfo.setPrimaryKey(entity.getKey().getValue());
+            entityInfo.setPrimaryKey(entity.getKeyValue());
         }
         else if (origKey != null && key == null) {
             entityByPk.remove(new EntityPkKey(iname, origKey));

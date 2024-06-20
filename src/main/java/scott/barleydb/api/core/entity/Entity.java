@@ -68,7 +68,7 @@ public class Entity implements Serializable {
      * @param toCopy
      */
     public Entity(EntityContext context, Entity toCopy) {
-        this(context, EntityState.NOTLOADED, toCopy.getEntityType(), toCopy.getKey().getValue(), toCopy.getUuid(), toCopy.getConstraints());
+        this(context, EntityState.NOTLOADED, toCopy.getEntityType(), toCopy.getKeyValue(), toCopy.getUuid(), toCopy.getConstraints());
     }
 
     public Entity(EntityContext context, EntityType entityType) {
@@ -200,6 +200,14 @@ public class Entity implements Serializable {
 
     public final ValueNode getKey() {
         return getChild(entityType.getKeyNodeName(), ValueNode.class);
+    }
+
+    public <T> T getKeyValue() {
+       ValueNode key = getKey();
+       if (key != null) {
+          return (T)key.getValue();
+       }
+       return null;
     }
 
     public void setValueNode(String name, Object value) {
@@ -527,7 +535,7 @@ public class Entity implements Serializable {
 
     @Override
     public String toString() {
-        if (getKey().getValue() != null) {
+        if (getKeyValue() != null) {
             return getEntityType().getInterfaceShortName() + " [" + getEntityState() + " " + getKey().getName() + "=" + getKey().getValue() + "]";
         }
         else {

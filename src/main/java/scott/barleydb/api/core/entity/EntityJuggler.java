@@ -222,11 +222,11 @@ public class EntityJuggler {
 
 
   private Entity createNotLoadedEquivalent(Entity refEntity, EntityContext destCtx) {
-    if (refEntity.getKey().getValue() == null) {
+    if (refEntity.getKeyValue() == null) {
       throw new BarleyDBRuntimeException("Cannot setup a equivalent NON-LOADED reference, entity has no PK");
     }
     UUID uuid = uuidsMatchAcrossContexts ? refEntity.getUuid() : UUID.randomUUID();
-    Entity destE = destCtx.newEntity(refEntity.getEntityType(), refEntity.getKey().getValue(), refEntity.getConstraints(), uuid);
+    Entity destE = destCtx.newEntity(refEntity.getEntityType(), refEntity.getKeyValue(), refEntity.getConstraints(), uuid);
     destE.setEntityState(EntityState.NOTLOADED);
     return destE;
   }
@@ -234,13 +234,13 @@ public class EntityJuggler {
   private Entity newMatchingEntity(EntityContext dest, Entity e) {
     Entity destE;
     if (uuidsMatchAcrossContexts) {
-      destE = dest.newEntity(e.getEntityType(), e.getKey().getValue(), e.getConstraints(), e.getUuid());
+      destE = dest.newEntity(e.getEntityType(), e.getKeyValue(), e.getConstraints(), e.getUuid());
     }
-    else if (e.getKey().getValue() == null) {
+    else if (e.getKeyValue() == null) {
       throw new BarleyDBRuntimeException("Cannot create natching entity with null PK, UUIDs do not match across contexts (in this case)");
     }
     else {
-      destE = dest.newEntity(e.getEntityType(), e.getKey().getValue(), e.getConstraints());
+      destE = dest.newEntity(e.getEntityType(), e.getKeyValue(), e.getConstraints());
     }
     destE.setEntityState(e.getEntityState());
     return destE;
@@ -250,10 +250,10 @@ public class EntityJuggler {
     if (uuidsMatchAcrossContexts) {
       return dest.getEntityByUuid(e.getUuid(), false);
     }
-    if (e.getKey().getValue() == null) {
+    if (e.getKeyValue() == null) {
       throw new BarleyDBRuntimeException("Cannot find Entity with null PK, UUIDs do not match across contexts (in this case)");
     }
-    return dest.getEntity(e.getEntityType(), e.getKey().getValue(), false);
+    return dest.getEntity(e.getEntityType(), e.getKeyValue(), false);
   }
 
   protected boolean importRefNode(RefNode refNode){

@@ -90,8 +90,8 @@ public class ToManyNode extends Node {
         element.setAttribute("fetched", String.valueOf(fetched));
         for (final Entity en : entities) {
             Element el = doc.createElement("ref");
-            if (en.getKey().getValue() != null) {
-                el.setAttribute("key", en.getKey().getValue().toString());
+            if (en.getKeyValue() != null) {
+                el.setAttribute("key", en.getKeyValue().toString());
             }
             else {
                 el.setAttribute("uuid", en.getUuid().toString());
@@ -135,14 +135,14 @@ public class ToManyNode extends Node {
         /*
          * do the refresh
          */
-        if (getParent().getKey().getValue() != null) {
+        if (getParent().getKeyValue() != null) {
             List<Entity> result = Collections.emptyList();
             if (getNodeType().getForeignNodeName() != null) {
                 result = getEntityContext().getEntitiesWithReferenceKey(
                         entityType,
                         getNodeType().getForeignNodeName(),
                         getParent().getEntityType(),
-                        getParent().getKey().getValue());
+                        getParent().getKeyValue());
 
             }
 
@@ -274,7 +274,7 @@ public class ToManyNode extends Node {
         final String foreignNodeName = getNodeType().getForeignNodeName();
         if (foreignNodeName != null) {
             final QProperty<Object> manyFk = new QProperty<Object>(query, foreignNodeName);
-            final Object primaryKeyOfOneSide = getParent().getKey().getValue();
+            final Object primaryKeyOfOneSide = getParent().getKeyValue();
             query.where(manyFk.equal(primaryKeyOfOneSide));
         }
         else {

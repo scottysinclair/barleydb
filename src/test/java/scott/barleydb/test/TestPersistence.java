@@ -437,7 +437,7 @@ public class TestPersistence extends TestRemoteClientBase {
         } catch (EntityMissingException x) {
             Entity entityToSave = ((ProxyController) syntaxModel).getEntity();
             Assert.assertSame(entityToSave.getEntityType(), x.getEntityType());
-            Assert.assertSame(entityToSave.getKey().getValue(), syntaxModel.getId());
+            Assert.assertSame(entityToSave.getKeyValue(), syntaxModel.getId());
         }
     }
 
@@ -520,7 +520,7 @@ public class TestPersistence extends TestRemoteClientBase {
         } catch (EntityMissingException x) {
             Entity entityToSave = ((ProxyController) syntaxModel).getEntity();
             Assert.assertSame(entityToSave.getEntityType(), x.getEntityType());
-            Assert.assertSame(entityToSave.getKey().getValue(), syntaxModel.getId());
+            Assert.assertSame(entityToSave.getKeyValue(), syntaxModel.getId());
         }
         catch(Exception x) {
             x.printStackTrace(System.err);
@@ -596,7 +596,7 @@ public class TestPersistence extends TestRemoteClientBase {
             Entity entityFromDb = x.getDatabaseEntity();
             Assert.assertSame(entityWantedSave, x.getEntity()); //the fail was from the syntax we wanted to update
             Assert.assertEquals(entityWantedSave.getEntityType(), entityFromDb.getEntityType());
-            Assert.assertEquals((Object)entityWantedSave.getKey().getValue(), (Object)entityFromDb.getKey().getValue());
+            Assert.assertEquals((Object)entityWantedSave.getKeyValue(), (Object)entityFromDb.getKeyValue());
             //assert that the database entity has a newer optimistic lock timestamp than the entity we wanted to save
             Assert.assertTrue(((Comparable<Object>) entityFromDb.getOptimisticLock().getValue()).compareTo(
                     (Comparable<Object>) entityWantedSave.getOptimisticLock().getValue()) > 0);
@@ -898,7 +898,7 @@ public class TestPersistence extends TestRemoteClientBase {
             template.setName(template.getName() + "-updated");
             theEntityContext.persist(new PersistRequest().save(template));
         } catch (OptimisticLockMismatchException x) {
-            assertEquals(template.getBusinessTypes().get(0).getId(), x.getEntity().getKey().getValue());
+            assertEquals(template.getBusinessTypes().get(0).getId(), x.getEntity().getKeyValue());
         }
     }
 

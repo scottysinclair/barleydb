@@ -276,8 +276,8 @@ public class EntityContext implements Serializable, AutoCloseable {
                     if (value != 0) {
                         return value;
                     }
-                    Comparable<Object> e1Key = e1.getKey().getValue();
-                    Comparable<Object> e2Key = e2.getKey().getValue();
+                    Comparable<Object> e1Key = e1.getKeyValue();
+                    Comparable<Object> e2Key = e2.getKeyValue();
                     if (e1Key != null) {
                         return e2Key != null ? e1Key.compareTo(e2Key) : 1;
                     }
@@ -381,7 +381,7 @@ public class EntityContext implements Serializable, AutoCloseable {
              */
             Entity entity = getEntity(entityType, key, false);
             if (entity != null) {
-                throw new IllegalStateException("Entity with key '" + entity.getKey().getValue() + "' already exists.");
+                throw new IllegalStateException("Entity with key '" + entity.getKeyValue() + "' already exists.");
             }
         }
 
@@ -401,7 +401,7 @@ public class EntityContext implements Serializable, AutoCloseable {
             entity = getEntityByUuid(uuid, false);
           }
           if (entity != null) {
-              throw new IllegalStateException("Entity with key '" + entity.getKey().getValue() + "' already exists.");
+              throw new IllegalStateException("Entity with key '" + entity.getKeyValue() + "' already exists.");
           }
       }
 
@@ -603,8 +603,8 @@ public class EntityContext implements Serializable, AutoCloseable {
         if (getEntityByUuid(entity.getUuid(), false) != null) {
             throw new IllegalStateException("Entity with uuid '" + entity.getUuid() + "' already exists.");
         }
-        if (entity.getKey().getValue() != null && getEntity(entity.getEntityType(), entity.getKey().getValue(), false) != null) {
-            throw new IllegalStateException("Entity with key '" + entity.getKey().getValue() + "' already exists.");
+        if (entity.getKeyValue() != null && getEntity(entity.getEntityType(), entity.getKeyValue(), false) != null) {
+            throw new IllegalStateException("Entity with key '" + entity.getKeyValue() + "' already exists.");
         }
         entities.add(entity, optionalQuery);
         LOG.debug("Added to entityContext " + entity);
@@ -629,8 +629,8 @@ public class EntityContext implements Serializable, AutoCloseable {
             if (entity.getUuid() != null) {
                 ours = getEntityByUuid(entity.getUuid(), false);
             }
-            if (ours == null && entity.getKey().getValue() != null) {
-                ours = getEntity(entity.getEntityType(), entity.getKey().getValue(), false);
+            if (ours == null && entity.getKeyValue() != null) {
+                ours = getEntity(entity.getEntityType(), entity.getKeyValue(), false);
             }
             if (ours == null) {
                 ours = new Entity(this, entity);
@@ -642,11 +642,11 @@ public class EntityContext implements Serializable, AutoCloseable {
             }
             for (RefNode refNode : entity.getChildren(RefNode.class)) {
                 Entity refEntity = refNode.getReference();
-                if (refEntity != null && refEntity.getKey().getValue() != null) {
-                    Entity ourRefEntity = getEntity(refNode.getEntityType(), refEntity.getKey().getValue(), false);
+                if (refEntity != null && refEntity.getKeyValue() != null) {
+                    Entity ourRefEntity = getEntity(refNode.getEntityType(), refEntity.getKeyValue(), false);
                     if (ourRefEntity == null) {
                         //copy the constraints from the original entity's referenced entity
-                        ourRefEntity = newEntity(refNode.getEntityType(), refEntity.getKey().getValue(), refEntity.getConstraints());
+                        ourRefEntity = newEntity(refNode.getEntityType(), refEntity.getKeyValue(), refEntity.getConstraints());
                     }
                     ours.getChild(refNode.getName(), RefNode.class).setReference( ourRefEntity );
                 }
@@ -964,7 +964,7 @@ public class EntityContext implements Serializable, AutoCloseable {
      * @return true if there is an entity in the context with the same type and key
      */
     public boolean containsKey(Entity entity) {
-        return getEntity(entity.getEntityType(), entity.getKey().getValue(), false) != null;
+        return getEntity(entity.getEntityType(), entity.getKeyValue(), false) != null;
     }
 
     /**

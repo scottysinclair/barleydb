@@ -67,7 +67,7 @@ public class AuditInformation implements Serializable {
         AuditKey key = new AuditKey(entity);
         AuditRecord record = recordsLookup.get(key);
         if (record == null) {
-            record = new AuditRecord(entity.getEntityType(), entity.getKey().getValue());
+            record = new AuditRecord(entity.getEntityType(), entity.getKeyValue());
             recordsLookup.put(key, record);
             records.add(record);
         }

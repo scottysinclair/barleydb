@@ -72,10 +72,10 @@ public class QuickHackSequenceGenerator implements SequenceGenerator {
 
     private Long getKeyValueAsLong(Entity e) {
       try {
-         return (Long) e.getKey().getValue();
+         return (Long) e.getKeyValue();
       }
       catch(ClassCastException x) {
-         return ((Integer) e.getKey().getValue()).longValue();
+         return ((Integer) e.getKeyValue()).longValue();
       }
     }
 
@@ -96,7 +96,7 @@ public class QuickHackSequenceGenerator implements SequenceGenerator {
                 entityContext.performQuery(qo);
                 Long highest = 0l;
                 for (Entity e : entityContext.getEntitiesByType(entityType)) {
-                    Long key = (Long) e.getKey().getValue();
+                    Long key = (Long) e.getKeyValue();
                     if (key > highest) {
                         highest = key;
                     }

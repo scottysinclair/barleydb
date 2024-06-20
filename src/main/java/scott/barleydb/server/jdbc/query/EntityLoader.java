@@ -178,7 +178,11 @@ final class EntityLoader {
     }
 
     private static Object getKey(EntityData entityData, EntityType entityType) {
-        return entityData.getData().get( entityType.getKeyNodeName() );
+        if (entityType.hasPk()) {
+            return entityData.getData().get(entityType.getKeyNodeName());
+        }
+        else if (entityType.)
+        return null;
     }
 
     public void clearRowCache() {

@@ -237,9 +237,9 @@ public class Persister {
             throw new SortPersistException("Could not load entities for validation and audit", x);
         }
         for (Entity entity : iterable(updateGroup, deleteGroup, dependsOnGroup)) {
-            Entity databaseEntity = databaseDataSet.getEntity(entity.getEntityType(), entity.getKey().getValue());
+            Entity databaseEntity = databaseDataSet.getEntity(entity.getEntityType(), entity.getKeyValue());
             if (databaseEntity == null) {
-                throw new EntityMissingException(entity.getEntityType(), entity.getKey().getValue());
+                throw new EntityMissingException(entity.getEntityType(), entity.getKeyValue());
             }
             verifyOptimisticLock(entity, databaseEntity);
         }
@@ -261,14 +261,14 @@ public class Persister {
                 if (node instanceof ValueNode) {
                     if (((ValueNode) node).getValue() != null) {
                         if (auditRecord == null) {//lazy init
-                            auditRecord = new AuditRecord(entity.getEntityType(), entity.getKey().getValue());
+                            auditRecord = new AuditRecord(entity.getEntityType(), entity.getKeyValue());
                         }
                         auditRecord.addChange(node, null, ((ValueNode) node).getValue());
                     }
                 }
                 else if (node instanceof RefNode) {
                     if (auditRecord == null) {//lazy init
-                        auditRecord = new AuditRecord(entity.getEntityType(), entity.getKey().getValue());
+                        auditRecord = new AuditRecord(entity.getEntityType(), entity.getKeyValue());
                     }
                     if (((RefNode) node).getEntityKey() != null) {
                         auditRecord.addChange(node, null, ((RefNode) node).getEntityKey());
@@ -295,7 +295,7 @@ public class Persister {
         List<AuditRecord> records = new LinkedList<>();
         for (Entity entity : updateGroup.getEntities()) {
             AuditRecord auditRecord = null;
-            Entity originalEntity = databaseDataSet.getEntity(entity.getEntityType(), entity.getKey().getValue());
+            Entity originalEntity = databaseDataSet.getEntity(entity.getEntityType(), entity.getKeyValue());
             for (Node node : entity.getChildren()) {
                 if (node instanceof ValueNode) {
                     ValueNode updatedNode = (ValueNode) node;
@@ -303,7 +303,7 @@ public class Persister {
                     if (!Objects.equals(origNode.getValue(), updatedNode.getValue())) {
                         if (auditRecord == null) {
                             //lazy init of audit record
-                            auditRecord = new AuditRecord(entity.getEntityType(), entity.getKey().getValue());
+                            auditRecord = new AuditRecord(entity.getEntityType(), entity.getKeyValue());
                         }
                         auditRecord.addChange(node, origNode.getValue(), updatedNode.getValue());
                     }
@@ -314,7 +314,7 @@ public class Persister {
                     if (!Objects.equals(origNode.getEntityKey(), updatedNode.getEntityKey())) {
                         if (auditRecord == null) {
                             //lazy init of audit record
-                            auditRecord = new AuditRecord(entity.getEntityType(), entity.getKey().getValue());
+                            auditRecord = new AuditRecord(entity.getEntityType(), entity.getKeyValue());
                         }
                         auditRecord.addChange(node, origNode.getEntityKey(), updatedNode.getEntityKey());
                     }
@@ -347,7 +347,7 @@ public class Persister {
                 if (node instanceof ValueNode) {
                     if (((ValueNode) node).getValue() != null) {
                         if (auditRecord == null) {//lazy init
-                            auditRecord = new AuditRecord(entity.getEntityType(), entity.getKey().getValue());
+                            auditRecord = new AuditRecord(entity.getEntityType(), entity.getKeyValue());
                         }
                         auditRecord.addChange(node, ((ValueNode) node).getValue(), null);
                     }
@@ -355,7 +355,7 @@ public class Persister {
                 else if (node instanceof RefNode) {
                     if (((RefNode) node).getEntityKey() != null) {
                         if (auditRecord == null) {//lazy init
-                            auditRecord = new AuditRecord(entity.getEntityType(), entity.getKey().getValue());
+                            auditRecord = new AuditRecord(entity.getEntityType(), entity.getKeyValue());
                         }
                         auditRecord.addChange(node, ((RefNode) node).getEntityKey(), null);
                     }
@@ -372,7 +372,7 @@ public class Persister {
     private void setPrimaryKeys(OperationGroup createGroup) throws SortPersistException {
         logStep("Setting primary keys");
         for (Entity entity : createGroup.getEntities()) {
-            if (entity.getKey().getValue() == null && entity.getEntityType().getKeyGenSpec() == KeyGenSpec.FRAMEWORK) {
+            if (entity.getKeyValue() == null && entity.getEntityType().getKeyGenSpec() == KeyGenSpec.FRAMEWORK) {
                 Object value = entityContextServices.getSequenceGenerator().getNextKey(entity.getEntityType());
                 LOG.debug("Setting key for " + entity + " to " + value);
                 entity.getKey().setValue(value);
@@ -718,13 +718,13 @@ public class Persister {
       Entity loadedEntity =  null;
       try {
           EntityContext tempCtx = entity.getEntityContext().newEntityContextSharingTransaction();
-          loadedEntity = tempCtx.getEntityOrLoadEntity(entity.getEntityType(), entity.getKey().getValue(), false);
+          loadedEntity = tempCtx.getEntityOrLoadEntity(entity.getEntityType(), entity.getKeyValue(), false);
       }
       catch(IllegalStateException x) {
         //error trying to find the problem, ignore it
       }
       if (loadedEntity != null) {
-          throw new PrimaryKeyExistsException(entity.getEntityType(), entity.getKey().getValue());
+          throw new PrimaryKeyExistsException(entity.getEntityType(), entity.getKeyValue());
       }
 
       else {
@@ -741,9 +741,9 @@ public class Persister {
      */
     private void handleUpdateFailure(Entity entity, Throwable throwable) throws SortPersistException {
         EntityContext tempCtx = entity.getEntityContext().newEntityContextSharingTransaction();
-        Entity loadedEntity = tempCtx.getEntityOrLoadEntity(entity.getEntityType(), entity.getKey().getValue(), false);
+        Entity loadedEntity = tempCtx.getEntityOrLoadEntity(entity.getEntityType(), entity.getKeyValue(), false);
         if (loadedEntity == null) {
-            throw new EntityMissingException(entity.getEntityType(), entity.getKey().getValue());
+            throw new EntityMissingException(entity.getEntityType(), entity.getKeyValue());
         }
         else if (loadedEntity.getOptimisticLock() != null && !Objects.equals(loadedEntity.getOptimisticLock().getValue(), entity.getOptimisticLock().getValue())) {
             throw new OptimisticLockMismatchException(entity, loadedEntity);
@@ -765,9 +765,9 @@ public class Persister {
          */
         //EntityContext tempCtx = new EntityContext(env, entity.getEntityContext().getNamespace());
         EntityContext tempCtx = entity.getEntityContext().newEntityContextSharingTransaction();
-        Entity loadedEntity = tempCtx.getEntityOrLoadEntity(entity.getEntityType(), entity.getKey().getValue(), false);
+        Entity loadedEntity = tempCtx.getEntityOrLoadEntity(entity.getEntityType(), entity.getKeyValue(), false);
         if (loadedEntity == null) {
-            throw new EntityMissingException(entity.getEntityType(), entity.getKey().getValue());
+            throw new EntityMissingException(entity.getEntityType(), entity.getKeyValue());
         }
         else if (!Objects.equals(loadedEntity.getOptimisticLock().getValue(), entity.getOptimisticLock().getValue())) {
             throw new OptimisticLockMismatchException(entity, loadedEntity);
@@ -788,9 +788,9 @@ public class Persister {
          */
         //EntityContext tempCtx = new EntityContext(env, entity.getEntityContext().getNamespace());
         EntityContext tempCtx = entity.getEntityContext().newEntityContextSharingTransaction();
-        Entity loadedEntity = tempCtx.getEntityOrLoadEntity(entity.getEntityType(), entity.getKey().getValue(), false);
+        Entity loadedEntity = tempCtx.getEntityOrLoadEntity(entity.getEntityType(), entity.getKeyValue(), false);
         if (loadedEntity == null) {
-            throw new EntityMissingException(entity.getEntityType(), entity.getKey().getValue());
+            throw new EntityMissingException(entity.getEntityType(), entity.getKeyValue());
         }
         else if (!Objects.equals(loadedEntity.getOptimisticLock().getValue(), entity.getOptimisticLock().getValue())) {
             throw new OptimisticLockMismatchException(entity, loadedEntity);
@@ -802,9 +802,9 @@ public class Persister {
 
     private void handleDeleteFailure(Entity entity, Throwable throwable) throws SortPersistException {
       EntityContext tempCtx = entity.getEntityContext().newEntityContextSharingTransaction();
-      Entity loadedEntity = tempCtx.getEntityOrLoadEntity(entity.getEntityType(), entity.getKey().getValue(), false);
+      Entity loadedEntity = tempCtx.getEntityOrLoadEntity(entity.getEntityType(), entity.getKeyValue(), false);
       if (loadedEntity == null) {
-          throw new EntityMissingException(entity.getEntityType(), entity.getKey().getValue());
+          throw new EntityMissingException(entity.getEntityType(), entity.getKeyValue());
       }
       else if (loadedEntity.getOptimisticLock() != null && !Objects.equals(loadedEntity.getOptimisticLock().getValue(), entity.getOptimisticLock().getValue())) {
           throw new OptimisticLockMismatchException(entity, loadedEntity);

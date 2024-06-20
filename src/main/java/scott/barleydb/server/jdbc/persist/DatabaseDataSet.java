@@ -203,7 +203,7 @@ public class DatabaseDataSet {
          * Adds a filter for a specific entity key
          */
         private void addKeyCondition(Entity entity) {
-            addKeyCondition(entity.getEntityType(), entity.getKey().getValue());
+            addKeyCondition(entity.getEntityType(), entity.getKeyValue());
         }
 
         /**

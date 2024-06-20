@@ -59,7 +59,7 @@ public class BarleyDBException extends Exception {
      */
     protected Entity getCorrespondingEntity(EntityContext entityContext, Entity originalEntity) {
         UUID uuid = originalEntity.getUuid();
-        Object key = originalEntity.getKey().getValue();
+        Object key = originalEntity.getKeyValue();
         Entity replacement = entityContext.getEntityByUuidOrKey(uuid, originalEntity.getEntityType(), key, false);
         return replacement != null ? replacement : originalEntity;
     }

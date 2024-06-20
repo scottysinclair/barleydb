@@ -107,7 +107,7 @@ public class FetchHelper implements Serializable {
         }
 
         final QProperty<Object> pk = new QProperty<Object>(qo, entity.getEntityType().getKeyNodeName());
-        qo.where(pk.equal(entity.getKey().getValue()));
+        qo.where(pk.equal(entity.getKeyValue()));
 
         try {
             if (singlePropertyName != null) {
@@ -180,7 +180,7 @@ public class FetchHelper implements Serializable {
     }
 
     private Collection<Set<Object>> toEntityKeyValues(Set<Entity> entities, int maxSize) {
-        Set<Object> oneBigGroup = entities.stream().map(e -> e.getKey().getValue()).collect(Collectors.toSet());
+        Set<Object> oneBigGroup = entities.stream().map(e -> e.getKeyValue()).collect(Collectors.toSet());
         if (oneBigGroup.size() <= maxSize) {
             return Collections.singletonList(oneBigGroup);
         }
@@ -200,7 +200,7 @@ public class FetchHelper implements Serializable {
     }
 
     private Set<Object> toEntityKeyValuesTmn(Collection<ToManyNode> toManyNodes) {
-        return toManyNodes.stream().map(t -> t.getParent().getKey().getValue()).collect(Collectors.toSet());
+        return toManyNodes.stream().map(t -> t.getParent().getKeyValue()).collect(Collectors.toSet());
     }
 
     private boolean attemptBatchFetch(Entity entity, boolean fetchInternal) {
@@ -419,7 +419,7 @@ public class FetchHelper implements Serializable {
            }
 
            final QProperty<Object> manyFk = new QProperty<Object>(qo, foreignNodeName);
-           final Object primaryKeyOfOneSide = toManyNode.getParent().getKey().getValue();
+           final Object primaryKeyOfOneSide = toManyNode.getParent().getKeyValue();
            qo.where(manyFk.equal(primaryKeyOfOneSide));
            /*
             * If a user call is causing a fetch to a "join entity"
@@ -472,7 +472,7 @@ public class FetchHelper implements Serializable {
             * ie constrain the template query by the id of the template we are fetching for
             */
            final QProperty<Object> fromPk = new QProperty<Object>(fromQo, toManyNode.getParent().getKey().getName());
-           fromQo.where(fromPk.equal(toManyNode.getParent().getKey().getValue()));
+           fromQo.where(fromPk.equal(toManyNode.getParent().getKeyValue()));
 
            try {
                ctx.performQuery(fromQo);

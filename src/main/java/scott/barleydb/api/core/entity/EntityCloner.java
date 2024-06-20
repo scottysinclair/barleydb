@@ -159,7 +159,7 @@ public class EntityCloner {
   }
 
   private Object keyOrUuidFirst7(Entity e) {
-    return e.getKey().getValue() != null ? e.getKey().getValue() : e.getUuidFirst7();
+    return e.getKeyValue() != null ? e.getKeyValue() : e.getUuidFirst7();
   }
 
   /**
