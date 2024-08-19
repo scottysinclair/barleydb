@@ -96,6 +96,14 @@ public class BarleyGraphQLSchema {
         SchemaGenerator schemaGenerator = new SchemaGenerator();
         this.graphQLSchema = schemaGenerator.makeExecutableSchema(typeDefinitionRegistry, runtimeWiring);
 	}
+
+	public String getNamespace() {
+		return namespace;
+	}
+
+	public Environment getEnv() {
+		return env;
+	}
 	
 	private String getSimpleName(String className) {
 		int i = className.lastIndexOf('.');

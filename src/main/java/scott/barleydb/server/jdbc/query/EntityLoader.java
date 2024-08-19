@@ -76,6 +76,7 @@ final class EntityLoader {
     private final QueryObject<?> queryObject;
     private final ResultSet resultSet;
     private final Map<Integer, Object> rowCache;
+    private final Map<EntityLoadingKey, UUID> loadingKeysToUuid;
     private final LinkedHashMap<EntityLoadingKey, EntityData> loadedEntityData;
 
     public EntityLoader(EntityLoaders entityLoaders, Projection projection, QueryObject<?> queryObject,
@@ -86,6 +87,7 @@ final class EntityLoader {
         this.rowCache = new HashMap<>();
         this.myProjectionCols = projection.getColumnsFor(queryObject);
         this.loadedEntityData = new LinkedHashMap<>();
+        this.loadingKeysToUuid = new HashMap<>();
     }
 
     public QueryObject<?> getQueryObject() {
@@ -153,13 +155,15 @@ final class EntityLoader {
         entityData.setEntityType(entityType.getInterfaceName());
         entityData.setConstraints( EntityConstraint.mustExistInDatabase() );
         entityData.setEntityState(EntityState.LOADED);
-        entityData.setUuid(UUID.randomUUID());
 
         for (ProjectionColumn column : myProjectionCols) {
             Object value = getValue(column);
             entityData.getData().put(column.getProperty(), value);
         }
         EntityLoadingKey loadingKey = new EntityLoadingKey(entityType, getEntityLoadingKey(entityData, entityType));
+        UUID uuid = loadingKeysToUuid.computeIfAbsent(loadingKey, (key) ->  UUID.randomUUID());
+        entityData.setUuid(uuid);
+
         entityLoaders.getLoadedEntityData().put(loadingKey, entityData);
         loadedEntityData.put(loadingKey, entityData);
         entityLoaders.associateEntityDataToQuery(entityData, queryObject);
@@ -205,7 +209,7 @@ final class EntityLoader {
         }
         return value != NULL_VALUE ? value : null;
     }
-
+    
     //we fall through and fail at the bottom
     private Object getResultSetValue(ResultSet rs, ProjectionColumn column) throws SortJdbcException, BarleyDBQueryException {
         final NodeType nd = column.getNodeType();
